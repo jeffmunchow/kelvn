@@ -272,29 +272,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
       <div class="auth-forgot" onclick="showForgot()">Esqueci minha senha</div>
       <button class="auth-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
       <div class="auth-msg" id="loginMsg"></div>
-      <div class="auth-switch">Ainda não tem conta? <a onclick="showSignup()">Criar conta</a></div>
     </div>
-
-    <!-- CADASTRO -->
-    <div id="authSignup" style="display:none;">
-      <div class="auth-title">Criar sua conta</div>
-      <div class="auth-field">
-        <label>Nome</label>
-        <input type="text" id="signupNome" placeholder="Seu nome">
-      </div>
-      <div class="auth-field">
-        <label>E-mail</label>
-        <input type="email" id="signupEmail" placeholder="seu@email.com" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <label>Senha</label>
-        <input type="password" id="signupPassword" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
-      </div>
-      <button class="auth-btn" id="signupBtn" onclick="doSignup()">Criar conta</button>
-      <div class="auth-msg" id="signupMsg"></div>
-      <div class="auth-switch">Já tem conta? <a onclick="showLogin()">Entrar</a></div>
-    </div>
-
     <!-- RECUPERAR SENHA -->
     <div id="authForgot" style="display:none;">
       <div class="auth-title">Recuperar senha</div>
@@ -2589,12 +2567,6 @@ async function doLogin(){
   else{ onLogin(res.data.user); }
 }
 
-async function doSignup(){
-  var btn=document.getElementById('signupBtn');
-  var nome=document.getElementById('signupNome').value.trim();
-  var email=document.getElementById('signupEmail').value.trim();
-  var pass=document.getElementById('signupPassword').value;
-  if(!nome||!email||!pass){ setMsg('signupMsg','Preenche todos os campos.','error'); return; }
   if(pass.length<8){ setMsg('signupMsg','Senha precisa ter pelo menos 8 caracteres.','error'); return; }
   btn.disabled=true; btn.textContent='Criando conta...';
   var res=await _sb.auth.signUp({email:email,password:pass,options:{data:{nome:nome},emailRedirectTo:'https://app.kelvn.com.br'}});
