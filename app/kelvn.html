@@ -2603,11 +2603,15 @@ function onLogin(user){
 }
 
 async function doLogout(){
-  await _sb.auth.signOut();
+  _loggingOut = true;
   _currentUser = null;
   showAuthScreen();
   showLogin();
+  await _sb.auth.signOut();
+  _loggingOut = false;
 }
+
+var _loggingOut = false;
 
 _sb.auth.getSession().then(function(res){
   if(res.data && res.data.session && res.data.session.user){ onLogin(res.data.session.user); }
@@ -2615,6 +2619,7 @@ _sb.auth.getSession().then(function(res){
 });
 
 _sb.auth.onAuthStateChange(function(event, session){
+  if(_loggingOut) return;
   if(event==='PASSWORD_RECOVERY'){
     document.getElementById('resetScreen').classList.add('visible');
     document.getElementById('authScreen').classList.remove('visible');
