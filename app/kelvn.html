@@ -2614,12 +2614,8 @@ function onLogin(user){
 }
 
 async function doLogout(){
-  _loggingOut = true;
-  _currentUser = null;
-  showAuthScreen();
-  showLogin();
   await _sb.auth.signOut();
-  _loggingOut = false;
+  window.location.reload();
 }
 
 var _loggingOut = false;
