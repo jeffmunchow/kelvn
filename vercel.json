@@ -1,6 +1,10 @@
 {
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
       "src": "/",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
       "dest": "/app/kelvn.html"
