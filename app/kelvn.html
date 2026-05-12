@@ -2620,8 +2620,27 @@ async function doLogout(){
 
 var _loggingOut = false;
 
+// Detecta token de recovery na URL (#access_token=...&type=recovery)
+(function(){
+  var hash = window.location.hash;
+  if(hash && hash.includes('type=recovery')){
+    // Deixa o Supabase processar o hash automaticamente
+    // o onAuthStateChange vai capturar o evento PASSWORD_RECOVERY
+    return;
+  }
+  if(hash && hash.includes('type=invite')){
+    // Token de convite — Supabase processa automaticamente
+    return;
+  }
+})();
+
 _sb.auth.getSession().then(function(res){
-  if(res.data && res.data.session && res.data.session.user){ onLogin(res.data.session.user); }
+  if(res.data && res.data.session && res.data.session.user){ 
+    // Se for recovery, não faz login automático
+    var hash = window.location.hash;
+    if(hash && hash.includes('type=recovery')) return;
+    onLogin(res.data.session.user); 
+  }
   else{ showAuthScreen(); }
 });
 
