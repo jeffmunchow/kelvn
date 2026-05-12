@@ -226,7 +226,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .inad-meta{font-size:.7rem;color:var(--text-hint);margin-top:3px;}
 .inad-valor{font-size:1.1rem;font-weight:500;color:var(--coral);}
 
-/* ── AUTH SCREEN ──────────────────────────────────────── */
 .auth-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:999;align-items:center;justify-content:center;flex-direction:column;}
 .auth-screen.visible{display:flex;}
 .auth-box{background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius);padding:2.5rem 2rem;width:100%;max-width:360px;}
@@ -242,7 +241,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed;}
 .auth-switch{font-size:.72rem;color:var(--text-hint);text-align:center;margin-top:1.25rem;}
 .auth-switch a{color:var(--amber);cursor:pointer;text-decoration:none;}
-.auth-switch a:hover{text-decoration:underline;}
 .auth-msg{font-size:.72rem;text-align:center;margin-top:.75rem;min-height:1rem;padding:6px 10px;border-radius:var(--radius-sm);}
 .auth-msg.error{color:var(--coral);background:var(--coral-light);}
 .auth-msg.success{color:var(--teal);background:var(--teal-light);}
@@ -252,13 +250,11 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
 <div class="auth-screen" id="authScreen">
   <div class="auth-box">
     <div class="auth-logo">kelvn</div>
     <div class="auth-tagline">Feito de fotógrafo para fotógrafo.</div>
 
-    <!-- LOGIN -->
     <div id="authLogin">
       <div class="auth-title">Entrar na sua conta</div>
       <div class="auth-field">
@@ -273,7 +269,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
       <button class="auth-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
       <div class="auth-msg" id="loginMsg"></div>
     </div>
-    <!-- RECUPERAR SENHA -->
+
     <div id="authForgot" style="display:none;">
       <div class="auth-title">Recuperar senha</div>
       <div class="auth-field">
@@ -1060,21 +1056,8 @@ document.addEventListener('input',function(e){
 document.querySelectorAll('.overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open');});});
 
 // ── STORAGE ─────────────────────────────────────────────
-// ── ADMIN ──────────────────────────────────────────────
-var ADMIN_EMAIL = 'jeffmunchowweddings@gmail.com';
-function isAdmin(){ return _currentUser && _currentUser.email === ADMIN_EMAIL; }
-function getUserPrefix(){ return _currentUser ? 'kelvn_'+_currentUser.id+'_' : 'kelvn_'; }
-
 function g(k){try{return JSON.parse(localStorage.getItem(getUserPrefix()+k)||'[]');}catch(e){return[];}}
 function s(k,v){localStorage.setItem(getUserPrefix()+k,JSON.stringify(v));}
-
-function initUserData(){
-  var prefix=getUserPrefix();
-  if(!localStorage.getItem(prefix+'init')){
-    if(isAdmin()){ seedDemoData(); }
-    localStorage.setItem(prefix+'init','1');
-  }
-}
 
 // ── NAV ──────────────────────────────────────────────────
 // ── SIDEBAR NAV ───────────────────────────────────────────
@@ -2542,18 +2525,19 @@ function seedDemoData(){
   rR();
 })();
 
-// ── SUPABASE CONFIG ────────────────────────────────────
 var SUPABASE_URL = 'https://lbsepogmbusfkdgnencb.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_ETRT-8mRm7AXdgaKyn_DgQ_Whq5sxav';
 var _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var _currentUser = null;
 
-// ── AUTH HELPERS ───────────────────────────────────────
+var ADMIN_EMAIL = 'jeffmunchowweddings@gmail.com';
+function isAdmin(){ return _currentUser && _currentUser.email === ADMIN_EMAIL; }
+function getUserPrefix(){ return _currentUser ? 'kelvn_'+_currentUser.id+'_' : 'kelvn_'; }
+
 function showAuthScreen(){ document.getElementById('authScreen').classList.add('visible'); document.getElementById('appMain').style.display='none'; }
 function hideAuthScreen(){ document.getElementById('authScreen').classList.remove('visible'); document.getElementById('appMain').style.display='flex'; }
-function showLogin(){ document.getElementById('authLogin').style.display=''; document.getElementById('authSignup').style.display='none'; document.getElementById('authForgot').style.display='none'; }
-function showSignup(){ document.getElementById('authLogin').style.display='none'; document.getElementById('authSignup').style.display=''; document.getElementById('authForgot').style.display='none'; }
-function showForgot(){ document.getElementById('authLogin').style.display='none'; document.getElementById('authSignup').style.display='none'; document.getElementById('authForgot').style.display=''; }
+function showLogin(){ document.getElementById('authLogin').style.display=''; document.getElementById('authForgot').style.display='none'; }
+function showForgot(){ document.getElementById('authLogin').style.display='none'; document.getElementById('authForgot').style.display=''; }
 function setMsg(id, msg, type){ var el=document.getElementById(id); el.textContent=msg; el.className='auth-msg '+(type||''); }
 
 async function doLogin(){
@@ -2567,13 +2551,6 @@ async function doLogin(){
   else{ onLogin(res.data.user); }
 }
 
-  if(pass.length<8){ setMsg('signupMsg','Senha precisa ter pelo menos 8 caracteres.','error'); return; }
-  btn.disabled=true; btn.textContent='Criando conta...';
-  var res=await _sb.auth.signUp({email:email,password:pass,options:{data:{nome:nome},emailRedirectTo:'https://app.kelvn.com.br'}});
-  if(res.error){ setMsg('signupMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Criar conta'; }
-  else{ setMsg('signupMsg','Conta criada! Confirma o e-mail para entrar.','success'); btn.disabled=false; btn.textContent='Criar conta'; }
-}
-
 async function doForgot(){
   var btn=document.getElementById('forgotBtn');
   var email=document.getElementById('forgotEmail').value.trim();
@@ -2585,12 +2562,19 @@ async function doForgot(){
   btn.disabled=false; btn.textContent='Enviar link de recuperação';
 }
 
+function initUserData(){
+  var prefix=getUserPrefix();
+  if(!localStorage.getItem(prefix+'init')){
+    if(isAdmin()){ seedDemoData(); }
+    localStorage.setItem(prefix+'init','1');
+  }
+}
+
 function onLogin(user){
   _currentUser = user;
   initUserData();
   hideAuthScreen();
   rR();
-  // Atualiza nome no topbar se existir
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
   var el = document.getElementById('userNameDisplay');
   if(el) el.textContent = nome;
@@ -2603,16 +2587,11 @@ async function doLogout(){
   showLogin();
 }
 
-// ── VERIFICAR SESSÃO AO CARREGAR ───────────────────────
 _sb.auth.getSession().then(function(res){
-  if(res.data && res.data.session && res.data.session.user){
-    onLogin(res.data.session.user);
-  } else {
-    showAuthScreen();
-  }
+  if(res.data && res.data.session && res.data.session.user){ onLogin(res.data.session.user); }
+  else{ showAuthScreen(); }
 });
 
-// ── OUVIR MUDANÇAS DE AUTH ─────────────────────────────
 _sb.auth.onAuthStateChange(function(event, session){
   if(event==='SIGNED_IN' && session){ onLogin(session.user); }
   if(event==='SIGNED_OUT'){ showAuthScreen(); showLogin(); }
