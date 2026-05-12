@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
+      "destination": "/app/$1"
+    }
+  ]
+}
