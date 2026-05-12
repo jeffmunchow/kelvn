@@ -2558,7 +2558,13 @@ function getUserPrefix(){ return _currentUser ? 'kelvn_'+_currentUser.id+'_' : '
 
 function showAuthScreen(){ document.getElementById('authScreen').classList.add('visible'); document.getElementById('appMain').style.display='none'; }
 function hideAuthScreen(){ document.getElementById('authScreen').classList.remove('visible'); document.getElementById('appMain').style.display='flex'; }
-function showLogin(){ document.getElementById('authLogin').style.display=''; document.getElementById('authForgot').style.display='none'; }
+function showLogin(){
+  document.getElementById('authLogin').style.display='';
+  document.getElementById('authForgot').style.display='none';
+  var btn=document.getElementById('loginBtn');
+  btn.disabled=false; btn.textContent='Entrar';
+  setMsg('loginMsg','','');
+}
 function showForgot(){ document.getElementById('authLogin').style.display='none'; document.getElementById('authForgot').style.display=''; }
 function setMsg(id, msg, type){ var el=document.getElementById(id); el.textContent=msg; el.className='auth-msg '+(type||''); }
 
@@ -2568,9 +2574,14 @@ async function doLogin(){
   var pass=document.getElementById('loginPassword').value;
   if(!email||!pass){ setMsg('loginMsg','Preenche e-mail e senha.','error'); return; }
   btn.disabled=true; btn.textContent='Entrando...';
-  var res=await _sb.auth.signInWithPassword({email:email,password:pass});
-  if(res.error){ setMsg('loginMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Entrar'; }
-  else{ onLogin(res.data.user); }
+  try {
+    var res=await _sb.auth.signInWithPassword({email:email,password:pass});
+    if(res.error){ setMsg('loginMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Entrar'; }
+    else{ onLogin(res.data.user); }
+  } catch(e) {
+    setMsg('loginMsg','Erro ao conectar. Tenta de novo.','error');
+    btn.disabled=false; btn.textContent='Entrar';
+  }
 }
 
 async function doForgot(){
