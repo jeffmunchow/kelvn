@@ -2597,7 +2597,7 @@ async function doSignup(){
   if(!nome||!email||!pass){ setMsg('signupMsg','Preenche todos os campos.','error'); return; }
   if(pass.length<8){ setMsg('signupMsg','Senha precisa ter pelo menos 8 caracteres.','error'); return; }
   btn.disabled=true; btn.textContent='Criando conta...';
-  var res=await _sb.auth.signUp({email:email,password:pass,options:{data:{nome:nome}}});
+  var res=await _sb.auth.signUp({email:email,password:pass,options:{data:{nome:nome},emailRedirectTo:'https://app.kelvn.com.br'}});
   if(res.error){ setMsg('signupMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Criar conta'; }
   else{ setMsg('signupMsg','Conta criada! Confirma o e-mail para entrar.','success'); btn.disabled=false; btn.textContent='Criar conta'; }
 }
