@@ -246,9 +246,31 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .auth-msg.success{color:var(--teal);background:var(--teal-light);}
 .auth-forgot{font-size:.68rem;color:var(--text-hint);text-align:right;cursor:pointer;margin-top:-.5rem;margin-bottom:.75rem;}
 .auth-forgot:hover{color:var(--amber);}
+
+.auth-screen-reset{display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;align-items:center;justify-content:center;}
+.auth-screen-reset.visible{display:flex;}
 </style>
 </head>
 <body>
+
+
+<div class="auth-screen-reset" id="resetScreen">
+  <div class="auth-box">
+    <div class="auth-logo">kelvn</div>
+    <div class="auth-tagline">Feito de fotógrafo para fotógrafo.</div>
+    <div class="auth-title">Criar nova senha</div>
+    <div class="auth-field">
+      <label>Nova senha</label>
+      <input type="password" id="resetPassword" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+    </div>
+    <div class="auth-field">
+      <label>Confirmar senha</label>
+      <input type="password" id="resetPasswordConfirm" placeholder="Repita a senha" autocomplete="new-password">
+    </div>
+    <button class="auth-btn" id="resetBtn" onclick="doResetPassword()">Salvar nova senha</button>
+    <div class="auth-msg" id="resetMsg"></div>
+  </div>
+</div>
 
 <div class="auth-screen" id="authScreen">
   <div class="auth-box">
@@ -2593,9 +2615,37 @@ _sb.auth.getSession().then(function(res){
 });
 
 _sb.auth.onAuthStateChange(function(event, session){
-  if(event==='SIGNED_IN' && session){ onLogin(session.user); }
-  if(event==='SIGNED_OUT'){ showAuthScreen(); showLogin(); }
+  if(event==='PASSWORD_RECOVERY'){
+    document.getElementById('resetScreen').classList.add('visible');
+    document.getElementById('authScreen').classList.remove('visible');
+    document.getElementById('appMain').style.display='none';
+  } else if(event==='SIGNED_IN' && session){
+    if(!document.getElementById('resetScreen').classList.contains('visible')){
+      onLogin(session.user);
+    }
+  } else if(event==='SIGNED_OUT'){
+    showAuthScreen(); showLogin();
+  }
 });
+
+async function doResetPassword(){
+  var btn=document.getElementById('resetBtn');
+  var pass=document.getElementById('resetPassword').value;
+  var confirm=document.getElementById('resetPasswordConfirm').value;
+  if(!pass||!confirm){ setMsg('resetMsg','Preenche os dois campos.','error'); return; }
+  if(pass.length<8){ setMsg('resetMsg','Senha precisa ter pelo menos 8 caracteres.','error'); return; }
+  if(pass!==confirm){ setMsg('resetMsg','As senhas não coincidem.','error'); return; }
+  btn.disabled=true; btn.textContent='Salvando...';
+  var res=await _sb.auth.updateUser({password:pass});
+  if(res.error){ setMsg('resetMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Salvar nova senha'; }
+  else{
+    setMsg('resetMsg','Senha atualizada! Entrando...','success');
+    setTimeout(function(){
+      document.getElementById('resetScreen').classList.remove('visible');
+      onLogin(res.data.user);
+    }, 1500);
+  }
+}
 
 </script>
 </body>
