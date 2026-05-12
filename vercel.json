@@ -1,14 +1,14 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/",
+      "src": "/",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
-      "destination": "/app/kelvn.html"
+      "dest": "/app/kelvn.html"
     },
     {
-      "source": "/:path*",
+      "src": "/(.*)",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
-      "destination": "/app/:path*"
+      "dest": "/app/$1"
     }
   ]
 }
