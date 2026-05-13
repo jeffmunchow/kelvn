@@ -1078,8 +1078,7 @@ document.addEventListener('input',function(e){
 document.querySelectorAll('.overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open');});});
 
 // ── STORAGE ─────────────────────────────────────────────
-function g(k){try{return JSON.parse(localStorage.getItem(getUserPrefix()+k)||'[]');}catch(e){return[];}}
-function s(k,v){localStorage.setItem(getUserPrefix()+k,JSON.stringify(v));}
+// g() e s() definidos acima com cache + Supabase
 
 // ── NAV ──────────────────────────────────────────────────
 // ── SIDEBAR NAV ───────────────────────────────────────────
@@ -2554,7 +2553,120 @@ var _currentUser = null;
 
 var ADMIN_EMAIL = 'jeffmunchowweddings@gmail.com';
 function isAdmin(){ return _currentUser && _currentUser.email === ADMIN_EMAIL; }
-function getUserPrefix(){ return _currentUser ? 'kelvn_'+_currentUser.id+'_' : 'kelvn_'; }
+
+// ── MAPEAMENTO localStorage → Supabase ─────────────────────
+var _KEY_MAP = {
+  'clientes':     {table:'clientes',           col:'data'},
+  'eventos':      {table:'eventos',            col:'data'},
+  'orcamentos':   {table:'orcamentos',         col:'data'},
+  'fin':          {table:'financeiro',         col:'data'},
+  'fin_pessoal':  {table:'financeiro_pessoal', col:'data'},
+  'edicoes':      {table:'posproducao',        col:'edicoes'},
+  'entregas':     {table:'posproducao',        col:'entregas'},
+  'pends':        {table:'posproducao',        col:'pends'},
+  'todos':        {table:'posproducao',        col:'todos'},
+  'pacotes':      {table:'configuracoes',      col:'pacotes'},
+  'equipe':       {table:'configuracoes',      col:'equipe'},
+  'tiposReuniao': {table:'configuracoes',      col:'tipos_reuniao'},
+  'slots':        {table:'configuracoes',      col:'slots'},
+  'sd':           {table:'configuracoes',      col:'sd'},
+  'q_templates':  {table:'questionarios',      col:'templates'},
+  'q_respostas':  {table:'questionarios',      col:'respostas'}
+};
+
+// ── CACHE EM MEMÓRIA ───────────────────────────────────────
+var _cache = {};
+var _cacheLoaded = false;
+var _syncTimers = {};
+var _realtimeChannel = null;
+
+// ── g() — leitura do cache ─────────────────────────────────
+function g(k){
+  if(_cache[k] !== undefined) return _cache[k];
+  try{ var uid=_currentUser?_currentUser.id+'_':''; return JSON.parse(localStorage.getItem('kelvn_'+uid+k)||'[]'); }
+  catch(e){ return []; }
+}
+
+// ── s() — escrita no cache + sync Supabase ─────────────────
+function s(k,v){
+  _cache[k]=v;
+  var uid=_currentUser?_currentUser.id+'_':'';
+  localStorage.setItem('kelvn_'+uid+k, JSON.stringify(v));
+  if(_currentUser && _KEY_MAP[k]){ _syncKey(k,v); }
+}
+
+// ── Sync debounced para o Supabase ─────────────────────────
+function _syncKey(k,v){
+  clearTimeout(_syncTimers[k]);
+  _syncTimers[k]=setTimeout(async function(){
+    var map=_KEY_MAP[k]; if(!map) return;
+    try{
+      var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
+      row[map.col]=v;
+      await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+    }catch(e){ console.warn('Sync error',k,e); }
+  },800);
+}
+
+// ── Carrega todos os dados do Supabase ─────────────────────
+async function _loadFromSupabase(){
+  if(!_currentUser) return;
+  var tables=['clientes','eventos','orcamentos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
+  try{
+    var results=await Promise.all(tables.map(t=>_sb.from(t).select('*').eq('user_id',_currentUser.id).maybeSingle()));
+    var m={};
+    tables.forEach(function(t,i){ m[t]=results[i].data; });
+    if(m.clientes)           _cache.clientes    =m.clientes.data||[];
+    if(m.eventos)            _cache.eventos     =m.eventos.data||[];
+    if(m.orcamentos)         _cache.orcamentos  =m.orcamentos.data||[];
+    if(m.financeiro)         _cache.fin         =m.financeiro.data||[];
+    if(m.financeiro_pessoal) _cache.fin_pessoal =m.financeiro_pessoal.data||[];
+    if(m.posproducao){
+      _cache.edicoes =m.posproducao.edicoes ||[];
+      _cache.entregas=m.posproducao.entregas||[];
+      _cache.pends   =m.posproducao.pends   ||[];
+      _cache.todos   =m.posproducao.todos   ||[];
+    }
+    if(m.configuracoes){
+      _cache.pacotes     =m.configuracoes.pacotes      ||[];
+      _cache.equipe      =m.configuracoes.equipe       ||[];
+      _cache.tiposReuniao=m.configuracoes.tipos_reuniao||[];
+      _cache.slots       =m.configuracoes.slots        ||[];
+      _cache.sd          =m.configuracoes.sd           ||{};
+    }
+    if(m.questionarios){
+      _cache.q_templates=m.questionarios.templates||[];
+      _cache.q_respostas=m.questionarios.respostas||[];
+    }
+    _cacheLoaded=true;
+  }catch(e){ console.warn('Erro ao carregar Supabase:',e); _cacheLoaded=true; }
+}
+
+// ── Realtime — sync entre dispositivos ────────────────────
+function _setupRealtime(){
+  if(!_currentUser) return;
+  if(_realtimeChannel) _sb.removeChannel(_realtimeChannel);
+  _realtimeChannel=_sb.channel('kelvn-realtime-'+_currentUser.id);
+  var tables=['clientes','eventos','orcamentos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
+  tables.forEach(function(table){
+    _realtimeChannel.on('postgres_changes',
+      {event:'UPDATE',schema:'public',table:table,filter:'user_id=eq.'+_currentUser.id},
+      function(payload){
+        var r=payload.new;
+        if(table==='clientes')           _cache.clientes    =r.data||[];
+        if(table==='eventos')            _cache.eventos     =r.data||[];
+        if(table==='orcamentos')         _cache.orcamentos  =r.data||[];
+        if(table==='financeiro')         _cache.fin         =r.data||[];
+        if(table==='financeiro_pessoal') _cache.fin_pessoal =r.data||[];
+        if(table==='posproducao')        { _cache.edicoes=r.edicoes||[]; _cache.entregas=r.entregas||[]; _cache.pends=r.pends||[]; _cache.todos=r.todos||[]; }
+        if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; }
+        if(table==='questionarios')      { _cache.q_templates=r.templates||[]; _cache.q_respostas=r.respostas||[]; }
+        rR();
+      }
+    );
+  });
+  _realtimeChannel.subscribe();
+}
 
 function showAuthScreen(){ document.getElementById('authScreen').classList.add('visible'); document.getElementById('appMain').style.display='none'; }
 function hideAuthScreen(){ document.getElementById('authScreen').classList.remove('visible'); document.getElementById('appMain').style.display='flex'; }
@@ -2595,17 +2707,22 @@ async function doForgot(){
   btn.disabled=false; btn.textContent='Enviar link de recuperação';
 }
 
-function initUserData(){
-  var prefix=getUserPrefix();
-  if(!localStorage.getItem(prefix+'init')){
-    if(isAdmin()){ seedDemoData(); }
-    localStorage.setItem(prefix+'init','1');
+async function initUserData(){
+  await _loadFromSupabase();
+  var hasData=_cache.clientes&&_cache.clientes.length>0;
+  if(!hasData){
+    var uid=_currentUser.id;
+    if(!localStorage.getItem('kelvn_'+uid+'_init')){
+      if(isAdmin()){ seedDemoData(); }
+      localStorage.setItem('kelvn_'+uid+'_init','1');
+    }
   }
+  _setupRealtime();
 }
 
-function onLogin(user){
+async function onLogin(user){
   _currentUser = user;
-  initUserData();
+  await initUserData();
   hideAuthScreen();
   rR();
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
