@@ -249,6 +249,40 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
 .auth-screen-reset{display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;align-items:center;justify-content:center;}
 .auth-screen-reset.visible{display:flex;}
+
+/* ── PAINEL IA ─────────────────────────────────────────────── */
+.ai-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:200;backdrop-filter:blur(2px);}
+.ai-overlay.open{display:block;}
+.ai-panel{position:fixed;top:0;right:0;bottom:0;width:min(52vw,640px);background:var(--surface);border-left:.5px solid var(--border-strong);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.ai-panel.open{transform:translateX(0);}
+.ai-header{padding:1.1rem 1.25rem .9rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
+.ai-header-icon{width:30px;height:30px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-header-icon svg{color:var(--amber);}
+.ai-header-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text);}
+.ai-header-sub{font-size:.7rem;color:var(--text-hint);margin-top:.1rem;}
+.ai-close{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-hint);padding:4px;border-radius:6px;display:flex;align-items:center;}
+.ai-close:hover{background:var(--surface2);color:var(--text);}
+.ai-messages{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:1rem;}
+.ai-msg{display:flex;flex-direction:column;gap:.3rem;max-width:88%;}
+.ai-msg.user{align-self:flex-end;align-items:flex-end;}
+.ai-msg.bot{align-self:flex-start;align-items:flex-start;}
+.ai-bubble{padding:.65rem .9rem;border-radius:12px;font-size:.82rem;line-height:1.6;}
+.ai-msg.user .ai-bubble{background:var(--text);color:var(--bg);border-radius:12px 12px 3px 12px;}
+.ai-msg.bot .ai-bubble{background:var(--surface2);color:var(--text);border-radius:12px 12px 12px 3px;border:.5px solid var(--border);}
+.ai-msg.bot .ai-bubble.thinking{color:var(--text-hint);font-style:italic;}
+.ai-suggestions{padding:.5rem 1.25rem .75rem;display:flex;flex-wrap:wrap;gap:.4rem;flex-shrink:0;}
+.ai-sug{font-size:.72rem;padding:5px 12px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .15s;}
+.ai-sug:hover{background:var(--amber-light);border-color:var(--amber);color:var(--amber-deep);}
+.ai-input-area{padding:.75rem 1rem;border-top:.5px solid var(--border);display:flex;gap:.6rem;align-items:flex-end;flex-shrink:0;}
+.ai-input{flex:1;padding:.6rem .85rem;border-radius:8px;border:.5px solid var(--border-strong);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;resize:none;outline:none;line-height:1.5;max-height:100px;transition:border-color .15s;}
+.ai-input:focus{border-color:var(--amber);}
+.ai-send{width:34px;height:34px;border-radius:8px;background:var(--text);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--bg);flex-shrink:0;transition:opacity .15s;}
+.ai-send:hover{opacity:.8;}
+.ai-send:disabled{opacity:.4;cursor:not-allowed;}
+.snav-btn.ai-btn{color:var(--amber);}
+.snav-btn.ai-btn.active{background:var(--amber-light);}
+[data-theme="dark"] .ai-msg.user .ai-bubble{background:var(--amber);color:#fff;}
+[data-theme="dark"] .ai-msg.bot .ai-bubble{background:var(--surface2);}
 </style>
 </head>
 <body>
@@ -346,6 +380,10 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
   <button class="snav-btn" id="sn-educacao" onclick="goDirecto('educacao')" title="Educação">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+  </button>
+
+  <button class="snav-btn ai-btn" id="sn-ia" onclick="toggleAI()" title="Assistente IA">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/></svg>
   </button>
 
   <div class="snav-bottom">
@@ -2786,6 +2824,179 @@ async function doResetPassword(){
       onLogin(res.data.user);
     }, 1500);
   }
+}
+
+
+// ── ASSISTENTE IA ───────────────────────────────────────────
+var _aiHistory = [];
+var _aiThinking = false;
+
+function toggleAI(){
+  var panel = document.getElementById('aiPanel');
+  var overlay = document.getElementById('aiOverlay');
+  var isOpen = panel.classList.contains('open');
+  if(isOpen){ closeAI(); } else { openAI(); }
+}
+
+function openAI(){
+  document.getElementById('aiPanel').classList.add('open');
+  document.getElementById('aiOverlay').classList.add('open');
+  document.getElementById('sn-ia').classList.add('active');
+  setTimeout(function(){ document.getElementById('aiInput').focus(); }, 300);
+}
+
+function closeAI(){
+  document.getElementById('aiPanel').classList.remove('open');
+  document.getElementById('aiOverlay').classList.remove('open');
+  document.getElementById('sn-ia').classList.remove('active');
+}
+
+function askSuggestion(btn){
+  document.getElementById('aiInput').value = btn.textContent;
+  document.getElementById('aiSuggestions').style.display = 'none';
+  sendAIMessage();
+}
+
+function aiKeyDown(e){
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendAIMessage(); }
+}
+
+function aiAutoResize(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function aiAddMessage(role, text, thinking){
+  var msgs = document.getElementById('aiMessages');
+  var div = document.createElement('div');
+  div.className = 'ai-msg ' + (role === 'user' ? 'user' : 'bot');
+  var bubble = document.createElement('div');
+  bubble.className = 'ai-bubble' + (thinking ? ' thinking' : '');
+  bubble.textContent = text;
+  div.appendChild(bubble);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return bubble;
+}
+
+function _buildContext(){
+  // Coleta dados do usuário atual do cache — NUNCA de outro usuário
+  if(!_currentUser) return '{}';
+  
+  var clientes = g('clientes') || [];
+  var eventos = g('eventos') || [];
+  var fin = g('fin') || [];
+  var edicoes = g('edicoes') || [];
+  var entregas = g('entregas') || [];
+  var pends = g('pends') || [];
+  var orcamentos = g('orcamentos') || [];
+  
+  // Resumo financeiro
+  var totalContratado = 0, totalRecebido = 0, totalPendente = 0;
+  clientes.forEach(function(c){
+    if(c.valor) totalContratado += c.valor;
+    if(c.parcelas) c.parcelas.forEach(function(p){
+      if(p.pago) totalRecebido += p.valor||0;
+      else totalPendente += p.valor||0;
+    });
+  });
+
+  // Próximos eventos (30 dias)
+  var hoje = new Date().toISOString().split('T')[0];
+  var em30 = new Date(); em30.setDate(em30.getDate()+30);
+  var proxEventos = eventos.filter(function(e){ return e.data >= hoje && new Date(e.data) <= em30; });
+
+  // Clientes com pagamento pendente
+  var comPendencia = clientes.filter(function(c){
+    return c.parcelas && c.parcelas.some(function(p){ return !p.pago; });
+  }).map(function(c){
+    var pendente = c.parcelas.filter(function(p){ return !p.pago; }).reduce(function(s,p){ return s+(p.valor||0); }, 0);
+    return {nome: c.nome, status: c.status, pendente: pendente, data: c.data};
+  });
+
+  // Pendências de pós-produção
+  var pendsAtivas = pends.filter(function(p){ return !p.done; });
+  var entregasPendentes = entregas.filter(function(e){ return e.status !== 'Entregue'; });
+
+  return JSON.stringify({
+    resumo: {
+      totalClientes: clientes.length,
+      totalContratado: totalContratado,
+      totalRecebido: totalRecebido,
+      totalPendente: totalPendente
+    },
+    clientesComPagamentoPendente: comPendencia,
+    proximosEventos: proxEventos.slice(0,10),
+    pendenciasPostProducao: pendsAtivas.slice(0,10),
+    entregasPendentes: entregasPendentes.slice(0,10),
+    orcamentosAbertos: orcamentos.filter(function(o){ return o.status !== 'Aprovado'; }).length
+  }, null, 2);
+}
+
+async function sendAIMessage(){
+  if(_aiThinking) return;
+  var input = document.getElementById('aiInput');
+  var text = input.value.trim();
+  if(!text) return;
+
+  // Esconde sugestões após primeira mensagem
+  document.getElementById('aiSuggestions').style.display = 'none';
+
+  // Mensagem do usuário
+  aiAddMessage('user', text);
+  input.value = '';
+  input.style.height = 'auto';
+
+  // Adiciona ao histórico
+  _aiHistory.push({role: 'user', content: text});
+
+  // Thinking
+  _aiThinking = true;
+  document.getElementById('aiSendBtn').disabled = true;
+  var thinkBubble = aiAddMessage('bot', 'Deixa eu ver aqui...', true);
+
+  try {
+    var context = _buildContext();
+    
+    var systemPrompt = 'Você é o assistente da Kelvn, um sistema de gestão para fotógrafos brasileiros. ' +
+      'Responda SEMPRE em português brasileiro, de forma direta, calorosa e humana — como um amigo organizado que ajuda sem julgar. ' +
+      'Frases curtas. Sem formalidade excessiva. Sem "prezado" ou "caro usuário". ' +
+      'Use os dados reais do estúdio fornecidos no contexto para responder. ' +
+      'IMPORTANTE DE SEGURANÇA: Você só tem acesso aos dados do fotógrafo que está logado agora. Nunca invente dados ou mencione outros usuários. ' +
+      'Contexto atual do estúdio:\n' + context;
+
+    var messages = _aiHistory.slice(-8); // últimas 8 mensagens para contexto
+
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: messages
+      })
+    });
+
+    var data = await response.json();
+    var reply = data.content && data.content[0] ? data.content[0].text : 'Não consegui processar. Tenta de novo?';
+
+    // Atualiza bubble de thinking com resposta real
+    thinkBubble.classList.remove('thinking');
+    thinkBubble.textContent = reply;
+
+    // Adiciona resposta ao histórico
+    _aiHistory.push({role: 'assistant', content: reply});
+
+  } catch(e) {
+    thinkBubble.classList.remove('thinking');
+    thinkBubble.textContent = 'Algo deu errado aqui. Tenta de novo em um segundo.';
+    console.error('AI error:', e);
+  }
+
+  _aiThinking = false;
+  document.getElementById('aiSendBtn').disabled = false;
+  document.getElementById('aiMessages').scrollTop = document.getElementById('aiMessages').scrollHeight;
 }
 
 </script>
