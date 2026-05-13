@@ -2583,8 +2583,11 @@ var _realtimeChannel = null;
 // ── g() — leitura do cache ─────────────────────────────────
 function g(k){
   if(_cache[k] !== undefined) return _cache[k];
-  try{ var uid=_currentUser?_currentUser.id+'_':''; return JSON.parse(localStorage.getItem('kelvn_'+uid+k)||'[]'); }
-  catch(e){ return []; }
+  try{ var uid=_currentUser?_currentUser.id+'_':''; var raw=localStorage.getItem('kelvn_'+uid+k); if(raw) return JSON.parse(raw); }
+  catch(e){}
+  // defaults seguros por chave
+  if(k==='sd') return {};
+  return [];
 }
 
 // ── s() — escrita no cache + sync Supabase ─────────────────
@@ -2708,7 +2711,7 @@ async function doForgot(){
 }
 
 async function initUserData(){
-  await _loadFromSupabase();
+  try{ await _loadFromSupabase(); } catch(e){ console.warn('loadFromSupabase failed:', e); }
   var hasData=_cache.clientes&&_cache.clientes.length>0;
   if(!hasData){
     var uid=_currentUser.id;
@@ -2717,13 +2720,17 @@ async function initUserData(){
       localStorage.setItem('kelvn_'+uid+'_init','1');
     }
   }
-  _setupRealtime();
+  try{ _setupRealtime(); } catch(e){ console.warn('setupRealtime failed:', e); }
 }
 
 async function onLogin(user){
   _currentUser = user;
-  await initUserData();
   hideAuthScreen();
+  // Mostra loading enquanto carrega dados
+  var appEl = document.getElementById('appMain');
+  if(appEl) appEl.style.opacity = '0.4';
+  await initUserData();
+  if(appEl) appEl.style.opacity = '1';
   rR();
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
   var el = document.getElementById('userNameDisplay');
