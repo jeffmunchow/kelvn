@@ -2977,20 +2977,15 @@ function _buildContext(){
 // ── Markdown simples para o chat ──────────────────────────
 function _renderMD(text){
   if(!text) return '';
-  var html = text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/[*][*]([^*]+)[*][*]/g, '<strong>$1</strong>')
-    .replace(/[*]([^*]+)[*]/g, '<em>$1</em>')
-    .replace(/^[•-] (.+)$/gm, '<li>$1</li>')
-    .replace(/^\d+[.] (.+)$/gm, '<li>$1</li>')
-    .replace(/
-
-/g, '
-')
-    .replace(/
-/g, '<br>');
-  html = html.replace(/(<li>.*?<\/li>(<br>)?)+/g, function(m){ return '<ul>' + m.replace(/<br>/g,'') + '</ul>'; });
-  return html;
+  var out = [];
+  var lines = text.split(String.fromCharCode(10));
+  for(var i=0;i<lines.length;i++){
+    var l = lines[i].replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    l = l.replace(/[*][*]([^*]+)[*][*]/g,'<strong>$1</strong>');
+    if(l.indexOf('• ')===0||l.indexOf('- ')===0){ l='<li>'+l.slice(2)+'</li>'; }
+    out.push(l);
+  }
+  return out.join('<br>');
 }
 
 async function sendAIMessage(){
