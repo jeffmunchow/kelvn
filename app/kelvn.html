@@ -251,7 +251,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .auth-screen-reset.visible{display:flex;}
 
 /* ── PAINEL IA (sidebar style) ─────────────────────────────── */
-.ai-spanel{width:min(50vw,600px);flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);position:fixed;top:0;left:56px;height:100vh;z-index:99;display:flex;flex-direction:column;transform:translateX(-110%);transition:transform .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+.ai-spanel{width:min(62vw,760px);flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);position:fixed;top:0;left:56px;height:100vh;z-index:99;display:flex;flex-direction:column;transform:translateX(-110%);transition:transform .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
 .ai-spanel.open{transform:translateX(0);}
 .ai-header{padding:1.1rem 1.25rem .9rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
 .ai-header-icon{width:30px;height:30px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -294,12 +294,9 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 <!-- IA PANEL (sidebar style) -->
 <div class="ai-spanel" id="aiPanel">
   <div class="ai-header">
-    <div class="ai-header-icon">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-    </div>
     <div>
       <div class="ai-header-title">Assistente Kelvn</div>
-      <div class="ai-header-sub">Pergunte sobre seus clientes, financeiro, agenda...</div>
+      
     </div>
     <button class="ai-close" onclick="closeAI()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -307,17 +304,11 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   </div>
   <div class="ai-messages" id="aiMessages">
     <div class="ai-msg bot">
-      <div class="ai-bubble">Oi! Sou o assistente da Kelvn. Pode me perguntar qualquer coisa sobre o seu estúdio — clientes, financeiro, agenda, pós-produção. Estou aqui pra ajudar.</div>
+      <div class="ai-bubble">Oi! Sou o assistente da Kelvn. Pode me perguntar qualquer coisa sobre o seu negócio — clientes, financeiro, agenda, pós-produção. Estou aqui pra ajudar.</div>
     </div>
   </div>
-  <div class="ai-suggestions" id="aiSuggestions">
-    <button class="ai-sug" onclick="askSuggestion(this)">Quem tem pagamento pendente?</button>
-    <button class="ai-sug" onclick="askSuggestion(this)">Quanto vou receber esse mês?</button>
-    <button class="ai-sug" onclick="askSuggestion(this)">Quais entregas estão atrasadas?</button>
-    <button class="ai-sug" onclick="askSuggestion(this)">Meus próximos casamentos</button>
-  </div>
-  <div class="ai-input-area">
-    <textarea class="ai-input" id="aiInput" placeholder="Pergunte sobre seu estúdio..." rows="1" onkeydown="aiKeyDown(event)" oninput="aiAutoResize(this)"></textarea>
+<div class="ai-input-area">
+    <textarea class="ai-input" id="aiInput" placeholder="Pergunte aqui..." rows="1" onkeydown="aiKeyDown(event)" oninput="aiAutoResize(this)"></textarea>
     <button class="ai-send" id="aiSendBtn" onclick="sendAIMessage()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
