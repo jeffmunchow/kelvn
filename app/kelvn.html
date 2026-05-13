@@ -250,14 +250,11 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .auth-screen-reset{display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;align-items:center;justify-content:center;}
 .auth-screen-reset.visible{display:flex;}
 
-/* ── PAINEL IA ─────────────────────────────────────────────── */
-.ai-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.18);z-index:200;backdrop-filter:blur(2px);}
-.ai-overlay.open{display:block;}
-.ai-panel{position:fixed;top:0;right:0;bottom:0;width:min(52vw,640px);background:var(--surface);border-left:.5px solid var(--border-strong);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);}
-.ai-panel.open{transform:translateX(0);}
+/* ── PAINEL IA (sidebar style) ─────────────────────────────── */
+.ai-spanel{width:min(50vw,600px);flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);position:fixed;top:0;left:56px;height:100vh;z-index:99;display:flex;flex-direction:column;transform:translateX(-110%);transition:transform .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+.ai-spanel.open{transform:translateX(0);}
 .ai-header{padding:1.1rem 1.25rem .9rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
 .ai-header-icon{width:30px;height:30px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.ai-header-icon svg{color:var(--amber);}
 .ai-header-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text);}
 .ai-header-sub{font-size:.7rem;color:var(--text-hint);margin-top:.1rem;}
 .ai-close{margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text-hint);padding:4px;border-radius:6px;display:flex;align-items:center;}
@@ -279,19 +276,16 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-send{width:34px;height:34px;border-radius:8px;background:var(--text);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--bg);flex-shrink:0;transition:opacity .15s;}
 .ai-send:hover{opacity:.8;}
 .ai-send:disabled{opacity:.4;cursor:not-allowed;}
-.snav-btn.ai-btn{color:var(--amber);}
-.snav-btn.ai-btn.active{background:var(--amber-light);}
+.snav-btn.ai-btn.active{background:var(--amber-light);color:var(--amber);}
 [data-theme="dark"] .ai-msg.user .ai-bubble{background:var(--amber);color:#fff;}
 [data-theme="dark"] .ai-msg.bot .ai-bubble{background:var(--surface2);}
+
 </style>
 </head>
 <body>
 
-<!-- IA OVERLAY -->
-<div class="ai-overlay" id="aiOverlay" onclick="closeAI()"></div>
-
-<!-- IA PANEL -->
-<div class="ai-panel" id="aiPanel">
+<!-- IA PANEL (sidebar style) -->
+<div class="ai-spanel" id="aiPanel">
   <div class="ai-header">
     <div class="ai-header-icon">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
@@ -1173,6 +1167,7 @@ function closePanel(){
   _panelOpen=false;
   document.getElementById('spanel').classList.remove('open');
   document.getElementById('spanel-backdrop').classList.remove('open');
+  closeAI();
   document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
 }
 
@@ -2870,21 +2865,22 @@ var _aiThinking = false;
 
 function toggleAI(){
   var panel = document.getElementById('aiPanel');
-  var overlay = document.getElementById('aiOverlay');
   var isOpen = panel.classList.contains('open');
   if(isOpen){ closeAI(); } else { openAI(); }
 }
 
 function openAI(){
+  // Fecha o spanel normal se estiver aberto
+  var spanel = document.getElementById('spanel');
+  if(spanel) spanel.classList.remove('open');
   document.getElementById('aiPanel').classList.add('open');
-  document.getElementById('aiOverlay').classList.add('open');
+  document.querySelectorAll('.snav-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('sn-ia').classList.add('active');
   setTimeout(function(){ document.getElementById('aiInput').focus(); }, 300);
 }
 
 function closeAI(){
   document.getElementById('aiPanel').classList.remove('open');
-  document.getElementById('aiOverlay').classList.remove('open');
   document.getElementById('sn-ia').classList.remove('active');
 }
 
