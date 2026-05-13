@@ -2668,6 +2668,44 @@ function _syncKey(k,v){
 }
 
 // ── Carrega todos os dados do Supabase ─────────────────────
+function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
+
+function _loadFromLocalCache(){
+  // Carrega dados do localStorage instantaneamente
+  var keys=['clientes','eventos','orcamentos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas'];
+  var hasAny=false;
+  keys.forEach(function(k){
+    var raw=localStorage.getItem(_lsKey(k));
+    if(raw){ try{ _cache[k]=JSON.parse(raw); hasAny=true; }catch(e){} }
+  });
+  return hasAny;
+}
+
+function _applySupabaseData(m){
+  if(m.clientes)           _cache.clientes    =m.clientes.data||[];
+  if(m.eventos)            _cache.eventos     =m.eventos.data||[];
+  if(m.orcamentos)         _cache.orcamentos  =m.orcamentos.data||[];
+  if(m.financeiro)         _cache.fin         =m.financeiro.data||[];
+  if(m.financeiro_pessoal) _cache.fin_pessoal =m.financeiro_pessoal.data||[];
+  if(m.posproducao){
+    _cache.edicoes =m.posproducao.edicoes ||[];
+    _cache.entregas=m.posproducao.entregas||[];
+    _cache.pends   =m.posproducao.pends   ||[];
+    _cache.todos   =m.posproducao.todos   ||[];
+  }
+  if(m.configuracoes){
+    _cache.pacotes     =m.configuracoes.pacotes      ||[];
+    _cache.equipe      =m.configuracoes.equipe       ||[];
+    _cache.tiposReuniao=m.configuracoes.tipos_reuniao||[];
+    _cache.slots       =m.configuracoes.slots        ||[];
+    _cache.sd          =m.configuracoes.sd           ||{};
+  }
+  if(m.questionarios){
+    _cache.q_templates=m.questionarios.templates||[];
+    _cache.q_respostas=m.questionarios.respostas||[];
+  }
+}
+
 async function _loadFromSupabase(){
   if(!_currentUser) return;
   var tables=['clientes','eventos','orcamentos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
@@ -2675,27 +2713,26 @@ async function _loadFromSupabase(){
     var results=await Promise.all(tables.map(t=>_sb.from(t).select('*').eq('user_id',_currentUser.id).maybeSingle()));
     var m={};
     tables.forEach(function(t,i){ m[t]=results[i].data; });
-    if(m.clientes)           _cache.clientes    =m.clientes.data||[];
-    if(m.eventos)            _cache.eventos     =m.eventos.data||[];
-    if(m.orcamentos)         _cache.orcamentos  =m.orcamentos.data||[];
-    if(m.financeiro)         _cache.fin         =m.financeiro.data||[];
-    if(m.financeiro_pessoal) _cache.fin_pessoal =m.financeiro_pessoal.data||[];
+    _applySupabaseData(m);
+    // Persiste no localStorage como cache
+    var keyMap={'clientes':'clientes','eventos':'eventos','orcamentos':'orcamentos','financeiro':'fin','financeiro_pessoal':'fin_pessoal'};
+    Object.keys(keyMap).forEach(function(t){
+      if(m[t]) localStorage.setItem(_lsKey(keyMap[t]), JSON.stringify(m[t].data||[]));
+    });
     if(m.posproducao){
-      _cache.edicoes =m.posproducao.edicoes ||[];
-      _cache.entregas=m.posproducao.entregas||[];
-      _cache.pends   =m.posproducao.pends   ||[];
-      _cache.todos   =m.posproducao.todos   ||[];
+      ['edicoes','entregas','pends','todos'].forEach(function(k){
+        localStorage.setItem(_lsKey(k), JSON.stringify(m.posproducao[k]||[]));
+      });
     }
     if(m.configuracoes){
-      _cache.pacotes     =m.configuracoes.pacotes      ||[];
-      _cache.equipe      =m.configuracoes.equipe       ||[];
-      _cache.tiposReuniao=m.configuracoes.tipos_reuniao||[];
-      _cache.slots       =m.configuracoes.slots        ||[];
-      _cache.sd          =m.configuracoes.sd           ||{};
+      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd'};
+      Object.keys(cmap).forEach(function(col){
+        localStorage.setItem(_lsKey(cmap[col]), JSON.stringify(m.configuracoes[col]||[]));
+      });
     }
     if(m.questionarios){
-      _cache.q_templates=m.questionarios.templates||[];
-      _cache.q_respostas=m.questionarios.respostas||[];
+      localStorage.setItem(_lsKey('q_templates'), JSON.stringify(m.questionarios.templates||[]));
+      localStorage.setItem(_lsKey('q_respostas'), JSON.stringify(m.questionarios.respostas||[]));
     }
     _cacheLoaded=true;
   }catch(e){ console.warn('Erro ao carregar Supabase:',e); _cacheLoaded=true; }
@@ -2767,26 +2804,31 @@ async function doForgot(){
 }
 
 async function initUserData(){
-  try{ await _loadFromSupabase(); } catch(e){ console.warn('loadFromSupabase failed:', e); }
-  var hasData=_cache.clientes&&_cache.clientes.length>0;
-  if(!hasData){
+  // 1. Carrega localStorage instantaneamente
+  var hadCache = _loadFromLocalCache();
+  _cacheLoaded = true;
+
+  // 2. Se não tem cache, seed demo ou sistema vazio
+  if(!hadCache){
     var uid=_currentUser.id;
     if(!localStorage.getItem('kelvn_'+uid+'_init')){
       if(isAdmin()){ seedDemoData(); }
       localStorage.setItem('kelvn_'+uid+'_init','1');
     }
   }
+
+  // 3. Sync Supabase em background — não bloqueia a UI
+  _loadFromSupabase().then(function(){
+    rR(); // re-render silencioso com dados atualizados
+  }).catch(function(e){ console.warn('bg sync failed:', e); });
+
   try{ _setupRealtime(); } catch(e){ console.warn('setupRealtime failed:', e); }
 }
 
 async function onLogin(user){
   _currentUser = user;
   hideAuthScreen();
-  // Mostra loading enquanto carrega dados
-  var appEl = document.getElementById('appMain');
-  if(appEl) appEl.style.opacity = '0.4';
   await initUserData();
-  if(appEl) appEl.style.opacity = '1';
   rR();
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
   var el = document.getElementById('userNameDisplay');
