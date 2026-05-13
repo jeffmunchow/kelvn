@@ -2530,20 +2530,6 @@ function seedDemoData(){
 }
 (function(){
   var th=localStorage.getItem('kelvn_theme');if(th)document.documentElement.setAttribute('data-theme',th);
-  var d=new Date();document.getElementById('hdate').textContent=DA[d.getDay()]+', '+d.getDate()+' de '+MO[d.getMonth()];
-  // garante pendências mesmo se seed anterior não as incluiu
-  if(!g('pends').length){
-    var fut2=function(d){var x=new Date();x.setDate(x.getDate()+d);return x.toISOString().split('T')[0];};
-    s('pends',[
-      {id:'pd01',desc:'Selecionar e editar galeria — Diana & Thiago',clienteId:'c04',prazo:fut2(12),prio:'alta',done:false},
-      {id:'pd02',desc:'Exportar álbum 30x30 — Juliana & Marcos',clienteId:'c06',prazo:fut2(2),prio:'alta',done:false},
-      {id:'pd03',desc:'Enviar prévia de 50 fotos — Diana & Thiago',clienteId:'c04',prazo:fut2(5),prio:'normal',done:false},
-      {id:'pd04',desc:'Criar timeline — Mariana & Felipe',clienteId:'c08',prazo:fut2(3),prio:'normal',done:true},
-      {id:'pd05',desc:'Backup HD externo — casamentos Q1',clienteId:'',prazo:fut2(20),prio:'baixa',done:false},
-      {id:'pd06',desc:'Atualizar portfólio do site',clienteId:'',prazo:fut2(30),prio:'baixa',done:false}
-    ]);
-  }
-  rR();
 })();
 
 var SUPABASE_URL = 'https://lbsepogmbusfkdgnencb.supabase.co';
