@@ -3000,7 +3000,7 @@ async function sendAIMessage(){
 
     var messages = _aiHistory.slice(-8); // últimas 8 mensagens para contexto
 
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
+    var response = await fetch('/api/ai-proxy', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
