@@ -1170,6 +1170,7 @@ function closePanel(){
 }
 
 function goDirecto(name){
+  closeAI();
   closePanel();
   document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
   var btn=document.getElementById('sn-'+name);if(btn)btn.classList.add('active');
@@ -1178,6 +1179,7 @@ function goDirecto(name){
 }
 
 function openSection(sec){
+  closeAI();
   var same=_curSection===sec&&_panelOpen;
   if(same){ closePanel(); return; }
   document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
