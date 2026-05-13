@@ -2228,7 +2228,7 @@ var EBOOKS=[
   {id:'eb02',titulo:'Casamentos: do Lead ao Álbum',autor:'Kelvn Studio',preco:57,
    desc:'O guia completo do fluxo de trabalho para fotógrafos de casamento. Da captação do cliente à entrega final.',
    itens:'✓ 180 páginas em PDF\n✓ Templates de contrato editáveis\n✓ Checklist do dia do casamento\n✓ Scripts de atendimento\n✓ Acesso vitalício',
-   img:'',vol:'I'},
+   img:'https://res.cloudinary.com/dptgycx3x/image/upload/v1778148344/Volume_1_pjdnfq.png',vol:'I'},
   ,
   {id:'eb_vol2',titulo:'Fotografia Documental em Casamentos',autor:'Kelvn Studio',preco:47,
    desc:'O olhar que captura o real. Filosofia, abordagem e como educar o casal sobre o estilo.',
@@ -2260,7 +2260,7 @@ var _ckEbook=null;
 
 function makeCover(eb,size){
   size=size||'100%';
-  var realImg=eb.img?EBIMG[eb.img]||null:null;
+  var realImg=eb.img?(eb.img.indexOf('http')===0?eb.img:(EBIMG&&EBIMG[eb.img])||null):null;
   var bgStyle=realImg
     ? 'background:url('+realImg+') center/cover no-repeat;'
     : 'background:'+(eb.bg||'#1A1814')+';';
@@ -2353,7 +2353,7 @@ function abrirCheckout(id){
   var eb=EBOOKS.find(function(x){return x.id===id;});
   if(!eb) return;
   _ckEbook=eb;
-  var realImg=eb.img?EBIMG[eb.img]||null:null;
+  var realImg=eb.img?(eb.img.indexOf('http')===0?eb.img:(EBIMG&&EBIMG[eb.img])||null):null;
   document.getElementById('ck-title').textContent='Adquirir ebook';
   document.getElementById('ck-name').textContent=eb.titulo||'';
   document.getElementById('ck-desc').textContent=eb.desc||'';
