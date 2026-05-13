@@ -2976,24 +2976,21 @@ function _buildContext(){
 
 // ── Markdown simples para o chat ──────────────────────────
 function _renderMD(text){
-  return text
-    // Bold
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // Italic
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // Bullet lists
-    .replace(/^[•\-\*] (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
-    // Numbered lists
-    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
-    // Line breaks
+  if(!text) return '';
+  var html = text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/[*][*]([^*]+)[*][*]/g, '<strong>$1</strong>')
+    .replace(/[*]([^*]+)[*]/g, '<em>$1</em>')
+    .replace(/^[•-] (.+)$/gm, '<li>$1</li>')
+    .replace(/^\d+[.] (.+)$/gm, '<li>$1</li>')
     .replace(/
 
-/g, '</p><p>')
+/g, '
+')
     .replace(/
-/g, '<br>')
-    // Wrap in paragraph
-    .replace(/^(.+)$/, '<p>$1</p>');
+/g, '<br>');
+  html = html.replace(/(<li>.*?<\/li>(<br>)?)+/g, function(m){ return '<ul>' + m.replace(/<br>/g,'') + '</ul>'; });
+  return html;
 }
 
 async function sendAIMessage(){
