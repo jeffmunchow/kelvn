@@ -159,7 +159,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ag-day-label{font-size:.55rem;color:var(--text-hint);text-align:center;padding-bottom:1px;}
 .ag-day{width:100%;aspect-ratio:1;border-radius:3px;font-size:.6rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;}
 .ag-day.has-event{background:var(--surface2);color:var(--text-muted);font-weight:500;border-radius:4px;cursor:pointer;}
-.ag-day.has-event-secondary{background:var(--border-strong);color:var(--text-hint);font-weight:400;border-radius:4px;cursor:pointer;}
 .ag-day.today{background:#D4902A;color:#fff;border-radius:4px;font-weight:600;}
 .ag-day.today.has-event{background:#D4902A;color:#fff;cursor:pointer;}
 .ag-day.cal-sel{outline:1px solid #D4902A;outline-offset:1px;}
@@ -1492,7 +1491,7 @@ function selectCalDay(m,day){
     });
   }
   // atualiza visual do dia selecionado no calendário
-  document.querySelectorAll('.ag-day.has-event, .ag-day.has-event-secondary').forEach(function(el){ el.classList.remove('cal-sel'); });
+  document.querySelectorAll('.ag-day.has-event').forEach(function(el){ el.classList.remove('cal-sel'); });
   if(_calDiaSel){
     var active=document.querySelector('.ag-day[data-cal="'+_calDiaSel+'"]');
     if(active) active.classList.add('cal-sel');
@@ -1506,12 +1505,7 @@ function rCalAno(){
   var evDays={};
   evs.forEach(function(e){
     var d=new Date(e.data);
-    if(d.getFullYear()===_calAno){
-      var key=d.getMonth()+'-'+d.getDate();
-      var isPrimary=(e.tipo==='Casamento'||e.tipo==='Ensaio');
-      // primário sempre prevalece sobre secundário
-      if(!evDays[key]||isPrimary) evDays[key]=isPrimary?'primary':'secondary';
-    }
+    if(d.getFullYear()===_calAno){ evDays[d.getMonth()+'-'+d.getDate()]=true; }
   });
   var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   var dias=['D','S','T','Q','Q','S','S'];
@@ -1524,12 +1518,10 @@ function rCalAno(){
     var total=new Date(_calAno,m+1,0).getDate();
     for(var day=1;day<=total;day++){
       var isToday=(_calAno===ty&&m===tm&&day===td);
-      var evType=evDays[m+'-'+day];
-      var hasEv=!!evType;
-      var evClass=evType==='primary'?'has-event':evType==='secondary'?'has-event-secondary':'';
+      var hasEv=!!evDays[m+'-'+day];
       var key=_calAno+'-'+m+'-'+day;
       var isSel=(_calDiaSel===key);
-      var cls='ag-day'+(isToday?' today':'')+(evClass?' '+evClass:'')+(isSel?' cal-sel':'');
+      var cls='ag-day'+(isToday?' today':'')+(hasEv?' has-event':'')+(isSel?' cal-sel':'');
       var onclick=hasEv?' onclick="selectCalDay('+m+','+day+')"':'';
       var dataAttr=hasEv?' data-cal="'+key+'"':'';
       html+='<div class="'+cls+'"'+onclick+dataAttr+'>'+day+'</div>';
