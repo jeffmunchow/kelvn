@@ -530,7 +530,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     </div>
   </div>
   <div class="tw"><div class="ts"><table><thead><tr>
-    <th>Nome</th><th>Casamento</th><th>Local</th><th>Valor</th><th>Pago</th><th>Status</th><th>Contrato</th><th></th>
+    <th>Nome</th><th>Casamento</th><th>Local</th><th>Valor</th><th>Pago</th><th>Status</th><th></th>
   </tr></thead><tbody id="c-tbody"></tbody></table></div></div>
 </div>
 
@@ -1379,11 +1379,10 @@ function rC(){
   var q=(document.getElementById('c-search').value||'').toLowerCase(),sf=document.getElementById('c-status').value;
   var cs=g('clientes').filter(function(c){return (sf===''?c.status!=='Finalizado':c.status===sf)&&(!q||(c.nome||'').toLowerCase().includes(q)||(c.local||'').toLowerCase().includes(q));}).sort(function(a,b){return(pd(a.data)||0)-(pd(b.data)||0);});
   var tb=document.getElementById('c-tbody');
-  if(!cs.length){tb.innerHTML='<tr><td colspan="8" class="empty">Nenhum cliente</td></tr>';return;}
+  if(!cs.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nenhum cliente</td></tr>';return;}
   tb.innerHTML=cs.map(function(c){
     var paid=(c.parcelas||[]).reduce(function(a,p){return a+(p.pago?parseFloat(p.valor||0):0);},0);
-    var assinado=c.assinado?'<span class="badge be">Assinado</span>':'<span class="badge bf">Pendente</span>';
-    return '<tr onclick="openC(\''+c.id+'\')"><td class="tdn">'+(c.nome||'—')+'</td><td>'+fd(c.data)+'</td><td>'+(c.local||'—')+'</td><td>'+$m(c.valor||0)+'</td><td>'+$m(paid)+'</td><td>'+bdg(c.status)+'</td><td>'+assinado+'</td><td><button class="ra" onclick="event.stopPropagation();openC(\''+c.id+'\')">Editar</button></td></tr>';
+    return '<tr onclick="openC(\''+c.id+'\')"><td class="tdn">'+(c.nome||'—')+'</td><td>'+fd(c.data)+'</td><td>'+(c.local||'—')+'</td><td>'+$m(c.valor||0)+'</td><td>'+$m(paid)+'</td><td>'+bdg(c.status)+'</td><td><button class="ra" onclick="event.stopPropagation();openC(\''+c.id+'\')">Editar</button></td></tr>';
   }).join('');
 }
 function openC(id){
