@@ -839,6 +839,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
       </select></div>
       <div class="field" style="margin:0"><label>Valor total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()"></div>
     </div>
+    <div id="mc-eventos-extra"></div>
+    <button class="btn" style="font-size:.65rem;padding:3px 10px;margin-top:.5rem;color:var(--text-muted);" onclick="addCEvento()">+ Adicionar evento</button>
   </div>
   <div style="margin-top:1.25rem;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
@@ -1376,7 +1378,25 @@ function rR(){
     return '<div class="pc" onclick="go(\'posproducao\')"><div class="pr"><div><div class="pn">'+p.desc+'</div><div class="pm">'+(p.clienteId?cN(p.clienteId):'Geral')+'</div></div>'+(pl.txt?'<div class="'+pl.cls+'">'+pl.txt+'</div>':'')+' </div></div>';
   }).join('');
 }
-var _cId=null,_parc=[];
+var _cId=null,_parc=[],_cEventos=[];
+function addCEvento(){
+  _cEventos.push({id:uid(),data:'',local:'',status:'Prospect',valor:0});
+  rCEventos();
+}
+function rCEventos(){
+  var opts=['Prospect','Contratado','Sessão Pré-Casamento','Casamento','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var el=document.getElementById('mc-eventos-extra');
+  if(!el)return;
+  el.innerHTML=_cEventos.map(function(ev,i){
+    return '<div style="display:grid;grid-template-columns:1fr 2fr 1fr 1fr;gap:0 1rem;margin-top:.75rem;padding-top:.75rem;border-top:.5px solid var(--border-strong);position:relative;">'
+      +'<div class="field" style="margin:0"><label>Data</label><input type="text" class="sd" maxlength="10" placeholder="DD/MM/AAAA" value="'+i2d(ev.data||'')+'" oninput="sdM(this)" onchange="_cEventos['+i+'].data=d2i(this.value)"></div>'
+      +'<div class="field" style="margin:0"><label>Local</label><input type="text" placeholder="Igreja, espaço, cidade" value="'+(ev.local||'')+'" oninput="_cEventos['+i+'].local=this.value"></div>'
+      +'<div class="field" style="margin:0"><label>Status</label><select onchange="_cEventos['+i+'].status=this.value">'+opts.map(function(o){return '<option'+(ev.status===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>'
+      +'<div class="field" style="margin:0"><label>Valor (R$)</label><input type="number" placeholder="0" value="'+(ev.valor||'')+'" oninput="_cEventos['+i+'].valor=parseFloat(this.value)||0"></div>'
+      +'<button onclick="_cEventos.splice('+i+',1);rCEventos()" style="position:absolute;top:10px;right:-8px;background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:.85rem;line-height:1;">✕</button>'
+      +'</div>';
+  }).join('');
+}
 function rC(){
   var q=(document.getElementById('c-search').value||'').toLowerCase(),sf=document.getElementById('c-status').value;
   var cs=g('clientes').filter(function(c){return (sf===''?c.status!=='Finalizado':c.status===sf)&&(!q||(c.nome||'').toLowerCase().includes(q)||(c.local||'').toLowerCase().includes(q));}).sort(function(a,b){return(pd(a.data)||0)-(pd(b.data)||0);});
@@ -1400,6 +1420,7 @@ function openC(id){
     document.getElementById('mc-del').style.display='inline-flex';
     document.getElementById('mc-contrato-btn').style.display='inline-flex';
     rPL(c.parcelas||[]);
+    _cEventos=(c.eventosExtra||[]).map(function(e){return Object.assign({},e);});rCEventos();
   }else{
     document.getElementById('mc-t').textContent='Novo Cliente';
     ['mc-nome','mc-local','mc-data','mc-email','mc-tel','mc-valor','mc-notas'].forEach(function(i){document.getElementById(i).value='';}); 
@@ -1407,13 +1428,14 @@ function openC(id){
     document.getElementById('mc-del').style.display='none';
     document.getElementById('mc-contrato-btn').style.display='none';
     rPL([]);
+    _cEventos=[];rCEventos();
   }
   document.getElementById('ov-c').classList.add('open');
 }
 function saveC(){
   var cs=g('clientes');
   var ex=_cId?cs.find(function(c){return c.id===_cId;}):null;
-  var o={id:_cId||uid(),nome:document.getElementById('mc-nome').value.trim(),local:document.getElementById('mc-local').value.trim(),data:d2i(document.getElementById('mc-data').value),status:document.getElementById('mc-status').value,email:document.getElementById('mc-email').value.trim(),tel:document.getElementById('mc-tel').value.trim(),valor:parseFloat(document.getElementById('mc-valor').value)||0,notas:document.getElementById('mc-notas').value.trim(),parcelas:_parc,assinado:ex?ex.assinado:false};
+  var o={id:_cId||uid(),nome:document.getElementById('mc-nome').value.trim(),local:document.getElementById('mc-local').value.trim(),data:d2i(document.getElementById('mc-data').value),status:document.getElementById('mc-status').value,email:document.getElementById('mc-email').value.trim(),tel:document.getElementById('mc-tel').value.trim(),valor:parseFloat(document.getElementById('mc-valor').value)||0,notas:document.getElementById('mc-notas').value.trim(),parcelas:_parc,assinado:ex?ex.assinado:false,eventosExtra:_cEventos};
   if(!o.nome){alert('Informe o nome.');return;}
   if(_cId){var i=cs.findIndex(function(c){return c.id===_cId;});if(i>-1)cs[i]=o;}else cs.push(o);
   s('clientes',cs);cov('ov-c');rC();rR();notify('Cliente salvo');
