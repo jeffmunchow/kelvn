@@ -1392,14 +1392,14 @@ function openC(id){
     document.getElementById('mc-nome').value=c.nome||'';document.getElementById('mc-local').value=c.local||'';
     document.getElementById('mc-data').value=fd(c.data);document.getElementById('mc-status').value=c.status||'Prospect';
     document.getElementById('mc-email').value=c.email||'';document.getElementById('mc-tel').value=c.tel||'';
-    document.getElementById('mc-valor').value=c.valor||'';document.getElementById('mc-contrato').value=fd(c.contrato);
+    document.getElementById('mc-valor').value=c.valor||'';
     document.getElementById('mc-notas').value=c.notas||'';
     document.getElementById('mc-del').style.display='inline-flex';
     document.getElementById('mc-contrato-btn').style.display='inline-flex';
     rPL(c.parcelas||[]);
   }else{
     document.getElementById('mc-t').textContent='Novo Cliente';
-    ['mc-nome','mc-local','mc-data','mc-email','mc-tel','mc-valor','mc-contrato','mc-notas'].forEach(function(i){document.getElementById(i).value='';});
+    ['mc-nome','mc-local','mc-data','mc-email','mc-tel','mc-valor','mc-notas'].forEach(function(i){document.getElementById(i).value='';}); 
     document.getElementById('mc-status').value='Prospect';
     document.getElementById('mc-del').style.display='none';
     document.getElementById('mc-contrato-btn').style.display='none';
@@ -1410,7 +1410,7 @@ function openC(id){
 function saveC(){
   var cs=g('clientes');
   var ex=_cId?cs.find(function(c){return c.id===_cId;}):null;
-  var o={id:_cId||uid(),nome:document.getElementById('mc-nome').value.trim(),local:document.getElementById('mc-local').value.trim(),data:d2i(document.getElementById('mc-data').value),status:document.getElementById('mc-status').value,email:document.getElementById('mc-email').value.trim(),tel:document.getElementById('mc-tel').value.trim(),valor:parseFloat(document.getElementById('mc-valor').value)||0,contrato:d2i(document.getElementById('mc-contrato').value),notas:document.getElementById('mc-notas').value.trim(),parcelas:_parc,assinado:ex?ex.assinado:false};
+  var o={id:_cId||uid(),nome:document.getElementById('mc-nome').value.trim(),local:document.getElementById('mc-local').value.trim(),data:d2i(document.getElementById('mc-data').value),status:document.getElementById('mc-status').value,email:document.getElementById('mc-email').value.trim(),tel:document.getElementById('mc-tel').value.trim(),valor:parseFloat(document.getElementById('mc-valor').value)||0,notas:document.getElementById('mc-notas').value.trim(),parcelas:_parc,assinado:ex?ex.assinado:false};
   if(!o.nome){alert('Informe o nome.');return;}
   if(_cId){var i=cs.findIndex(function(c){return c.id===_cId;});if(i>-1)cs[i]=o;}else cs.push(o);
   s('clientes',cs);cov('ov-c');rC();rR();notify('Cliente salvo');
