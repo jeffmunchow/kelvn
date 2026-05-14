@@ -104,6 +104,23 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .badge{display:inline-block;font-size:.61rem;padding:2px 8px;border-radius:20px;white-space:nowrap;}
 .bp{background:var(--surface2);color:var(--text-hint);}
 .bc{background:var(--amber-light);color:var(--amber);}
+/* Status de cliente — sem balão, só cor na palavra */
+.st-prospect{color:#9E9892;font-size:.61rem;}
+.st-contratado{color:#C4780A;font-size:.61rem;}
+.st-pre{color:#8A8DCC;font-size:.61rem;}
+.st-casamento{color:#18926E;font-size:.61rem;}
+.st-pos{color:#C43A1A;font-size:.61rem;}
+.st-album{color:#7B5EA7;font-size:.61rem;}
+.st-entregue{color:#2E7D32;font-size:.61rem;}
+.st-finalizado{color:#5C5854;font-size:.61rem;}
+[data-theme="dark"] .st-prospect{color:#5C5854;}
+[data-theme="dark"] .st-contratado{color:#D4902A;}
+[data-theme="dark"] .st-pre{color:#8A8DCC;}
+[data-theme="dark"] .st-casamento{color:#18926E;}
+[data-theme="dark"] .st-pos{color:#CC4A28;}
+[data-theme="dark"] .st-album{color:#9B7EC8;}
+[data-theme="dark"] .st-entregue{color:#66BB6A;}
+[data-theme="dark"] .st-finalizado{color:#5C5854;}
 .bpc{background:var(--purple-light);color:var(--purple);}
 .bw{background:var(--teal-light);color:var(--teal);}
 .bpo{background:var(--coral-light);color:var(--coral);}
@@ -1293,8 +1310,8 @@ function switchAG2(name){
   if(name==='tipos')rTR();if(name==='slots')rSlots();if(name==='disp')rDisp();
 }
 function bdg(st){
-  var m={'Prospect':'bp','Contratado':'bc','Sessão Pré-Casamento':'bpc','Casamento':'bw','Pós-produção':'bpo','Álbum design':'bpo','Entregue':'be','Finalizado':'bf'};
-  return '<span class="badge '+(m[st]||'bp')+'">'+(st||'—')+'</span>';
+  var m={'Prospect':'st-prospect','Contratado':'st-contratado','Sessão Pré-Casamento':'st-pre','Casamento':'st-casamento','Pós-produção':'st-pos','Álbum design':'st-album','Entregue':'st-entregue','Finalizado':'st-finalizado'};
+  return '<span class="'+(m[st]||'st-prospect')+'">'+(st||'—')+'</span>';
 }
 function obdg(st){
   var m={'Enviado':'bc','Aprovado':'bw','Recusado':'bpo','Expirado':'bf'};
