@@ -822,21 +822,23 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 </div><!-- /body -->
 
 <!-- MODAL CLIENTE -->
-<div class="overlay" id="ov-c"><div class="modal wide">
+<div class="overlay" id="ov-c"><div class="modal wide" style="max-width:820px;">
   <h2 id="mc-t">Novo Cliente</h2>
-  <div class="tf" style="grid-template-columns:1.5fr 1.5fr 2fr;">
+  <div class="tf" style="grid-template-columns:1.5fr 1.5fr;">
     <div class="field" style="grid-column:1/-1"><label>Nome completo</label><input type="text" id="mc-nome" placeholder="Nome dos noivos"></div>
+    <div class="field"><label>Telefone</label><input type="text" id="mc-tel" placeholder="(00) 00000-0000"></div>
     <div class="field"><label>Email</label><input type="text" id="mc-email" placeholder="email@email.com"></div>
-    <div class="field" style="grid-column:span 2"><label>Telefone</label><input type="text" id="mc-tel" placeholder="(00) 00000-0000"></div>
     <div style="grid-column:1/-1;border-top:.5px solid var(--border-strong);margin:.25rem 0 .75rem;"></div>
-    <div class="field" style="grid-column:span 1"><label>Data do casamento</label><input type="text" class="sd" maxlength="10" id="mc-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
-    <div class="field" style="grid-column:span 2"><label>Local do casamento</label><input type="text" id="mc-local" placeholder="Igreja, espaço, cidade"></div>
-    <div class="field"><label>Status</label><select id="mc-status">
-      <option>Prospect</option><option>Contratado</option><option>Sessão Pré-Casamento</option>
-      <option>Casamento</option><option>Pós-produção</option><option>Álbum design</option>
-      <option>Entregue</option><option>Finalizado</option>
-    </select></div>
-    <div class="field"><label>Valor total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()"></div>
+    <div class="field" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 2fr 1fr 1fr;gap:0 1rem;">
+      <div class="field" style="margin:0"><label>Data</label><input type="text" class="sd" maxlength="10" id="mc-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+      <div class="field" style="margin:0"><label>Local do casamento</label><input type="text" id="mc-local" placeholder="Igreja, espaço, cidade"></div>
+      <div class="field" style="margin:0"><label>Status</label><select id="mc-status">
+        <option>Prospect</option><option>Contratado</option><option>Sessão Pré-Casamento</option>
+        <option>Casamento</option><option>Pós-produção</option><option>Álbum design</option>
+        <option>Entregue</option><option>Finalizado</option>
+      </select></div>
+      <div class="field" style="margin:0"><label>Valor total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()"></div>
+    </div>
   </div>
   <div style="margin-top:1.25rem;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
