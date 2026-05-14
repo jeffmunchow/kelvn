@@ -112,6 +112,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai{background:var(--surface);padding:.85rem 1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:.5px solid var(--border-strong);cursor:pointer;}
 .ai:last-child{border-bottom:none;}
 .ai:hover{background:var(--surface2);}
+.ai.selected{background:var(--surface2);}
 .ai.past{opacity:.45;}
 .ai-date{font-size:.72rem;color:var(--text-hint);min-width:100px;}
 .ai-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
@@ -157,9 +158,11 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ag-month-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
 .ag-day-label{font-size:.55rem;color:var(--text-hint);text-align:center;padding-bottom:1px;}
 .ag-day{width:100%;aspect-ratio:1;border-radius:3px;font-size:.6rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;}
-.ag-day.has-event{background:var(--amber-light);color:var(--amber-deep);font-weight:500;border-radius:4px;}
+.ag-day.has-event{background:var(--amber-light);color:var(--amber-deep);font-weight:500;border-radius:4px;cursor:pointer;}
+.ag-day.has-event:hover{background:var(--amber-mid);color:#fff;}
 .ag-day.today{background:var(--text);color:var(--bg);border-radius:4px;font-weight:600;}
-.ag-day.today.has-event{background:var(--amber);color:#fff;}
+.ag-day.today.has-event{background:var(--amber);color:#fff;cursor:pointer;}
+.ag-day.cal-sel{outline:2px solid var(--amber);outline-offset:1px;}
 @media(max-width:900px){.ag-split{grid-template-columns:1fr;}}
 @media(max-width:768px){.ag-cal-grid{grid-template-columns:repeat(2,1fr);}}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;}
@@ -1165,6 +1168,16 @@ document.addEventListener('input',function(e){
   e.target.value=v;
 });
 document.querySelectorAll('.overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open');});});
+// Deseleciona dia do calendário ao clicar fora da área da agenda
+document.addEventListener('click',function(e){
+  if(!_calDiaSel) return;
+  var agSplit=document.querySelector('.ag-split');
+  if(agSplit&&!agSplit.contains(e.target)){
+    _calDiaSel=null;
+    document.querySelectorAll('#ag-list .ai').forEach(function(el){el.classList.remove('selected');});
+    document.querySelectorAll('.ag-day.cal-sel').forEach(function(el){el.classList.remove('cal-sel');});
+  }
+});
 // g() e s() definidos acima com cache + Supabase
 
 var _curSection='resumo';
@@ -1457,7 +1470,31 @@ function marcarAssinado(){
 }
 var _eId=null;
 var _calAno=new Date().getFullYear();
+var _calDiaSel=null;
 function navCalAno(d){_calAno+=d;rCalAno();}
+function selectCalDay(m,day){
+  // se clicar no mesmo dia já selecionado, deseleciona
+  var key=_calAno+'-'+m+'-'+day;
+  if(_calDiaSel===key){ _calDiaSel=null; }else{ _calDiaSel=key; }
+  // aplica highlight nos itens da lista
+  document.querySelectorAll('#ag-list .ai').forEach(function(el){ el.classList.remove('selected'); });
+  if(_calDiaSel){
+    var evs=g('eventos');
+    evs.forEach(function(e){
+      var d=new Date(e.data);
+      if(d.getFullYear()===_calAno&&d.getMonth()===m&&d.getDate()===day){
+        var el=document.querySelector('#ag-list .ai[data-id="'+e.id+'"]');
+        if(el) el.classList.add('selected');
+      }
+    });
+  }
+  // atualiza visual do dia selecionado no calendário
+  document.querySelectorAll('.ag-day.has-event').forEach(function(el){ el.classList.remove('cal-sel'); });
+  if(_calDiaSel){
+    var active=document.querySelector('.ag-day[data-cal="'+_calDiaSel+'"]');
+    if(active) active.classList.add('cal-sel');
+  }
+}
 function rCalAno(){
   var el=document.getElementById('ag-cal-grid'); if(!el) return;
   var now=new Date(),ty=now.getFullYear(),tm=now.getMonth(),td=now.getDate();
@@ -1480,8 +1517,12 @@ function rCalAno(){
     for(var day=1;day<=total;day++){
       var isToday=(_calAno===ty&&m===tm&&day===td);
       var hasEv=!!evDays[m+'-'+day];
-      var cls='ag-day'+(isToday?' today':'')+(hasEv?' has-event':'');
-      html+='<div class="'+cls+'">'+day+'</div>';
+      var key=_calAno+'-'+m+'-'+day;
+      var isSel=(_calDiaSel===key);
+      var cls='ag-day'+(isToday?' today':'')+(hasEv?' has-event':'')+(isSel?' cal-sel':'');
+      var onclick=hasEv?' onclick="selectCalDay('+m+','+day+')"':'';
+      var dataAttr=hasEv?' data-cal="'+key+'"':'';
+      html+='<div class="'+cls+'"'+onclick+dataAttr+'>'+day+'</div>';
     }
     html+='</div></div>';
   }
@@ -1494,7 +1535,7 @@ function rA(){
   if(!evs.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
   el.innerHTML='<div>'+evs.map(function(e){
     var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=e.tipo==='Casamento'?'var(--teal)':'var(--amber)',past=d<now;
-    return '<div class="ai'+(past?' past':'')+'" onclick="openE(\''+e.id+'\')"><div class="ai-date">'+ds+' '+hs+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local?e.local+' · ':'')+e.tipo+(e.clienteId?' · '+cN(e.clienteId):'')+'</div></div><span class="badge bp">'+e.tipo+'</span></div>';
+    return '<div class="ai'+(past?' past':'')+'" data-id="'+e.id+'" onclick="openE(\''+e.id+'\')"><div class="ai-date">'+ds+' '+hs+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local?e.local+' · ':'')+e.tipo+(e.clienteId?' · '+cN(e.clienteId):'')+'</div></div><span class="badge bp">'+e.tipo+'</span></div>';
   }).join('')+'</div>';
 }
 function openE(id){
