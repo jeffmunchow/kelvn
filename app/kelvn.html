@@ -1546,7 +1546,7 @@ function rA(){
   var el=document.getElementById('ag-list');
   if(!evs.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
   el.innerHTML='<div>'+evs.map(function(e){
-    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=e.tipo==='Casamento'?'var(--teal)':'var(--amber)',past=d<now;
+    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=(e.tipo==='Casamento'||e.tipo==='Ensaio')?'#D4902A':'var(--text-hint)',past=d<now;
     return '<div class="ai'+(past?' past':'')+'" data-id="'+e.id+'" onclick="openE(\''+e.id+'\')"><div class="ai-date">'+ds+' '+hs+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local?e.local+' · ':'')+e.tipo+(e.clienteId?' · '+cN(e.clienteId):'')+'</div></div><span class="badge bp">'+e.tipo+'</span></div>';
   }).join('')+'</div>';
 }
