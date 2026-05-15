@@ -507,15 +507,15 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
     <!-- GRÁFICO + ORÇAMENTOS -->
     <div style="display:flex;flex-direction:column;gap:1.5rem;">
-      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 0;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;padding:0 3rem 0 36px;">
           <div>
             <div class="col-title" style="margin-bottom:2px;">Faturamento por produto</div>
             <div style="font-size:.68rem;color:var(--text-hint);">Acumulado mensal — <span id="chart-year"></span></div>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:10px;" id="chart-legend"></div>
         </div>
-        <svg id="fat-chart" width="100%" height="240" style="display:block;overflow:visible;"></svg>
+        <svg id="fat-chart" width="100%" height="320" style="display:block;overflow:visible;"></svg>
       </div>
       <div>
         <div class="col-title">Orçamentos recentes</div>
@@ -2286,8 +2286,8 @@ function renderFatChart(){
   var svg=document.getElementById('fat-chart');
   if(!svg) return;
   var W=svg.getBoundingClientRect().width||600;
-  var H=240;
-  var PAD={top:10,right:16,bottom:32,left:52};
+  var H=320;
+  var PAD={top:10,right:8,bottom:32,left:36};
   var cW=W-PAD.left-PAD.right;
   var cH=H-PAD.top-PAD.bottom;
 
