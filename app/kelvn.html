@@ -2475,13 +2475,13 @@ function _migrateDemoFin(){
   s('fin',novasFin);
 }
 
+function fut(daysAhead){ var d=new Date(); d.setDate(d.getDate()+daysAhead); return d.toISOString().split('T')[0]; }
 function seedDemoData(){
   var yr=new Date().getFullYear();
   var now=new Date();
   var m=now.getMonth();
 
   function dt(month,day){ return yr+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
-  function fut(daysAhead){ var d=new Date(); d.setDate(d.getDate()+daysAhead); return d.toISOString().split('T')[0]; }
   function futDT(daysAhead,h,min){ var d=new Date(); d.setDate(d.getDate()+daysAhead); d.setHours(h,min,0); return d.toISOString().slice(0,16); }
   var clientes=[
     {id:'c01',nome:'Ana Clara & Pedro Henrique',local:'Herdade das Oliveiras, Pelotas',data:fut(42),status:'Contratado',email:'anaclara@email.com',tel:'(53) 99812-4400',valor:18500,contrato:dt(m-2,10),notas:'Gostam de luz natural. Estilo editorial.',
@@ -2559,7 +2559,7 @@ function seedDemoData(){
     {id:'pd03',desc:'Enviar prévia de 50 fotos — Diana & Thiago',clienteId:'c04',prazo:fut(5),prio:'normal',done:false},
     {id:'pd04',desc:'Criar timeline — Mariana & Felipe',clienteId:'c08',prazo:fut(3),prio:'normal',done:true},
     {id:'pd05',desc:'Backup HD externo — casamentos Q1',clienteId:'',prazo:fut(20),prio:'baixa',done:false},
-    {id:'pd06',desc:'Atualizar portfólio do site',clienteId:'',prazo:fut(30),prio:'baixa',done:false}
+    {id:'pd07',desc:'Atualizar portfólio do site',clienteId:'',prazo:fut(30),prio:'baixa',done:false}
   ]);
 
   s('edicoes',[
@@ -2837,6 +2837,27 @@ async function initUserData(){
       var oldCats=['Pré-wedding','Retratos','Institucional','Freela'];
       var hasOld=_cache.fin.some(function(e){ return oldCats.indexOf(e.cat)>-1; });
       if(hasOld){ _migrateDemoFin(); }
+    }
+    // Migração: garante pend da Renata & André com prazo válido e sem ID duplicado
+    if(isAdmin() && _cache.pends && _cache.pends.length > 0){
+      var ps=_cache.pends.slice();
+      var renataIdx=ps.findIndex(function(p){ return p.desc&&p.desc.indexOf('Renata')>-1; });
+      var needsFix=false;
+      // Corrige id duplicado pd06 em "portfólio"
+      ps=ps.map(function(p){
+        if(p.id==='pd06'&&p.desc&&p.desc.indexOf('portfólio')>-1){ needsFix=true; return Object.assign({},p,{id:'pd07'}); }
+        return p;
+      });
+      if(renataIdx===-1){
+        // Adiciona entrada que faltava
+        ps.unshift({id:'pd06',desc:'Editar galeria completa — Renata & André',clienteId:'c11',prazo:fut(18),prio:'alta',done:false});
+        needsFix=true;
+      } else if(!ps[renataIdx].prazo){
+        // Corrige prazo inválido salvo anteriormente
+        ps[renataIdx]=Object.assign({},ps[renataIdx],{prazo:fut(18)});
+        needsFix=true;
+      }
+      if(needsFix) s('pends',ps);
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
