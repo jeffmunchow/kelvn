@@ -843,9 +843,27 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     <div style="grid-column:1/-1;margin:.25rem 0 .75rem;"></div>
     <div class="field"><label>Data</label><input type="text" class="sd" maxlength="10" id="mc-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
     <div class="field"><label>Local do casamento</label><input type="text" id="mc-local" placeholder="Igreja, espaço, cidade"></div>
-    <div class="field"><label>Status</label><select id="mc-status">
-      <option>Prospect</option><option>Sessão</option><option>Religioso</option><option>Welcome-party</option><option>Casamento</option><option>After-party</option><option>Pós-produção</option><option>Álbum design</option><option>Entregue</option><option>Finalizado</option>
-    </select></div>
+    <div class="field"><label>Status</label>
+      <div style="position:relative;" id="mc-status-wrap">
+        <input type="hidden" id="mc-status" value="Prospect">
+        <div id="mc-status-btn" onclick="toggleStatusDrop()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;background:var(--surface2);font-size:.88rem;user-select:none;">
+          <span id="mc-status-label">Prospect</span>
+          <svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.4;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <div id="mc-status-drop" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);">
+          <div onclick="setStatusDrop('Prospect')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;" class="sdrop-opt st-prospect-opt">Prospect</div>
+          <div onclick="setStatusDrop('Sessão')"       style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C43A1A;" class="sdrop-opt">Sessão</div>
+          <div onclick="setStatusDrop('Religioso')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#2E7D32;" class="sdrop-opt">Religioso</div>
+          <div onclick="setStatusDrop('Welcome-party')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#D4709A;" class="sdrop-opt">Welcome-party</div>
+          <div onclick="setStatusDrop('Casamento')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C4780A;" class="sdrop-opt">Casamento</div>
+          <div onclick="setStatusDrop('After-party')"  style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#6B9BAF;" class="sdrop-opt">After-party</div>
+          <div onclick="setStatusDrop('Pós-produção')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C43A1A;" class="sdrop-opt">Pós-produção</div>
+          <div onclick="setStatusDrop('Álbum design')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#7B5EA7;" class="sdrop-opt">Álbum design</div>
+          <div onclick="setStatusDrop('Entregue')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#2E7D32;" class="sdrop-opt">Entregue</div>
+          <div onclick="setStatusDrop('Finalizado')"   style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#5C5854;" class="sdrop-opt">Finalizado</div>
+        </div>
+      </div>
+    </div>
     <div class="field" style="display:flex;align-items:flex-end;gap:.4rem;">
       <div style="flex:1;min-width:0;"><label>Valor total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()" style="width:100%;"></div>
       <button onclick="addCEvento()" title="Adicionar evento" style="background:none;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text-muted);width:28px;height:28px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:1px;transition:all .15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">+</button>
@@ -1436,13 +1454,29 @@ function rC(){
     return '<tr onclick="openC(\''+c.id+'\')"><td class="tdn">'+(c.nome||'—')+'</td><td>'+fd(c.data)+'</td><td>'+(c.local||'—')+'</td><td>'+$m(c.valor||0)+'</td><td>'+$m(paid)+'</td><td>'+bdg(c.status)+'</td><td><button class="ra" onclick="event.stopPropagation();openC(\''+c.id+'\')">Editar</button></td></tr>';
   }).join('');
 }
+var _STATUS_COLORS={'Prospect':'','Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome-party':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF','Pós-produção':'#C43A1A','Álbum design':'#7B5EA7','Entregue':'#2E7D32','Finalizado':'#5C5854'};
+function toggleStatusDrop(){
+  var d=document.getElementById('mc-status-drop');
+  d.style.display=d.style.display==='none'?'block':'none';
+}
+function setStatusDrop(val){
+  document.getElementById('mc-status').value=val;
+  var lbl=document.getElementById('mc-status-label');
+  lbl.textContent=val;
+  lbl.style.color=_STATUS_COLORS[val]||'var(--text)';
+  document.getElementById('mc-status-drop').style.display='none';
+}
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('mc-status-wrap');
+  if(wrap&&!wrap.contains(e.target)) document.getElementById('mc-status-drop').style.display='none';
+});
 function openC(id){
   _cId=id||null;fillSel();
   if(id){
     var c=g('clientes').find(function(x){return x.id===id;});if(!c)return;
     document.getElementById('mc-t').textContent='Editar Cliente';
     document.getElementById('mc-nome').value=c.nome||'';document.getElementById('mc-local').value=c.local||'';
-    document.getElementById('mc-data').value=fd(c.data);document.getElementById('mc-status').value=c.status||'Prospect';
+    document.getElementById('mc-data').value=fd(c.data);setStatusDrop(c.status||'Prospect');
     document.getElementById('mc-email').value=c.email||'';document.getElementById('mc-tel').value=c.tel||'';
     document.getElementById('mc-valor').value=c.valor||'';
     document.getElementById('mc-notas').value=c.notas||'';
@@ -1453,7 +1487,7 @@ function openC(id){
   }else{
     document.getElementById('mc-t').textContent='Novo Cliente';
     ['mc-nome','mc-local','mc-data','mc-email','mc-tel','mc-valor','mc-notas'].forEach(function(i){document.getElementById(i).value='';}); 
-    document.getElementById('mc-status').value='Prospect';
+    setStatusDrop('Prospect');
     document.getElementById('mc-del').style.display='none';
     document.getElementById('mc-contrato-btn').style.display='none';
     rPL([]);
@@ -1537,14 +1571,16 @@ function selectCalDay(m,day){
   // aplica highlight nos itens da lista
   document.querySelectorAll('#ag-list .ai').forEach(function(el){ el.classList.remove('selected'); });
   if(_calDiaSel){
-    var evs=g('eventos');
-    evs.forEach(function(e){
+    var allEvs=g('eventos').concat(_primaryEventsFromClientes());
+    var firstEl=null;
+    allEvs.forEach(function(e){
       var d=new Date(e.data);
       if(d.getFullYear()===_calAno&&d.getMonth()===m&&d.getDate()===day){
         var el=document.querySelector('#ag-list .ai[data-id="'+e.id+'"]');
-        if(el) el.classList.add('selected');
+        if(el){ el.classList.add('selected'); if(!firstEl)firstEl=el; }
       }
     });
+    if(firstEl) firstEl.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   // atualiza visual do dia selecionado no calendário
   document.querySelectorAll('.ag-day.has-event, .ag-day.has-event-primary').forEach(function(el){ el.classList.remove('cal-sel'); });
@@ -1557,13 +1593,13 @@ function rCalAno(){
   var el=document.getElementById('ag-cal-grid'); if(!el) return;
   var now=new Date(),ty=now.getFullYear(),tm=now.getMonth(),td=now.getDate();
   document.getElementById('ag-cal-year').textContent=_calAno;
-  var evs=g('eventos');
+  var evs=g('eventos').concat(_primaryEventsFromClientes());
   var evDays={};
   evs.forEach(function(e){
     var d=new Date(e.data);
     if(d.getFullYear()===_calAno){
       var key=d.getMonth()+'-'+d.getDate();
-      var isPrimary=(e.tipo==='Casamento'||e.tipo==='Ensaio');
+      var isPrimary=!!e._fromCliente||_PRIMARY_STATUS.indexOf(e.tipo)>-1;
       if(!evDays[key]||isPrimary) evDays[key]=isPrimary?'primary':'secondary';
     }
   });
@@ -1592,14 +1628,26 @@ function rCalAno(){
   }
   el.innerHTML=html;
 }
+var _PRIMARY_STATUS=['Sessão','Religioso','Welcome-party','Casamento','After-party'];
+function _primaryEventsFromClientes(){
+  return g('clientes').filter(function(c){ return _PRIMARY_STATUS.indexOf(c.status)>-1 && c.data; }).map(function(c){
+    return {id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:c.status, local:c.local||'', clienteId:c.id, _fromCliente:true};
+  });
+}
 function rA(){
   var now=new Date(),flt=document.getElementById('ag-filter').value;
-  var evs=g('eventos').filter(function(e){var d=new Date(e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
+  var secondary=g('eventos');
+  var primary=_primaryEventsFromClientes();
+  var all=primary.concat(secondary).filter(function(e){var d=new Date(e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
   var el=document.getElementById('ag-list');
-  if(!evs.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
-  el.innerHTML='<div>'+evs.map(function(e){
-    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=(e.tipo==='Casamento'||e.tipo==='Ensaio')?'#D4902A':'var(--text-hint)',past=d<now;
-    return '<div class="ai'+(past?' past':'')+'" data-id="'+e.id+'" onclick="openE(\''+e.id+'\')"><div class="ai-date">'+ds+' '+hs+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local?e.local+' · ':'')+e.tipo+(e.clienteId?' · '+cN(e.clienteId):'')+'</div></div><span class="badge bp">'+e.tipo+'</span></div>';
+  if(!all.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
+  el.innerHTML='<div>'+all.map(function(e){
+    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    var isPrimary=!!e._fromCliente;
+    var col=isPrimary?'#D4902A':'var(--text-hint)',past=d<now;
+    var onclick=isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
+    var sub=isPrimary?(e.local||''):[e.clienteId?cN(e.clienteId):'',e.local||''].filter(Boolean).join(' — ');
+    return '<div class="ai'+(past?' past':'')+'" data-id="'+e.id+'" '+onclick+'><div class="ai-date">'+ds+(isPrimary?'':' '+hs)+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+bdg(e.tipo)+'</div>';
   }).join('')+'</div>';
 }
 function openE(id){
@@ -2532,18 +2580,18 @@ function seedDemoData(){
   function dt(month,day){ return yr+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
   function futDT(daysAhead,h,min){ var d=new Date(); d.setDate(d.getDate()+daysAhead); d.setHours(h,min,0); return d.toISOString().slice(0,16); }
   var clientes=[
-    {id:'c01',nome:'Ana Clara & Pedro Henrique',local:'Herdade das Oliveiras, Pelotas',data:fut(42),status:'Contratado',email:'anaclara@email.com',tel:'(53) 99812-4400',valor:18500,contrato:dt(m-2,10),notas:'Gostam de luz natural. Estilo editorial.',
+    {id:'c01',nome:'Ana Clara & Pedro Henrique',local:'Herdade das Oliveiras, Pelotas',data:fut(42),status:'Casamento',email:'anaclara@email.com',tel:'(53) 99812-4400',valor:18500,contrato:dt(m-2,10),notas:'Gostam de luz natural. Estilo editorial.',
       parcelas:[{id:'p1',data:dt(m-2,10),valor:5000,pago:true},{id:'p2',data:dt(m,15),valor:6000,pago:false},{id:'p3',data:fut(42),valor:7500,pago:false}]},
-    {id:'c02',nome:'Beatriz & Lucas Ferreira',local:'Espaço Villa Flores, Bagé',data:fut(89),status:'Sessão Pré-Casamento',email:'bea.lucas@gmail.com',tel:'(53) 98765-3322',valor:14800,contrato:dt(m-1,5),notas:'Querem ensaio na praia antes.',
+    {id:'c02',nome:'Beatriz & Lucas Ferreira',local:'Espaço Villa Flores, Bagé',data:fut(89),status:'Sessão',email:'bea.lucas@gmail.com',tel:'(53) 98765-3322',valor:14800,contrato:dt(m-1,5),notas:'Querem ensaio na praia antes.',
       parcelas:[{id:'p4',data:dt(m-1,5),valor:4800,pago:true},{id:'p5',data:fut(30),valor:5000,pago:false},{id:'p6',data:fut(89),valor:5000,pago:false}]},
-    {id:'c03',nome:'Camila & Rafael Souza',local:'Quinta dos Pinheiros, Caxias do Sul',data:fut(127),status:'Contratado',email:'camilarafa@email.com',tel:'(54) 99100-7788',valor:22000,contrato:dt(m-1,18),notas:'Cerimônia ao ar livre. Recepção noturna com luz de vela.',
+    {id:'c03',nome:'Camila & Rafael Souza',local:'Quinta dos Pinheiros, Caxias do Sul',data:fut(127),status:'Casamento',email:'camilarafa@email.com',tel:'(54) 99100-7788',valor:22000,contrato:dt(m-1,18),notas:'Cerimônia ao ar livre. Recepção noturna com luz de vela.',
       parcelas:[{id:'p7',data:dt(m-1,18),valor:7000,pago:true},{id:'p8',data:fut(60),valor:7500,pago:false},{id:'p9',data:fut(127),valor:7500,pago:false}]},
     {id:'c04',nome:'Diana & Thiago Ramos',local:'Castelo de Itaipava, Porto Alegre',data:fut(-15),status:'Pós-produção',email:'di.thiago@gmail.com',tel:'(51) 98800-1234',valor:16200,contrato:dt(m-3,2),notas:'Entrega prevista em 45 dias.',
       parcelas:[{id:'p10',data:dt(m-3,2),valor:5000,pago:true},{id:'p11',data:dt(m-2,2),valor:5600,pago:true},{id:'p12',data:dt(m-1,2),valor:5600,pago:true}]},
     {id:'c05',nome:'Fernanda & Gustavo Lima',local:'Haras Santa Fé, Gramado',data:fut(180),status:'Prospect',email:'fer.gus@email.com',tel:'(54) 99444-9900',valor:0,contrato:'',notas:'Aguardando resposta do orçamento enviado.',parcelas:[]},
     {id:'c06',nome:'Juliana & Marcos Oliveira',local:'Convento São Francisco, Pelotas',data:fut(-60),status:'Entregue',email:'ju.marcos@gmail.com',tel:'(53) 99211-6655',valor:12800,contrato:dt(m-5,10),notas:'Galeria entregue. Cliente super satisfeita.',
       parcelas:[{id:'p13',data:dt(m-5,10),valor:4000,pago:true},{id:'p14',data:dt(m-4,10),valor:4400,pago:true},{id:'p15',data:dt(m-3,10),valor:4400,pago:true}]},
-    {id:'c07',nome:'Larissa & Bruno Costa',local:'Palácio dos Leões, Florianópolis',data:fut(220),status:'Contratado',email:'larissa.bruno@email.com',tel:'(48) 99300-2211',valor:25000,contrato:dt(m-1,22),notas:'Destino wedding. Acompanhamento 3 dias.',
+    {id:'c07',nome:'Larissa & Bruno Costa',local:'Palácio dos Leões, Florianópolis',data:fut(220),status:'Casamento',email:'larissa.bruno@email.com',tel:'(48) 99300-2211',valor:25000,contrato:dt(m-1,22),notas:'Destino wedding. Acompanhamento 3 dias.',
       parcelas:[{id:'p16',data:dt(m-1,22),valor:8000,pago:true},{id:'p17',data:fut(90),valor:8500,pago:false},{id:'p18',data:fut(220),valor:8500,pago:false}]},
     {id:'c09',nome:'Sofia & Rodrigo Mendes',local:'Quinta das Palmeiras, Porto Alegre',data:fut(6),status:'Casamento',email:'sofi.rod@gmail.com',tel:'(51) 99321-8844',valor:17800,contrato:dt(m-1,12),notas:'Cerimônia civil e religiosa no mesmo dia.',parcelas:[]},
     {id:'c10',nome:'Isabela & Thiago Nunes',local:'Praia da Ferrugem, Garopaba',data:fut(10),status:'Sessão',email:'isa.thiago@email.com',tel:'(48) 99788-5566',valor:2800,contrato:dt(m,3),notas:'Sessão na praia ao entardecer.',parcelas:[]},
@@ -2922,6 +2970,12 @@ async function initUserData(){
         needsFix=true;
       }
       if(needsFix) s('pends',ps);
+    }
+    // Migração: corrige status antigos de clientes demo
+    if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
+      var oldMap={'Contratado':'Casamento','Sessão Pré-Casamento':'Sessão'};
+      var cs=_cache.clientes,needsFixC=cs.some(function(c){ return oldMap[c.status]; });
+      if(needsFixC){ s('clientes',cs.map(function(c){ return oldMap[c.status]?Object.assign({},c,{status:oldMap[c.status]}):c; })); }
     }
     // Migração: semeia histórico demo de seguidores do Instagram se não existir
     if(isAdmin() && !g('insta_followers_hist')?.length){
