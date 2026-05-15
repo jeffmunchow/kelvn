@@ -2373,7 +2373,7 @@ function renderFatChart(){
     leg.innerHTML=PRODUTOS.map(function(p){
       var hasData=data[p.key].some(function(v){ return v>0; });
       return '<div style="display:flex;align-items:center;gap:5px;opacity:'+(hasData?1:.35)+';">'+
-        '<div style="width:20px;height:2px;background:'+p.color+';border-radius:2px;"></div>'+
+        '<div style="width:7px;height:7px;background:'+p.color+';border-radius:50%;"></div>'+
         '<span style="font-size:.67rem;color:var(--text-muted);">'+p.key+'</span>'+
       '</div>';
     }).join('');
