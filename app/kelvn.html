@@ -300,7 +300,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .auth-screen-reset.visible{display:flex;}
 
 /* ── PAINEL IA (sidebar style) ─────────────────────────────── */
-.ai-spanel{width:min(62vw,760px);flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);position:fixed;top:0;left:56px;height:100vh;z-index:99;display:flex;flex-direction:column;transform:translateX(-110%);transition:transform .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
+.ai-spanel{width:min(62vw,760px);flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);position:fixed;top:0;left:56px;height:calc(100vh / 0.9);z-index:99;display:flex;flex-direction:column;transform:translateX(-110%);transition:transform .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
 .ai-spanel.open{transform:translateX(0);}
 .ai-header{padding:1.1rem 1.25rem .9rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
 .ai-header-icon{width:30px;height:30px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
