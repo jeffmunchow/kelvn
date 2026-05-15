@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assinar Contrato — Kelvn</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:#F7F4EF;color:#1A1814;min-height:100vh;}
+  .topbar{background:#fff;border-bottom:.5px solid rgba(0,0,0,.08);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-family:'DM Sans',sans-serif;font-size:.72rem;letter-spacing:3px;text-transform:uppercase;color:#C4780A;font-weight:500;}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;padding:4px 12px;border-radius:20px;font-weight:500;}
+  .badge-rascunho{background:#F0EDE6;color:#6B6660;}
+  .badge-enviado{background:#FDF3E3;color:#C4780A;}
+  .badge-assinado{background:#E3F4EF;color:#0A7864;}
+  .badge-expirado{background:#FEF2F0;color:#C43A1A;}
+  .wrap{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+  .contract-frame{background:#fff;border:.5px solid rgba(0,0,0,.08);border-radius:12px;overflow:hidden;margin-bottom:2rem;}
+  .contract-inner{padding:0;width:100%;}
+  .actions{background:#fff;border:.5px solid rgba(0,0,0,.08);border-radius:12px;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .action-info{font-size:.82rem;color:#6B6660;line-height:1.6;}
+  .action-info strong{color:#1A1814;display:block;margin-bottom:2px;}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;border:.5px solid transparent;transition:all .15s;}
+  .btn-primary{background:#1A1814;color:#F7F4EF;border-color:#1A1814;}
+  .btn-primary:hover{background:#2A2820;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .state{text-align:center;padding:4rem 2rem;}
+  .state-icon{font-size:3rem;margin-bottom:1rem;}
+  .state-title{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:.5rem;}
+  .state-sub{font-size:.88rem;color:#6B6660;line-height:1.6;}
+  .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;}
+  .confirm-box{background:#fff;border-radius:12px;padding:2rem;max-width:440px;width:100%;text-align:center;}
+  .confirm-box h3{font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:.75rem;}
+  .confirm-box p{font-size:.82rem;color:#6B6660;line-height:1.6;margin-bottom:1.5rem;}
+  .confirm-btns{display:flex;gap:.75rem;justify-content:center;}
+  .loader{display:inline-block;width:18px;height:18px;border:2px solid #F7F4EF;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  iframe{width:100%;border:none;display:block;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Kelvn</div>
+  <span id="status-badge" class="badge badge-enviado" style="display:none;"></span>
+</div>
+
+<div class="wrap" id="app">
+  <div class="state"><div class="state-icon">⏳</div><div class="state-title">Carregando contrato…</div></div>
+</div>
+
+<div class="confirm-overlay" id="confirm-overlay" style="display:none;">
+  <div class="confirm-box">
+    <h3>Confirmar assinatura</h3>
+    <p>Ao clicar em "Assinar", você concorda com todos os termos deste contrato e confirma que possui poderes para assinar em nome dos contratantes.</p>
+    <div class="confirm-btns">
+      <button class="btn" style="border-color:rgba(0,0,0,.15);" onclick="document.getElementById('confirm-overlay').style.display='none'">Cancelar</button>
+      <button class="btn btn-primary" id="confirm-btn" onclick="assinar()">Assinar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+var _sb=supabase.createClient(
+  'https://lbsepogmbusfkdgnencb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxic2Vwb2dtYnVzZmtkZ25lbmNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzMTM3MDUsImV4cCI6MjA2MTg4OTcwNX0.PH5gvJMCO8rwfTFwpLyJqOMJSHvCRTllxaDkHmBnBrk'
+);
+
+var _contrato=null;
+
+function getToken(){
+  var parts=window.location.pathname.split('/');
+  return parts[parts.length-1]||new URLSearchParams(window.location.search).get('token')||'';
+}
+
+function renderState(icon,title,sub){
+  document.getElementById('app').innerHTML='<div class="state"><div class="state-icon">'+icon+'</div><div class="state-title">'+title+'</div><div class="state-sub">'+sub+'</div></div>';
+}
+
+function formatDate(str){
+  if(!str)return'—';
+  var d=new Date(str);
+  var meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return d.getDate()+' de '+meses[d.getMonth()]+' de '+d.getFullYear();
+}
+
+async function init(){
+  var token=getToken();
+  if(!token||token.length<10){renderState('🔗','Link inválido','Este link de contrato não é válido ou está incompleto.');return;}
+  var res=await _sb.from('contratos').select('*').eq('token_assinatura',token).maybeSingle();
+  if(res.error||!res.data){renderState('❌','Contrato não encontrado','Este link não corresponde a nenhum contrato ativo.');return;}
+  _contrato=res.data;
+
+  var badge=document.getElementById('status-badge');
+  var labels={rascunho:'Rascunho',enviado:'Aguardando assinatura',assinado:'Assinado',expirado:'Expirado'};
+  badge.textContent=labels[_contrato.status]||_contrato.status;
+  badge.className='badge badge-'+_contrato.status;
+  badge.style.display='inline-flex';
+
+  if(_contrato.status==='expirado'||((_contrato.token_expira_em&&new Date(_contrato.token_expira_em)<new Date())&&_contrato.status==='enviado')){
+    // Mark as expired in Supabase
+    if(_contrato.status==='enviado') await _sb.from('contratos').update({status:'expirado'}).eq('id',_contrato.id);
+    document.getElementById('app').innerHTML=
+      '<div class="state"><div class="state-icon">⏰</div><div class="state-title">Contrato expirado</div><div class="state-sub">Este contrato expirou em '+formatDate(_contrato.token_expira_em)+'.<br>Entre em contato com o fotógrafo para receber um novo link.</div></div>';
+    badge.textContent='Expirado';badge.className='badge badge-expirado';
+    return;
+  }
+
+  if(_contrato.status==='assinado'){
+    renderContrato();
+    document.getElementById('app').innerHTML+=
+      '<div class="state" style="padding:2rem;"><div class="state-icon">✅</div><div class="state-title">Contrato assinado</div><div class="state-sub">Este contrato foi assinado em '+formatDate(_contrato.assinado_em)+'.<br>Você receberá uma cópia por e-mail.</div></div>';
+    return;
+  }
+
+  renderContrato();
+}
+
+function renderContrato(){
+  var blob=new Blob([_contrato.html_gerado],{type:'text/html'});
+  var url=URL.createObjectURL(blob);
+  var h=window.innerHeight*0.75;
+  document.getElementById('app').innerHTML=
+    '<div class="contract-frame"><iframe id="contract-iframe" src="'+url+'" style="height:'+h+'px;" onload="resizeIframe(this)"></iframe></div>'+
+    (_contrato.status==='enviado'?
+      '<div class="actions"><div class="action-info"><strong>Pronto para assinar?</strong>Leia o contrato com atenção antes de assinar. Sua assinatura tem validade jurídica.</div><button class="btn btn-primary" onclick="document.getElementById(\'confirm-overlay\').style.display=\'flex\'">Assinar este contrato</button></div>'
+    :'');
+}
+
+function resizeIframe(iframe){
+  try{ iframe.style.height=(iframe.contentWindow.document.body.scrollHeight+40)+'px'; }catch(e){}
+}
+
+async function assinar(){
+  var btn=document.getElementById('confirm-btn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="loader"></span> Registrando…';
+  var ip='';
+  try{ var r=await fetch('https://api.ipify.org?format=json'); var j=await r.json(); ip=j.ip; }catch(e){}
+  var res=await _sb.from('contratos').update({
+    status:'assinado',
+    assinado_em:new Date().toISOString(),
+    assinado_ip:ip,
+    assinado_user_agent:navigator.userAgent,
+    assinado_canal:'whatsapp'
+  }).eq('id',_contrato.id).eq('token_assinatura',getToken());
+
+  if(res.error){
+    btn.disabled=false; btn.innerHTML='Assinar';
+    alert('Erro ao registrar assinatura. Tente novamente.');
+    return;
+  }
+  document.getElementById('confirm-overlay').style.display='none';
+  document.getElementById('app').innerHTML=
+    '<div class="state"><div class="state-icon">✅</div><div class="state-title">Contrato assinado!</div><div class="state-sub">Sua assinatura foi registrada com sucesso em '+new Date().toLocaleDateString('pt-BR')+'.<br>Você receberá uma cópia por e-mail em breve.</div></div>';
+  var badge=document.getElementById('status-badge');
+  badge.textContent='Assinado';badge.className='badge badge-assinado';
+}
+
+init();
+</script>
+</body>
+</html>

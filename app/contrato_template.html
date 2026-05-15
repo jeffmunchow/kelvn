@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  @page {
+    size: A4;
+    margin: 18mm 18mm 16mm 34mm;
+    @top-left { content: none; }
+    @top-right { content: none; }
+    @bottom-center {
+      content: counter(page);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 6pt;
+      color: #ccc;
+      vertical-align: top;
+      padding-top: 8px;
+    }
+  }
+
+  @page cover {
+    margin: 0;
+    @top-left { content: none; }
+    @top-right { content: none; }
+    @bottom-center { content: none; }
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 8pt;
+    color: #1a1a1a;
+    background: white;
+    line-height: 1.75;
+  }
+
+  .cover {
+    page: cover;
+    width: 210mm;
+    height: 297mm;
+    padding: 20mm 18mm 18mm 34mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-after: always;
+  }
+
+  .studio-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 7pt;
+    font-weight: 400;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: #1a1a1a;
+  }
+
+  .cover-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 72px;
+  }
+
+  .cover-label {
+    font-size: 6.5pt;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-bottom: 12px;
+  }
+
+  .cover-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28pt;
+    font-weight: 400;
+    color: #1a1a1a;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    margin-bottom: 44px;
+  }
+
+  .cover-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .cover-meta-label {
+    font-size: 5.5pt;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #bbb;
+    margin-bottom: 5px;
+  }
+
+  .cover-meta-value {
+    font-size: 8pt;
+    color: #1a1a1a;
+    line-height: 1.5;
+  }
+
+  .cover-footer {
+    font-size: 6.5pt;
+    color: #bbb;
+    line-height: 1.9;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .content { padding-top: 8px; }
+
+  .section-label {
+    font-size: 5.5pt;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #bbb;
+    margin-bottom: 16px;
+    margin-top: 32px;
+  }
+
+  .section-label.first { margin-top: 0; }
+
+  .parties {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 20px;
+  }
+
+  .party-role {
+    font-size: 5.5pt;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #bbb;
+    margin-bottom: 10px;
+  }
+
+  .party-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 10pt;
+    font-weight: 400;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+    line-height: 1.25;
+  }
+
+  .party-detail {
+    font-size: 7pt;
+    color: #777;
+    line-height: 1.75;
+  }
+
+  .service-table {
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .service-row {
+    margin: 3px 0;
+  }
+
+  .service-row-label {
+    display: inline-block;
+    width: 59mm;
+    font-size: 7pt;
+    color: #bbb;
+    vertical-align: top;
+  }
+
+  .service-row-value {
+    display: inline-block;
+    width: 97mm;
+    font-size: 8pt;
+    color: #1a1a1a;
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    vertical-align: top;
+  }
+
+  .payment-rows { margin-bottom: 8px; }
+
+  .payment-row {
+    display: grid;
+    grid-template-columns: 70% 30%;
+    padding: 5px 0;
+  }
+
+  .payment-row-label { font-size: 8pt; color: #1a1a1a; }
+
+  .payment-row-amount {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 8pt;
+    font-weight: 400;
+    color: #1a1a1a;
+    text-align: right;
+  }
+
+  .payment-divider {
+    border: none;
+    border-top: 0.5px solid #ddd;
+    margin: 4px 0;
+  }
+
+  .payment-note {
+    margin-top: 12px;
+    font-size: 7pt;
+    color: #888;
+    line-height: 1.75;
+  }
+
+  .intro {
+    font-size: 8pt;
+    color: #555;
+    line-height: 1.78;
+    margin-bottom: 22px;
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .clause { margin-bottom: 13px; }
+
+  .clause-head {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 3px;
+  }
+
+  .clause-num {
+    font-size: 7pt;
+    color: #bbb;
+    min-width: 16px;
+  }
+
+  .clause-title {
+    font-size: 7pt;
+    font-weight: 500;
+    color: #1a1a1a;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .clause-body {
+    font-size: 8pt;
+    color: #333;
+    line-height: 1.78;
+    text-align: justify;
+    padding-left: 26px;
+  }
+
+  .clause-body p { margin-bottom: 4px; }
+
+  .sub { padding-left: 12px; margin: 4px 0; }
+  .sub-item { margin-bottom: 3px; color: #444; font-size: 7.5pt; }
+
+  .sig-date {
+    font-size: 7.5pt;
+    color: #777;
+    margin-bottom: 32px;
+  }
+
+  .sig-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    margin-bottom: 28px;
+  }
+
+  .sig-line {
+    height: 50px;
+    border-bottom: 0.5px solid #1a1a1a;
+    margin-bottom: 10px;
+  }
+
+  .sig-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 9pt;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+
+  .sig-role { font-size: 6.5pt; color: #aaa; margin-bottom: 1px; }
+  .sig-doc  { font-size: 6.5pt; color: #ccc; }
+
+  .final-note {
+    margin-top: 36px;
+    font-size: 6.5pt;
+    color: #ccc;
+    line-height: 1.75;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- CAPA -->
+<div class="cover">
+  <div style="height: 32px;"></div>
+  <div class="studio-name">{{studio_nome}}</div>
+
+  <div class="cover-center">
+    <div class="cover-label">Contrato de Prestação de Serviços</div>
+    <div class="cover-title">Cobertura<br>Fotográfica<br>de Casamento</div>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Noivos</div>
+        <div class="cover-meta-value">{{noivo1_nome}}<br>&amp; {{noivo2_nome}}</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Data</div>
+        <div class="cover-meta-value">{{evento_data}}</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="cover-meta-label">Local</div>
+        <div class="cover-meta-value">{{evento_local}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-footer">
+    <span>{{studio_email}} &nbsp;·&nbsp; {{studio_telefone}} &nbsp;·&nbsp; {{studio_documento}}</span>
+    <span>{{contrato_data_geracao}}</span>
+  </div>
+</div>
+
+
+<!-- CONTEÚDO -->
+<div class="content">
+
+  <!-- PÁG 2: PARTES + OBJETO -->
+  <div class="section-label first" style="visibility: hidden;">Partes Contratantes</div>
+
+  <div class="parties">
+    <div>
+      <div class="party-role">Contratada</div>
+      <div class="party-name">{{studio_responsavel}}<br>{{studio_nome}}</div>
+      <div class="party-detail">
+        {{studio_documento_label}}: {{studio_documento}}<br>
+        {{studio_endereco}}<br>
+        {{studio_telefone}}<br>
+        {{studio_email}}
+      </div>
+    </div>
+    <div>
+      <div class="party-role">Contratantes</div>
+      <div class="party-name">{{noivo1_nome}}<br>&amp; {{noivo2_nome}}</div>
+      <div class="party-detail">
+        {{contratante_nome}}<br>
+        RG {{contratante_rg}} · CPF {{contratante_cpf}}<br>
+        {{contratante_endereco}}<br>
+        {{contratante_telefone}}<br>
+        {{contratante_email}}
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 12px;"></div>
+
+  <div class="section-label">Objeto do Contrato</div>
+
+  <p class="intro">Este instrumento regula a prestação de serviços de fotografia de casamento pelo {{studio_nome}} aos Contratantes, nos termos e condições estabelecidos abaixo. O signatário {{contratante_nome}} declara expressamente que assina este contrato em nome próprio e em nome de {{noivo1_nome}}, seu cônjuge, tendo plenos poderes para tanto, obrigando ambos solidariamente a todos os termos aqui estabelecidos. As partes declaram ter lido, compreendido e concordado integralmente com todas as cláusulas antes de assinar.</p>
+
+  <div class="service-table" lang="pt-BR">
+    <div class="service-row"><span class="service-row-label">Data do evento</span><span class="service-row-value">{{evento_data}}</span></div>
+    <div class="service-row"><span class="service-row-label">Local</span><span class="service-row-value">{{evento_local}}</span></div>
+    <div class="service-row"><span class="service-row-label">Pacote</span><span class="service-row-value">{{pacote_nome}}</span></div>
+    <div class="service-row"><span class="service-row-label">Escopo</span><span class="service-row-value">{{pacote_escopo}}</span></div>
+    <div class="service-row"><span class="service-row-label">Horário de início</span><span class="service-row-value">{{evento_horario_inicio}}</span></div>
+    <div class="service-row"><span class="service-row-label">Horário de término previsto</span><span class="service-row-value">{{evento_horario_termino}}</span></div>
+    <div class="service-row"><span class="service-row-label">Fotógrafo principal</span><span class="service-row-value">{{studio_responsavel}}</span></div>
+    <div class="service-row"><span class="service-row-label">Segundo fotógrafo</span><span class="service-row-value">{{pacote_segundo_fotografo}}</span></div>
+    <div class="service-row"><span class="service-row-label">Entrega mínima</span><span class="service-row-value">{{pacote_fotos_minimo}} fotografias editadas</span></div>
+    <div class="service-row"><span class="service-row-label">Formato de entrega</span><span class="service-row-value">Galeria online privada — JPEG alta resolução com correção de cores e direito de impressão pessoal</span></div>
+    <div class="service-row"><span class="service-row-label">Prazo de entrega</span><span class="service-row-value">Até 30 dias corridos após o casamento</span></div>
+    <div class="service-row"><span class="service-row-label">Disponibilidade da galeria</span><span class="service-row-value">12 meses a partir da data de entrega</span></div>
+    <div class="service-row"><span class="service-row-label">Deslocamento e hospedagem</span><span class="service-row-value">{{pacote_deslocamento}}</span></div>
+  </div>
+
+  <!-- QUEBRA -->
+  <div style="page-break-after: always;"></div>
+
+  <!-- PÁG 3: PAGAMENTO + CLÁUSULAS -->
+  <div class="section-label first" style="visibility: hidden;">Investimento e Pagamento</div>
+  <div class="section-label" style="margin-top: 0;">Investimento e Pagamento</div>
+  <div style="height: 16px;"></div>
+
+  <div class="payment-rows">
+    <div class="payment-row">
+      <div class="payment-row-label">1ª Parcela — Reserva de data — até {{parcela_1_vencimento}}</div>
+      <div class="payment-row-amount">{{parcela_1_valor}}</div>
+    </div>
+    <div class="payment-row">
+      <div class="payment-row-label">2ª Parcela — Saldo final — até {{parcela_2_vencimento}}</div>
+      <div class="payment-row-amount">{{parcela_2_valor}}</div>
+    </div>
+    <hr class="payment-divider">
+    <div class="payment-row">
+      <div class="payment-row-label">Total</div>
+      <div class="payment-row-amount">{{pacote_valor_total}}</div>
+    </div>
+  </div>
+
+  <div class="payment-note">Pagamento via PIX para {{studio_pix_chave}} ({{studio_responsavel}}) ou transferência para {{studio_banco_conta}}. Comprovantes via e-mail ou WhatsApp.</div>
+
+  <div style="height: 48px;"></div>
+
+  <div class="section-label">Cláusulas e Condições Gerais</div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">1.</span><span class="clause-title">Reserva e Confirmação da Data</span></div>
+    <div class="clause-body">
+      <p>A data do casamento será considerada reservada somente após a assinatura deste contrato e o comprovante de pagamento da 1ª parcela. O pagamento da 1ª parcela tem caráter de sinal e reserva de data, sendo irrestituível em caso de cancelamento pelos Contratantes, salvo nas exceções previstas na Cláusula 4.</p>
+      <p>O link de assinatura enviado ao cliente tem validade de 7 dias corridos a partir do envio. Caso o contrato não seja assinado dentro desse prazo, a proposta expira automaticamente, a data deixa de estar reservada na agenda do {{studio_nome}} e nenhuma obrigação é gerada para nenhuma das partes. A data só estará efetivamente reservada após a assinatura do contrato e o comprovante de pagamento da 1ª parcela.</p>
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">2.</span><span class="clause-title">Pagamento e Inadimplência</span></div>
+    <div class="clause-body"><p>O atraso em qualquer parcela implicará multa de 2% sobre o valor inadimplente, acrescida de juros de 1% ao mês pro rata die, a partir do primeiro dia após o vencimento. O não pagamento da 2ª parcela confere ao {{studio_nome}} o direito de suspender o serviço e reter os valores já recebidos, sem prejuízo da cobrança do saldo por via extrajudicial ou judicial. Nenhum material fotográfico será entregue enquanto houver valores em aberto.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">3.</span><span class="clause-title">Prazo de Entrega e Galeria Online</span></div>
+    <div class="clause-body"><p>A galeria online será disponibilizada em até 30 dias corridos após o casamento, permanecendo ativa por 12 meses. Reabertura ou extensão do prazo estão sujeitas a taxa de R$ 100,00. Os Contratantes são responsáveis por fazer o download das imagens dentro do período de acesso. Solicitações de revisão de edição devem ser feitas em até 30 dias após a entrega; após esse prazo, reedições serão cobradas a R$ 150,00/hora, mínimo de uma hora.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">4.</span><span class="clause-title">Cancelamento</span></div>
+    <div class="clause-body">
+      <p>Em caso de cancelamento pelos Contratantes:</p>
+      <div class="sub">
+        <div class="sub-item"><strong>a)</strong> Com mais de 180 dias de antecedência: retenção apenas da 1ª parcela.</div>
+        <div class="sub-item"><strong>b)</strong> Entre 90 e 180 dias antes do evento: retenção de 50% do valor total.</div>
+        <div class="sub-item"><strong>c)</strong> Com menos de 90 dias antes do evento: retenção integral de 100% do valor total.</div>
+        <div class="sub-item"><strong>d)</strong> Cancelamento pelo {{studio_nome}} (exceto força maior): devolução integral + indenização de 10% sobre o valor total.</div>
+      </div>
+      <p style="margin-top:4px;">Não configura cancelamento passível de multa o óbito de familiar de primeiro grau dos Contratantes em até 30 dias antes do evento, mediante comprovação documental.</p>
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">5.</span><span class="clause-title">Reagendamento</span></div>
+    <div class="clause-body"><p>Reagendamentos devem ser solicitados com pelo menos 30 dias de antecedência. A nova data deverá estar nos 12 meses subsequentes ao evento original, condicionada à disponibilidade do {{studio_nome}}. Taxa de 10% sobre o valor total será aplicada, salvo nos seguintes casos com comprovação documental: proibição de festas por autoridade pública, calamidade pública ou força maior, e óbito de familiar de primeiro grau em até 15 dias antes do evento.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">6.</span><span class="clause-title">Direitos Artísticos e Liberdade Criativa</span></div>
+    <div class="clause-body">
+      <p>O {{studio_nome}} tem autonomia criativa plena sobre a condução fotográfica — ângulos, enquadramentos, composição e iluminação. O estilo fotográfico contratado é o amplamente divulgado no portfólio público do estúdio, que os Contratantes declaram conhecer e aprovar.</p>
+      <p>A cobertura contratada compreende {{pacote_horas}} horas contínuas de serviço, com início às {{evento_horario_inicio}} e término previsto às {{evento_horario_termino}}. Hora adicional além do previsto será cobrada a {{hora_extra_valor}}, sujeita à disponibilidade da equipe, e deve ser solicitada com pelo menos 30 minutos de antecedência ao término previsto.</p>
+      <p>O {{studio_nome}} detém o direito exclusivo de seleção e edição das imagens entregues. Não há obrigação de entrega de arquivos RAW. A entrega mínima é de {{pacote_fotos_minimo}} fotografias editadas. Admite-se uma variação de até 10% abaixo desse mínimo sem que configure descumprimento contratual, desde que a cobertura tenha sido realizada integralmente dentro do horário contratado. Caso a entrega fique abaixo desse limite por razão imputável ao {{studio_nome}}, será aplicado reembolso proporcional calculado sobre o valor total do contrato, restrito à diferença percentual entre o mínimo contratado e o efetivamente entregue.</p>
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">7.</span><span class="clause-title">Propriedade das Imagens e Direitos Autorais</span></div>
+    <div class="clause-body">
+      <p>Todas as imagens são de propriedade intelectual do {{studio_nome}}, protegidas pela Lei nº 9.610/1998. Os Contratantes recebem licença não exclusiva e intransferível para uso pessoal — impressões e compartilhamento em redes sociais pessoais — sendo vedada qualquer exploração comercial sem autorização prévia por escrito. O {{studio_nome}} tem direito de uso das imagens para portfólio, marketing e publicações em seus canais digitais. Caso os Contratantes não desejem divulgação pública, devem comunicar por escrito no ato da assinatura; a ausência de manifestação implica consentimento.</p>
+      <p>O uso indevido das imagens para fins comerciais, publicitários ou institucionais sem autorização prévia e por escrito do {{studio_nome}} sujeitará os Contratantes ao pagamento de indenização mínima equivalente a 3 (três) vezes o valor total deste contrato, sem prejuízo de eventuais perdas e danos adicionais apurados judicialmente, nos termos da Lei nº 9.610/1998.</p>
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">8.</span><span class="clause-title">Atraso ou Antecipação do Evento</span></div>
+    <div class="clause-body">
+      <p>Os Contratantes comprometem-se a comunicar o {{studio_nome}} com pelo menos 7 dias de antecedência caso haja alteração no horário previsto do evento. Atrasos de até 30 minutos no horário de início não geram custo adicional. Atrasos superiores a 30 minutos serão cobrados proporcionalmente ao valor de hora extra previsto neste contrato ({{hora_extra_valor}}/hora), calculados a partir do horário de início contratado.</p>
+      <p>Em caso de antecipação do evento sem comunicação prévia de pelo menos 48 horas, o {{studio_nome}} não se responsabiliza pela cobertura de momentos ocorridos antes do horário de início contratado. A cobertura terá início no horário original acordado ou no momento da chegada da equipe, o que ocorrer primeiro, sem redução do valor contratado.</p>
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">9.</span><span class="clause-title">Conduta no Evento</span></div>
+    <div class="clause-body"><p>O {{studio_nome}} e sua equipe têm direito a um ambiente de trabalho respeitoso durante todo o evento. Condutas ofensivas, agressivas ou que inviabilizem a execução do serviço — seja por parte dos Contratantes, familiares ou convidados — conferem ao {{studio_nome}} o direito de encerrar a cobertura imediatamente, retendo os valores já recebidos sem obrigação de devolução ou indenização. Nesse caso, o {{studio_nome}} entregará as imagens produzidas até o momento do encerramento, sem garantia de quantidade mínima.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">10.</span><span class="clause-title">Exclusividade Fotográfica no Evento</span></div>
+    <div class="clause-body"><p>O {{studio_nome}} atuará como equipe fotográfica exclusiva e oficial do evento. Os Contratantes comprometem-se a comunicar previamente à família e aos convidados sobre a presença do fotógrafo profissional, solicitando que não obstruam ângulos e não usem flashes externos durante momentos de cobertura documental. O {{studio_nome}} não se responsabiliza por imagens comprometidas em razão de interferência de terceiros.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">11.</span><span class="clause-title">Falha na Execução e Plano de Contingência</span></div>
+    <div class="clause-body">
+      <p>Em caso de impossibilidade do fotógrafo principal por doença grave ou emergência, o {{studio_nome}} comunicará os Contratantes o mais breve possível e providenciará, em primeira instância, um fotógrafo substituto de nível equivalente. Caso não seja possível garantir substituto aceito pelos Contratantes, todos os valores recebidos serão devolvidos integralmente. O {{studio_nome}} opera com cartões de memória redundantes e backup em campo.</p>
+      <p>Em caso de perda parcial de imagens por falha técnica devidamente comprovada, aplicam-se os seguintes critérios de reembolso sobre o valor total do contrato:</p>
+      <div class="sub">
+        <div class="sub-item"><strong>a)</strong> Perda de até 20% das imagens: sem reembolso, desde que os momentos principais estejam cobertos.</div>
+        <div class="sub-item"><strong>b)</strong> Perda entre 20% e 50% das imagens: reembolso de 25% do valor total.</div>
+        <div class="sub-item"><strong>c)</strong> Perda acima de 50% das imagens: reembolso de 50% do valor total.</div>
+        <div class="sub-item"><strong>d)</strong> Perda total das imagens: reembolso integral do valor total.</div>
+      </div>
+      <p style="margin-top:4px;">Entende-se por momentos principais: cerimônia, entrada dos noivos, troca de alianças e primeiro beijo. A ausência de cobertura de qualquer desses momentos por falha técnica equipara-se automaticamente ao critério da alínea c, independentemente do percentual total de imagens perdidas.</p>
+    </div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">12.</span><span class="clause-title">Arquivos RAW</span></div>
+    <div class="clause-body"><p>Todos os arquivos RAW são de propriedade exclusiva e intransferível do {{studio_nome}}. Os Contratantes não têm direito a solicitá-los em nenhuma hipótese. Os arquivos RAW podem ser descartados a qualquer momento após o encerramento da galeria, sem aviso prévio adicional.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">13.</span><span class="clause-title">Prazo de Reclamação</span></div>
+    <div class="clause-body"><p>Os Contratantes têm 90 dias corridos após a entrega da galeria para comunicar ao {{studio_nome}} qualquer problema, discrepância técnica ou reclamação. Reclamações devem ser feitas por escrito, com descrição objetiva. O {{studio_nome}} terá 15 dias úteis para responder e propor solução. Após esse prazo, o estúdio estará exonerado de qualquer responsabilidade por correções, reedições ou reembolsos.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">14.</span><span class="clause-title">Privacidade e Proteção de Dados (LGPD)</span></div>
+    <div class="clause-body"><p>Os dados pessoais dos Contratantes são coletados e tratados exclusivamente para fins de execução deste contrato, emissão de documentos fiscais e comunicação relacionada ao serviço, em conformidade com a Lei nº 13.709/2018. Os Contratantes podem solicitar a exclusão de suas imagens dos canais do {{studio_nome}} a qualquer momento, mediante solicitação por escrito.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">15.</span><span class="clause-title">Alterações Contratuais</span></div>
+    <div class="clause-body"><p>Qualquer alteração nas condições deste contrato deverá ser formalizada por Termo Aditivo assinado por ambas as partes. Acordos verbais ou por mensagem não têm validade contratual, salvo quando confirmados por escrito e expressamente referenciados a este instrumento.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">16.</span><span class="clause-title">Assinatura Digital</span></div>
+    <div class="clause-body"><p>Este contrato pode ser celebrado por meio de assinatura eletrônica, nos termos da Medida Provisória nº 2.200-2/2001 e do art. 10 do Decreto nº 10.278/2020. A assinatura eletrônica realizada através da plataforma Kelvn — mediante acesso por link único e intransferível enviado ao endereço {{contratante_email}} e/ou ao número {{contratante_telefone}}, com registro de IP, data, hora e hash criptográfico SHA-256 do documento — tem plena validade jurídica e vincula os Contratantes a todos os termos aqui estabelecidos, equivalendo para todos os efeitos à assinatura física com reconhecimento de firma. O certificado de assinatura gerado pela plataforma constitui prova suficiente de anuência e identidade do signatário.</p></div>
+  </div>
+
+  <div class="clause">
+    <div class="clause-head"><span class="clause-num">17.</span><span class="clause-title">Foro e Legislação Aplicável</span></div>
+    <div class="clause-body"><p>Este contrato é regido pelas leis da República Federativa do Brasil. As partes, sendo o {{studio_nome}} prestador de serviço autônomo ou pessoa jurídica de pequeno porte e os Contratantes pessoas físicas contratantes de serviço especializado de natureza artística e personalíssima, reconhecem expressamente que a presente relação contratual é regida pelo Código Civil Brasileiro e pela Lei nº 9.610/1998, afastando-se a aplicação do Código de Defesa do Consumidor nos aspectos que conflitem com a natureza personalíssima e artística do serviço prestado. As partes elegem o foro da Comarca de {{studio_foro}} como competente para dirimir quaisquer controvérsias, renunciando expressamente a qualquer outro foro, ainda que mais privilegiado. Antes de qualquer medida judicial, as partes comprometem-se a tentar resolução amigável com prazo de 15 dias para negociação após a formalização por escrito do impasse.</p></div>
+  </div>
+
+  <!-- ASSINATURAS -->
+  <div style="margin-top: 36px;">
+    <div class="section-label" style="margin-top:0;">Assinaturas</div>
+
+    <div class="sig-date">{{studio_foro}}, {{contrato_data_geracao}}.</div>
+
+    <p style="font-size:7.5pt; color:#555; margin-bottom:32px; text-align:justify;">As partes declaram ter lido e compreendido integralmente este contrato, concordando com todas as suas cláusulas e condições, assinando-o de livre e espontânea vontade.</p>
+
+    <div class="sig-grid">
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-name">{{studio_responsavel}}</div>
+        <div class="sig-role">{{studio_nome}} — Contratado</div>
+        <div class="sig-doc">{{studio_documento_label}}: {{studio_documento}}</div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line"></div>
+        <div class="sig-name">{{contratante_nome}}</div>
+        <div class="sig-role">Contratante — em nome próprio e de {{noivo1_nome}}</div>
+        <div class="sig-doc">CPF {{contratante_cpf}}</div>
+      </div>
+    </div>
+
+    <div class="final-note">
+      {{studio_nome}} &nbsp;·&nbsp; {{studio_email}} &nbsp;·&nbsp; {{studio_documento_label}} {{studio_documento}}<br>
+      Assinatura eletrônica com validade jurídica nos termos da MP nº 2.200-2/2001 · Gerado pela plataforma Kelvn
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
