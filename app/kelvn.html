@@ -519,7 +519,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:10px;" id="chart-legend"></div>
         </div>
-        <svg id="fat-chart" width="100%" height="360" style="display:block;overflow:visible;"></svg>
+        <svg id="fat-chart" width="100%" height="365" style="display:block;overflow:visible;"></svg>
       </div>
     </div>
     <!-- LISTAS -->
@@ -2249,7 +2249,7 @@ function renderFatChart(){
   var svg=document.getElementById('fat-chart');
   if(!svg) return;
   var W=svg.getBoundingClientRect().width||600;
-  var H=360;
+  var H=365;
   var PAD={top:10,right:8,bottom:32,left:36};
   var cW=W-PAD.left-PAD.right;
   var cH=H-PAD.top-PAD.bottom;
