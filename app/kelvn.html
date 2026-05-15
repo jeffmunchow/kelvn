@@ -505,7 +505,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     <div class="kpi"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div></div>
     <div class="kpi"><div class="kpi-l">Casamentos este ano</div><div class="kpi-v" id="r-wed">0</div></div>
     <div class="kpi"><div class="kpi-l">Ticket médio</div><div class="kpi-v cc" id="r-ticket">R$ 0</div></div>
-    <div class="kpi"><div class="kpi-l">Orçamentos abertos</div><div class="kpi-v cp" id="r-orc">0</div></div>
     <div class="kpi"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
@@ -520,10 +519,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
           <div style="display:flex;flex-wrap:wrap;gap:10px;" id="chart-legend"></div>
         </div>
         <svg id="fat-chart" width="100%" height="320" style="display:block;overflow:visible;"></svg>
-      </div>
-      <div>
-        <div class="col-title">Orçamentos recentes</div>
-        <div id="r-orcs-list" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
       </div>
     </div>
     <!-- LISTAS -->
@@ -566,24 +561,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   <div class="tw"><div class="ts"><table><thead><tr>
     <th>Nome</th><th>Casamento</th><th>Local</th><th>Valor</th><th>Pago</th><th>Status</th><th></th>
   </tr></thead><tbody id="c-tbody"></tbody></table></div></div>
-</div>
-
-<!-- ORÇAMENTOS -->
-<div class="panel" id="p-orcamentos">
-  <div class="sh">
-    <div class="st">Orçamentos</div>
-    <div class="sa">
-      <select class="fi" id="orc-status" onchange="rOrc()">
-        <option value="">Todos</option><option value="Enviado">Enviado</option>
-        <option value="Aprovado">Aprovado</option><option value="Recusado">Recusado</option>
-        <option value="Expirado">Expirado</option>
-      </select>
-      <button class="btn primary" onclick="openOrc()">+ Orçamento</button>
-    </div>
-  </div>
-  <div class="tw"><div class="ts"><table><thead><tr>
-    <th>Cliente</th><th>Pacote</th><th>Valor</th><th>Data</th><th>Validade</th><th>Status</th><th></th>
-  </tr></thead><tbody id="orc-tbody"></tbody></table></div></div>
 </div>
 
 <!-- AGENDA -->
@@ -834,10 +811,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
       <div class="col-title" style="margin-bottom:.75rem;">Faturamento mensal</div>
       <div id="an-fat-chart"></div>
     </div>
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
-      <div class="col-title" style="margin-bottom:.75rem;">Taxa de conversão de orçamentos</div>
-      <div id="an-conv"></div>
-    </div>
   </div>
   <div class="two">
     <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
@@ -924,23 +897,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   </div>
 </div></div>
 
-<!-- MODAL ORÇAMENTO -->
-<div class="overlay" id="ov-orc"><div class="modal">
-  <h2 id="morc-t">Novo Orçamento</h2>
-  <div class="field"><label>Cliente</label><select id="morc-cliente"><option value="">— selecione —</option></select></div>
-  <div class="field"><label>Pacote</label><select id="morc-pacote"><option value="">— selecione ou informe valor —</option></select></div>
-  <div class="field"><label>Valor (R$)</label><input type="number" id="morc-valor" placeholder="0"></div>
-  <div class="field"><label>Data</label><input type="text" class="sd" maxlength="10" id="morc-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
-  <div class="field"><label>Validade até</label><input type="text" class="sd" maxlength="10" id="morc-validade" placeholder="DD/MM/AAAA" autocomplete="off"></div>
-  <div class="field"><label>Status</label><select id="morc-status"><option>Enviado</option><option>Aprovado</option><option>Recusado</option><option>Expirado</option></select></div>
-  <div class="field"><label>Notas</label><textarea id="morc-notas" rows="2" placeholder="Detalhes, condições..."></textarea></div>
-  <div class="ma">
-    <button class="btn" style="color:var(--coral);display:none;" id="morc-del" onclick="delOrc()">Excluir</button>
-    <div style="flex:1"></div>
-    <button class="btn" onclick="cov('ov-orc')">Cancelar</button>
-    <button class="btn primary" onclick="saveOrc()">Salvar</button>
-  </div>
-</div></div>
 
 <!-- MODAL PENDÊNCIA -->
 <div class="overlay" id="ov-p"><div class="modal">
@@ -1296,7 +1252,7 @@ function go(name){
   var panel=document.getElementById('p-'+name);
   if(panel)panel.classList.add('active');
   _curTab=name;
-  ({resumo:rR,clientes:rC,orcamentos:rOrc,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();},financeiro:function(){rF();},pacotes:rPK,equipe:rEQ,analises:rAN,questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu})[name]&&({resumo:rR,clientes:rC,orcamentos:rOrc,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();},financeiro:function(){rF();},pacotes:rPK,equipe:rEQ,analises:rAN,questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu})[name]();
+  ({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();},financeiro:function(){rF();},pacotes:rPK,equipe:rEQ,analises:rAN,questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu})[name]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();},financeiro:function(){rF();},pacotes:rPK,equipe:rEQ,analises:rAN,questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu})[name]();
 }
 function switchPP(name){
   ['pend','edicoes','entregas'].forEach(function(n){
@@ -1378,13 +1334,11 @@ function rR(){
     var wd=pd(c.data);if(wd&&wd.getFullYear()===yr)wed++;
   });
   var tk=tks.length?tks.reduce(function(a,b){return a+b;},0)/tks.length:0;
-  var orcsOpen=g('orcamentos').filter(function(o){return o.status==='Enviado';}).length;
   var inad=calcInadTotal();
   document.getElementById('r-fat').textContent=$m(fat);
   document.getElementById('r-recv').textContent=$m(recv);
   document.getElementById('r-wed').textContent=wed;
   document.getElementById('r-ticket').textContent=$m(tk);
-  document.getElementById('r-orc').textContent=orcsOpen;
   document.getElementById('r-inad').textContent=$m(inad);
   setTimeout(renderFatChart,50);
   var evs=g('eventos').filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,5);
@@ -1393,18 +1347,6 @@ function rR(){
   else el.innerHTML=evs.map(function(e){
     var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=e.tipo==='Casamento'?'var(--teal)':'var(--amber)';
     return '<div class="ai" onclick="go(\'agenda\')"><div class="ai-date">'+ds+' '+hs+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local||e.tipo)+'</div></div></div>';
-  }).join('');
-  var orcsRecent=g('orcamentos').sort(function(a,b){return new Date(b.data||0)-new Date(a.data||0);}).slice(0,5);
-  var orcEl=document.getElementById('r-orcs-list');
-  var statusColor={'Enviado':'var(--amber)','Aprovado':'var(--teal)','Recusado':'var(--coral)','Expirado':'var(--text-hint)'};
-  if(!orcsRecent.length){orcEl.innerHTML='<div style="padding:1.25rem;font-size:.78rem;color:var(--text-hint);font-style:italic;text-align:center;">Nenhum orçamento</div>';}
-  else orcEl.innerHTML=orcsRecent.map(function(o){
-    var col=statusColor[o.status]||'var(--text-hint)';
-    return '<div class="ai" style="cursor:default;" onclick="go(\'orcamentos\')">'+
-      '<div class="ai-info"><div class="ai-title">'+(o.clienteId?cN(o.clienteId):'Cliente não definido')+'</div>'+
-      '<div class="ai-sub">'+$m(o.valor)+(o.data?' · '+fd(o.data):'')+'</div></div>'+
-      '<span style="font-size:.65rem;color:'+col+';font-weight:500;">'+o.status+'</span>'+
-    '</div>';
   }).join('');
   var pe=document.getElementById('r-pend');
   var ps=g('pends').filter(function(p){return !p.done;}).slice(0,5);
@@ -1637,48 +1579,6 @@ function saveE(){
   s('eventos',es);cov('ov-e');rA();rCalAno();rR();notify('Evento salvo');
 }
 function delE(){if(!confirm('Excluir?'))return;s('eventos',g('eventos').filter(function(e){return e.id!==_eId;}));cov('ov-e');rA();rCalAno();rR();notify('Excluído');}
-var _orcId=null;
-function rOrc(){
-  var sf=document.getElementById('orc-status').value;
-  var os=g('orcamentos').filter(function(o){return !sf||o.status===sf;}).sort(function(a,b){return new Date(b.data||0)-new Date(a.data||0);});
-  var tb=document.getElementById('orc-tbody');
-  if(!os.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nenhum orçamento</td></tr>';return;}
-  tb.innerHTML=os.map(function(o){
-    return '<tr onclick="openOrc(\''+o.id+'\')"><td class="tdn">'+(o.clienteId?cN(o.clienteId):'—')+'</td><td>'+(o.pacoteId?pN(o.pacoteId):'Personalizado')+'</td><td>'+$m(o.valor)+'</td><td>'+fd(o.data)+'</td><td>'+fd(o.validade)+'</td><td>'+obdg(o.status)+'</td><td><button class="ra" onclick="event.stopPropagation();openOrc(\''+o.id+'\')">Editar</button></td></tr>';
-  }).join('');
-}
-function openOrc(id){
-  _orcId=id||null;fillSel();
-  if(id){
-    var o=g('orcamentos').find(function(x){return x.id===id;});if(!o)return;
-    document.getElementById('morc-t').textContent='Editar Orçamento';
-    document.getElementById('morc-cliente').value=o.clienteId||'';
-    document.getElementById('morc-pacote').value=o.pacoteId||'';
-    document.getElementById('morc-valor').value=o.valor||'';
-    document.getElementById('morc-data').value=fd(o.data);
-    document.getElementById('morc-validade').value=fd(o.validade);
-    document.getElementById('morc-status').value=o.status||'Enviado';
-    document.getElementById('morc-notas').value=o.notas||'';
-    document.getElementById('morc-del').style.display='inline-flex';
-  }else{
-    document.getElementById('morc-t').textContent='Novo Orçamento';
-    ['morc-valor','morc-notas'].forEach(function(i){document.getElementById(i).value='';});
-    document.getElementById('morc-cliente').value='';document.getElementById('morc-pacote').value='';
-    var td=new Date(),ts=String(td.getDate()).padStart(2,'0')+'/'+String(td.getMonth()+1).padStart(2,'0')+'/'+td.getFullYear();
-    document.getElementById('morc-data').value=ts;document.getElementById('morc-validade').value='';
-    document.getElementById('morc-status').value='Enviado';
-    document.getElementById('morc-del').style.display='none';
-  }
-  document.getElementById('ov-orc').classList.add('open');
-}
-function saveOrc(){
-  var os=g('orcamentos');
-  var o={id:_orcId||uid(),clienteId:document.getElementById('morc-cliente').value,pacoteId:document.getElementById('morc-pacote').value,valor:parseFloat(document.getElementById('morc-valor').value)||0,data:d2i(document.getElementById('morc-data').value),validade:d2i(document.getElementById('morc-validade').value),status:document.getElementById('morc-status').value,notas:document.getElementById('morc-notas').value.trim()};
-  if(!o.clienteId&&!o.valor){alert('Informe o cliente e o valor.');return;}
-  if(_orcId){var i=os.findIndex(function(x){return x.id===_orcId;});if(i>-1)os[i]=o;}else os.push(o);
-  s('orcamentos',os);cov('ov-orc');rOrc();rR();notify('Orçamento salvo');
-}
-function delOrc(){if(!confirm('Excluir?'))return;s('orcamentos',g('orcamentos').filter(function(o){return o.id!==_orcId;}));cov('ov-orc');rOrc();rR();notify('Excluído');}
 var _pId=null;
 function rPe(){
   var flt=document.getElementById('pend-filter').value;
@@ -1986,31 +1886,20 @@ function saveEq(){
 function delEq(){if(!confirm('Excluir?'))return;s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));cov('ov-eq');rEQ();notify('Excluído');}
 function rAN(){
   var now=new Date(),yr=now.getFullYear();
-  var cs=g('clientes');var fin=g('fin');var orcs=g('orcamentos');
+  var cs=g('clientes');var fin=g('fin');
   var fat=fin.reduce(function(a,e){return a+(e.tipo==='entrada'?parseFloat(e.valor||0):0);},0);
   var desp=fin.reduce(function(a,e){return a+(e.tipo==='saida'?parseFloat(e.valor||0):0);},0);
   var cAtivos=cs.filter(function(c){return c.status!=='Finalizado'&&c.status!=='Prospect';}).length;
-  var orcAprov=orcs.filter(function(o){return o.status==='Aprovado';}).length;
-  var orcTotal=orcs.length;
-  var conv=orcTotal?Math.round(orcAprov/orcTotal*100):0;
   document.getElementById('an-kpis').innerHTML=
     '<div class="kpi"><div class="kpi-l">Faturamento total</div><div class="kpi-v ca">'+$m(fat)+'</div></div>'+
     '<div class="kpi"><div class="kpi-l">Lucro líquido</div><div class="kpi-v ct">'+$m(fat-desp)+'</div></div>'+
-    '<div class="kpi"><div class="kpi-l">Clientes ativos</div><div class="kpi-v">'+cAtivos+'</div></div>'+
-    '<div class="kpi"><div class="kpi-l">Conv. orçamentos</div><div class="kpi-v cp">'+conv+'%</div></div>';
+    '<div class="kpi"><div class="kpi-l">Clientes ativos</div><div class="kpi-v">'+cAtivos+'</div></div>';
   // Faturamento mensal (últimos 12 meses)
   var months=[];for(var i=11;i>=0;i--){var d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({m:d.getMonth(),y:d.getFullYear(),label:MABB[d.getMonth()]});}
   var fatByMonth=months.map(function(m){return fin.filter(function(e){if(e.tipo!=='entrada')return false;if(!e.data)return false;var d=new Date(e.data);return d.getMonth()===m.m&&d.getFullYear()===m.y;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);});
   var maxFat=Math.max.apply(null,fatByMonth.concat([1]));
   var fatChart='<div class="bar-wrap">'+months.map(function(m,i){var pct=Math.round(fatByMonth[i]/maxFat*100);return '<div class="bar-row"><div class="bar-label">'+m.label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(fatByMonth[i])+'</div></div>';}).join('')+'</div>';
   document.getElementById('an-fat-chart').innerHTML=fatChart;
-  // Conversão
-  var convHtml='<div style="text-align:center;padding:1.5rem 0;"><div style="font-size:3rem;font-weight:500;color:var(--amber);letter-spacing:-.05em;">'+conv+'%</div><div style="font-size:.72rem;color:var(--text-hint);margin-top:.5rem;">'+orcAprov+' aprovados de '+orcTotal+' enviados</div></div>';
-  if(orcTotal){
-    var statuses=['Enviado','Aprovado','Recusado','Expirado'];
-    convHtml+='<div class="bar-wrap">'+statuses.map(function(st){var cnt=orcs.filter(function(o){return o.status===st;}).length;var pct=Math.round(cnt/orcTotal*100);return '<div class="bar-row"><div class="bar-label">'+st+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:var(--'+(st==='Aprovado'?'teal':st==='Recusado'?'coral':'amber')+')"></div></div><div class="bar-val">'+cnt+'</div></div>';}).join('')+'</div>';
-  }
-  document.getElementById('an-conv').innerHTML=convHtml;
   // Status clientes
   var statusList=['Prospect','Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
   var maxCs=Math.max.apply(null,statusList.map(function(st){return cs.filter(function(c){return c.status===st;}).length;}).concat([1]));
@@ -2621,13 +2510,6 @@ function seedDemoData(){
     {id:'e06',titulo:'Ensaio — Larissa & Bruno',data:futDT(21,15,0),tipo:'Ensaio',clienteId:'c07',local:'Centro Histórico de Pelotas',notas:''},
     {id:'e07',titulo:'Entrega álbum — Juliana & Marcos',data:futDT(2,16,0),tipo:'Entrega',clienteId:'c06',local:'Estúdio',notas:'Álbum 30x30 pronto.'}
   ]);
-  s('orcamentos',[
-    {id:'o01',clienteId:'c05',pacoteId:'',valor:19800,data:dt(m,1),validade:fut(20),status:'Enviado',notas:'Pacote Ouro com 12h de cobertura.'},
-    {id:'o02',clienteId:'c03',pacoteId:'',valor:22000,data:dt(m-1,18),validade:'',status:'Aprovado',notas:'Aprovado e contrato assinado.'},
-    {id:'o03',clienteId:'c07',pacoteId:'',valor:25000,data:dt(m-1,20),validade:'',status:'Aprovado',notas:'Destino wedding Floripa.'},
-    {id:'o04',clienteId:'',pacoteId:'',valor:11500,data:dt(m-1,10),validade:'',status:'Recusado',notas:'Casal optou por outro fotógrafo.'},
-    {id:'o05',clienteId:'',pacoteId:'',valor:15000,data:dt(m,5),validade:fut(10),status:'Enviado',notas:'Indicação da Ana Clara.'}
-  ]);
   var finEntries=[];
   var fatData=[
     {m:0,cat:'Casamento',v:4200},{m:1,cat:'Casamento',v:3800},{m:2,cat:'Casamento',v:5500},
@@ -2758,7 +2640,6 @@ function isAdmin(){ return _currentUser && _currentUser.email === ADMIN_EMAIL; }
 var _KEY_MAP = {
   'clientes':     {table:'clientes',           col:'data'},
   'eventos':      {table:'eventos',            col:'data'},
-  'orcamentos':   {table:'orcamentos',         col:'data'},
   'fin':          {table:'financeiro',         col:'data'},
   'fin_pessoal':  {table:'financeiro_pessoal', col:'data'},
   'edicoes':      {table:'posproducao',        col:'edicoes'},
@@ -2806,7 +2687,7 @@ function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
 
 function _loadFromLocalCache(){
   // Carrega dados do localStorage instantaneamente
-  var keys=['clientes','eventos','orcamentos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas'];
+  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas'];
   var hasAny=false;
   keys.forEach(function(k){
     var raw=localStorage.getItem(_lsKey(k));
@@ -2818,7 +2699,6 @@ function _loadFromLocalCache(){
 function _applySupabaseData(m){
   if(m.clientes)           _cache.clientes    =m.clientes.data||[];
   if(m.eventos)            _cache.eventos     =m.eventos.data||[];
-  if(m.orcamentos)         _cache.orcamentos  =m.orcamentos.data||[];
   if(m.financeiro)         _cache.fin         =m.financeiro.data||[];
   if(m.financeiro_pessoal) _cache.fin_pessoal =m.financeiro_pessoal.data||[];
   if(m.posproducao){
@@ -2842,14 +2722,14 @@ function _applySupabaseData(m){
 
 async function _loadFromSupabase(){
   if(!_currentUser) return;
-  var tables=['clientes','eventos','orcamentos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
+  var tables=['clientes','eventos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
   try{
     var results=await Promise.all(tables.map(t=>_sb.from(t).select('*').eq('user_id',_currentUser.id).maybeSingle()));
     var m={};
     tables.forEach(function(t,i){ m[t]=results[i].data; });
     _applySupabaseData(m);
     // Persiste no localStorage como cache
-    var keyMap={'clientes':'clientes','eventos':'eventos','orcamentos':'orcamentos','financeiro':'fin','financeiro_pessoal':'fin_pessoal'};
+    var keyMap={'clientes':'clientes','eventos':'eventos','financeiro':'fin','financeiro_pessoal':'fin_pessoal'};
     Object.keys(keyMap).forEach(function(t){
       if(m[t]) localStorage.setItem(_lsKey(keyMap[t]), JSON.stringify(m[t].data||[]));
     });
@@ -2875,7 +2755,7 @@ function _setupRealtime(){
   if(!_currentUser) return;
   if(_realtimeChannel) _sb.removeChannel(_realtimeChannel);
   _realtimeChannel=_sb.channel('kelvn-realtime-'+_currentUser.id);
-  var tables=['clientes','eventos','orcamentos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
+  var tables=['clientes','eventos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
   tables.forEach(function(table){
     _realtimeChannel.on('postgres_changes',
       {event:'UPDATE',schema:'public',table:table,filter:'user_id=eq.'+_currentUser.id},
@@ -2883,7 +2763,6 @@ function _setupRealtime(){
         var r=payload.new;
         if(table==='clientes')           _cache.clientes    =r.data||[];
         if(table==='eventos')            { _cache.eventos=r.data||[]; rCalAno(); }
-        if(table==='orcamentos')         _cache.orcamentos  =r.data||[];
         if(table==='financeiro')         _cache.fin         =r.data||[];
         if(table==='financeiro_pessoal') _cache.fin_pessoal =r.data||[];
         if(table==='posproducao')        { _cache.edicoes=r.edicoes||[]; _cache.entregas=r.entregas||[]; _cache.pends=r.pends||[]; _cache.todos=r.todos||[]; }
@@ -3100,7 +2979,6 @@ function _buildContext(){
   var edicoes = g('edicoes') || [];
   var entregas = g('entregas') || [];
   var pends = g('pends') || [];
-  var orcamentos = g('orcamentos') || [];
 
   // Resumo financeiro
   var totalContratado = 0, totalRecebido = 0, totalPendente = 0;
@@ -3139,8 +3017,7 @@ function _buildContext(){
     clientesComPagamentoPendente: comPendencia,
     proximosEventos: proxEventos.slice(0,10),
     pendenciasPostProducao: pendsAtivas.slice(0,10),
-    entregasPendentes: entregasPendentes.slice(0,10),
-    orcamentosAbertos: orcamentos.filter(function(o){ return o.status !== 'Aprovado'; }).length
+    entregasPendentes: entregasPendentes.slice(0,10)
   }, null, 2);
 }
 function _renderMD(text){
