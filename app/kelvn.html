@@ -111,17 +111,21 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .bc{background:var(--amber-light);color:var(--amber);}
 /* Status de cliente — sem balão, só cor na palavra */
 .st-prospect{color:#9E9892;font-size:.61rem;}
-.st-contratado{color:#C4780A;font-size:.61rem;}
-.st-pre{color:#8A8DCC;font-size:.61rem;}
-.st-casamento{color:#18926E;font-size:.61rem;}
+.st-sessao{color:#C43A1A;font-size:.61rem;}
+.st-religioso{color:#2E7D32;font-size:.61rem;}
+.st-welcome{color:#D4709A;font-size:.61rem;}
+.st-casamento{color:#C4780A;font-size:.61rem;}
+.st-after{color:#6B9BAF;font-size:.61rem;}
 .st-pos{color:#C43A1A;font-size:.61rem;}
 .st-album{color:#7B5EA7;font-size:.61rem;}
 .st-entregue{color:#2E7D32;font-size:.61rem;}
 .st-finalizado{color:#5C5854;font-size:.61rem;}
 [data-theme="dark"] .st-prospect{color:#5C5854;}
-[data-theme="dark"] .st-contratado{color:#D4902A;}
-[data-theme="dark"] .st-pre{color:#8A8DCC;}
-[data-theme="dark"] .st-casamento{color:#18926E;}
+[data-theme="dark"] .st-sessao{color:#CC4A28;}
+[data-theme="dark"] .st-religioso{color:#66BB6A;}
+[data-theme="dark"] .st-welcome{color:#E88AB4;}
+[data-theme="dark"] .st-casamento{color:#D4902A;}
+[data-theme="dark"] .st-after{color:#8BBDCF;}
 [data-theme="dark"] .st-pos{color:#CC4A28;}
 [data-theme="dark"] .st-album{color:#9B7EC8;}
 [data-theme="dark"] .st-entregue{color:#66BB6A;}
@@ -444,7 +448,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
   </button>
 
-  <button class="snav-btn" id="sn-analises" onclick="goDirecto('analises')" title="Análises">
+  <button class="snav-btn" id="sn-analises" onclick="goDirecto('analises')" title="Análises & Metas">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
   </button>
 
@@ -530,7 +534,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
       </div>
       <div>
         <div class="col-title">Pós-produção</div>
-        <div id="r-pend"></div>
+        <div id="r-pend" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
       </div>
     </div>
   </div>
@@ -544,10 +548,16 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
       <input class="fi" type="text" id="c-search" placeholder="Buscar..." oninput="rC()" style="width:150px;">
       <select class="fi" id="c-status" onchange="rC()">
         <option value="">Ativos</option>
-        <option value="Prospect">Prospect</option><option value="Contratado">Contratado</option>
-        <option value="Sessão Pré-Casamento">Pré-Casamento</option><option value="Casamento">Casamento</option>
-        <option value="Pós-produção">Pós-produção</option><option value="Álbum design">Álbum design</option>
-        <option value="Entregue">Entregue</option><option disabled>──────</option>
+        <option value="Prospect">Prospect</option>
+        <option value="Sessão">Sessão</option>
+        <option value="Religioso">Religioso</option>
+        <option value="Welcome-party">Welcome-party</option>
+        <option value="Casamento">Casamento</option>
+        <option value="After-party">After-party</option>
+        <option value="Pós-produção">Pós-produção</option>
+        <option value="Álbum design">Álbum design</option>
+        <option value="Entregue">Entregue</option>
+        <option disabled>──────</option>
         <option value="Finalizado">Arquivados</option>
       </select>
       <button class="btn primary" onclick="openC()">+ Cliente</button>
@@ -609,7 +619,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     <div class="ag-split">
       <div class="ag-col-list">
         <div class="sh">
-          <div class="st">Pendências</div>
+          <div class="st">Pós-produção</div>
           <div class="sa">
             <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
           </div>
@@ -860,9 +870,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     <div class="field"><label>Data</label><input type="text" class="sd" maxlength="10" id="mc-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
     <div class="field"><label>Local do casamento</label><input type="text" id="mc-local" placeholder="Igreja, espaço, cidade"></div>
     <div class="field"><label>Status</label><select id="mc-status">
-      <option>Prospect</option><option>Contratado</option><option>Sessão Pré-Casamento</option>
-      <option>Casamento</option><option>Pós-produção</option><option>Álbum design</option>
-      <option>Entregue</option><option>Finalizado</option>
+      <option>Prospect</option><option>Sessão</option><option>Religioso</option><option>Welcome-party</option><option>Casamento</option><option>After-party</option><option>Pós-produção</option><option>Álbum design</option><option>Entregue</option><option>Finalizado</option>
     </select></div>
     <div class="field" style="display:flex;align-items:flex-end;gap:.4rem;">
       <div style="flex:1;min-width:0;"><label>Valor total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()" style="width:100%;"></div>
@@ -1226,7 +1234,7 @@ var SECTIONS={
   financeiro:{title:'Financeiro',sub:'Finanças do estúdio',items:[{id:'financeiro',label:'Empresa'},{id:'_fin_pes',label:'Pessoal'},{id:'_fin_dre',label:'DRE'},{id:'_fin_prec',label:'Calculadora de precificação'},{id:'_fin_imp',label:'Calculadora de impostos'},{id:'_fin_inad',label:'Inadimplência'}]},
   questionarios:{title:'Questionários',sub:'Templates e respostas',items:[{id:'questionarios',label:'Templates'},{id:'_q_resp',label:'Enviados & Respostas'}]},
   servicos:{title:'Serviços',sub:'Pacotes e equipe',items:[{id:'pacotes',label:'Pacotes'},{id:'equipe',label:'Equipe'}]},
-  analises:{title:'Análises',sub:'Relatórios e métricas',items:[{id:'analises',label:'Visão geral'}]},
+  analises:{title:'Análises & Metas',sub:'Relatórios e métricas',items:[{id:'analises',label:'Visão geral'}]},
   educacao:{title:'Educação',sub:'Ebooks para fotógrafos',items:[{id:'educacao',label:'Biblioteca'}]}
 };
 
@@ -1319,7 +1327,7 @@ function switchAG2(name){
   if(name==='tipos')rTR();if(name==='slots')rSlots();if(name==='disp')rDisp();
 }
 function bdg(st){
-  var m={'Prospect':'st-prospect','Contratado':'st-contratado','Sessão Pré-Casamento':'st-pre','Casamento':'st-casamento','Pós-produção':'st-pos','Álbum design':'st-album','Entregue':'st-entregue','Finalizado':'st-finalizado'};
+  var m={'Prospect':'st-prospect','Sessão':'st-sessao','Religioso':'st-religioso','Welcome-party':'st-welcome','Casamento':'st-casamento','After-party':'st-after','Pós-produção':'st-pos','Álbum design':'st-album','Entregue':'st-entregue','Finalizado':'st-finalizado'};
   return '<span class="'+(m[st]||'st-prospect')+'">'+(st||'—')+'</span>';
 }
 function obdg(st){
@@ -1400,10 +1408,16 @@ function rR(){
   }).join('');
   var pe=document.getElementById('r-pend');
   var ps=g('pends').filter(function(p){return !p.done;}).slice(0,5);
-  if(!ps.length){pe.innerHTML='<div style="padding:1rem;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhuma pendência</div>';}
+  if(!ps.length){pe.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma pendência</div>';}
   else pe.innerHTML=ps.map(function(p){
     var pl=prazoLabel(p.prazo,p.done);
-    return '<div class="pc" onclick="go(\'posproducao\')"><div class="pr"><div><div class="pn">'+p.desc+'</div><div class="pm">'+(p.clienteId?cN(p.clienteId):'Geral')+'</div></div>'+(pl.txt?'<div class="'+pl.cls+'">'+pl.txt+'</div>':'')+' </div></div>';
+    var dot=p.prio==='alta'?'var(--coral)':p.prio==='baixa'?'var(--teal)':'var(--amber)';
+    return '<div class="ai" onclick="go(\'posproducao\')">'+
+      '<div class="ai-dot" style="background:'+dot+';margin-right:4px;"></div>'+
+      '<div class="ai-info"><div class="ai-title">'+p.desc+'</div>'+
+      '<div class="ai-sub">'+(p.clienteId?cN(p.clienteId):'Geral')+'</div></div>'+
+      (pl.txt?'<span class="badge '+pl.cls+'" style="margin-left:auto;">'+pl.txt+'</span>':'')+
+    '</div>';
   }).join('');
 }
 var _cId=null,_parc=[],_cEventos=[];
@@ -1412,7 +1426,7 @@ function addCEvento(){
   rCEventos();
 }
 function rCEventos(){
-  var opts=['Prospect','Contratado','Sessão Pré-Casamento','Casamento','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var opts=['Prospect','Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
   var el=document.getElementById('mc-eventos-extra');
   if(!el)return;
   el.innerHTML=_cEventos.map(function(ev,i){
@@ -1998,7 +2012,7 @@ function rAN(){
   }
   document.getElementById('an-conv').innerHTML=convHtml;
   // Status clientes
-  var statusList=['Prospect','Contratado','Sessão Pré-Casamento','Casamento','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var statusList=['Prospect','Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
   var maxCs=Math.max.apply(null,statusList.map(function(st){return cs.filter(function(c){return c.status===st;}).length;}).concat([1]));
   document.getElementById('an-status').innerHTML='<div class="bar-wrap">'+statusList.map(function(st){var cnt=cs.filter(function(c){return c.status===st;}).length;var pct=Math.round(cnt/maxCs*100);return '<div class="bar-row"><div class="bar-label" style="width:110px;">'+st.slice(0,14)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+cnt+'</div></div>';}).join('')+'</div>';
   // Cat receita
@@ -2284,11 +2298,12 @@ function saveDisp(){
   localStorage.setItem('kelvn_disp',JSON.stringify(disp));
 }
 var PRODUTOS=[
-  {key:'Casamento',    color:'#C4780A'},
-  {key:'Pré-wedding',  color:'#0A7864'},
-  {key:'Retratos',     color:'#5255A0'},
-  {key:'Institucional',color:'#C43A1A'},
-  {key:'Freela',       color:'#B0ABA6'}
+  {key:'Sessão',        color:'#C43A1A'},
+  {key:'Religioso',     color:'#2E7D32'},
+  {key:'Welcome-party', color:'#D4709A'},
+  {key:'Casamento',     color:'#C4780A'},
+  {key:'After-party',   color:'#6B9BAF'},
+  {key:'Álbum',         color:'#7B5EA7'}
 ];
 
 function renderFatChart(){
@@ -2539,10 +2554,39 @@ function finalizarCompra(){
   cov('ov-checkout');
   setTimeout(function(){ document.getElementById('ov-compra-ok').classList.add('open'); },200);
 }
+function _migrateDemoFin(){
+  var yr=new Date().getFullYear();
+  function dt(month,day){ return yr+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
+  var fatData=[
+    {m:0,cat:'Casamento',v:4200},{m:1,cat:'Casamento',v:3800},{m:2,cat:'Casamento',v:5500},
+    {m:3,cat:'Casamento',v:7200},{m:4,cat:'Casamento',v:6800},{m:5,cat:'Casamento',v:8400},
+    {m:6,cat:'Casamento',v:9100},{m:7,cat:'Casamento',v:7600},{m:8,cat:'Casamento',v:10200},
+    {m:9,cat:'Casamento',v:8900},{m:10,cat:'Casamento',v:11500},{m:11,cat:'Casamento',v:13200},
+    {m:0,cat:'Sessão',v:2200},{m:1,cat:'Sessão',v:1800},{m:2,cat:'Sessão',v:3200},
+    {m:3,cat:'Sessão',v:2800},{m:4,cat:'Sessão',v:4100},{m:5,cat:'Sessão',v:3500},
+    {m:6,cat:'Sessão',v:2900},{m:7,cat:'Sessão',v:3800},{m:8,cat:'Sessão',v:4200},
+    {m:9,cat:'Sessão',v:3100},{m:10,cat:'Sessão',v:2600},{m:11,cat:'Sessão',v:3900},
+    {m:0,cat:'Religioso',v:1200},{m:1,cat:'Religioso',v:900},{m:2,cat:'Religioso',v:1500},
+    {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
+    {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
+    {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
+    {m:0,cat:'Welcome-party',v:800},{m:2,cat:'Welcome-party',v:1100},{m:4,cat:'Welcome-party',v:1400},
+    {m:5,cat:'Welcome-party',v:1200},{m:7,cat:'Welcome-party',v:1300},{m:9,cat:'Welcome-party',v:1000},{m:11,cat:'Welcome-party',v:1200},
+    {m:0,cat:'After-party',v:1500},{m:2,cat:'After-party',v:2000},{m:4,cat:'After-party',v:2400},
+    {m:5,cat:'After-party',v:2100},{m:7,cat:'After-party',v:2300},{m:9,cat:'After-party',v:2000},{m:11,cat:'After-party',v:2200},
+    {m:0,cat:'Álbum',v:3200},{m:1,cat:'Álbum',v:2800},{m:2,cat:'Álbum',v:4500},
+    {m:3,cat:'Álbum',v:3900},{m:4,cat:'Álbum',v:5500},{m:5,cat:'Álbum',v:4800},
+    {m:6,cat:'Álbum',v:4100},{m:7,cat:'Álbum',v:5200},{m:8,cat:'Álbum',v:5900},
+    {m:9,cat:'Álbum',v:4400},{m:10,cat:'Álbum',v:3800},{m:11,cat:'Álbum',v:5000}
+  ];
+  var despesas=_cache.fin.filter(function(e){ return e.tipo==='saida'; });
+  var novasFin=despesas.concat(fatData.map(function(d){
+    return {id:uid(),desc:'[demo] '+d.cat,valor:d.v,data:dt(d.m,10),cat:d.cat,clienteId:'',tipo:'entrada'};
+  }));
+  s('fin',novasFin);
+}
+
 function seedDemoData(){
-  if(localStorage.getItem('kelvn_demo_v2')) return;
-  // clear old demo flag
-  localStorage.removeItem('kelvn_demo_seeded');
   var yr=new Date().getFullYear();
   var now=new Date();
   var m=now.getMonth();
@@ -2590,18 +2634,24 @@ function seedDemoData(){
     {m:3,cat:'Casamento',v:7200},{m:4,cat:'Casamento',v:6800},{m:5,cat:'Casamento',v:8400},
     {m:6,cat:'Casamento',v:9100},{m:7,cat:'Casamento',v:7600},{m:8,cat:'Casamento',v:10200},
     {m:9,cat:'Casamento',v:8900},{m:10,cat:'Casamento',v:11500},{m:11,cat:'Casamento',v:13200},
-    {m:0,cat:'Pré-wedding',v:1200},{m:1,cat:'Pré-wedding',v:900},{m:2,cat:'Pré-wedding',v:1500},
-    {m:3,cat:'Pré-wedding',v:2100},{m:4,cat:'Pré-wedding',v:1800},{m:5,cat:'Pré-wedding',v:2400},
-    {m:6,cat:'Pré-wedding',v:3200},{m:7,cat:'Pré-wedding',v:2800},{m:8,cat:'Pré-wedding',v:3600},
-    {m:9,cat:'Pré-wedding',v:2900},{m:10,cat:'Pré-wedding',v:3100},{m:11,cat:'Pré-wedding',v:4200},
-    {m:0,cat:'Retratos',v:600},{m:1,cat:'Retratos',v:800},{m:2,cat:'Retratos',v:500},
-    {m:3,cat:'Retratos',v:1100},{m:4,cat:'Retratos',v:900},{m:5,cat:'Retratos',v:700},
-    {m:6,cat:'Retratos',v:1300},{m:7,cat:'Retratos',v:1000},{m:8,cat:'Retratos',v:800},
-    {m:9,cat:'Retratos',v:1400},{m:10,cat:'Retratos',v:600},{m:11,cat:'Retratos',v:1100},
-    {m:1,cat:'Institucional',v:2400},{m:3,cat:'Institucional',v:1800},{m:5,cat:'Institucional',v:3200},
-    {m:7,cat:'Institucional',v:2100},{m:9,cat:'Institucional',v:2800},{m:11,cat:'Institucional',v:3500},
-    {m:0,cat:'Freela',v:500},{m:2,cat:'Freela',v:700},{m:4,cat:'Freela',v:400},
-    {m:5,cat:'Freela',v:900},{m:7,cat:'Freela',v:600},{m:9,cat:'Freela',v:800},{m:11,cat:'Freela',v:1100}
+    {m:0,cat:'Sessão',v:2200},{m:1,cat:'Sessão',v:1800},{m:2,cat:'Sessão',v:3200},
+    {m:3,cat:'Sessão',v:2800},{m:4,cat:'Sessão',v:4100},{m:5,cat:'Sessão',v:3500},
+    {m:6,cat:'Sessão',v:2900},{m:7,cat:'Sessão',v:3800},{m:8,cat:'Sessão',v:4200},
+    {m:9,cat:'Sessão',v:3100},{m:10,cat:'Sessão',v:2600},{m:11,cat:'Sessão',v:3900},
+    {m:0,cat:'Religioso',v:1200},{m:1,cat:'Religioso',v:900},{m:2,cat:'Religioso',v:1500},
+    {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
+    {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
+    {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
+    {m:0,cat:'Welcome-party',v:800},{m:2,cat:'Welcome-party',v:1100},{m:4,cat:'Welcome-party',v:1400},
+    {m:5,cat:'Welcome-party',v:1200},{m:7,cat:'Welcome-party',v:1300},{m:9,cat:'Welcome-party',v:1000},
+    {m:11,cat:'Welcome-party',v:1200},
+    {m:0,cat:'After-party',v:1500},{m:2,cat:'After-party',v:2000},{m:4,cat:'After-party',v:2400},
+    {m:5,cat:'After-party',v:2100},{m:7,cat:'After-party',v:2300},{m:9,cat:'After-party',v:2000},
+    {m:11,cat:'After-party',v:2200},
+    {m:0,cat:'Álbum',v:3200},{m:1,cat:'Álbum',v:2800},{m:2,cat:'Álbum',v:4500},
+    {m:3,cat:'Álbum',v:3900},{m:4,cat:'Álbum',v:5500},{m:5,cat:'Álbum',v:4800},
+    {m:6,cat:'Álbum',v:4100},{m:7,cat:'Álbum',v:5200},{m:8,cat:'Álbum',v:5900},
+    {m:9,cat:'Álbum',v:4400},{m:10,cat:'Álbum',v:3800},{m:11,cat:'Álbum',v:5000}
   ];
   fatData.forEach(function(d){
     finEntries.push({id:uid(),desc:'[demo] '+d.cat,valor:d.v,data:dt(d.m,10),cat:d.cat,clienteId:'',tipo:'entrada'});
@@ -2693,7 +2743,6 @@ function seedDemoData(){
     {id:'td06',text:'Responder email — casal Gomes',cat:'Atendimento',done:false}
   ]);
 
-  localStorage.setItem('kelvn_demo_v2','1');
 }
 (function(){
   var th=localStorage.getItem('kelvn_theme');if(th)document.documentElement.setAttribute('data-theme',th);
@@ -2887,26 +2936,30 @@ async function doForgot(){
 }
 
 async function initUserData(){
-  // 1. Carrega localStorage instantaneamente
-  var hadCache = _loadFromLocalCache();
+  // 1. Carrega localStorage como cache instantâneo enquanto Supabase carrega
+  _loadFromLocalCache();
   _cacheLoaded = true;
 
-  // 2. Se não tem cache, seed demo ou sistema vazio
-  if(!hadCache){
-    var uid=_currentUser.id;
-    if(!localStorage.getItem('kelvn_'+uid+'_init')){
-      if(isAdmin()){ seedDemoData(); }
-      localStorage.setItem('kelvn_'+uid+'_init','1');
+  // 2. Carrega do Supabase — fonte de verdade
+  try{
+    await _loadFromSupabase();
+    // Se admin e Supabase não tem dados, semeia demo
+    if(isAdmin() && (!_cache.clientes || _cache.clientes.length === 0)){
+      seedDemoData();
     }
+    // Migração: atualiza fin demo se ainda contém categorias antigas
+    if(isAdmin() && _cache.fin && _cache.fin.length > 0){
+      var oldCats=['Pré-wedding','Retratos','Institucional','Freela'];
+      var hasOld=_cache.fin.some(function(e){ return oldCats.indexOf(e.cat)>-1; });
+      if(hasOld){ _migrateDemoFin(); }
+    }
+  } catch(e){
+    // fallback: se Supabase falhar, usa cache local
   }
 
-  // 3. Sync Supabase em background — não bloqueia a UI
-  _loadFromSupabase().then(function(){
-    rR();
-    // Re-renderiza o calendário com dados vindos do Supabase
-    var panel=document.getElementById('p-agenda');
-    if(panel&&panel.style.display!=='none') rCalAno();
-  }).catch(function(e){ });
+  rR();
+  var panel=document.getElementById('p-agenda');
+  if(panel&&panel.style.display!=='none') rCalAno();
 
   try{ _setupRealtime(); } catch(e){ }
 }
