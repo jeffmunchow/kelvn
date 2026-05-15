@@ -606,14 +606,18 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 <div class="panel" id="p-posproducao">
   <!-- PENDÊNCIAS -->
   <div id="pp-panel-pend">
-    <div class="sh">
-      <div class="st">Pendências</div>
-      <div class="sa">
-        <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
-        
+    <div class="ag-split">
+      <div class="ag-col-list">
+        <div class="sh">
+          <div class="st">Pendências</div>
+          <div class="sa">
+            <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
+          </div>
+        </div>
+        <div class="tw" id="pend-list"></div>
       </div>
+      <div></div>
     </div>
-    <div id="pend-list"></div>
   </div>
   <!-- EDIÇÕES -->
   <div id="pp-panel-edicoes" style="display:none;">
@@ -1666,12 +1670,19 @@ function rPe(){
   var flt=document.getElementById('pend-filter').value;
   var ps=g('pends').filter(function(p){return flt==='all'||(flt==='open'&&!p.done)||(flt==='done'&&p.done);});
   var el=document.getElementById('pend-list');
-  if(!ps.length){el.innerHTML='<div style="padding:2rem;font-size:.78rem;color:var(--text-hint);font-style:italic;text-align:center;">Nenhuma pendência</div>';return;}
-  var td=today();
+  if(!ps.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma pendência</div>';return;}
   el.innerHTML=ps.map(function(p){
     var pl=prazoLabel(p.prazo,p.done);
-    var ico=p.prio==='alta'?'🔴 ':p.prio==='baixa'?'🟢 ':'';
-    return '<div class="pc" onclick="openPend(\''+p.id+'\')"><div class="pr"><div><div class="pn">'+ico+p.desc+(p.done?' <span style="color:var(--teal);font-size:.7rem;">✓</span>':'')+'</div><div class="pm">'+(p.clienteId?cN(p.clienteId):'Geral')+(p.prazo?' · '+fd(p.prazo):'')+'</div></div>'+(pl.txt?'<div class="'+pl.cls+'">'+pl.txt+'</div>':'')+' </div></div>';
+    var dot=p.prio==='alta'?'var(--coral)':p.prio==='baixa'?'var(--teal)':'var(--amber)';
+    if(p.done) dot='var(--text-hint)';
+    return '<div class="ai'+(p.done?' past':'')+'" onclick="openPend(\''+p.id+'\')">'+
+      '<div class="ai-dot" style="background:'+dot+';margin-right:4px;"></div>'+
+      '<div class="ai-info">'+
+        '<div class="ai-title"'+( p.done?' style="text-decoration:line-through;opacity:.5;"':'')+'>'+p.desc+'</div>'+
+        '<div class="ai-sub">'+(p.clienteId?cN(p.clienteId):'Geral')+(p.prazo?' · '+fd(p.prazo):'')+'</div>'+
+      '</div>'+
+      (pl.txt?'<span class="badge '+pl.cls+'" style="margin-left:auto;">'+pl.txt+'</span>':'')+
+    '</div>';
   }).join('');
 }
 function openPend(id){
