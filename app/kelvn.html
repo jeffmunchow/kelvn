@@ -502,10 +502,11 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 <div class="panel active" id="p-resumo">
   <div class="kpis">
     <div class="kpi"><div class="kpi-l">Faturamento</div><div class="kpi-v ca" id="r-fat">R$ 0</div><div class="kpi-s">contratos ativos</div></div>
-    <div class="kpi"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div></div>
-    <div class="kpi"><div class="kpi-l">Casamentos este ano</div><div class="kpi-v" id="r-wed">0</div></div>
     <div class="kpi"><div class="kpi-l">Ticket médio</div><div class="kpi-v cc" id="r-ticket">R$ 0</div></div>
+    <div class="kpi" onclick="editInstaFollowers()" style="cursor:pointer;" title="Clique para atualizar"><div class="kpi-l">Seguidores Instagram</div><div class="kpi-v" id="r-insta">—</div><div class="kpi-s">clique para atualizar</div></div>
+    <div class="kpi"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div></div>
     <div class="kpi"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div></div>
+    <div class="kpi"><div class="kpi-l">Casamentos este ano</div><div class="kpi-v" id="r-wed">0</div></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
     <!-- GRÁFICO + ORÇAMENTOS -->
@@ -1322,6 +1323,15 @@ function prazoLabel(prazoStr,done){
   if(df<=3)return{cls:'pwn',txt:'Em '+df+'d'};
   return{cls:'pok',txt:'Em '+df+'d'};
 }
+function editInstaFollowers(){
+  var cur=g('insta_followers')||'';
+  var val=prompt('Seguidores no Instagram:',cur);
+  if(val===null)return;
+  var n=parseInt(val.replace(/\D/g,''),10);
+  if(isNaN(n))return;
+  s('insta_followers',n);
+  document.getElementById('r-insta').textContent=n.toLocaleString('pt-BR');
+}
 function rR(){
   var now=new Date(),yr=now.getFullYear();
   var cs=g('clientes').filter(function(c){return c.status!=='Finalizado';});
@@ -1340,6 +1350,8 @@ function rR(){
   document.getElementById('r-wed').textContent=wed;
   document.getElementById('r-ticket').textContent=$m(tk);
   document.getElementById('r-inad').textContent=$m(inad);
+  var instaVal=g('insta_followers');
+  document.getElementById('r-insta').textContent=instaVal?Number(instaVal).toLocaleString('pt-BR'):'—';
   setTimeout(renderFatChart,50);
   var evs=g('eventos').filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,7);
   var el=document.getElementById('r-agenda');
@@ -2657,6 +2669,7 @@ var _KEY_MAP = {
   'tiposReuniao': {table:'configuracoes',      col:'tipos_reuniao'},
   'slots':        {table:'configuracoes',      col:'slots'},
   'sd':           {table:'configuracoes',      col:'sd'},
+  'insta_followers': {table:'configuracoes',  col:'insta_followers'},
   'q_templates':  {table:'questionarios',      col:'templates'},
   'q_respostas':  {table:'questionarios',      col:'respostas'}
 };
@@ -2693,7 +2706,7 @@ function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
 
 function _loadFromLocalCache(){
   // Carrega dados do localStorage instantaneamente
-  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas'];
+  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','insta_followers'];
   var hasAny=false;
   keys.forEach(function(k){
     var raw=localStorage.getItem(_lsKey(k));
@@ -2719,6 +2732,7 @@ function _applySupabaseData(m){
     _cache.tiposReuniao=m.configuracoes.tipos_reuniao||[];
     _cache.slots       =m.configuracoes.slots        ||[];
     _cache.sd          =m.configuracoes.sd           ||{};
+    if(m.configuracoes.insta_followers!=null) _cache.insta_followers=m.configuracoes.insta_followers;
   }
   if(m.questionarios){
     _cache.q_templates=m.questionarios.templates||[];
@@ -2745,7 +2759,7 @@ async function _loadFromSupabase(){
       });
     }
     if(m.configuracoes){
-      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd'};
+      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',insta_followers:'insta_followers'};
       Object.keys(cmap).forEach(function(col){
         localStorage.setItem(_lsKey(cmap[col]), JSON.stringify(m.configuracoes[col]||[]));
       });
@@ -2772,7 +2786,7 @@ function _setupRealtime(){
         if(table==='financeiro')         _cache.fin         =r.data||[];
         if(table==='financeiro_pessoal') _cache.fin_pessoal =r.data||[];
         if(table==='posproducao')        { _cache.edicoes=r.edicoes||[]; _cache.entregas=r.entregas||[]; _cache.pends=r.pends||[]; _cache.todos=r.todos||[]; }
-        if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; }
+        if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; if(r.insta_followers!=null)_cache.insta_followers=r.insta_followers; }
         if(table==='questionarios')      { _cache.q_templates=r.templates||[]; _cache.q_respostas=r.respostas||[]; }
         rR();
       }
