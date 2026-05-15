@@ -1341,7 +1341,7 @@ function rR(){
   document.getElementById('r-ticket').textContent=$m(tk);
   document.getElementById('r-inad').textContent=$m(inad);
   setTimeout(renderFatChart,50);
-  var evs=g('eventos').filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,5);
+  var evs=g('eventos').filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,7);
   var el=document.getElementById('r-agenda');
   if(!evs.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhum evento futuro</div>';}
   else el.innerHTML=evs.map(function(e){
@@ -1349,7 +1349,7 @@ function rR(){
     return '<div class="ai" onclick="go(\'agenda\')"><div class="ai-date">'+ds+' '+hs+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local||e.tipo)+'</div></div></div>';
   }).join('');
   var pe=document.getElementById('r-pend');
-  var ps=g('pends').filter(function(p){return !p.done;}).slice(0,5);
+  var ps=g('pends').filter(function(p){return !p.done;}).slice(0,6);
   if(!ps.length){pe.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma pendência</div>';}
   else pe.innerHTML=ps.map(function(p){
     var pl=prazoLabel(p.prazo,p.done);
@@ -2497,6 +2497,9 @@ function seedDemoData(){
       parcelas:[{id:'p13',data:dt(m-5,10),valor:4000,pago:true},{id:'p14',data:dt(m-4,10),valor:4400,pago:true},{id:'p15',data:dt(m-3,10),valor:4400,pago:true}]},
     {id:'c07',nome:'Larissa & Bruno Costa',local:'Palácio dos Leões, Florianópolis',data:fut(220),status:'Contratado',email:'larissa.bruno@email.com',tel:'(48) 99300-2211',valor:25000,contrato:dt(m-1,22),notas:'Destino wedding. Acompanhamento 3 dias.',
       parcelas:[{id:'p16',data:dt(m-1,22),valor:8000,pago:true},{id:'p17',data:fut(90),valor:8500,pago:false},{id:'p18',data:fut(220),valor:8500,pago:false}]},
+    {id:'c09',nome:'Sofia & Rodrigo Mendes',local:'Quinta das Palmeiras, Porto Alegre',data:fut(6),status:'Casamento',email:'sofi.rod@gmail.com',tel:'(51) 99321-8844',valor:17800,contrato:dt(m-1,12),notas:'Cerimônia civil e religiosa no mesmo dia.',parcelas:[]},
+    {id:'c10',nome:'Isabela & Thiago Nunes',local:'Praia da Ferrugem, Garopaba',data:fut(10),status:'Sessão',email:'isa.thiago@email.com',tel:'(48) 99788-5566',valor:2800,contrato:dt(m,3),notas:'Sessão na praia ao entardecer.',parcelas:[]},
+    {id:'c11',nome:'Renata & André Farias',local:'Convento São Bento, Pelotas',data:fut(-22),status:'Pós-produção',email:'re.andre@gmail.com',tel:'(53) 98555-3311',valor:15900,contrato:dt(m-3,15),notas:'Edição em andamento. Prévia em 2 semanas.',parcelas:[]},
     {id:'c08',nome:'Mariana & Felipe Gomes',local:'Sítio dos Ipês, Pelotas',data:fut(14),status:'Casamento',email:'mari.fel@gmail.com',tel:'(53) 98999-7700',valor:13500,contrato:dt(m-2,8),notas:'Tudo confirmado. Timeline enviada.',
       parcelas:[{id:'p19',data:dt(m-2,8),valor:4500,pago:true},{id:'p20',data:dt(m-1,8),valor:4500,pago:true},{id:'p21',data:fut(14),valor:4500,pago:false}]}
   ];
@@ -2508,7 +2511,9 @@ function seedDemoData(){
     {id:'e04',titulo:'Casamento Ana Clara & Pedro',data:futDT(42,11,0),tipo:'Casamento',clienteId:'c01',local:'Herdade das Oliveiras, Pelotas',notas:'Cerimônia ao meio-dia.'},
     {id:'e05',titulo:'Reunião — Fernanda & Gustavo',data:futDT(5,10,0),tipo:'Reunião',clienteId:'c05',local:'Cafeteria Central',notas:'Apresentar portfólio e pacotes.'},
     {id:'e06',titulo:'Ensaio — Larissa & Bruno',data:futDT(21,15,0),tipo:'Ensaio',clienteId:'c07',local:'Centro Histórico de Pelotas',notas:''},
-    {id:'e07',titulo:'Entrega álbum — Juliana & Marcos',data:futDT(2,16,0),tipo:'Entrega',clienteId:'c06',local:'Estúdio',notas:'Álbum 30x30 pronto.'}
+    {id:'e07',titulo:'Entrega álbum — Juliana & Marcos',data:futDT(2,16,0),tipo:'Entrega',clienteId:'c06',local:'Estúdio',notas:'Álbum 30x30 pronto.'},
+    {id:'e08',titulo:'Casamento Sofia & Rodrigo',data:futDT(6,10,30),tipo:'Casamento',clienteId:'c09',local:'Quinta das Palmeiras, Porto Alegre',notas:'Cerimônia civil às 10h30. Religiosa às 16h.'},
+    {id:'e09',titulo:'Sessão — Isabela & Thiago',data:futDT(10,17,0),tipo:'Sessão',clienteId:'c10',local:'Praia da Ferrugem, Garopaba',notas:'Golden hour. Levar reflector.'}
   ]);
   var finEntries=[];
   var fatData=[
@@ -2548,6 +2553,7 @@ function seedDemoData(){
   });
   s('fin',finEntries);
   s('pends',[
+    {id:'pd06',desc:'Editar galeria completa — Renata & André',clienteId:'c11',prazo:fut(18),prio:'alta',done:false},
     {id:'pd01',desc:'Selecionar e editar galeria — Diana & Thiago',clienteId:'c04',prazo:fut(12),prio:'alta',done:false},
     {id:'pd02',desc:'Exportar álbum 30x30 — Juliana & Marcos',clienteId:'c06',prazo:fut(2),prio:'alta',done:false},
     {id:'pd03',desc:'Enviar prévia de 50 fotos — Diana & Thiago',clienteId:'c04',prazo:fut(5),prio:'normal',done:false},
