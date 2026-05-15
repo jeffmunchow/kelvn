@@ -1357,7 +1357,7 @@ function renderInstaSpark(hist,cur){
   var d='M'+xs[0]+','+ys[0]+xs.slice(1).map(function(x,i){return 'L'+x+','+ys[i+1];}).join('');
   var fill=d+'L'+xs[xs.length-1]+','+(H-pad)+'L'+xs[0]+','+(H-pad)+'Z';
   var growing=vals[vals.length-1]>=vals[0];
-  var col=growing?'var(--teal)':'var(--coral)';
+  var col='var(--text-hint)';
   svg.innerHTML='<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity=".25"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'
     +'<path d="'+fill+'" fill="url(#sg)"/>'
     +'<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>';
