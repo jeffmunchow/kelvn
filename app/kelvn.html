@@ -1407,12 +1407,13 @@ function rR(){
   document.getElementById('r-insta').textContent=instaVal?Number(instaVal).toLocaleString('pt-BR'):'—';
   renderInstaSpark(g('insta_followers_hist')||[],instaVal||null);
   setTimeout(renderFatChart,50);
-  var evs=g('eventos').filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,7);
+  var evs=g('eventos').concat(_primaryEventsFromClientes()).filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,7);
   var el=document.getElementById('r-agenda');
   if(!evs.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhum evento futuro</div>';}
   else el.innerHTML=evs.map(function(e){
-    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=e.tipo==='Casamento'?'var(--teal)':'var(--amber)';
-    return '<div class="ai" onclick="go(\'agenda\')"><div class="ai-date">'+ds+' '+hs+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local||e.tipo)+'</div></div></div>';
+    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)';
+    var onclick=e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
+    return '<div class="ai" onclick="'+onclick+'"><div class="ai-date">'+ds+(e._fromCliente?'':' '+hs)+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local||e.tipo)+'</div></div></div>';
   }).join('');
   var pe=document.getElementById('r-pend');
   var ps=g('pends').filter(function(p){return !p.done;}).slice(0,6);
@@ -1629,6 +1630,7 @@ function rCalAno(){
   el.innerHTML=html;
 }
 var _PRIMARY_STATUS=['Sessão','Religioso','Welcome-party','Casamento','After-party'];
+var _PRIMARY_COLORS={'Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome-party':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF'};
 function _primaryEventsFromClientes(){
   return g('clientes').filter(function(c){ return _PRIMARY_STATUS.indexOf(c.status)>-1 && c.data; }).map(function(c){
     return {id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:c.status, local:c.local||'', clienteId:c.id, _fromCliente:true};
@@ -1644,7 +1646,7 @@ function rA(){
   el.innerHTML='<div>'+all.map(function(e){
     var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
     var isPrimary=!!e._fromCliente;
-    var col=isPrimary?'#D4902A':'var(--text-hint)',past=d<now;
+    var col=isPrimary?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)',past=d<now;
     var onclick=isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
     var sub=isPrimary?(e.local||''):[e.clienteId?cN(e.clienteId):'',e.local||''].filter(Boolean).join(' — ');
     return '<div class="ai'+(past?' past':'')+'" data-id="'+e.id+'" '+onclick+'><div class="ai-date">'+ds+(isPrimary?'':' '+hs)+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+bdg(e.tipo)+'</div>';
