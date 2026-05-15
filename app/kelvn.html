@@ -503,7 +503,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   <div class="kpis">
     <div class="kpi"><div class="kpi-l">Faturamento</div><div class="kpi-v ca" id="r-fat">R$ 0</div><div class="kpi-s">contratos ativos</div></div>
     <div class="kpi"><div class="kpi-l">Ticket médio</div><div class="kpi-v cc" id="r-ticket">R$ 0</div></div>
-    <div class="kpi" onclick="editInstaFollowers()" style="cursor:pointer;" title="Clique para atualizar"><div class="kpi-l">Seguidores Instagram</div><div class="kpi-v" id="r-insta">—</div><div class="kpi-s">clique para atualizar</div></div>
+    <div class="kpi" onclick="editInstaFollowers()" style="cursor:pointer;display:flex;align-items:center;gap:8px;" title="Clique para atualizar"><div style="flex:1;min-width:0;"><div class="kpi-l">Seguidores Instagram</div><div class="kpi-v" id="r-insta">—</div><div class="kpi-s" id="r-insta-sub">clique para atualizar</div></div><svg id="r-insta-spark" width="56" height="36" style="flex-shrink:0;opacity:.7;"></svg></div>
     <div class="kpi"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div></div>
     <div class="kpi"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div></div>
     <div class="kpi"><div class="kpi-l">Casamentos este ano</div><div class="kpi-v" id="r-wed">0</div></div>
@@ -1330,7 +1330,42 @@ function editInstaFollowers(){
   var n=parseInt(val.replace(/\D/g,''),10);
   if(isNaN(n))return;
   s('insta_followers',n);
+  var hist=g('insta_followers_hist')||[];
+  var today=new Date().toISOString().split('T')[0];
+  var last=hist[hist.length-1];
+  if(last&&last.d===today){ hist[hist.length-1].v=n; } else { hist.push({d:today,v:n}); }
+  if(hist.length>24) hist=hist.slice(-24);
+  s('insta_followers_hist',hist);
   document.getElementById('r-insta').textContent=n.toLocaleString('pt-BR');
+  renderInstaSpark(hist,n);
+}
+function renderInstaSpark(hist,cur){
+  var svg=document.getElementById('r-insta-spark');
+  if(!svg)return;
+  var pts=hist&&hist.length?hist:[];
+  if(cur&&(!pts.length||pts[pts.length-1].v!==cur)){
+    var today=new Date().toISOString().split('T')[0];
+    pts=pts.concat([{d:today,v:cur}]);
+  }
+  if(pts.length<2){svg.innerHTML='';return;}
+  var W=56,H=36,pad=3;
+  var vals=pts.map(function(p){return p.v;});
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  var rng=mx-mn||1;
+  var xs=pts.map(function(_,i){return pad+(i/(pts.length-1))*(W-pad*2);});
+  var ys=pts.map(function(p){return H-pad-(p.v-mn)/rng*(H-pad*2);});
+  var d='M'+xs[0]+','+ys[0]+xs.slice(1).map(function(x,i){return 'L'+x+','+ys[i+1];}).join('');
+  var fill=d+'L'+xs[xs.length-1]+','+(H-pad)+'L'+xs[0]+','+(H-pad)+'Z';
+  var growing=vals[vals.length-1]>=vals[0];
+  var col=growing?'var(--teal)':'var(--coral)';
+  svg.innerHTML='<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity=".25"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'
+    +'<path d="'+fill+'" fill="url(#sg)"/>'
+    +'<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  var sub=document.getElementById('r-insta-sub');
+  if(sub&&pts.length>=2){
+    var diff=vals[vals.length-1]-vals[0];
+    sub.textContent=(diff>=0?'+':'')+diff.toLocaleString('pt-BR')+' no período';
+  }
 }
 function rR(){
   var now=new Date(),yr=now.getFullYear();
@@ -1352,6 +1387,7 @@ function rR(){
   document.getElementById('r-inad').textContent=$m(inad);
   var instaVal=g('insta_followers');
   document.getElementById('r-insta').textContent=instaVal?Number(instaVal).toLocaleString('pt-BR'):'—';
+  renderInstaSpark(g('insta_followers_hist')||[],instaVal||null);
   setTimeout(renderFatChart,50);
   var evs=g('eventos').filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,7);
   var el=document.getElementById('r-agenda');
@@ -2643,6 +2679,18 @@ function seedDemoData(){
     {id:'td06',text:'Responder email — casal Gomes',cat:'Atendimento',done:false}
   ]);
 
+  // Instagram followers demo history (últimos 12 meses)
+  var instaHist=(function(){
+    var base=4200,vals=[4200,4380,4510,4490,4640,4830,4920,5100,5280,5410,5590,5780];
+    var now2=new Date(),res=[];
+    for(var i=0;i<12;i++){
+      var d=new Date(now2.getFullYear(),now2.getMonth()-11+i,1);
+      res.push({d:d.toISOString().split('T')[0],v:vals[i]});
+    }
+    return res;
+  })();
+  s('insta_followers',5780);
+  s('insta_followers_hist',instaHist);
 }
 (function(){
   var th=localStorage.getItem('kelvn_theme');if(th)document.documentElement.setAttribute('data-theme',th);
@@ -2669,7 +2717,8 @@ var _KEY_MAP = {
   'tiposReuniao': {table:'configuracoes',      col:'tipos_reuniao'},
   'slots':        {table:'configuracoes',      col:'slots'},
   'sd':           {table:'configuracoes',      col:'sd'},
-  'insta_followers': {table:'configuracoes',  col:'insta_followers'},
+  'insta_followers':      {table:'configuracoes', col:'insta_followers'},
+  'insta_followers_hist': {table:'configuracoes', col:'insta_followers_hist'},
   'q_templates':  {table:'questionarios',      col:'templates'},
   'q_respostas':  {table:'questionarios',      col:'respostas'}
 };
@@ -2706,7 +2755,7 @@ function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
 
 function _loadFromLocalCache(){
   // Carrega dados do localStorage instantaneamente
-  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','insta_followers'];
+  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','insta_followers','insta_followers_hist'];
   var hasAny=false;
   keys.forEach(function(k){
     var raw=localStorage.getItem(_lsKey(k));
@@ -2733,6 +2782,7 @@ function _applySupabaseData(m){
     _cache.slots       =m.configuracoes.slots        ||[];
     _cache.sd          =m.configuracoes.sd           ||{};
     if(m.configuracoes.insta_followers!=null) _cache.insta_followers=m.configuracoes.insta_followers;
+    if(m.configuracoes.insta_followers_hist!=null) _cache.insta_followers_hist=m.configuracoes.insta_followers_hist;
   }
   if(m.questionarios){
     _cache.q_templates=m.questionarios.templates||[];
@@ -2759,7 +2809,7 @@ async function _loadFromSupabase(){
       });
     }
     if(m.configuracoes){
-      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',insta_followers:'insta_followers'};
+      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',insta_followers:'insta_followers',insta_followers_hist:'insta_followers_hist'};
       Object.keys(cmap).forEach(function(col){
         localStorage.setItem(_lsKey(cmap[col]), JSON.stringify(m.configuracoes[col]||[]));
       });
@@ -2786,7 +2836,7 @@ function _setupRealtime(){
         if(table==='financeiro')         _cache.fin         =r.data||[];
         if(table==='financeiro_pessoal') _cache.fin_pessoal =r.data||[];
         if(table==='posproducao')        { _cache.edicoes=r.edicoes||[]; _cache.entregas=r.entregas||[]; _cache.pends=r.pends||[]; _cache.todos=r.todos||[]; }
-        if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; if(r.insta_followers!=null)_cache.insta_followers=r.insta_followers; }
+        if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; if(r.insta_followers!=null)_cache.insta_followers=r.insta_followers; if(r.insta_followers_hist!=null)_cache.insta_followers_hist=r.insta_followers_hist; }
         if(table==='questionarios')      { _cache.q_templates=r.templates||[]; _cache.q_respostas=r.respostas||[]; }
         rR();
       }
@@ -2872,6 +2922,20 @@ async function initUserData(){
         needsFix=true;
       }
       if(needsFix) s('pends',ps);
+    }
+    // Migração: semeia histórico demo de seguidores do Instagram se não existir
+    if(isAdmin() && !g('insta_followers_hist')?.length){
+      var instaHist=(function(){
+        var vals=[4200,4380,4510,4490,4640,4830,4920,5100,5280,5410,5590,5780];
+        var now2=new Date(),res=[];
+        for(var i=0;i<12;i++){
+          var d=new Date(now2.getFullYear(),now2.getMonth()-11+i,1);
+          res.push({d:d.toISOString().split('T')[0],v:vals[i]});
+        }
+        return res;
+      })();
+      s('insta_followers',5780);
+      s('insta_followers_hist',instaHist);
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
