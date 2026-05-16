@@ -3118,7 +3118,8 @@ function seedDemoData(){
     {id:'e06',titulo:'Ensaio — Larissa & Bruno',data:futDT(21,15,0),tipo:'Ensaio',clienteId:'c07',local:'Centro Histórico de Pelotas',notas:''},
     {id:'e07',titulo:'Entrega álbum — Juliana & Marcos',data:futDT(2,16,0),tipo:'Entrega',clienteId:'c06',local:'Estúdio',notas:'Álbum 30x30 pronto.'},
     {id:'e08',titulo:'Casamento Sofia & Rodrigo',data:futDT(6,10,30),tipo:'Casamento',clienteId:'c09',local:'Quinta das Palmeiras, Porto Alegre',notas:'Cerimônia civil às 10h30. Religiosa às 16h.'},
-    {id:'e09',titulo:'Sessão — Isabela & Thiago',data:futDT(10,17,0),tipo:'Sessão',clienteId:'c10',local:'Praia da Ferrugem, Garopaba',notas:'Golden hour. Levar reflector.'}
+    {id:'e09',titulo:'Sessão — Isabela & Thiago',data:futDT(10,17,0),tipo:'Sessão',clienteId:'c10',local:'Praia da Ferrugem, Garopaba',notas:'Golden hour. Levar reflector.'},
+    {id:'e10',titulo:'Reunião — Gabriela & Mateus',data:futDT(8,10,0),tipo:'Reunião',clienteId:'c17',local:'Google Meet',notas:'Alinhar timeline e detalhes da cerimônia.'}
   ]);
   var finEntries=[];
   var fatData=[
@@ -3538,6 +3539,18 @@ async function initUserData(){
         _novos.filter(function(c){return c.status==='Pós-produção';})
           .forEach(function(c){if(_edsIds.indexOf(c.id)===-1)_eds.push({clienteId:c.id,titulo:c.nome,data:c.data,local:c.local});});
         s('edicoes',_eds);
+      }
+      // Remove de edicoes qualquer cliente que não seja Pós-produção
+      var _allCs=g('clientes');
+      var _eds2=g('edicoes')||[];
+      var _eds2Fix=_eds2.filter(function(e){var c=_allCs.find(function(x){return x.id===e.clienteId;});return c&&c.status==='Pós-produção';});
+      if(_eds2Fix.length!==_eds2.length) s('edicoes',_eds2Fix);
+      // Adiciona evento e10 (Reunião Gabriela & Mateus) se não existir
+      var _evs=g('eventos');
+      if(!_evs.find(function(e){return e.id==='e10';})){
+        var _e10dt=new Date();_e10dt.setDate(_e10dt.getDate()+8);_e10dt.setHours(10,0,0);
+        _evs.push({id:'e10',titulo:'Reunião — Gabriela & Mateus',data:_e10dt.toISOString().slice(0,16),tipo:'Reunião',clienteId:'c17',local:'Google Meet',notas:'Alinhar timeline e detalhes da cerimônia.'});
+        s('eventos',_evs);
       }
     }
   } catch(e){
