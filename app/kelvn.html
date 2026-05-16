@@ -2114,16 +2114,24 @@ function fmtEvTime(dataStr){
 }
 function _primaryEventsFromClientes(){
   var evs=[];
-  var edsMap={};
-  (g('edicoes')||[]).forEach(function(e){edsMap[e.clienteId]=e;});
+  // Mapa de statusAnterior por evId (lookup correto por evento, não por cliente)
+  var edsAnterior={};
+  (g('edicoes')||[]).forEach(function(e){
+    var key=e.evId||('_c_'+e.clienteId);
+    edsAnterior[key]=e.statusAnterior||e.tipo;
+  });
   g('clientes').forEach(function(c){
-    var edEntry=edsMap[c.id];
-    var tipo=edEntry&&edEntry.statusAnterior?edEntry.statusAnterior:c.status;
-    if(_PRIMARY_STATUS.indexOf(tipo)>-1 && c.data)
-      evs.push({id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:tipo, local:c.local||'', clienteId:c.id, _fromCliente:true});
+    // Evento principal: usa statusAnterior se estiver em Edições, senão status atual
+    var mainKey='_c_'+c.id;
+    var tipoMain=edsAnterior.hasOwnProperty(mainKey)?edsAnterior[mainKey]:c.status;
+    if(_PRIMARY_STATUS.indexOf(tipoMain)>-1 && c.data)
+      evs.push({id:mainKey, titulo:c.nome, data:c.data+'T00:00', tipo:tipoMain, local:c.local||'', clienteId:c.id, _fromCliente:true});
+    // Eventos extras: idem
     (c.eventosExtra||[]).forEach(function(ex){
-      if(_PRIMARY_STATUS.indexOf(ex.status)>-1 && ex.data)
-        evs.push({id:'_c_'+c.id+'_x_'+ex.id, titulo:c.nome, data:ex.data+'T00:00', tipo:ex.status, local:ex.local||'', clienteId:c.id, _fromCliente:true});
+      var exKey='_c_'+c.id+'_x_'+ex.id;
+      var tipoEx=edsAnterior.hasOwnProperty(exKey)?edsAnterior[exKey]:ex.status;
+      if(_PRIMARY_STATUS.indexOf(tipoEx)>-1 && ex.data)
+        evs.push({id:exKey, titulo:c.nome, data:ex.data+'T00:00', tipo:tipoEx, local:ex.local||'', clienteId:c.id, _fromCliente:true});
     });
   });
   return evs;
