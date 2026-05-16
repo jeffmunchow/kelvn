@@ -576,33 +576,30 @@ select.aj-input{cursor:pointer;}
 
 <!-- PÓS-PRODUÇÃO -->
 <div class="panel" id="p-posproducao">
-
-  <!-- cabeçalho compartilhado -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.25rem;">
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="st">Pós-produção</div>
-      <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
-    </div>
-    <div style="display:flex;align-items:center;">
-      <div class="st">Edições</div>
-    </div>
-  </div>
-
-  <!-- listas lado a lado — alinhadas no mesmo topo -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
+  <div class="ag-split">
 
     <!-- PENDÊNCIAS -->
-    <div class="tw" id="pend-list"></div>
+    <div class="ag-col-list">
+      <div class="sh" style="height:44px;">
+        <div class="st">Pós-produção</div>
+        <div class="sa"><select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select></div>
+      </div>
+      <div class="tw" id="pend-list"></div>
+    </div>
 
     <!-- EDIÇÕES -->
-    <div class="tw" id="ed-list">
-        <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Diana & Thiago Ramos</div><div class="ai-sub">Edição de cor — 847 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
-        <div class="ai"><div class="ai-dot" style="background:var(--coral);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Juliana & Marcos Oliveira</div><div class="ai-sub">Exportação álbum 30x30 · Aguardando revisão</div></div><span class="badge bpo">Revisão</span></div>
-        <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Renata & André Farias</div><div class="ai-sub">Seleção de 1.200 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
-        <div class="ai"><div class="ai-dot" style="background:var(--teal);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Camila & Rafael Souza</div><div class="ai-sub">Edição finalizada — entrega pendente</div></div><span class="badge bw">Finalizado</span></div>
-        <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Mariana & Felipe Gomes</div><div class="ai-sub">Edição de cor — 620 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
-        <div class="ai"><div class="ai-dot" style="background:var(--text-hint);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Ana Clara & Pedro Henrique</div><div class="ai-sub">Aguardando arquivos do segundo fotógrafo</div></div><span class="badge bp">Aguardando</span></div>
-        <div class="ai"><div class="ai-dot" style="background:var(--coral);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Beatriz & Lucas Ferreira</div><div class="ai-sub">Prévia de 50 fotos — prazo em 2 dias</div></div><span class="badge bpo">Urgente</span></div>
+    <div class="ag-col-list">
+      <div class="sh" style="height:44px;">
+        <div class="st">Edições</div>
+      </div>
+      <div class="tw" id="ed-list">
+        <div class="ai"><div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Diana & Thiago Ramos</div><div class="ai-sub">Edição de cor — 847 fotos · Em andamento</div></div><span class="badge bc" style="margin-left:auto;">Em andamento</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--coral);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Juliana & Marcos Oliveira</div><div class="ai-sub">Exportação álbum 30x30 · Aguardando revisão</div></div><span class="badge bpo" style="margin-left:auto;">Revisão</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Renata & André Farias</div><div class="ai-sub">Seleção de 1.200 fotos · Em andamento</div></div><span class="badge bc" style="margin-left:auto;">Em andamento</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--teal);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Camila & Rafael Souza</div><div class="ai-sub">Edição finalizada — entrega pendente</div></div><span class="badge bw" style="margin-left:auto;">Finalizado</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Mariana & Felipe Gomes</div><div class="ai-sub">Edição de cor — 620 fotos · Em andamento</div></div><span class="badge bc" style="margin-left:auto;">Em andamento</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--text-hint);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Ana Clara & Pedro Henrique</div><div class="ai-sub">Aguardando arquivos do segundo fotógrafo</div></div><span class="badge bp" style="margin-left:auto;">Aguardando</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--coral);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Beatriz & Lucas Ferreira</div><div class="ai-sub">Prévia de 50 fotos — prazo em 2 dias</div></div><span class="badge bpo" style="margin-left:auto;">Urgente</span></div>
       </div>
     </div>
 
