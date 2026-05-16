@@ -3605,6 +3605,14 @@ async function initUserData(){
         s('pends',ps2);
       }
     }
+    // Migração: deduplicar clientes por ID (mantém última ocorrência — a editada pelo usuário)
+    if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
+      var _seen={}, _deduped=[], _hadDup=false;
+      // Percorre do fim para o início: última ocorrência de cada ID vem primeiro na iteração reversa
+      var _csRev=_cache.clientes.slice().reverse();
+      _csRev.forEach(function(c){ if(!_seen[c.id]){_seen[c.id]=true;_deduped.push(c);}else{_hadDup=true;} });
+      if(_hadDup){ s('clientes',_deduped.reverse()); }
+    }
     // Migração: corrige status antigos de clientes demo
     if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
       var oldMap={'Contratado':'Casamento','Sessão Pré-Casamento':'Sessão','Welcome-party':'Welcome'};
@@ -3617,33 +3625,11 @@ async function initUserData(){
       var csAll=g('clientes'),needsFixX=csAll.some(function(c){return (c.eventosExtra||[]).some(function(x){return x.status==='Welcome-party';});});
       if(needsFixX){ s('clientes',csAll.map(function(c){if(!(c.eventosExtra||[]).some(function(x){return x.status==='Welcome-party';}))return c;return Object.assign({},c,{eventosExtra:c.eventosExtra.map(function(x){return x.status==='Welcome-party'?Object.assign({},x,{status:'Welcome'}):x;})});})); }
     }
-    // Migração: adiciona clientes demo c12–c17 se não existirem
+    // Migração: garante c18 em clientes e c11/c04/c18 em edicoes
     if(isAdmin()){
-      var _cs=g('clientes');
       var _n=new Date(),_yr2=_n.getFullYear(),_mo2=_n.getMonth();
       var _f=function(d){var x=new Date();x.setDate(x.getDate()+d);return x.toISOString().slice(0,10);};
       var _d=function(mo,day){return new Date(_yr2,mo,day).toISOString().slice(0,10);};
-      var _todos=[
-        {id:'c12',nome:'Aline & Rafael Mendonça',local:'Espaço Villa Verde, Caxias do Sul',data:_f(-9),status:'Pós-produção',email:'aline.rafa@email.com',tel:'(54) 99234-5512',valor:13200,contrato:_d(_mo2-3,8),notas:'Preset cinematográfico aplicado. Aguardando aprovação da seleção.',parcelas:[]},
-        {id:'c13',nome:'Carolina & Vinicius Borges',local:'Quinta dos Sonhos, Porto Alegre',data:_f(-33),status:'Pós-produção',email:'caro.vini@gmail.com',tel:'(51) 99876-2230',valor:17500,contrato:_d(_mo2-5,3),notas:'Edição 70% concluída. Cliente pediu atenção especial à cerimônia.',parcelas:[]},
-        {id:'c14',nome:'Júlia & Eduardo Lima',local:'Fazenda Vista Alegre, São Leopoldo',data:_f(-47),status:'Pós-produção',email:'ju.edu@email.com',tel:'(51) 98411-7700',valor:15100,contrato:_d(_mo2-6,14),notas:'Na fase de finalização. Galeria quase pronta para envio.',parcelas:[]},
-        {id:'c15',nome:'Priscila & Henrique Costa',local:'Hotel Continental, Santa Maria',data:_f(-61),status:'Pós-produção',email:'pri.henrique@gmail.com',tel:'(55) 99300-4488',valor:11800,contrato:_d(_mo2-6,20),notas:'Revisão final em andamento. Entrega do álbum prevista para próximo mês.',parcelas:[]},
-        {id:'c16',nome:'Tainá & Gabriel Machado',local:'Chácara dos Ipês, Bento Gonçalves',data:_f(-74),status:'Pós-produção',email:'taina.gabriel@email.com',tel:'(54) 98866-1133',valor:19400,contrato:_d(_mo2-7,5),notas:'Edição de vídeo em paralelo. Aguardando material do videomaker.',parcelas:[]},
-        {id:'c17',nome:'Gabriela & Mateus Corrêa',local:'Vinícola Miolo, Bento Gonçalves',data:_f(22),status:'Casamento',email:'gabi.mateus@email.com',tel:'(54) 99512-3344',valor:21500,contrato:_d(_mo2-1,10),notas:'Cerimônia ao entardecer entre as videiras. Casal muito animado.',parcelas:[]}
-      ];
-      // Só adiciona os que ainda não existem
-      var _novos=_todos.filter(function(nc){return !_cs.find(function(x){return x.id===nc.id;});});
-      if(_novos.length){
-        s('clientes',_cs.concat(_novos));
-        var _eds=g('edicoes')||[];
-        var _edsIds=_eds.map(function(e){return e.clienteId;});
-        _novos.filter(function(c){return c.status==='Pós-produção';})
-          .forEach(function(c){if(_edsIds.indexOf(c.id)===-1)_eds.push({clienteId:c.id,evId:'_c_'+c.id,titulo:c.nome,data:c.data,local:c.local});});
-        s('edicoes',_eds);
-      }
-      // Garante c11, c04 e c18 em edicoes (7 total)
-      var _edsNow=g('edicoes')||[];
-      var _edsNowIds=_edsNow.map(function(e){return e.clienteId;});
       var _allCsNow=g('clientes');
       // Adiciona c18 aos clientes se não existir
       if(!_allCsNow.find(function(c){return c.id==='c18';})){
@@ -3651,6 +3637,8 @@ async function initUserData(){
         var _csAtual=g('clientes');_csAtual.push(_c18);s('clientes',_csAtual);
         _allCsNow=g('clientes');
       }
+      var _edsNow=g('edicoes')||[];
+      var _edsNowIds=_edsNow.map(function(e){return e.clienteId;});
       [{id:'c11',titulo:'Renata & André Farias',local:'Convento São Bento, Pelotas'},{id:'c04',titulo:'Diana & Thiago Ramos',local:'Castelo de Itaipava, Porto Alegre'},{id:'c18',titulo:'Valentina & Ricardo Souza',local:'Castelo de Itaipava, Petrópolis'}].forEach(function(x){
         var cl=_allCsNow.find(function(c){return c.id===x.id;});
         if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,evId:'_c_'+x.id,titulo:x.titulo,data:cl.data,local:x.local});
