@@ -1522,6 +1522,7 @@ function rR(){
     var dragAttr=e._fromCliente?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\')"':'';
     return '<div class="ai"'+dragAttr+' onclick="'+onclick+'"><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div></div>';
   }).join('');
+  setupAgendaDrop(el);
 
   rEdicoes();
   rMetaAnual();
@@ -1532,12 +1533,11 @@ function rEdicoes(){
     .sort(function(a,b){return (a.data||'').localeCompare(b.data||'');})
     .slice(0,7);
   var html=eds.length?eds.map(function(e){
-    return '<div class="ai" onclick="openC(\''+e.clienteId+'\')">'+
+    return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
       '<div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div>'+
       '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
       '<div class="ai-sub">'+(e.local||'')+'</div></div>'+
       '<span class="badge bc" style="margin-left:auto;">Em andamento</span>'+
-      '<button onclick="event.stopPropagation();removeDeEdicoes(\''+e.clienteId+'\')" title="Voltar à agenda" style="background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:.8rem;padding:0 0 0 6px;flex-shrink:0;" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-hint)\'">↩</button>'+
     '</div>';
   }).join(''):
   '<div class="ai" style="cursor:default;opacity:.5;font-size:.78rem;">Arraste um casamento aqui para iniciar edição</div>';
@@ -1560,6 +1560,20 @@ function setupEdDrop(el){
 function dragEd(ev,clienteId){
   ev.dataTransfer.setData('text/plain',clienteId);
   ev.dataTransfer.effectAllowed='move';
+}
+function dragFromEd(ev,clienteId){
+  ev.dataTransfer.setData('text/fromEd',clienteId);
+  ev.dataTransfer.effectAllowed='move';
+}
+function setupAgendaDrop(el){
+  if(!el)return;
+  el.ondragover=function(ev){if(ev.dataTransfer.types.indexOf('text/fromed')>-1||ev.dataTransfer.types.indexOf('text/fromEd')>-1){ev.preventDefault();el.classList.add('drop-active');}};
+  el.ondragleave=function(ev){if(!el.contains(ev.relatedTarget))el.classList.remove('drop-active');};
+  el.ondrop=function(ev){
+    ev.preventDefault();el.classList.remove('drop-active');
+    var cid=ev.dataTransfer.getData('text/fromEd')||ev.dataTransfer.getData('text/fromed');
+    if(cid)removeDeEdicoes(cid);
+  };
 }
 
 function dropToEdicoes(clienteId){
