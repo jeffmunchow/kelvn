@@ -3605,13 +3605,11 @@ async function initUserData(){
         s('pends',ps2);
       }
     }
-    // Migração: deduplicar clientes por ID (mantém última ocorrência — a editada pelo usuário)
+    // Migração: deduplicar clientes por ID (mantém primeira ocorrência — a editada pelo usuário)
     if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
       var _seen={}, _deduped=[], _hadDup=false;
-      // Percorre do fim para o início: última ocorrência de cada ID vem primeiro na iteração reversa
-      var _csRev=_cache.clientes.slice().reverse();
-      _csRev.forEach(function(c){ if(!_seen[c.id]){_seen[c.id]=true;_deduped.push(c);}else{_hadDup=true;} });
-      if(_hadDup){ s('clientes',_deduped.reverse()); }
+      _cache.clientes.forEach(function(c){ if(!_seen[c.id]){_seen[c.id]=true;_deduped.push(c);}else{_hadDup=true;} });
+      if(_hadDup){ s('clientes',_deduped); }
     }
     // Migração: corrige status antigos de clientes demo
     if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
