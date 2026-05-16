@@ -1501,9 +1501,14 @@ function rR(){
 
   rPipeline();
 
-  // Próximas 7 atividades — espelho direto da agenda (próximos 7 eventos futuros)
+  // Próximas 7 atividades — exclui eventos em Edições (kanban: ou aqui, ou lá)
+  var _edsEvIds=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
   var allEvs=g('eventos').concat(_primaryEventsFromClientes())
-    .filter(function(e){ return new Date(e.data)>=now; })
+    .filter(function(e){
+      if(new Date(e.data)<now) return false;
+      if(_edsEvIds.indexOf(e.id)>-1) return false;
+      return true;
+    })
     .sort(function(a,b){return new Date(a.data)-new Date(b.data);})
     .slice(0,7);
   var el=document.getElementById('r-agenda');
@@ -2135,7 +2140,11 @@ function rA(){
   var now=new Date(),flt=document.getElementById('ag-filter').value;
   var secondary=g('eventos');
   var primary=_primaryEventsFromClientes();
-  var all=primary.concat(secondary).filter(function(e){var d=new Date(e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
+  var _edsAgIds=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
+  var all=primary.concat(secondary).filter(function(e){
+    if(_edsAgIds.indexOf(e.id)>-1) return false;
+    var d=new Date(e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;
+  }).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
   var el=document.getElementById('ag-list');
   if(!all.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
   el.innerHTML='<div>'+all.map(function(e){
@@ -3647,6 +3656,22 @@ async function initUserData(){
         if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,evId:'_c_'+x.id,titulo:x.titulo,data:cl.data,local:x.local});
       });
       s('edicoes',_edsNow);
+      // Limpa edicoes: remove entradas cujo cliente/evento não está em Pós-produção (foram parar lá por engano)
+      (function(){
+        var _edsClean=g('edicoes')||[];
+        var _csClean=g('clientes');
+        var _edsFixed=_edsClean.filter(function(ed){
+          var c=_csClean.find(function(x){return x.id===ed.clienteId;});
+          if(!c) return false;
+          if(ed.evId&&ed.evId.indexOf('_x_')>-1){
+            var exId=ed.evId.split('_x_')[1];
+            var ex=(c.eventosExtra||[]).find(function(x){return x.id===exId;});
+            return ex&&ex.status==='Pós-produção';
+          }
+          return c.status==='Pós-produção';
+        });
+        if(_edsFixed.length!==_edsClean.length) s('edicoes',_edsFixed);
+      })();
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
