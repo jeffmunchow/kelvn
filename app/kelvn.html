@@ -1502,11 +1502,11 @@ function rR(){
   rPipeline();
 
   // Próximas 7 atividades — exclui clientes já em Edições
-  var _edsIds=(g('edicoes')||[]).map(function(x){return x.clienteId;});
+  var _edsEvIds=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
   var allEvs=g('eventos').concat(_primaryEventsFromClientes())
     .filter(function(e){
       if(new Date(e.data)<now) return false;
-      if(e._fromCliente&&_edsIds.indexOf(e.clienteId)>-1) return false;
+      if(e._fromCliente&&_edsEvIds.indexOf(e.id)>-1) return false;
       return true;
     })
     .sort(function(a,b){return new Date(a.data)-new Date(b.data);})
@@ -1521,7 +1521,7 @@ function rR(){
     var ht=e._fromCliente?'':fmtEvTime(e.data);
     var subParts=e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',ht];
     var subSec=subParts.filter(Boolean).join(' – ');
-    var dragAttr=e._fromCliente?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\')"':'';
+    var dragAttr=e._fromCliente?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
     return '<div class="ai"'+dragAttr+' onclick="'+onclick+'"><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div></div>';
   }).join('');
   setupAgendaDrop(el);
@@ -1535,7 +1535,7 @@ function rEdicoes(){
     .sort(function(a,b){return (a.data||'').localeCompare(b.data||'');})
     .slice(0,7);
   var html=eds.length?eds.map(function(e){
-    return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
+    return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+(e.evId||('_c_'+e.clienteId))+'\',\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
       '<div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div>'+
       '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
       '<div class="ai-sub">'+(e.local||'')+'</div></div>'+
@@ -1555,19 +1555,19 @@ function setupEdDrop(el){
   el.ondragleave=function(ev){if(!el.contains(ev.relatedTarget))el.classList.remove('drop-active');};
   el.ondrop=function(ev){
     ev.preventDefault();el.classList.remove('drop-active');
-    if(!_dragFromEd&&_dragClienteId)dropToEdicoes(_dragClienteId);
-    _dragClienteId=null;_dragFromEd=false;
+    if(!_dragFromEd&&_dragClienteId&&_dragEvId)dropToEdicoes(_dragClienteId,_dragEvId);
+    _dragClienteId=null;_dragFromEd=false;_dragEvId=null;
   };
 }
 
-var _dragClienteId=null,_dragFromEd=false;
-function dragEd(ev,clienteId){
-  _dragClienteId=clienteId;_dragFromEd=false;
+var _dragClienteId=null,_dragFromEd=false,_dragEvId=null;
+function dragEd(ev,clienteId,evId){
+  _dragClienteId=clienteId;_dragEvId=evId||null;_dragFromEd=false;
   ev.dataTransfer.setData('text/plain',clienteId);
   ev.dataTransfer.effectAllowed='move';
 }
-function dragFromEd(ev,clienteId){
-  _dragClienteId=clienteId;_dragFromEd=true;
+function dragFromEd(ev,evId,clienteId){
+  _dragEvId=evId||null;_dragClienteId=clienteId;_dragFromEd=true;
   ev.dataTransfer.setData('text/plain',clienteId);
   ev.dataTransfer.effectAllowed='move';
 }
@@ -1577,37 +1577,43 @@ function setupAgendaDrop(el){
   el.ondragleave=function(ev){if(!el.contains(ev.relatedTarget))el.classList.remove('drop-active');};
   el.ondrop=function(ev){
     ev.preventDefault();el.classList.remove('drop-active');
-    if(_dragFromEd&&_dragClienteId)removeDeEdicoes(_dragClienteId);
-    _dragClienteId=null;_dragFromEd=false;
+    if(_dragFromEd&&_dragEvId)removeDeEdicoes(_dragEvId);
+    _dragClienteId=null;_dragFromEd=false;_dragEvId=null;
   };
 }
 
-function dropToEdicoes(clienteId){
-  if(!clienteId)return;
+function dropToEdicoes(clienteId,evId){
+  if(!clienteId||!evId)return;
   var eds=g('edicoes')||[];
-  if(eds.find(function(x){return x.clienteId===clienteId;}))return;
+  if(eds.find(function(x){return x.evId===evId;}))return;
   var cs=g('clientes');
   var c=cs.find(function(x){return x.id===clienteId;});
   if(!c)return;
-  eds.push({clienteId:c.id,titulo:c.nome,data:c.data,local:c.local||'',statusAnterior:c.status});
+  var titulo,data,local;
+  if(evId.indexOf('_x_')>-1){
+    // Evento extra: extrai do eventosExtra do cliente
+    var exId=evId.split('_x_')[1];
+    var extra=(c.eventosExtra||[]).find(function(x){return x.id===exId;});
+    titulo=extra?(extra.titulo||extra.tipo||c.nome):c.nome;
+    data=extra?extra.data:c.data;
+    local=extra?(extra.local||c.local||''):(c.local||'');
+  } else {
+    titulo=c.nome;data=c.data;local=c.local||'';
+  }
+  eds.push({clienteId:c.id,evId:evId,titulo:titulo,data:data,local:local,statusAnterior:c.status});
   undoBegin();s('edicoes',eds);
-  var idx=cs.findIndex(function(x){return x.id===clienteId;});
-  if(idx>-1){cs[idx]=Object.assign({},cs[idx],{status:'Pós-produção'});s('clientes',cs);}
   undoCommit();rEdicoes();rR();
   if(_curSection==='agenda')rA();
   if(_curSection==='posproducao')rEdicoes();
-  notify(c.nome+' movido para Edições');
+  notify(titulo+' movido para Edições');
 }
-function removeDeEdicoes(clienteId){
+function removeDeEdicoes(evId){
   var eds=g('edicoes')||[];
-  var entry=eds.find(function(x){return x.clienteId===clienteId;});
+  var entry=eds.find(function(x){return (x.evId||('_c_'+x.clienteId))===evId;});
   if(!entry)return;
-  var novas=eds.filter(function(x){return x.clienteId!==clienteId;});
-  var cs=g('clientes');
-  var idx=cs.findIndex(function(x){return x.id===clienteId;});
+  var novas=eds.filter(function(x){return (x.evId||('_c_'+x.clienteId))!==evId;});
   undoBegin();
   s('edicoes',novas);
-  if(idx>-1&&entry.statusAnterior){cs[idx]=Object.assign({},cs[idx],{status:entry.statusAnterior});s('clientes',cs);}
   undoCommit();rEdicoes();rR();
   if(_curSection==='agenda')rA();
   notify('Movido de volta para a agenda');
@@ -2118,7 +2124,7 @@ function rA(){
     var ht=isPrimary?'':fmtEvTime(e.data);
     var subParts=isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',ht];
     var sub=subParts.filter(Boolean).join(' – ');
-    var dragAttr=isPrimary?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\')"':'';
+    var dragAttr=isPrimary?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
     return '<div class="ai'+(past?' past':'')+'"'+dragAttr+' data-id="'+e.id+'" '+onclick+'><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+bdg(e.tipo)+'</div>';
   }).join('')+'</div>';
 }
@@ -3226,13 +3232,13 @@ function seedDemoData(){
   ]);
 
   s('edicoes',[
-    {clienteId:'c16',titulo:'Tainá & Gabriel Machado',data:fut(-74),local:'Chácara dos Ipês, Bento Gonçalves'},
-    {clienteId:'c15',titulo:'Priscila & Henrique Costa',data:fut(-61),local:'Hotel Continental, Santa Maria'},
-    {clienteId:'c14',titulo:'Júlia & Eduardo Lima',data:fut(-47),local:'Fazenda Vista Alegre, São Leopoldo'},
-    {clienteId:'c13',titulo:'Carolina & Vinicius Borges',data:fut(-33),local:'Quinta dos Sonhos, Porto Alegre'},
-    {clienteId:'c11',titulo:'Renata & André Farias',data:fut(-22),local:'Convento São Bento, Pelotas'},
-    {clienteId:'c12',titulo:'Aline & Rafael Mendonça',data:fut(-9),local:'Espaço Villa Verde, Caxias do Sul'},
-    {clienteId:'c04',titulo:'Diana & Thiago Ramos',data:fut(-15),local:'Castelo de Itaipava, Porto Alegre'}
+    {clienteId:'c16',evId:'_c_c16',titulo:'Tainá & Gabriel Machado',data:fut(-74),local:'Chácara dos Ipês, Bento Gonçalves'},
+    {clienteId:'c15',evId:'_c_c15',titulo:'Priscila & Henrique Costa',data:fut(-61),local:'Hotel Continental, Santa Maria'},
+    {clienteId:'c14',evId:'_c_c14',titulo:'Júlia & Eduardo Lima',data:fut(-47),local:'Fazenda Vista Alegre, São Leopoldo'},
+    {clienteId:'c13',evId:'_c_c13',titulo:'Carolina & Vinicius Borges',data:fut(-33),local:'Quinta dos Sonhos, Porto Alegre'},
+    {clienteId:'c11',evId:'_c_c11',titulo:'Renata & André Farias',data:fut(-22),local:'Convento São Bento, Pelotas'},
+    {clienteId:'c12',evId:'_c_c12',titulo:'Aline & Rafael Mendonça',data:fut(-9),local:'Espaço Villa Verde, Caxias do Sul'},
+    {clienteId:'c04',evId:'_c_c04',titulo:'Diana & Thiago Ramos',data:fut(-15),local:'Castelo de Itaipava, Porto Alegre'}
   ]);
 
   s('entregas',[
@@ -3599,7 +3605,7 @@ async function initUserData(){
         var _eds=g('edicoes')||[];
         var _edsIds=_eds.map(function(e){return e.clienteId;});
         _novos.filter(function(c){return c.status==='Pós-produção';})
-          .forEach(function(c){if(_edsIds.indexOf(c.id)===-1)_eds.push({clienteId:c.id,titulo:c.nome,data:c.data,local:c.local});});
+          .forEach(function(c){if(_edsIds.indexOf(c.id)===-1)_eds.push({clienteId:c.id,evId:'_c_'+c.id,titulo:c.nome,data:c.data,local:c.local});});
         s('edicoes',_eds);
       }
       // Garante c11, c04 e c18 em edicoes (7 total)
@@ -3614,7 +3620,7 @@ async function initUserData(){
       }
       [{id:'c11',titulo:'Renata & André Farias',local:'Convento São Bento, Pelotas'},{id:'c04',titulo:'Diana & Thiago Ramos',local:'Castelo de Itaipava, Porto Alegre'},{id:'c18',titulo:'Valentina & Ricardo Souza',local:'Castelo de Itaipava, Petrópolis'}].forEach(function(x){
         var cl=_allCsNow.find(function(c){return c.id===x.id;});
-        if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,titulo:x.titulo,data:cl.data,local:x.local});
+        if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,evId:'_c_'+x.id,titulo:x.titulo,data:cl.data,local:x.local});
       });
       s('edicoes',_edsNow);
       // Adiciona e11-e14 uma única vez (flag impede re-adicionar após exclusão)
@@ -3632,14 +3638,6 @@ async function initUserData(){
         if(_adicionados.length) s('eventos',_evs3.concat(_adicionados));
         _sd2._seeded_evs_v2=true; s('sd',_sd2);
       }
-      // Remove de edicoes clientes cujo status atual não é Pós-produção (limpeza de testes)
-      var _edsClean=g('edicoes')||[];
-      var _csClean=g('clientes');
-      var _edsFixed=_edsClean.filter(function(e){
-        var c=_csClean.find(function(x){return x.id===e.clienteId;});
-        return c&&c.status==='Pós-produção';
-      });
-      if(_edsFixed.length!==_edsClean.length) s('edicoes',_edsFixed);
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
