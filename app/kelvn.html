@@ -1441,7 +1441,7 @@ function rR(){
   else el.innerHTML=allEvs.map(function(e){
     var d=new Date((e.data||'').substring(0,10)+'T12:00');
     var ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
-    var diasSem=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var diasSem=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
     var dl=ds+' – '+diasSem[d.getDay()];
     var col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)';
     var onclick=e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
