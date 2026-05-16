@@ -1534,8 +1534,10 @@ function rEdicoes(){
   var eds=(g('edicoes')||[]).slice()
     .sort(function(a,b){return (a.data||'').localeCompare(b.data||'');})
     .slice(0,7);
+  var _csMap={};g('clientes').forEach(function(c){_csMap[c.id]=c;});
   var html=eds.length?eds.map(function(e){
-    var dotCol=_STATUS_COLORS[e.tipo]||'var(--amber)';
+    var _tipo=e.tipo||((_csMap[e.clienteId]||{}).status)||'Pós-produção';
+    var dotCol=_STATUS_COLORS[_tipo]||'var(--amber)';
     return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+(e.evId||('_c_'+e.clienteId))+'\',\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
       '<div class="ai-dot" style="background:'+dotCol+';margin-right:4px;"></div>'+
       '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
