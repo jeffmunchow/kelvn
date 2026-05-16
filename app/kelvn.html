@@ -1534,12 +1534,9 @@ function rEdicoes(){
   var eds=(g('edicoes')||[]).slice()
     .sort(function(a,b){return (a.data||'').localeCompare(b.data||'');})
     .slice(0,7);
-  var _csMap={};g('clientes').forEach(function(c){_csMap[c.id]=c;});
   var html=eds.length?eds.map(function(e){
-    var _tipo=e.tipo||((_csMap[e.clienteId]||{}).status)||'Pós-produção';
-    var dotCol=_STATUS_COLORS[_tipo]||'var(--amber)';
     return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+(e.evId||('_c_'+e.clienteId))+'\',\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
-      '<div class="ai-dot" style="background:'+dotCol+';margin-right:4px;"></div>'+
+      '<div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div>'+
       '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
       '<div class="ai-sub">'+(e.local||'')+'</div></div>'+
       '<span class="badge bc" style="margin-left:auto;">Em andamento</span>'+
@@ -1604,8 +1601,17 @@ function dropToEdicoes(clienteId,evId){
   } else {
     titulo=c.nome;data=c.data;local=c.local||'';tipo=c.status;
   }
-  eds.push({clienteId:c.id,evId:evId,tipo:tipo,titulo:titulo,data:data,local:local,statusAnterior:c.status});
+  var statusAnterior=tipo;
+  eds.push({clienteId:c.id,evId:evId,tipo:tipo,titulo:titulo,data:data,local:local,statusAnterior:statusAnterior});
+  var idx=cs.findIndex(function(x){return x.id===clienteId;});
   undoBegin();s('edicoes',eds);
+  if(evId.indexOf('_x_')>-1){
+    var exId2=evId.split('_x_')[1];
+    var exIdx=(cs[idx].eventosExtra||[]).findIndex(function(x){return x.id===exId2;});
+    if(exIdx>-1){cs[idx]=Object.assign({},cs[idx],{eventosExtra:cs[idx].eventosExtra.map(function(x,i){return i===exIdx?Object.assign({},x,{status:'Pós-produção'}):x;})});s('clientes',cs);}
+  } else {
+    if(idx>-1){cs[idx]=Object.assign({},cs[idx],{status:'Pós-produção'});s('clientes',cs);}
+  }
   undoCommit();rEdicoes();rR();
   if(_curSection==='agenda')rA();
   if(_curSection==='posproducao')rEdicoes();
@@ -1616,8 +1622,19 @@ function removeDeEdicoes(evId){
   var entry=eds.find(function(x){return (x.evId||('_c_'+x.clienteId))===evId;});
   if(!entry)return;
   var novas=eds.filter(function(x){return (x.evId||('_c_'+x.clienteId))!==evId;});
+  var cs2=g('clientes');
+  var idx2=cs2.findIndex(function(x){return x.id===entry.clienteId;});
   undoBegin();
   s('edicoes',novas);
+  if(idx2>-1&&entry.statusAnterior){
+    if(evId.indexOf('_x_')>-1){
+      var exId3=evId.split('_x_')[1];
+      var exIdx2=(cs2[idx2].eventosExtra||[]).findIndex(function(x){return x.id===exId3;});
+      if(exIdx2>-1){cs2[idx2]=Object.assign({},cs2[idx2],{eventosExtra:cs2[idx2].eventosExtra.map(function(x,i){return i===exIdx2?Object.assign({},x,{status:entry.statusAnterior}):x;})});s('clientes',cs2);}
+    } else {
+      cs2[idx2]=Object.assign({},cs2[idx2],{status:entry.statusAnterior});s('clientes',cs2);
+    }
+  }
   undoCommit();rEdicoes();rR();
   if(_curSection==='agenda')rA();
   notify('Movido de volta para a agenda');
