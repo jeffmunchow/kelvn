@@ -327,6 +327,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-bubble li{margin:.15rem 0;}
 .ai-bubble strong{font-weight:600;}
 .ai-bubble br{line-height:1.8;}
+.meta-checkpoint{position:absolute;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:rgba(128,128,128,.18);border:1.5px solid var(--bg);transition:background .3s,transform .2s;cursor:pointer;z-index:2;}
+.meta-checkpoint:hover{transform:translate(-50%,-50%) scale(1.6);}
 </style>
 </head>
 <body>
@@ -885,6 +887,14 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
         <div class="field"><label>Cidade do foro (contratos)</label><input type="text" id="sd-studio-foro" placeholder="ex: Pelotas" oninput="saveSD()"></div>
       </div>
       <div style="font-size:.72rem;color:var(--text-hint);margin-top:.5rem;">Salvo automaticamente. Usado no preenchimento do contrato.</div>
+      <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:.5px solid var(--border);">
+        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;">Metas</div>
+        <div class="tf" style="grid-template-columns:1fr 1fr;">
+          <div class="field"><label>Meta de faturamento anual (R$)</label><input type="number" id="sd-meta-fat-anual" placeholder="ex: 120000" oninput="saveSD()"></div>
+          <div class="field"><label>Meta de casamentos no ano</label><input type="number" id="sd-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD()"></div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text-hint);margin-top:.25rem;">Salvo automaticamente. Aparece na barra do dashboard e em Análises & Metas.</div>
+      </div>
     </div>
 
   </div>
@@ -1238,6 +1248,24 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 </div></div>
 
 </div></div><!-- /body /main -->
+
+  <!-- BARRA DE META ANUAL — rodapé fixo -->
+  <div id="meta-anual-wrap" style="position:fixed;bottom:1.75rem;left:56px;right:0;padding:0 2rem;z-index:50;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;">
+      <div style="font-size:.58rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;">Meta anual — <span id="meta-anual-ano"></span></div>
+      <div id="meta-anual-resumo" style="font-size:.58rem;color:var(--text-hint);"></div>
+    </div>
+    <div id="meta-anual-barra-wrap" style="position:relative;height:16px;display:flex;align-items:center;cursor:default;">
+      <div style="position:absolute;left:0;right:0;height:2px;background:rgba(128,128,128,.18);border-radius:2px;"></div>
+      <div id="meta-anual-fill" style="position:absolute;left:0;height:2px;background:linear-gradient(to right,rgba(128,128,128,.55),rgba(180,180,180,.25));border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;"></div>
+      <div id="meta-anual-checkpoints" style="position:absolute;left:0;right:0;top:0;height:100%;"></div>
+      <div id="meta-anual-tooltip" style="display:none;position:absolute;bottom:calc(100% + 8px);background:var(--text);color:var(--bg);font-size:.65rem;padding:4px 10px;border-radius:5px;white-space:nowrap;pointer-events:none;transform:translateX(-50%);z-index:10;"></div>
+    </div>
+    <div id="meta-anual-empty" style="display:none;font-size:.62rem;color:var(--text-hint);margin-top:.3rem;">
+      <span>Defina sua meta anual em </span><span onclick="goDirecto('ajustes')" style="color:var(--amber);cursor:pointer;text-decoration:underline;text-underline-offset:2px;">Ajustes</span><span> para acompanhar o progresso aqui.</span>
+    </div>
+  </div>
+
 </div><!-- /app -->
 
 <!-- MODAL CHECKOUT -->
@@ -1504,6 +1532,57 @@ function rR(){
       (pl.txt?'<span class="badge '+pl.cls+'" style="margin-left:auto;">'+pl.txt+'</span>':'')+
     '</div>';
   }).join('');
+  rMetaAnual();
+}
+
+function rMetaAnual(){
+  var wrap=document.getElementById('meta-anual-wrap');if(!wrap)return;
+  var sd=g('sd');
+  var metaAnual=sd&&sd.meta_fat_anual?parseFloat(sd.meta_fat_anual):0;
+  var now=new Date(),yr=now.getFullYear();
+  document.getElementById('meta-anual-ano').textContent=yr;
+  if(!metaAnual){
+    document.getElementById('meta-anual-fill').style.width='0%';
+    document.getElementById('meta-anual-resumo').textContent='';
+    document.getElementById('meta-anual-empty').style.display='block';
+    document.getElementById('meta-anual-checkpoints').innerHTML='';
+    return;
+  }
+  document.getElementById('meta-anual-empty').style.display='none';
+  var fatAnual=g('fin').filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;return new Date(e.data).getFullYear()===yr;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var pct=Math.min(fatAnual/metaAnual*100,100);
+  document.getElementById('meta-anual-fill').style.width=pct.toFixed(2)+'%';
+  var resumoEl=document.getElementById('meta-anual-resumo');
+  if(pct>=100){resumoEl.textContent='✓ Meta atingida';resumoEl.style.color='var(--teal)';}
+  else{resumoEl.textContent='R$ '+fatAnual.toLocaleString('pt-BR',{maximumFractionDigits:0})+' de R$ '+metaAnual.toLocaleString('pt-BR',{maximumFractionDigits:0});resumoEl.style.color='var(--text-hint)';}
+  var container=document.getElementById('meta-anual-checkpoints');
+  container.innerHTML='';
+  for(var i=0;i<=10;i++){
+    var checkPct=i*10;
+    var checkValor=metaAnual*checkPct/100;
+    var atingido=fatAnual>=checkValor;
+    var dotColor=checkPct<=30?'var(--coral)':checkPct<=60?'var(--amber)':'var(--teal)';
+    var dot=document.createElement('div');
+    dot.className='meta-checkpoint';
+    dot.style.left=checkPct+'%';
+    if(atingido)dot.style.background=dotColor;
+    (function(cp,cv){
+      dot.addEventListener('mouseenter',function(){
+        var t=document.getElementById('meta-anual-tooltip');
+        t.textContent='R$ '+cv.toLocaleString('pt-BR',{maximumFractionDigits:0})+' · '+cp+'%';
+        t.style.display='block';t.style.left=cp+'%';
+      });
+      dot.addEventListener('mouseleave',function(){document.getElementById('meta-anual-tooltip').style.display='none';});
+    })(checkPct,checkValor);
+    container.appendChild(dot);
+  }
+  var barraWrap=document.getElementById('meta-anual-barra-wrap');
+  barraWrap.onmouseenter=function(){
+    var t=document.getElementById('meta-anual-tooltip');
+    t.textContent='R$ '+fatAnual.toLocaleString('pt-BR',{maximumFractionDigits:0})+' de R$ '+metaAnual.toLocaleString('pt-BR',{maximumFractionDigits:0})+' — '+Math.round(pct)+'%';
+    t.style.display='block';t.style.left=Math.min(pct,90)+'%';
+  };
+  barraWrap.onmouseleave=function(){document.getElementById('meta-anual-tooltip').style.display='none';};
 }
 
 function rPipeline(){
@@ -1801,7 +1880,8 @@ function rSD(){
     'sd-studio-tipo-doc':'studio_tipo_doc','sd-studio-documento':'studio_documento',
     'sd-studio-endereco':'studio_endereco','sd-studio-telefone':'studio_telefone',
     'sd-studio-email':'studio_email','sd-studio-pix':'studio_pix',
-    'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro'
+    'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro',
+    'sd-meta-fat-anual':'meta_fat_anual','sd-meta-casamentos-ano':'meta_casamentos_ano'
   };
   Object.keys(map).forEach(function(elId){
     var el=document.getElementById(elId);if(el)el.value=sd[map[elId]]||'';
@@ -1814,7 +1894,8 @@ function saveSD(){
     'sd-studio-tipo-doc':'studio_tipo_doc','sd-studio-documento':'studio_documento',
     'sd-studio-endereco':'studio_endereco','sd-studio-telefone':'studio_telefone',
     'sd-studio-email':'studio_email','sd-studio-pix':'studio_pix',
-    'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro'
+    'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro',
+    'sd-meta-fat-anual':'meta_fat_anual','sd-meta-casamentos-ano':'meta_casamentos_ano'
   };
   Object.keys(map).forEach(function(elId){
     var el=document.getElementById(elId);if(el)sd[map[elId]]=el.value;
