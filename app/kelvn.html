@@ -3491,18 +3491,21 @@ async function initUserData(){
       });
       if(renataIdx===-1){
         // Adiciona entrada que faltava
-        ps.unshift({id:'pd06',desc:'Editar galeria completa — Renata & André',clienteId:'c11',prazo:fut(18),prio:'alta',done:false});
+        var _pd06prazo=new Date();_pd06prazo.setDate(_pd06prazo.getDate()+18);
+        ps.unshift({id:'pd06',desc:'Editar galeria completa — Renata & André',clienteId:'c11',prazo:_pd06prazo.toISOString().slice(0,10),prio:'alta',done:false});
         needsFix=true;
       } else if(!ps[renataIdx].prazo){
         // Corrige prazo inválido salvo anteriormente
-        ps[renataIdx]=Object.assign({},ps[renataIdx],{prazo:fut(18)});
+        var _prazoRenata=new Date();_prazoRenata.setDate(_prazoRenata.getDate()+18);
+        ps[renataIdx]=Object.assign({},ps[renataIdx],{prazo:_prazoRenata.toISOString().slice(0,10)});
         needsFix=true;
       }
       if(needsFix) s('pends',ps);
       // Migração: adiciona pd08 se não existir
       var ps2=g('pends');
       if(!ps2.find(function(p){return p.id==='pd08';})){
-        ps2=ps2.concat([{id:'pd08',desc:'Revisar contrato padrão 2026',clienteId:'',prazo:fut(45),prio:'baixa',done:false}]);
+        var _pd08prazo=new Date();_pd08prazo.setDate(_pd08prazo.getDate()+45);
+        ps2=ps2.concat([{id:'pd08',desc:'Revisar contrato padrão 2026',clienteId:'',prazo:_pd08prazo.toISOString().slice(0,10),prio:'baixa',done:false}]);
         s('pends',ps2);
       }
     }
