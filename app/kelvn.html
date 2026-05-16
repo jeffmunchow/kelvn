@@ -2902,7 +2902,8 @@ function seedDemoData(){
     {id:'pd03',desc:'Enviar prévia de 50 fotos — Diana & Thiago',clienteId:'c04',prazo:fut(5),prio:'normal',done:false},
     {id:'pd04',desc:'Criar timeline — Mariana & Felipe',clienteId:'c08',prazo:fut(3),prio:'normal',done:true},
     {id:'pd05',desc:'Backup HD externo — casamentos Q1',clienteId:'',prazo:fut(20),prio:'baixa',done:false},
-    {id:'pd07',desc:'Atualizar portfólio do site',clienteId:'',prazo:fut(30),prio:'baixa',done:false}
+    {id:'pd07',desc:'Atualizar portfólio do site',clienteId:'',prazo:fut(30),prio:'baixa',done:false},
+    {id:'pd08',desc:'Revisar contrato padrão 2026',clienteId:'',prazo:fut(45),prio:'baixa',done:false}
   ]);
 
   s('edicoes',[
@@ -3217,6 +3218,12 @@ async function initUserData(){
         needsFix=true;
       }
       if(needsFix) s('pends',ps);
+      // Migração: adiciona pd08 se não existir
+      var ps2=g('pends');
+      if(!ps2.find(function(p){return p.id==='pd08';})){
+        ps2=ps2.concat([{id:'pd08',desc:'Revisar contrato padrão 2026',clienteId:'',prazo:fut(45),prio:'baixa',done:false}]);
+        s('pends',ps2);
+      }
     }
     // Migração: corrige status antigos de clientes demo
     if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
