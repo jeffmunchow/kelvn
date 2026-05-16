@@ -1539,6 +1539,7 @@ function rEdicoes(){
       '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
       '<div class="ai-sub">'+(e.local||'')+'</div></div>'+
       '<span class="badge bc" style="margin-left:auto;">Em andamento</span>'+
+      '<button onclick="event.stopPropagation();removeDeEdicoes(\''+e.clienteId+'\')" title="Voltar à agenda" style="background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:.8rem;padding:0 0 0 6px;flex-shrink:0;" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-hint)\'">↩</button>'+
     '</div>';
   }).join(''):
   '<div class="ai" style="cursor:default;opacity:.5;font-size:.78rem;">Arraste um casamento aqui para iniciar edição</div>';
@@ -1570,14 +1571,28 @@ function dropToEdicoes(clienteId){
   var cs=g('clientes');
   var c=cs.find(function(x){return x.id===clienteId;});
   if(!c)return;
-  eds.push({clienteId:c.id,titulo:c.nome,data:c.data,local:c.local||''});
+  eds.push({clienteId:c.id,titulo:c.nome,data:c.data,local:c.local||'',statusAnterior:c.status});
   undoBegin();s('edicoes',eds);
   var idx=cs.findIndex(function(x){return x.id===clienteId;});
-  if(idx>-1){cs[idx].status='Pós-produção';s('clientes',cs);}
+  if(idx>-1){cs[idx]=Object.assign({},cs[idx],{status:'Pós-produção'});s('clientes',cs);}
   undoCommit();rEdicoes();rR();
   if(_curSection==='agenda')rA();
   if(_curSection==='posproducao')rEdicoes();
   notify(c.nome+' movido para Edições');
+}
+function removeDeEdicoes(clienteId){
+  var eds=g('edicoes')||[];
+  var entry=eds.find(function(x){return x.clienteId===clienteId;});
+  if(!entry)return;
+  var novas=eds.filter(function(x){return x.clienteId!==clienteId;});
+  var cs=g('clientes');
+  var idx=cs.findIndex(function(x){return x.id===clienteId;});
+  undoBegin();
+  s('edicoes',novas);
+  if(idx>-1&&entry.statusAnterior){cs[idx]=Object.assign({},cs[idx],{status:entry.statusAnterior});s('clientes',cs);}
+  undoCommit();rEdicoes();rR();
+  if(_curSection==='agenda')rA();
+  notify('Movido de volta para a agenda');
 }
 
 function rMetaAnual(){
@@ -3575,11 +3590,6 @@ async function initUserData(){
         if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,titulo:x.titulo,data:cl.data,local:x.local});
       });
       s('edicoes',_edsNow);
-      // Remove de edicoes qualquer cliente que não seja Pós-produção
-      var _allCs=g('clientes');
-      var _eds2=g('edicoes')||[];
-      var _eds2Fix=_eds2.filter(function(e){var c=_allCs.find(function(x){return x.id===e.clienteId;});return c&&c.status==='Pós-produção';});
-      if(_eds2Fix.length!==_eds2.length) s('edicoes',_eds2Fix);
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
