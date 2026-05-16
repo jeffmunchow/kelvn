@@ -1439,10 +1439,14 @@ function rR(){
   var el=document.getElementById('r-agenda');
   if(!allEvs.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma atividade futura</div>';}
   else el.innerHTML=allEvs.map(function(e){
-    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+    var d=new Date(e.data+'T12:00');
+    var ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+    var diasSem=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var dl=ds+' – '+diasSem[d.getDay()];
     var col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)';
     var onclick=e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
-    return '<div class="ai" onclick="'+onclick+'"><div class="ai-date">'+ds+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local||e.tipo)+'</div></div></div>';
+    var subSec=e._fromCliente?(e.local||e.tipo):[e.clienteId?cN(e.clienteId):'',e.local||''].filter(Boolean).join(' – ');
+    return '<div class="ai" onclick="'+onclick+'"><div class="ai-date">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div></div>';
   }).join('');
 
   // Próximas 7 tarefas de pós-produção
