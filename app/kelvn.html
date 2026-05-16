@@ -1535,8 +1535,9 @@ function rEdicoes(){
     .sort(function(a,b){return (a.data||'').localeCompare(b.data||'');})
     .slice(0,7);
   var html=eds.length?eds.map(function(e){
+    var dotCol=_STATUS_COLORS[e.tipo]||'var(--amber)';
     return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+(e.evId||('_c_'+e.clienteId))+'\',\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
-      '<div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div>'+
+      '<div class="ai-dot" style="background:'+dotCol+';margin-right:4px;"></div>'+
       '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
       '<div class="ai-sub">'+(e.local||'')+'</div></div>'+
       '<span class="badge bc" style="margin-left:auto;">Em andamento</span>'+
@@ -1590,17 +1591,18 @@ function dropToEdicoes(clienteId,evId){
   var c=cs.find(function(x){return x.id===clienteId;});
   if(!c)return;
   var titulo,data,local;
+  var tipo;
   if(evId.indexOf('_x_')>-1){
-    // Evento extra: extrai do eventosExtra do cliente
     var exId=evId.split('_x_')[1];
     var extra=(c.eventosExtra||[]).find(function(x){return x.id===exId;});
     titulo=extra?(extra.titulo||extra.tipo||c.nome):c.nome;
     data=extra?extra.data:c.data;
     local=extra?(extra.local||c.local||''):(c.local||'');
+    tipo=extra?extra.status:c.status;
   } else {
-    titulo=c.nome;data=c.data;local=c.local||'';
+    titulo=c.nome;data=c.data;local=c.local||'';tipo=c.status;
   }
-  eds.push({clienteId:c.id,evId:evId,titulo:titulo,data:data,local:local,statusAnterior:c.status});
+  eds.push({clienteId:c.id,evId:evId,tipo:tipo,titulo:titulo,data:data,local:local,statusAnterior:c.status});
   undoBegin();s('edicoes',eds);
   undoCommit();rEdicoes();rR();
   if(_curSection==='agenda')rA();
