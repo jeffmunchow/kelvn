@@ -46,21 +46,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .snav-btn:hover{background:var(--surface2);color:var(--text-muted);}
 .snav-btn.active{background:transparent;color:var(--amber);}
 .snav-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
-/* WIDE SIDEBAR PANEL */
-.spanel{width:220px;flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);position:fixed;top:0;left:56px;height:100vh;z-index:99;display:flex;flex-direction:column;transform:translateX(-220px);transition:transform .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
-.spanel.open{transform:translateX(0);}
-.spanel-backdrop{display:none;position:fixed;inset:0;z-index:98;background:transparent;cursor:default;}
-.spanel-backdrop.open{display:block;}
-.spanel-head{padding:1.25rem 1.25rem .75rem;border-bottom:.5px solid var(--border);flex-shrink:0;}
-.spanel-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;}
-.spanel-sub{font-size:.68rem;color:var(--text-hint);margin-top:2px;}
-.spanel-body{flex:1;overflow-y:auto;padding:.5rem 0;}
-.spanel-item{display:flex;align-items:center;gap:10px;padding:.6rem 1.25rem;font-size:.78rem;color:var(--text-muted);cursor:pointer;border:none;background:transparent;width:100%;text-align:left;border-left:2px solid transparent;transition:background .12s,color .12s,border-color .12s;}
-.spanel-item:hover{background:var(--surface2);color:var(--text);}
-.spanel-item.active{background:transparent;color:var(--amber);border-left-color:var(--amber);}
-.spanel-item svg{flex-shrink:0;opacity:.6;}
-.spanel-item.active svg{opacity:1;}
-.spanel-group{font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;padding:.75rem 1.25rem .3rem;margin-top:.25rem;}
 /* MAIN CONTENT */
 .main{flex:1;margin-left:56px;min-width:0;}
 /* TOPBAR */
@@ -444,7 +429,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
   </button>
 
-  <button class="snav-btn" id="sn-financeiro" onclick="openSection('financeiro')" title="Financeiro">
+  <button class="snav-btn" id="sn-financeiro" onclick="goDirecto('financeiro')" title="Financeiro">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
   </button>
 
@@ -452,8 +437,12 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
   </button>
 
-  <button class="snav-btn" id="sn-servicos" onclick="openSection('servicos')" title="Pacotes & Equipe">
+  <button class="snav-btn" id="sn-pacotes" onclick="goDirecto('pacotes')" title="Pacotes">
     <svg width="18" height="18" viewBox="2 3 20 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l-8 4l8 4l8 -4l-8 -4"/><path d="M4 12l8 4l8 -4"/><path d="M4 16l8 4l8 -4"/></svg>
+  </button>
+
+  <button class="snav-btn" id="sn-equipe" onclick="goDirecto('equipe')" title="Equipe">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
   </button>
 
   <button class="snav-btn" id="sn-educacao" onclick="goDirecto('educacao')" title="Educação">
@@ -478,15 +467,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   </div>
 </nav>
 
-<div class="spanel-backdrop" id="spanel-backdrop" onclick="closePanel()"></div>
-<!-- WIDE PANEL -->
-<div class="spanel" id="spanel">
-  <div class="spanel-head">
-    <div class="spanel-title" id="spanel-title">Resumo</div>
-    <div class="spanel-sub" id="spanel-sub"></div>
-  </div>
-  <div class="spanel-body" id="spanel-body"></div>
-</div>
 
 <!-- MAIN -->
 <div class="main" id="main-area" onclick="closeAI()">
@@ -500,40 +480,59 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
 <!-- RESUMO -->
 <div class="panel active" id="p-resumo">
-  <div class="kpis">
-    <div class="kpi"><div class="kpi-l">Faturamento</div><div class="kpi-v ca" id="r-fat">R$ 0</div><div class="kpi-s">contratos ativos</div></div>
-    <div class="kpi"><div class="kpi-l">Ticket médio</div><div class="kpi-v cc" id="r-ticket">R$ 0</div></div>
-    <div class="kpi" onclick="editInstaFollowers()" style="cursor:pointer;display:flex;align-items:center;gap:8px;" title="Clique para atualizar"><div style="flex:1;min-width:0;"><div class="kpi-l">Seguidores Instagram</div><div class="kpi-v" id="r-insta">—</div><div class="kpi-s" id="r-insta-sub">clique para atualizar</div></div><svg id="r-insta-spark" width="56" height="36" style="flex-shrink:0;opacity:.7;"></svg></div>
-    <div class="kpi"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div></div>
-    <div class="kpi"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div></div>
-    <div class="kpi"><div class="kpi-l">Casamentos este ano</div><div class="kpi-v" id="r-wed">0</div></div>
+
+  <!-- A: Foco do dia -->
+  <div id="r-foco" style="background:var(--amber-light);border:.5px solid var(--amber);border-radius:var(--radius);padding:1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;">
+    <div>
+      <div style="font-size:.62rem;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;" id="r-foco-label">Próximo casamento</div>
+      <div id="r-foco-titulo" style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);">—</div>
+      <div id="r-foco-sub" style="font-size:.72rem;color:var(--text-muted);margin-top:3px;">—</div>
+    </div>
+    <div id="r-foco-contagem" style="font-family:'Cherry Bomb One',cursive;font-size:2.2rem;color:var(--amber);line-height:1;white-space:nowrap;">—</div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
-    <!-- GRÁFICO + ORÇAMENTOS -->
-    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+  <!-- B: 3 KPIs operacionais -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
+    <div class="kpi"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div><div class="kpi-s">próximos 30 dias</div></div>
+    <div class="kpi"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
+    <div class="kpi"><div class="kpi-l">Pós-produção</div><div class="kpi-v ca" id="r-pos-aberto">0</div><div class="kpi-s">pendências em aberto</div></div>
+  </div>
+
+  <!-- C: Pipeline -->
+  <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.5rem;margin-bottom:1.5rem;overflow-x:auto;">
+    <div style="font-size:.62rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.85rem;">Pipeline ativo</div>
+    <div id="r-pipeline" style="display:flex;align-items:center;gap:.5rem;min-width:max-content;"></div>
+  </div>
+
+  <!-- D: Esta semana + Pós urgente -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;margin-bottom:1.5rem;">
+    <div>
+      <div class="col-title">Esta semana</div>
+      <div id="r-agenda" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
+    </div>
+    <div>
+      <div class="col-title">Pós-produção urgente</div>
+      <div id="r-pend" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
+    </div>
+  </div>
+
+  <!-- E: Gráfico colapsável -->
+  <div style="margin-top:.5rem;">
+    <button onclick="toggleFatChart()" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-size:.72rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;padding:0;margin-bottom:.75rem;">
+      <svg id="fat-chart-chev" width="10" height="10" viewBox="0 0 10 10" style="transition:transform .2s;opacity:.5;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Faturamento por produto — <span id="fat-chart-year"></span>
+    </button>
+    <div id="fat-chart-wrap" style="display:none;">
       <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 0;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;padding:0 3rem 0 36px;">
-          <div>
-            <div class="col-title" style="margin-bottom:2px;">Faturamento por produto</div>
-            <div style="font-size:.68rem;color:var(--text-hint);">Acumulado mensal — <span id="chart-year"></span></div>
-          </div>
+          <div style="font-size:.68rem;color:var(--text-hint);">Acumulado mensal — <span id="chart-year"></span></div>
           <div style="display:flex;flex-wrap:wrap;gap:10px;" id="chart-legend"></div>
         </div>
         <svg id="fat-chart" width="100%" height="365" style="display:block;overflow:visible;"></svg>
       </div>
     </div>
-    <!-- LISTAS -->
-    <div style="display:flex;flex-direction:column;gap:1.5rem;">
-      <div>
-        <div class="col-title">Próximos eventos</div>
-        <div id="r-agenda" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
-      </div>
-      <div>
-        <div class="col-title">Pós-produção</div>
-        <div id="r-pend" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
-      </div>
-    </div>
   </div>
+
 </div>
 
 <!-- CLIENTES -->
@@ -592,6 +591,11 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
 <!-- PÓS-PRODUÇÃO -->
 <div class="panel" id="p-posproducao">
+  <div class="pills" style="margin-bottom:1.5rem;">
+    <button class="pill active" id="pp-pill-pend"    onclick="switchPP('pend')">Pendências</button>
+    <button class="pill"        id="pp-pill-edicoes"  onclick="switchPP('edicoes')">Edições</button>
+    <button class="pill"        id="pp-pill-entregas" onclick="switchPP('entregas')">Entregas</button>
+  </div>
   <!-- PENDÊNCIAS -->
   <div id="pp-panel-pend" style="display:contents;">
     <div class="ag-split">
@@ -631,6 +635,14 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
 <!-- FINANCEIRO -->
 <div class="panel" id="p-financeiro">
+  <div class="pills" style="margin-bottom:1.5rem;">
+    <button class="pill active" id="fp-pill-emp"  onclick="switchFP('emp')">Empresa</button>
+    <button class="pill"        id="fp-pill-pes"  onclick="switchFP('pes')">Pessoal</button>
+    <button class="pill"        id="fp-pill-dre"  onclick="switchFP('dre')">DRE</button>
+    <button class="pill"        id="fp-pill-prec" onclick="switchFP('prec')">Precificação</button>
+    <button class="pill"        id="fp-pill-imp"  onclick="switchFP('imp')">Impostos</button>
+    <button class="pill"        id="fp-pill-inad" onclick="switchFP('inad')">Inadimplência</button>
+  </div>
   <!-- EMPRESA -->
   <div id="fp-panel-emp">
     <div class="sh">
@@ -727,6 +739,10 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
 <!-- QUESTIONÁRIOS -->
 <div class="panel" id="p-questionarios">
+  <div class="pills" style="margin-bottom:1.5rem;">
+    <button class="pill active" id="qp-pill-templates" onclick="switchQP('templates')">Templates</button>
+    <button class="pill"        id="qp-pill-respostas" onclick="switchQP('respostas')">Enviados</button>
+  </div>
   <!-- TEMPLATES -->
   <div id="qp-panel-templates">
     <div class="sh">
@@ -1278,68 +1294,13 @@ document.addEventListener('click',function(e){
 // g() e s() definidos acima com cache + Supabase
 
 var _curSection='resumo';
-var _panelOpen=false;
-
-var SECTIONS={
-  resumo:{title:'Resumo',sub:'Visão geral do estúdio',items:[{id:'resumo',label:'Dashboard'}]},
-  financeiro:{title:'Financeiro',sub:'Finanças do estúdio',items:[{id:'financeiro',label:'Empresa'},{id:'_fin_pes',label:'Pessoal'},{id:'_fin_dre',label:'DRE'},{id:'_fin_prec',label:'Calculadora de precificação'},{id:'_fin_imp',label:'Calculadora de impostos'},{id:'_fin_inad',label:'Inadimplência'}]},
-  questionarios:{title:'Questionários',sub:'Templates e respostas',items:[{id:'questionarios',label:'Templates'},{id:'_q_resp',label:'Enviados & Respostas'}]},
-  servicos:{title:'Serviços',sub:'Pacotes e equipe',items:[{id:'pacotes',label:'Pacotes'},{id:'equipe',label:'Equipe'}]},
-  analises:{title:'Análises & Metas',sub:'Relatórios e métricas',items:[{id:'analises',label:'Visão geral'}]},
-  educacao:{title:'Educação',sub:'Ebooks para fotógrafos',items:[{id:'educacao',label:'Biblioteca'}]}
-};
-
-function closePanel(){
-  _panelOpen=false;
-  document.getElementById('spanel').classList.remove('open');
-  document.getElementById('spanel-backdrop').classList.remove('open');
-  closeAI();
-  document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
-}
 
 function goDirecto(name){
   closeAI();
-  closePanel();
   document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
   var btn=document.getElementById('sn-'+name);if(btn)btn.classList.add('active');
   _curSection=name;
   go(name);
-}
-
-function openSection(sec){
-  closeAI();
-  var same=_curSection===sec&&_panelOpen;
-  if(same){ closePanel(); return; }
-  document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
-  var btn=document.getElementById('sn-'+sec); if(btn) btn.classList.add('active');
-  _curSection=sec;
-  var s=SECTIONS[sec]; if(!s) return;
-  document.getElementById('spanel-title').textContent=s.title;
-  document.getElementById('spanel-sub').textContent=s.sub;
-  document.getElementById('spanel-body').innerHTML=s.items.map(function(item){
-    return '<button class="spanel-item" id="sp-'+item.id+'" onclick="goItem(\''+item.id+'\',\''+sec+'\')">'+
-      '<span>'+item.label+'</span></button>';
-  }).join('');
-  _panelOpen=true;
-  document.getElementById('spanel').classList.add('open');
-  document.getElementById('spanel-backdrop').classList.add('open');
-  goItem(s.items[0].id, sec);
-}
-
-function goItem(id,sec){
-  // mark active in panel
-  document.querySelectorAll('.spanel-item').forEach(function(b){b.classList.remove('active');});
-  var sp=document.getElementById('sp-'+id);if(sp)sp.classList.add('active');
-  // handle sub-panel items
-  if(id==='_edicoes'){go('posproducao');setTimeout(function(){switchPP('edicoes');},10);return;}
-  if(id==='_entregas'){go('posproducao');setTimeout(function(){switchPP('entregas');},10);return;}
-  if(id==='_fin_pes'){go('financeiro');setTimeout(function(){switchFP('pes');},10);return;}
-  if(id==='_fin_dre'){go('financeiro');setTimeout(function(){switchFP('dre');},10);return;}
-  if(id==='_fin_prec'){go('financeiro');setTimeout(function(){switchFP('prec');},10);return;}
-  if(id==='_fin_imp'){go('financeiro');setTimeout(function(){switchFP('imp');},10);return;}
-  if(id==='_fin_inad'){go('financeiro');setTimeout(function(){switchFP('inad');},10);return;}
-  if(id==='_q_resp'){go('questionarios');setTimeout(function(){switchQP('respostas');},10);return;}
-  go(id);
 }
 
 function go(name){
@@ -1352,24 +1313,28 @@ function go(name){
 function switchPP(name){
   ['pend','edicoes','entregas'].forEach(function(n){
     document.getElementById('pp-panel-'+n).style.display='none';
-    document.getElementById('pp-'+n).classList.remove('active');
+    var pill=document.getElementById('pp-pill-'+n);if(pill)pill.classList.remove('active');
   });
   document.getElementById('pp-panel-'+name).style.display='';
-  document.getElementById('pp-'+name).classList.add('active');
+  var ap=document.getElementById('pp-pill-'+name);if(ap)ap.classList.add('active');
   if(name==='pend')rPe();if(name==='edicoes')rED();if(name==='entregas')rENT();
 }
 function switchFP(name){
   ['emp','pes','dre','prec','imp','inad'].forEach(function(n){
     document.getElementById('fp-panel-'+n).style.display='none';
-    document.getElementById('fp-'+n).classList.remove('active');
+    var pill=document.getElementById('fp-pill-'+n);if(pill)pill.classList.remove('active');
   });
   document.getElementById('fp-panel-'+name).style.display='';
-  document.getElementById('fp-'+name).classList.add('active');
+  var ap=document.getElementById('fp-pill-'+name);if(ap)ap.classList.add('active');
   if(name==='emp')rF();if(name==='pes')rFP();if(name==='dre')rDRE();if(name==='prec')calcPrec();if(name==='imp')calcImp();if(name==='inad')rInad();
 }
 function switchQP(name){
-  ['templates','respostas'].forEach(function(n){document.getElementById('qp-panel-'+n).style.display='none';document.getElementById('qp-'+n).classList.remove('active');});
-  document.getElementById('qp-panel-'+name).style.display='';document.getElementById('qp-'+name).classList.add('active');
+  ['templates','respostas'].forEach(function(n){
+    document.getElementById('qp-panel-'+n).style.display='none';
+    var pill=document.getElementById('qp-pill-'+n);if(pill)pill.classList.remove('active');
+  });
+  document.getElementById('qp-panel-'+name).style.display='';
+  var ap=document.getElementById('qp-pill-'+name);if(ap)ap.classList.add('active');
   if(name==='templates')rQT();if(name==='respostas')rQR();
 }
 function switchAG2(name){
@@ -1439,7 +1404,7 @@ function editInstaFollowers(){
   if(last&&last.d===today){ hist[hist.length-1].v=n; } else { hist.push({d:today,v:n}); }
   if(hist.length>24) hist=hist.slice(-24);
   s('insta_followers_hist',hist);
-  document.getElementById('r-insta').textContent=n.toLocaleString('pt-BR');
+  var instaEl=document.getElementById('r-insta');if(instaEl)instaEl.textContent=n.toLocaleString('pt-BR');
   renderInstaSpark(hist,n);
 }
 function renderInstaSpark(hist,cur){
@@ -1471,48 +1436,111 @@ function renderInstaSpark(hist,cur){
   }
 }
 function rR(){
-  var now=new Date(),yr=now.getFullYear();
+  var now=new Date();
   var cs=g('clientes').filter(function(c){return c.status!=='Finalizado';});
-  var fat=0,recv=0,tks=[],wed=0;
+  var recv=0;
   cs.forEach(function(c){
-    fat+=parseFloat(c.valor||0);
     var paid=(c.parcelas||[]).reduce(function(a,p){return a+(p.pago?parseFloat(p.valor||0):0);},0);
     var ow=parseFloat(c.valor||0)-paid;if(ow>0)recv+=ow;
-    if(c.valor)tks.push(parseFloat(c.valor));
-    var wd=pd(c.data);if(wd&&wd.getFullYear()===yr)wed++;
   });
-  var tk=tks.length?tks.reduce(function(a,b){return a+b;},0)/tks.length:0;
   var inad=calcInadTotal();
-  document.getElementById('r-fat').textContent=$m(fat);
   document.getElementById('r-recv').textContent=$m(recv);
-  document.getElementById('r-wed').textContent=wed;
-  document.getElementById('r-ticket').textContent=$m(tk);
   document.getElementById('r-inad').textContent=$m(inad);
-  var instaVal=g('insta_followers');
-  document.getElementById('r-insta').textContent=instaVal?Number(instaVal).toLocaleString('pt-BR'):'—';
-  renderInstaSpark(g('insta_followers_hist')||[],instaVal||null);
-  setTimeout(renderFatChart,50);
-  var evs=g('eventos').concat(_primaryEventsFromClientes()).filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);}).slice(0,7);
+  document.getElementById('r-pos-aberto').textContent=g('pends').filter(function(p){return !p.done;}).length;
+
+  // Bloco A — Foco do dia
+  var proxCasamento=g('clientes').filter(function(c){return c.status==='Casamento'&&pd(c.data)&&pd(c.data)>=now;}).sort(function(a,b){return pd(a.data)-pd(b.data);})[0]||null;
+  var focoEl=document.getElementById('r-foco');
+  if(proxCasamento){
+    var dias=Math.round((pd(proxCasamento.data)-now)/86400000);
+    document.getElementById('r-foco-label').textContent='Próximo casamento';
+    document.getElementById('r-foco-titulo').textContent=proxCasamento.nome;
+    document.getElementById('r-foco-sub').textContent=proxCasamento.local||'';
+    document.getElementById('r-foco-contagem').textContent=dias===0?'hoje':dias===1?'amanhã':'em '+dias+' dias';
+    focoEl.onclick=function(){openC(proxCasamento.id);};
+  }else{
+    var urgPend=g('pends').filter(function(p){return !p.done;}).sort(function(a,b){return(a.prazo||'9')-(b.prazo||'9');})[0]||null;
+    if(urgPend){
+      document.getElementById('r-foco-label').textContent='Pendência urgente';
+      document.getElementById('r-foco-titulo').textContent=urgPend.desc;
+      document.getElementById('r-foco-sub').textContent=urgPend.prazo?'Prazo: '+fd(urgPend.prazo):'Sem prazo definido';
+      document.getElementById('r-foco-contagem').textContent='';
+      focoEl.onclick=function(){goDirecto('posproducao');};
+    }else{
+      document.getElementById('r-foco-label').textContent='Agenda limpa';
+      document.getElementById('r-foco-titulo').textContent='Nenhum casamento próximo agendado';
+      document.getElementById('r-foco-sub').textContent='';
+      document.getElementById('r-foco-contagem').textContent='';
+      focoEl.onclick=null;
+    }
+  }
+
+  rPipeline();
+
+  // Bloco D — Esta semana (próximos 7 dias, fallback: próximos 3)
+  var em7=new Date(now);em7.setDate(em7.getDate()+7);
+  var allEvs=g('eventos').concat(_primaryEventsFromClientes()).filter(function(e){return new Date(e.data)>=now;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
+  var semanaEvs=allEvs.filter(function(e){return new Date(e.data)<=em7;});
+  var evs=semanaEvs.length?semanaEvs:allEvs.slice(0,3);
   var el=document.getElementById('r-agenda');
-  if(!evs.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhum evento futuro</div>';}
+  if(!evs.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhum evento esta semana</div>';}
   else el.innerHTML=evs.map(function(e){
-    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0'),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)';
+    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+    var col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)';
     var onclick=e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
-    return '<div class="ai" onclick="'+onclick+'"><div class="ai-date">'+ds+(e._fromCliente?'':' '+hs)+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local||e.tipo)+'</div></div></div>';
+    return '<div class="ai" onclick="'+onclick+'"><div class="ai-date">'+ds+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+(e.local||e.tipo)+'</div></div></div>';
   }).join('');
+
+  // Bloco D — Pós-produção urgente (prazo ≤7 dias, fallback: 4 primeiras)
+  var em7p=new Date(now);em7p.setDate(em7p.getDate()+7);
+  var allPends=g('pends').filter(function(p){return !p.done;}).sort(function(a,b){return(a.prazo||'9999-99-99').localeCompare(b.prazo||'9999-99-99');});
+  var urgPends=allPends.filter(function(p){return p.prazo&&pd(p.prazo)&&pd(p.prazo)<=em7p;});
+  var ps=urgPends.length?urgPends:allPends.slice(0,4);
   var pe=document.getElementById('r-pend');
-  var ps=g('pends').filter(function(p){return !p.done;}).slice(0,6);
-  if(!ps.length){pe.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma pendência</div>';}
+  if(!ps.length){pe.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma pendência urgente</div>';}
   else pe.innerHTML=ps.map(function(p){
     var pl=prazoLabel(p.prazo,p.done);
     var dot=p.prio==='alta'?'var(--coral)':p.prio==='baixa'?'var(--teal)':'var(--amber)';
-    return '<div class="ai" onclick="go(\'posproducao\')">'+
+    return '<div class="ai" onclick="goDirecto(\'posproducao\')">'+
       '<div class="ai-dot" style="background:'+dot+';margin-right:4px;"></div>'+
       '<div class="ai-info"><div class="ai-title">'+p.desc+'</div>'+
       '<div class="ai-sub">'+(p.clienteId?cN(p.clienteId):'Geral')+'</div></div>'+
       (pl.txt?'<span class="badge '+pl.cls+'" style="margin-left:auto;">'+pl.txt+'</span>':'')+
     '</div>';
   }).join('');
+}
+
+function rPipeline(){
+  var el=document.getElementById('r-pipeline');if(!el)return;
+  var etapas=[
+    {key:'Prospect',     color:'#9E9892', label:'Prospect'},
+    {key:'Sessão',       color:'#C43A1A', label:'Sessão'},
+    {key:'Casamento',    color:'#C4780A', label:'Casamento'},
+    {key:'Pós-produção', color:'#C43A1A', label:'Pós-produção'},
+    {key:'Álbum design', color:'#7B5EA7', label:'Álbum'},
+    {key:'Entregue',     color:'#2E7D32', label:'Entregue'}
+  ];
+  var cs=g('clientes');
+  var html='';
+  etapas.forEach(function(e,i){
+    var count=cs.filter(function(c){return c.status===e.key;}).length;
+    if(count===0&&e.key!=='Prospect')return;
+    if(i>0&&html!=='')html+='<div style="color:var(--text-hint);font-size:.8rem;flex-shrink:0;">›</div>';
+    html+='<div onclick="goDirecto(\'clientes\');setTimeout(function(){var s=document.getElementById(\'c-status\');if(s){s.value=\''+e.key+'\';rC();}},50);" style="display:flex;flex-direction:column;align-items:center;gap:3px;padding:.45rem .9rem;border-radius:6px;cursor:pointer;background:var(--surface2);flex-shrink:0;" onmouseover="this.style.background=\'var(--border-strong)\'" onmouseout="this.style.background=\'var(--surface2)\'">'+
+      '<div style="font-size:1rem;font-weight:500;color:'+e.color+';line-height:1;">'+count+'</div>'+
+      '<div style="font-size:.6rem;color:var(--text-hint);white-space:nowrap;">'+e.label+'</div>'+
+    '</div>';
+  });
+  el.innerHTML=html||'<div style="font-size:.75rem;color:var(--text-hint);font-style:italic;">Nenhum cliente cadastrado ainda.</div>';
+}
+
+function toggleFatChart(){
+  var wrap=document.getElementById('fat-chart-wrap');
+  var chev=document.getElementById('fat-chart-chev');
+  var open=wrap.style.display==='none';
+  wrap.style.display=open?'':'none';
+  chev.style.transform=open?'rotate(-90deg)':'';
+  if(open)setTimeout(renderFatChart,50);
 }
 var _cId=null,_parc=[],_cEventos=[];
 function addCEvento(){
@@ -2569,7 +2597,8 @@ var PRODUTOS=[
 
 function renderFatChart(){
   var yr=new Date().getFullYear();
-  document.getElementById('chart-year').textContent=yr;
+  var cyEl=document.getElementById('chart-year');if(cyEl)cyEl.textContent=yr;
+  var fcyEl=document.getElementById('fat-chart-year');if(fcyEl)fcyEl.textContent=yr;
   var svg=document.getElementById('fat-chart');
   if(!svg) return;
   var W=svg.getBoundingClientRect().width||600;
@@ -3362,9 +3391,6 @@ function toggleAI(){
 }
 
 function openAI(){
-  // Fecha o spanel normal se estiver aberto
-  var spanel = document.getElementById('spanel');
-  if(spanel) spanel.classList.remove('open');
   document.getElementById('aiPanel').classList.add('open');
   document.querySelectorAll('.snav-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('sn-ia').classList.add('active');
