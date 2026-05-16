@@ -3561,13 +3561,6 @@ async function initUserData(){
       var _eds2=g('edicoes')||[];
       var _eds2Fix=_eds2.filter(function(e){var c=_allCs.find(function(x){return x.id===e.clienteId;});return c&&c.status==='Pós-produção';});
       if(_eds2Fix.length!==_eds2.length) s('edicoes',_eds2Fix);
-      // Adiciona evento e10 (Reunião Gabriela & Mateus) se não existir
-      var _evs=g('eventos');
-      if(!_evs.find(function(e){return e.id==='e10';})){
-        var _e10dt=new Date();_e10dt.setDate(_e10dt.getDate()+8);_e10dt.setHours(10,0,0);
-        _evs.push({id:'e10',titulo:'Reunião — Gabriela & Mateus',data:_e10dt.toISOString().slice(0,16),tipo:'Reunião',clienteId:'c17',local:'Google Meet',notas:'Alinhar timeline e detalhes da cerimônia.'});
-        s('eventos',_evs);
-      }
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
