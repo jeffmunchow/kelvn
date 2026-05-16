@@ -485,10 +485,11 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 <div class="panel active" id="p-resumo">
 
   <!-- KPIs operacionais -->
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
     <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div><div class="kpi-s">próximos 30 dias</div></div>
     <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
     <div class="kpi clickable" onclick="goDirecto('posproducao')"><div class="kpi-l">Pós-produção</div><div class="kpi-v ca" id="r-pos-aberto">0</div><div class="kpi-s">pendências em aberto</div></div>
+    <div class="kpi clickable" onclick="goDirecto('analises')" title="Ver metas completas"><div class="kpi-l">Meta do mês</div><div class="kpi-v" id="r-meta-v">—</div><div class="kpi-s" id="r-meta-s">configure em Análises</div></div>
   </div>
 
 <!-- Listas -->
@@ -792,6 +793,37 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
 <!-- ANÁLISES -->
 <div class="panel" id="p-analises">
+  <!-- METAS -->
+  <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem;">
+    <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;margin-bottom:1.25rem;">Metas</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;">
+      <div class="field"><label>Faturamento mensal desejado (R$)</label><input type="number" id="meta-fat-mensal" placeholder="ex: 15000"></div>
+      <div class="field"><label>Casamentos no ano</label><input type="number" id="meta-casamentos-ano" placeholder="ex: 20"></div>
+    </div>
+    <button class="btn primary" onclick="saveMetas()">Salvar metas</button>
+    <div id="metas-msg" style="font-size:.72rem;margin-top:.6rem;min-height:1rem;"></div>
+    <div id="metas-progresso" style="display:none;margin-top:1.5rem;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div style="background:var(--surface2);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
+        <div style="font-size:.62rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;">Faturamento — <span id="mp-mes-label"></span></div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:.75rem;">
+          <div><div id="mp-fat-atual" style="font-size:1.4rem;font-weight:500;letter-spacing:-.02em;line-height:1;"></div><div id="mp-fat-meta-label" style="font-size:.68rem;color:var(--text-hint);margin-top:3px;"></div></div>
+          <div id="mp-fat-pct" style="font-family:'Cherry Bomb One',cursive;font-size:1.6rem;line-height:1;"></div>
+        </div>
+        <div style="height:4px;background:var(--border-strong);border-radius:4px;overflow:hidden;"><div id="mp-fat-bar" style="height:100%;border-radius:4px;transition:width .4s;"></div></div>
+        <div id="mp-fat-restante" style="font-size:.68rem;color:var(--text-hint);margin-top:.5rem;"></div>
+      </div>
+      <div style="background:var(--surface2);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
+        <div style="font-size:.62rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;">Casamentos — <span id="mp-ano-label"></span></div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:.75rem;">
+          <div><div id="mp-wed-atual" style="font-size:1.4rem;font-weight:500;letter-spacing:-.02em;line-height:1;"></div><div id="mp-wed-meta-label" style="font-size:.68rem;color:var(--text-hint);margin-top:3px;"></div></div>
+          <div id="mp-wed-pct" style="font-family:'Cherry Bomb One',cursive;font-size:1.6rem;line-height:1;"></div>
+        </div>
+        <div style="height:4px;background:var(--border-strong);border-radius:4px;overflow:hidden;"><div id="mp-wed-bar" style="height:100%;border-radius:4px;transition:width .4s;"></div></div>
+        <div id="mp-wed-restante" style="font-size:.68rem;color:var(--text-hint);margin-top:.5rem;"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="kpis" id="an-kpis"></div>
   <!-- Gráfico faturamento por produto -->
   <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 0;margin-bottom:1.5rem;">
@@ -1428,6 +1460,18 @@ function rR(){
   document.getElementById('r-recv').textContent=$m(recv);
   document.getElementById('r-inad').textContent=$m(inad);
   document.getElementById('r-pos-aberto').textContent=g('pends').filter(function(p){return !p.done;}).length;
+  (function(){
+    var metas=g('metas');var elV=document.getElementById('r-meta-v');var elS=document.getElementById('r-meta-s');
+    if(!elV||!elS)return;
+    if(!metas||!metas.fat_mensal){elV.textContent='—';elV.style.color='var(--text-hint)';elS.textContent='configure em Análises';elS.style.color='var(--text-hint)';return;}
+    var now=new Date();
+    var fatAtual=g('fin').filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;var d=new Date(e.data);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+    var meta=metas.fat_mensal;var pct=meta>0?Math.min(Math.round(fatAtual/meta*100),100):0;
+    var cor=pct>=100?'var(--teal)':pct>=60?'var(--amber)':'var(--coral)';
+    elV.textContent=pct+'%';elV.style.color=cor;
+    if(pct>=100){elS.textContent='✓ meta atingida';elS.style.color='var(--teal)';}
+    else{elS.textContent='faltam R$ '+(meta-fatAtual).toLocaleString('pt-BR',{maximumFractionDigits:0});elS.style.color='var(--text-hint)';}
+  })();
 
   rPipeline();
 
@@ -2245,7 +2289,57 @@ function saveEq(){
   s('equipe',es);cov('ov-eq');rEQ();notify('Membro salvo');
 }
 function delEq(){if(!confirm('Excluir?'))return;s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));cov('ov-eq');rEQ();notify('Excluído');}
+function saveMetas(){
+  var fatMensal=parseFloat(document.getElementById('meta-fat-mensal').value)||0;
+  var casamentosAno=parseInt(document.getElementById('meta-casamentos-ano').value)||0;
+  s('metas',{fat_mensal:fatMensal,casamentos_ano:casamentosAno});
+  var msg=document.getElementById('metas-msg');
+  msg.textContent='Metas salvas.';msg.style.color='var(--teal)';
+  setTimeout(function(){msg.textContent='';},2500);
+  rMetas();rR();
+}
+
+function rMetas(){
+  var metas=g('metas');
+  if(metas&&metas.fat_mensal)document.getElementById('meta-fat-mensal').value=metas.fat_mensal;
+  if(metas&&metas.casamentos_ano)document.getElementById('meta-casamentos-ano').value=metas.casamentos_ano;
+  var prog=document.getElementById('metas-progresso');if(!prog)return;
+  if(!metas||(!metas.fat_mensal&&!metas.casamentos_ano)){prog.style.display='none';return;}
+  prog.style.display='grid';
+  var now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
+  var meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var metaFat=metas.fat_mensal||0;
+  var fatAtual=g('fin').filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;var d=new Date(e.data);return d.getMonth()===mo&&d.getFullYear()===yr;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var pctFat=metaFat>0?Math.min(Math.round(fatAtual/metaFat*100),100):0;
+  var corFat=pctFat>=100?'var(--teal)':pctFat>=60?'var(--amber)':'var(--coral)';
+  document.getElementById('mp-mes-label').textContent=meses[mo];
+  document.getElementById('mp-fat-atual').textContent='R$ '+fatAtual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('mp-fat-atual').style.color=corFat;
+  document.getElementById('mp-fat-meta-label').textContent='meta: R$ '+metaFat.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('mp-fat-pct').textContent=pctFat+'%';
+  document.getElementById('mp-fat-pct').style.color=corFat;
+  document.getElementById('mp-fat-bar').style.width=pctFat+'%';
+  document.getElementById('mp-fat-bar').style.background=corFat;
+  document.getElementById('mp-fat-restante').textContent=pctFat>=100?'✓ Meta atingida este mês':'Faltam R$ '+(metaFat-fatAtual).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' para a meta';
+  var metaWed=metas.casamentos_ano||0;
+  var statusValidos=['Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var wedAtual=g('clientes').filter(function(c){if(!c.data)return false;return new Date(c.data).getFullYear()===yr&&statusValidos.indexOf(c.status)>-1;}).length;
+  var pctWed=metaWed>0?Math.min(Math.round(wedAtual/metaWed*100),100):0;
+  var corWed=pctWed>=100?'var(--teal)':pctWed>=60?'var(--amber)':'var(--coral)';
+  document.getElementById('mp-ano-label').textContent=yr;
+  document.getElementById('mp-wed-atual').textContent=wedAtual+' confirmados';
+  document.getElementById('mp-wed-atual').style.color=corWed;
+  document.getElementById('mp-wed-meta-label').textContent='meta: '+metaWed+' casamentos';
+  document.getElementById('mp-wed-pct').textContent=pctWed+'%';
+  document.getElementById('mp-wed-pct').style.color=corWed;
+  document.getElementById('mp-wed-bar').style.width=pctWed+'%';
+  document.getElementById('mp-wed-bar').style.background=corWed;
+  var restWed=metaWed-wedAtual;
+  document.getElementById('mp-wed-restante').textContent=pctWed>=100?'✓ Meta atingida este ano':restWed+' casamento'+(restWed!==1?'s':'')+' para a meta';
+}
+
 function rAN(){
+  rMetas();
   var now=new Date(),yr=now.getFullYear();
   var cs=g('clientes');var fin=g('fin');
   var fat=fin.reduce(function(a,e){return a+(e.tipo==='entrada'?parseFloat(e.valor||0):0);},0);
