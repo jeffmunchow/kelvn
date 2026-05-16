@@ -3652,21 +3652,33 @@ async function initUserData(){
         if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,evId:'_c_'+x.id,titulo:x.titulo,data:cl.data,local:x.local});
       });
       s('edicoes',_edsNow);
-      // Adiciona e11-e14 uma única vez (flag impede re-adicionar após exclusão)
-      var _sd2=g('sd')||{};
-      if(!_sd2._seeded_evs_v2){
+      // Auto-reparo: garante 7 eventos futuros disponíveis para Próximas atividades
+      (function(){
+        var _now2=new Date();
+        var _edsEvIds2=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
         var _evs3=g('eventos');
-        var _evsIds=_evs3.map(function(e){return e.id;});
-        var _futEvs=[
-          {id:'e11',titulo:'Reunião — Camila & Rafael',data:(function(){var d=new Date();d.setDate(d.getDate()+18);d.setHours(15,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c03',local:'Google Meet',notas:'Revisão do contrato e timeline.'},
-          {id:'e12',titulo:'Ensaio — Mariana & Felipe',data:(function(){var d=new Date();d.setDate(d.getDate()+11);d.setHours(17,0,0);return d.toISOString().slice(0,16);})(),tipo:'Ensaio',clienteId:'c08',local:'Orla de Pelotas',notas:'Golden hour no lago.'},
-          {id:'e13',titulo:'Reunião — Beatriz & Lucas',data:(function(){var d=new Date();d.setDate(d.getDate()+25);d.setHours(10,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c02',local:'Cafeteria Central',notas:'Apresentar galeria digital.'},
-          {id:'e14',titulo:'Entrega álbum — Sofia & Rodrigo',data:(function(){var d=new Date();d.setDate(d.getDate()+35);d.setHours(16,0,0);return d.toISOString().slice(0,16);})(),tipo:'Entrega',clienteId:'c09',local:'Estúdio',notas:'Álbum 35x35 finalizado.'}
+        var _primFut=_primaryEventsFromClientes().filter(function(e){return new Date(e.data)>=_now2&&_edsEvIds2.indexOf(e.id)===-1;});
+        var _secFut=_evs3.filter(function(e){return new Date(e.data)>=_now2;});
+        var _total=_primFut.length+_secFut.length;
+        if(_total>=7) return;
+        // Banco de eventos de reserva com datas 60-180 dias no futuro
+        var _pool=[
+          {id:'er01',titulo:'Reunião — Camila & Rafael',tipo:'Reunião',clienteId:'c03',local:'Google Meet',notas:'Alinhamento final da timeline.',dias:60},
+          {id:'er02',titulo:'Ensaio — Beatriz & Lucas',tipo:'Ensaio',clienteId:'c02',local:'Parque da Redenção, Porto Alegre',notas:'Luz natural da tarde.',dias:75},
+          {id:'er03',titulo:'Reunião — Fernanda & Gustavo',tipo:'Reunião',clienteId:'c05',local:'Cafeteria Central',notas:'Revisar roteiro do dia.',dias:90},
+          {id:'er04',titulo:'Entrega — Juliana & Marcos',tipo:'Entrega',clienteId:'c06',local:'Estúdio',notas:'Entrega do álbum físico.',dias:105},
+          {id:'er05',titulo:'Reunião — Sofia & Rodrigo',tipo:'Reunião',clienteId:'c09',local:'Google Meet',notas:'Aprovação da galeria.',dias:120},
+          {id:'er06',titulo:'Ensaio — Larissa & Bruno',tipo:'Ensaio',clienteId:'c07',local:'Centro Histórico, Pelotas',notas:'Ensaio pré-casamento.',dias:150},
+          {id:'er07',titulo:'Reunião — Isabela & Thiago',tipo:'Reunião',clienteId:'c10',local:'Cafeteria Central',notas:'Entrega do pen drive.',dias:180}
         ];
-        var _adicionados=_futEvs.filter(function(e){return _evsIds.indexOf(e.id)===-1;});
-        if(_adicionados.length) s('eventos',_evs3.concat(_adicionados));
-        _sd2._seeded_evs_v2=true; s('sd',_sd2);
-      }
+        var _evsIds3=_evs3.map(function(e){return e.id;});
+        var _needed=7-_total;
+        var _toAdd=_pool.filter(function(p){return _evsIds3.indexOf(p.id)===-1;}).slice(0,_needed).map(function(p){
+          var d=new Date();d.setDate(d.getDate()+p.dias);d.setHours(10,0,0);
+          return {id:p.id,titulo:p.titulo,data:d.toISOString().slice(0,16),tipo:p.tipo,clienteId:p.clienteId,local:p.local,notas:p.notas};
+        });
+        if(_toAdd.length) s('eventos',_evs3.concat(_toAdd));
+      })();
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
