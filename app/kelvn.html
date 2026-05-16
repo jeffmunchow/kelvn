@@ -2069,9 +2069,13 @@ function fmtEvTime(dataStr){
 }
 function _primaryEventsFromClientes(){
   var evs=[];
+  var edsMap={};
+  (g('edicoes')||[]).forEach(function(e){edsMap[e.clienteId]=e;});
   g('clientes').forEach(function(c){
-    if(_PRIMARY_STATUS.indexOf(c.status)>-1 && c.data)
-      evs.push({id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:c.status, local:c.local||'', clienteId:c.id, _fromCliente:true});
+    var edEntry=edsMap[c.id];
+    var tipo=edEntry&&edEntry.statusAnterior?edEntry.statusAnterior:c.status;
+    if(_PRIMARY_STATUS.indexOf(tipo)>-1 && c.data)
+      evs.push({id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:tipo, local:c.local||'', clienteId:c.id, _fromCliente:true});
     (c.eventosExtra||[]).forEach(function(ex){
       if(_PRIMARY_STATUS.indexOf(ex.status)>-1 && ex.data)
         evs.push({id:'_c_'+c.id+'_x_'+ex.id, titulo:c.nome, data:ex.data+'T00:00', tipo:ex.status, local:ex.local||'', clienteId:c.id, _fromCliente:true});
@@ -2081,9 +2085,8 @@ function _primaryEventsFromClientes(){
 }
 function rA(){
   var now=new Date(),flt=document.getElementById('ag-filter').value;
-  var _edsIdsA=(g('edicoes')||[]).map(function(x){return x.clienteId;});
   var secondary=g('eventos');
-  var primary=_primaryEventsFromClientes().filter(function(e){return _edsIdsA.indexOf(e.clienteId)===-1;});
+  var primary=_primaryEventsFromClientes();
   var all=primary.concat(secondary).filter(function(e){var d=new Date(e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
   var el=document.getElementById('ag-list');
   if(!all.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
