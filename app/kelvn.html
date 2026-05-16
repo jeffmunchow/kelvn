@@ -576,45 +576,44 @@ select.aj-input{cursor:pointer;}
 
 <!-- PÓS-PRODUÇÃO -->
 <div class="panel" id="p-posproducao">
-  <div class="pills" style="margin-bottom:1.5rem;">
-    <button class="pill active" id="pp-pill-pend"    onclick="switchPP('pend')">Pendências</button>
-    <button class="pill"        id="pp-pill-edicoes"  onclick="switchPP('edicoes')">Edições</button>
-    <button class="pill"        id="pp-pill-entregas" onclick="switchPP('entregas')">Entregas</button>
-  </div>
-  <!-- PENDÊNCIAS -->
-  <div id="pp-panel-pend" style="display:contents;">
-    <div class="ag-split">
-      <div class="ag-col-list">
-        <div class="sh">
-          <div class="st">Pós-produção</div>
-          <div class="sa">
-            <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
-          </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;grid-auto-rows:auto;">
+
+    <!-- PENDÊNCIAS -->
+    <div>
+      <div class="sh">
+        <div class="st">Pós-produção</div>
+        <div class="sa">
+          <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
         </div>
-        <div class="tw" id="pend-list"></div>
       </div>
-      <div class="ag-col-cal" style="visibility:hidden;"></div>
+      <div class="tw" id="pend-list"></div>
     </div>
-  </div>
-  <!-- EDIÇÕES -->
-  <div id="pp-panel-edicoes" style="display:none;">
-    <div class="sh">
-      <div class="st">Controle de edições</div>
-      <div class="sa"><button class="btn primary" onclick="openEd()">+ Edição</button></div>
+
+    <!-- EDIÇÕES -->
+    <div>
+      <div class="sh">
+        <div class="st">Edições</div>
+        <div class="sa"><div style="height:28px;"></div></div>
+      </div>
+      <div class="tw" id="ed-list">
+        <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Diana & Thiago Ramos</div><div class="ai-sub">Edição de cor — 847 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--coral);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Juliana & Marcos Oliveira</div><div class="ai-sub">Exportação álbum 30x30 · Aguardando revisão</div></div><span class="badge bpo">Revisão</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Renata & André Farias</div><div class="ai-sub">Seleção de 1.200 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--teal);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Camila & Rafael Souza</div><div class="ai-sub">Edição finalizada — entrega pendente</div></div><span class="badge bw">Finalizado</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Mariana & Felipe Gomes</div><div class="ai-sub">Edição de cor — 620 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--text-hint);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Ana Clara & Pedro Henrique</div><div class="ai-sub">Aguardando arquivos do segundo fotógrafo</div></div><span class="badge bp">Aguardando</span></div>
+        <div class="ai"><div class="ai-dot" style="background:var(--coral);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Beatriz & Lucas Ferreira</div><div class="ai-sub">Prévia de 50 fotos — prazo em 2 dias</div></div><span class="badge bpo">Urgente</span></div>
+      </div>
     </div>
-    <div class="tw"><div class="ts"><table><thead><tr>
-      <th>Cliente</th><th>Evento</th><th>Fotos</th><th>Etapa</th><th>Editor</th><th>Prazo</th><th></th>
-    </tr></thead><tbody id="ed-tbody"></tbody></table></div></div>
+
   </div>
-  <!-- ENTREGAS -->
+
+  <!-- painéis ocultos mantidos para compatibilidade com funções existentes -->
+  <div id="pp-panel-pend" style="display:none;"></div>
+  <div id="pp-panel-edicoes" style="display:none;"></div>
   <div id="pp-panel-entregas" style="display:none;">
-    <div class="sh">
-      <div class="st">Status de entregas</div>
-      <div class="sa"><button class="btn primary" onclick="openEnt()">+ Entrega</button></div>
-    </div>
-    <div class="tw"><div class="ts"><table><thead><tr>
-      <th>Cliente</th><th>Tipo</th><th>Itens</th><th>Data envio</th><th>Status</th><th></th>
-    </tr></thead><tbody id="ent-tbody"></tbody></table></div></div>
+    <div class="sh"><div class="st">Status de entregas</div><div class="sa"><button class="btn primary" onclick="openEnt()">+ Entrega</button></div></div>
+    <div class="tw"><div class="ts"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Itens</th><th>Data envio</th><th>Status</th><th></th></tr></thead><tbody id="ent-tbody"></tbody></table></div></div>
   </div>
 </div>
 
