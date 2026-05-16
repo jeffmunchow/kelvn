@@ -3103,6 +3103,8 @@ function seedDemoData(){
       parcelas:[{id:'p28',data:dt(m-6,14),valor:5000,pago:true},{id:'p29',data:dt(m-4,14),valor:5050,pago:true},{id:'p30',data:dt(m-2,14),valor:5050,pago:true}]},
     {id:'c15',nome:'Priscila & Henrique Costa',local:'Hotel Continental, Santa Maria',data:fut(-61),status:'Pós-produção',email:'pri.henrique@gmail.com',tel:'(55) 99300-4488',valor:11800,contrato:dt(m-6,20),notas:'Revisão final em andamento. Entrega do álbum prevista para próximo mês.',
       parcelas:[{id:'p31',data:dt(m-6,20),valor:3900,pago:true},{id:'p32',data:dt(m-5,20),valor:3950,pago:true},{id:'p33',data:dt(m-2,20),valor:3950,pago:true}]},
+    {id:'c17',nome:'Gabriela & Mateus Corrêa',local:'Vinícola Miolo, Bento Gonçalves',data:fut(22),status:'Casamento',email:'gabi.mateus@email.com',tel:'(54) 99512-3344',valor:21500,contrato:dt(m-1,10),notas:'Cerimônia ao entardecer entre as videiras. Casal muito animado.',
+      parcelas:[{id:'p37',data:dt(m-1,10),valor:7000,pago:true},{id:'p38',data:fut(10),valor:7250,pago:false},{id:'p39',data:fut(22),valor:7250,pago:false}]},
     {id:'c16',nome:'Tainá & Gabriel Machado',local:'Chácara dos Ipês, Bento Gonçalves',data:fut(-74),status:'Pós-produção',email:'taina.gabriel@email.com',tel:'(54) 98866-1133',valor:19400,contrato:dt(m-7,5),notas:'Edição de vídeo em paralelo. Aguardando material do videomaker.',
       parcelas:[{id:'p34',data:dt(m-7,5),valor:6400,pago:true},{id:'p35',data:dt(m-5,5),valor:6500,pago:true},{id:'p36',data:dt(m-3,5),valor:6500,pago:true}]}
   ];
@@ -3513,7 +3515,7 @@ async function initUserData(){
     // Migração: adiciona clientes demo c12–c16 e atualiza edicoes
     if(isAdmin()){
       var _cs=g('clientes');
-      if(!_cs.find(function(c){return c.id==='c12';})){
+      if(!_cs.find(function(c){return c.id==='c12';})||!_cs.find(function(c){return c.id==='c17';})){
         var _n=new Date(),_yr=_n.getFullYear(),_mo=_n.getMonth();
         var _f=function(d){var x=new Date();x.setDate(x.getDate()+d);return x.toISOString().slice(0,10);};
         var _d=function(mo,day){return new Date(_yr,mo,day).toISOString().slice(0,10);};
@@ -3522,7 +3524,8 @@ async function initUserData(){
           {id:'c13',nome:'Carolina & Vinicius Borges',local:'Quinta dos Sonhos, Porto Alegre',data:_f(-33),status:'Pós-produção',email:'caro.vini@gmail.com',tel:'(51) 99876-2230',valor:17500,contrato:_d(_mo-5,3),notas:'Edição 70% concluída. Cliente pediu atenção especial à cerimônia.',parcelas:[]},
           {id:'c14',nome:'Júlia & Eduardo Lima',local:'Fazenda Vista Alegre, São Leopoldo',data:_f(-47),status:'Pós-produção',email:'ju.edu@email.com',tel:'(51) 98411-7700',valor:15100,contrato:_d(_mo-6,14),notas:'Na fase de finalização. Galeria quase pronta para envio.',parcelas:[]},
           {id:'c15',nome:'Priscila & Henrique Costa',local:'Hotel Continental, Santa Maria',data:_f(-61),status:'Pós-produção',email:'pri.henrique@gmail.com',tel:'(55) 99300-4488',valor:11800,contrato:_d(_mo-6,20),notas:'Revisão final em andamento. Entrega do álbum prevista para próximo mês.',parcelas:[]},
-          {id:'c16',nome:'Tainá & Gabriel Machado',local:'Chácara dos Ipês, Bento Gonçalves',data:_f(-74),status:'Pós-produção',email:'taina.gabriel@email.com',tel:'(54) 98866-1133',valor:19400,contrato:_d(_mo-7,5),notas:'Edição de vídeo em paralelo. Aguardando material do videomaker.',parcelas:[]}
+          {id:'c16',nome:'Tainá & Gabriel Machado',local:'Chácara dos Ipês, Bento Gonçalves',data:_f(-74),status:'Pós-produção',email:'taina.gabriel@email.com',tel:'(54) 98866-1133',valor:19400,contrato:_d(_mo-7,5),notas:'Edição de vídeo em paralelo. Aguardando material do videomaker.',parcelas:[]},
+          {id:'c17',nome:'Gabriela & Mateus Corrêa',local:'Vinícola Miolo, Bento Gonçalves',data:_f(22),status:'Casamento',email:'gabi.mateus@email.com',tel:'(54) 99512-3344',valor:21500,contrato:_d(_mo-1,10),notas:'Cerimônia ao entardecer entre as videiras. Casal muito animado.',parcelas:[]}
         ];
         s('clientes',_cs.concat(_novos));
         var _eds=g('edicoes')||[];
