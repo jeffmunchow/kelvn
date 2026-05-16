@@ -1501,14 +1501,9 @@ function rR(){
 
   rPipeline();
 
-  // Próximas 7 atividades — exclui clientes já em Edições
-  var _edsEvIds=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
+  // Próximas 7 atividades — espelho direto da agenda (próximos 7 eventos futuros)
   var allEvs=g('eventos').concat(_primaryEventsFromClientes())
-    .filter(function(e){
-      if(new Date(e.data)<now) return false;
-      if(e._fromCliente&&_edsEvIds.indexOf(e.id)>-1) return false;
-      return true;
-    })
+    .filter(function(e){ return new Date(e.data)>=now; })
     .sort(function(a,b){return new Date(a.data)-new Date(b.data);})
     .slice(0,7);
   var el=document.getElementById('r-agenda');
@@ -3652,33 +3647,6 @@ async function initUserData(){
         if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,evId:'_c_'+x.id,titulo:x.titulo,data:cl.data,local:x.local});
       });
       s('edicoes',_edsNow);
-      // Auto-reparo: garante 7 eventos futuros disponíveis para Próximas atividades
-      (function(){
-        var _now2=new Date();
-        var _edsEvIds2=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
-        var _evs3=g('eventos');
-        var _primFut=_primaryEventsFromClientes().filter(function(e){return new Date(e.data)>=_now2&&_edsEvIds2.indexOf(e.id)===-1;});
-        var _secFut=_evs3.filter(function(e){return new Date(e.data)>=_now2;});
-        var _total=_primFut.length+_secFut.length;
-        if(_total>=7) return;
-        // Banco de eventos de reserva com datas 60-180 dias no futuro
-        var _pool=[
-          {id:'er01',titulo:'Reunião — Camila & Rafael',tipo:'Reunião',clienteId:'c03',local:'Google Meet',notas:'Alinhamento final da timeline.',dias:60},
-          {id:'er02',titulo:'Ensaio — Beatriz & Lucas',tipo:'Ensaio',clienteId:'c02',local:'Parque da Redenção, Porto Alegre',notas:'Luz natural da tarde.',dias:75},
-          {id:'er03',titulo:'Reunião — Fernanda & Gustavo',tipo:'Reunião',clienteId:'c05',local:'Cafeteria Central',notas:'Revisar roteiro do dia.',dias:90},
-          {id:'er04',titulo:'Entrega — Juliana & Marcos',tipo:'Entrega',clienteId:'c06',local:'Estúdio',notas:'Entrega do álbum físico.',dias:105},
-          {id:'er05',titulo:'Reunião — Sofia & Rodrigo',tipo:'Reunião',clienteId:'c09',local:'Google Meet',notas:'Aprovação da galeria.',dias:120},
-          {id:'er06',titulo:'Ensaio — Larissa & Bruno',tipo:'Ensaio',clienteId:'c07',local:'Centro Histórico, Pelotas',notas:'Ensaio pré-casamento.',dias:150},
-          {id:'er07',titulo:'Reunião — Isabela & Thiago',tipo:'Reunião',clienteId:'c10',local:'Cafeteria Central',notas:'Entrega do pen drive.',dias:180}
-        ];
-        var _evsIds3=_evs3.map(function(e){return e.id;});
-        var _needed=7-_total;
-        var _toAdd=_pool.filter(function(p){return _evsIds3.indexOf(p.id)===-1;}).slice(0,_needed).map(function(p){
-          var d=new Date();d.setDate(d.getDate()+p.dias);d.setHours(10,0,0);
-          return {id:p.id,titulo:p.titulo,data:d.toISOString().slice(0,16),tipo:p.tipo,clienteId:p.clienteId,local:p.local,notas:p.notas};
-        });
-        if(_toAdd.length) s('eventos',_evs3.concat(_toAdd));
-      })();
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
