@@ -3519,9 +3519,15 @@ async function initUserData(){
     }
     // Migração: corrige status antigos de clientes demo
     if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
-      var oldMap={'Contratado':'Casamento','Sessão Pré-Casamento':'Sessão'};
+      var oldMap={'Contratado':'Casamento','Sessão Pré-Casamento':'Sessão','Welcome-party':'Welcome'};
       var cs=_cache.clientes,needsFixC=cs.some(function(c){ return oldMap[c.status]; });
       if(needsFixC){ s('clientes',cs.map(function(c){ return oldMap[c.status]?Object.assign({},c,{status:oldMap[c.status]}):c; })); }
+      // Migração: corrige tipo 'Welcome-party' → 'Welcome' em eventos
+      var evs2=g('eventos'),needsFixE=evs2.some(function(e){return e.tipo==='Welcome-party';});
+      if(needsFixE){ s('eventos',evs2.map(function(e){return e.tipo==='Welcome-party'?Object.assign({},e,{tipo:'Welcome'}):e;})); }
+      // Migração: corrige status 'Welcome-party' → 'Welcome' em eventosExtra dos clientes
+      var csAll=g('clientes'),needsFixX=csAll.some(function(c){return (c.eventosExtra||[]).some(function(x){return x.status==='Welcome-party';});});
+      if(needsFixX){ s('clientes',csAll.map(function(c){if(!(c.eventosExtra||[]).some(function(x){return x.status==='Welcome-party';}))return c;return Object.assign({},c,{eventosExtra:c.eventosExtra.map(function(x){return x.status==='Welcome-party'?Object.assign({},x,{status:'Welcome'}):x;})});})); }
     }
     // Migração: adiciona clientes demo c12–c17 se não existirem
     if(isAdmin()){
