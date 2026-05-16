@@ -534,7 +534,7 @@ select.aj-input{cursor:pointer;}
         <option value="Prospect">Prospect</option>
         <option value="Sessão">Sessão</option>
         <option value="Religioso">Religioso</option>
-        <option value="Welcome-party">Welcome-party</option>
+        <option value="Welcome">Welcome</option>
         <option value="Casamento">Casamento</option>
         <option value="After-party">After-party</option>
         <option value="Pós-produção">Pós-produção</option>
@@ -961,7 +961,7 @@ select.aj-input{cursor:pointer;}
           <div onclick="setStatusDrop('Prospect')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;" class="sdrop-opt st-prospect-opt">Prospect</div>
           <div onclick="setStatusDrop('Sessão')"       style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C43A1A;" class="sdrop-opt">Sessão</div>
           <div onclick="setStatusDrop('Religioso')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#2E7D32;" class="sdrop-opt">Religioso</div>
-          <div onclick="setStatusDrop('Welcome-party')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#D4709A;" class="sdrop-opt">Welcome-party</div>
+          <div onclick="setStatusDrop('Welcome')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#D4709A;" class="sdrop-opt">Welcome</div>
           <div onclick="setStatusDrop('Casamento')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C4780A;" class="sdrop-opt">Casamento</div>
           <div onclick="setStatusDrop('After-party')"  style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#6B9BAF;" class="sdrop-opt">After-party</div>
           <div onclick="setStatusDrop('Pós-produção')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C43A1A;" class="sdrop-opt">Pós-produção</div>
@@ -1424,7 +1424,7 @@ function switchAG2(name){
   if(name==='tipos')rTR();if(name==='slots')rSlots();if(name==='disp')rDisp();
 }
 function bdg(st){
-  var m={'Prospect':'st-prospect','Sessão':'st-sessao','Religioso':'st-religioso','Welcome-party':'st-welcome','Casamento':'st-casamento','After-party':'st-after','Pós-produção':'st-pos','Álbum design':'st-album','Entregue':'st-entregue','Finalizado':'st-finalizado'};
+  var m={'Prospect':'st-prospect','Sessão':'st-sessao','Religioso':'st-religioso','Welcome':'st-welcome','Casamento':'st-casamento','After-party':'st-after','Pós-produção':'st-pos','Álbum design':'st-album','Entregue':'st-entregue','Finalizado':'st-finalizado'};
   return '<span class="'+(m[st]||'st-prospect')+'">'+(st||'—')+'</span>';
 }
 function obdg(st){
@@ -1660,7 +1660,7 @@ function addCEvento(){
   rCEventos();
 }
 function rCEventos(){
-  var opts=['Prospect','Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var opts=['Prospect','Sessão','Religioso','Welcome','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
   var el=document.getElementById('mc-eventos-extra');
   if(!el)return;
   el.innerHTML=_cEventos.map(function(ev,i){
@@ -1680,7 +1680,7 @@ function rC(){
     return '<tr onclick="openC(\''+c.id+'\')"><td class="tdn">'+(c.nome||'—')+'</td><td>'+fd(c.data)+'</td><td>'+(c.local||'—')+'</td><td>'+$m(c.valor||0)+'</td><td>'+$m(paid)+'</td><td>'+bdg(c.status)+'</td><td><button class="ra" onclick="event.stopPropagation();openC(\''+c.id+'\')">Editar</button></td></tr>';
   }).join('');
 }
-var _STATUS_COLORS={'Prospect':'','Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome-party':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF','Pós-produção':'#C43A1A','Álbum design':'#7B5EA7','Entregue':'#2E7D32','Finalizado':'#5C5854'};
+var _STATUS_COLORS={'Prospect':'','Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF','Pós-produção':'#C43A1A','Álbum design':'#7B5EA7','Entregue':'#2E7D32','Finalizado':'#5C5854'};
 function toggleStatusDrop(){
   var d=document.getElementById('mc-status-drop');
   d.style.display=d.style.display==='none'?'block':'none';
@@ -2024,8 +2024,8 @@ function rCalAno(){
   }
   el.innerHTML=html;
 }
-var _PRIMARY_STATUS=['Sessão','Religioso','Welcome-party','Casamento','After-party'];
-var _PRIMARY_COLORS={'Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome-party':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF'};
+var _PRIMARY_STATUS=['Sessão','Religioso','Welcome','Casamento','After-party'];
+var _PRIMARY_COLORS={'Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF'};
 var _DIAS_SEM=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
 function fmtEvDate(dataStr){
   var d=new Date((dataStr||'').substring(0,10)+'T12:00');
@@ -2466,7 +2466,7 @@ function rMetas(){
   document.getElementById('mp-fat-bar').style.background=corFat;
   document.getElementById('mp-fat-restante').textContent=pctFat>=100?'✓ Meta atingida este mês':'Faltam R$ '+(metaFat-fatAtual).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+' para a meta';
   var metaWed=metas.casamentos_ano||0;
-  var statusValidos=['Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var statusValidos=['Sessão','Religioso','Welcome','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
   var wedAtual=g('clientes').filter(function(c){if(!c.data)return false;return new Date(c.data).getFullYear()===yr&&statusValidos.indexOf(c.status)>-1;}).length;
   var pctWed=metaWed>0?Math.min(Math.round(wedAtual/metaWed*100),100):0;
   var corWed=pctWed>=100?'var(--teal)':pctWed>=60?'var(--amber)':'var(--coral)';
@@ -2500,7 +2500,7 @@ function rAN(){
   var fatChart='<div class="bar-wrap">'+months.map(function(m,i){var pct=Math.round(fatByMonth[i]/maxFat*100);return '<div class="bar-row"><div class="bar-label">'+m.label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(fatByMonth[i])+'</div></div>';}).join('')+'</div>';
   document.getElementById('an-fat-chart').innerHTML=fatChart;
   // Status clientes
-  var statusList=['Prospect','Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var statusList=['Prospect','Sessão','Religioso','Welcome','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
   var maxCs=Math.max.apply(null,statusList.map(function(st){return cs.filter(function(c){return c.status===st;}).length;}).concat([1]));
   document.getElementById('an-status').innerHTML='<div class="bar-wrap">'+statusList.map(function(st){var cnt=cs.filter(function(c){return c.status===st;}).length;var pct=Math.round(cnt/maxCs*100);return '<div class="bar-row"><div class="bar-label" style="width:110px;">'+st.slice(0,14)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+cnt+'</div></div>';}).join('')+'</div>';
   // Cat receita
@@ -2789,7 +2789,7 @@ function saveDisp(){
 var PRODUTOS=[
   {key:'Sessão',        color:'#C43A1A'},
   {key:'Religioso',     color:'#2E7D32'},
-  {key:'Welcome-party', color:'#D4709A'},
+  {key:'Welcome', color:'#D4709A'},
   {key:'Casamento',     color:'#C4780A'},
   {key:'After-party',   color:'#6B9BAF'},
   {key:'Álbum',         color:'#7B5EA7'}
@@ -3059,8 +3059,8 @@ function _migrateDemoFin(){
     {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
     {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
     {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
-    {m:0,cat:'Welcome-party',v:800},{m:2,cat:'Welcome-party',v:1100},{m:4,cat:'Welcome-party',v:1400},
-    {m:5,cat:'Welcome-party',v:1200},{m:7,cat:'Welcome-party',v:1300},{m:9,cat:'Welcome-party',v:1000},{m:11,cat:'Welcome-party',v:1200},
+    {m:0,cat:'Welcome',v:800},{m:2,cat:'Welcome',v:1100},{m:4,cat:'Welcome',v:1400},
+    {m:5,cat:'Welcome',v:1200},{m:7,cat:'Welcome',v:1300},{m:9,cat:'Welcome',v:1000},{m:11,cat:'Welcome',v:1200},
     {m:0,cat:'After-party',v:1500},{m:2,cat:'After-party',v:2000},{m:4,cat:'After-party',v:2400},
     {m:5,cat:'After-party',v:2100},{m:7,cat:'After-party',v:2300},{m:9,cat:'After-party',v:2000},{m:11,cat:'After-party',v:2200},
     {m:0,cat:'Álbum',v:3200},{m:1,cat:'Álbum',v:2800},{m:2,cat:'Álbum',v:4500},
@@ -3142,9 +3142,9 @@ function seedDemoData(){
     {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
     {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
     {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
-    {m:0,cat:'Welcome-party',v:800},{m:2,cat:'Welcome-party',v:1100},{m:4,cat:'Welcome-party',v:1400},
-    {m:5,cat:'Welcome-party',v:1200},{m:7,cat:'Welcome-party',v:1300},{m:9,cat:'Welcome-party',v:1000},
-    {m:11,cat:'Welcome-party',v:1200},
+    {m:0,cat:'Welcome',v:800},{m:2,cat:'Welcome',v:1100},{m:4,cat:'Welcome',v:1400},
+    {m:5,cat:'Welcome',v:1200},{m:7,cat:'Welcome',v:1300},{m:9,cat:'Welcome',v:1000},
+    {m:11,cat:'Welcome',v:1200},
     {m:0,cat:'After-party',v:1500},{m:2,cat:'After-party',v:2000},{m:4,cat:'After-party',v:2400},
     {m:5,cat:'After-party',v:2100},{m:7,cat:'After-party',v:2300},{m:9,cat:'After-party',v:2000},
     {m:11,cat:'After-party',v:2200},
