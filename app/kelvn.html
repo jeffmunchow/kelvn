@@ -2040,9 +2040,16 @@ function fmtEvTime(dataStr){
   return String(h)+'h'+(m>0?String(m).padStart(2,'0'):'');
 }
 function _primaryEventsFromClientes(){
-  return g('clientes').filter(function(c){ return _PRIMARY_STATUS.indexOf(c.status)>-1 && c.data; }).map(function(c){
-    return {id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:c.status, local:c.local||'', clienteId:c.id, _fromCliente:true};
+  var evs=[];
+  g('clientes').forEach(function(c){
+    if(_PRIMARY_STATUS.indexOf(c.status)>-1 && c.data)
+      evs.push({id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:c.status, local:c.local||'', clienteId:c.id, _fromCliente:true});
+    (c.eventosExtra||[]).forEach(function(ex){
+      if(_PRIMARY_STATUS.indexOf(ex.status)>-1 && ex.data)
+        evs.push({id:'_c_'+c.id+'_x_'+ex.id, titulo:c.nome, data:ex.data+'T00:00', tipo:ex.status, local:ex.local||'', clienteId:c.id, _fromCliente:true});
+    });
   });
+  return evs;
 }
 function rA(){
   var now=new Date(),flt=document.getElementById('ag-filter').value;
