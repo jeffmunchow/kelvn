@@ -576,25 +576,26 @@ select.aj-input{cursor:pointer;}
 
 <!-- PÓS-PRODUÇÃO -->
 <div class="panel" id="p-posproducao">
-  <div class="ag-split">
+
+  <!-- cabeçalho compartilhado -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.25rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="st">Pós-produção</div>
+      <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
+    </div>
+    <div style="display:flex;align-items:center;">
+      <div class="st">Edições</div>
+    </div>
+  </div>
+
+  <!-- listas lado a lado — alinhadas no mesmo topo -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
 
     <!-- PENDÊNCIAS -->
-    <div class="ag-col-list">
-      <div class="sh">
-        <div class="st">Pós-produção</div>
-        <div class="sa">
-          <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
-        </div>
-      </div>
-      <div class="tw" id="pend-list"></div>
-    </div>
+    <div class="tw" id="pend-list"></div>
 
     <!-- EDIÇÕES -->
-    <div class="ag-col-list">
-      <div class="sh" style="min-height:44px;">
-        <div class="st">Edições</div>
-      </div>
-      <div class="tw" id="ed-list">
+    <div class="tw" id="ed-list">
         <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Diana & Thiago Ramos</div><div class="ai-sub">Edição de cor — 847 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
         <div class="ai"><div class="ai-dot" style="background:var(--coral);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Juliana & Marcos Oliveira</div><div class="ai-sub">Exportação álbum 30x30 · Aguardando revisão</div></div><span class="badge bpo">Revisão</span></div>
         <div class="ai"><div class="ai-dot" style="background:var(--amber);flex-shrink:0;"></div><div class="ai-info"><div class="ai-title">Renata & André Farias</div><div class="ai-sub">Seleção de 1.200 fotos · Em andamento</div></div><span class="badge bc">Em andamento</span></div>
