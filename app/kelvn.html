@@ -1501,12 +1501,10 @@ function rR(){
 
   rPipeline();
 
-  // Próximas 7 atividades (excluindo clientes já em Edições)
-  var _edsIds=(g('edicoes')||[]).map(function(x){return x.clienteId;});
+  // Próximas 7 atividades — espelho fiel da agenda
   var allEvs=g('eventos').concat(_primaryEventsFromClientes())
     .filter(function(e){
       if(new Date(e.data)<now) return false;
-      if(e._fromCliente && _edsIds.indexOf(e.clienteId)>-1) return false;
       return true;
     })
     .sort(function(a,b){return new Date(a.data)-new Date(b.data);})
