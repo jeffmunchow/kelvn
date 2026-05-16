@@ -70,6 +70,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* KPIS */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:1rem;margin-bottom:1.75rem;}
 .kpi{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;}
+.kpi.clickable{cursor:pointer;transition:border-color .15s;}
+.kpi.clickable:hover{border-color:var(--border-strong);}
 .kpi-l{font-size:.62rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}
 .kpi-v{font-size:1.45rem;font-weight:500;letter-spacing:-.025em;line-height:1;}
 .kpi-s{font-size:.62rem;color:var(--text-hint);margin-top:3px;}
@@ -128,6 +130,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai.selected{background:var(--surface2);}
 .ai.past{opacity:.45;}
 .ai-date{font-size:.72rem;color:var(--text-hint);min-width:100px;}
+.ai-date.hoje{color:var(--text);font-weight:500;}
 .ai-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .ai-info{flex:1;}
 .ai-title{font-size:.82rem;color:var(--text);}
@@ -483,9 +486,9 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 
   <!-- KPIs operacionais -->
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
-    <div class="kpi"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div><div class="kpi-s">próximos 30 dias</div></div>
-    <div class="kpi"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
-    <div class="kpi"><div class="kpi-l">Pós-produção</div><div class="kpi-v ca" id="r-pos-aberto">0</div><div class="kpi-s">pendências em aberto</div></div>
+    <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div><div class="kpi-s">próximos 30 dias</div></div>
+    <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
+    <div class="kpi clickable" onclick="goDirecto('posproducao')"><div class="kpi-l">Pós-produção</div><div class="kpi-v ca" id="r-pos-aberto">0</div><div class="kpi-s">pendências em aberto</div></div>
   </div>
 
   <!-- Pipeline -->
@@ -1439,14 +1442,14 @@ function rR(){
   var el=document.getElementById('r-agenda');
   if(!allEvs.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma atividade futura</div>';}
   else el.innerHTML=allEvs.map(function(e){
-    var d=new Date((e.data||'').substring(0,10)+'T12:00');
-    var ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
-    var diasSem=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
-    var dl=ds+' – '+diasSem[d.getDay()];
+    var dl=fmtEvDate(e.data);
+    var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
     var col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)';
     var onclick=e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
-    var subSec=e._fromCliente?(e.local||e.tipo):[e.clienteId?cN(e.clienteId):'',e.local||''].filter(Boolean).join(' – ');
-    return '<div class="ai" onclick="'+onclick+'"><div class="ai-date">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div></div>';
+    var ht=e._fromCliente?'':fmtEvTime(e.data);
+    var subParts=e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',ht];
+    var subSec=subParts.filter(Boolean).join(' – ');
+    return '<div class="ai" onclick="'+onclick+'"><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div></div>';
   }).join('');
 
   // Próximas 7 tarefas de pós-produção
@@ -1850,6 +1853,19 @@ function rCalAno(){
 }
 var _PRIMARY_STATUS=['Sessão','Religioso','Welcome-party','Casamento','After-party'];
 var _PRIMARY_COLORS={'Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome-party':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF'};
+var _DIAS_SEM=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+function fmtEvDate(dataStr){
+  var d=new Date((dataStr||'').substring(0,10)+'T12:00');
+  var ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+  return ds+' – '+_DIAS_SEM[d.getDay()];
+}
+function fmtEvTime(dataStr){
+  var d=new Date(dataStr||'');
+  if(isNaN(d.getTime()))return'';
+  var h=d.getHours(),m=d.getMinutes();
+  if(h===0&&m===0)return'';
+  return String(h)+'h'+(m>0?String(m).padStart(2,'0'):'');
+}
 function _primaryEventsFromClientes(){
   return g('clientes').filter(function(c){ return _PRIMARY_STATUS.indexOf(c.status)>-1 && c.data; }).map(function(c){
     return {id:'_c_'+c.id, titulo:c.nome, data:c.data+'T00:00', tipo:c.status, local:c.local||'', clienteId:c.id, _fromCliente:true};
@@ -1863,12 +1879,16 @@ function rA(){
   var el=document.getElementById('ag-list');
   if(!all.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
   el.innerHTML='<div>'+all.map(function(e){
-    var d=new Date(e.data),ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(),hs=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    var d=new Date(e.data);
     var isPrimary=!!e._fromCliente;
+    var dl=fmtEvDate(e.data);
+    var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
     var col=isPrimary?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)',past=d<now;
     var onclick=isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
-    var sub=isPrimary?(e.local||''):[e.clienteId?cN(e.clienteId):'',e.local||''].filter(Boolean).join(' — ');
-    return '<div class="ai'+(past?' past':'')+'" data-id="'+e.id+'" '+onclick+'><div class="ai-date">'+ds+(isPrimary?'':' '+hs)+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+bdg(e.tipo)+'</div>';
+    var ht=isPrimary?'':fmtEvTime(e.data);
+    var subParts=isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',ht];
+    var sub=subParts.filter(Boolean).join(' – ');
+    return '<div class="ai'+(past?' past':'')+'" data-id="'+e.id+'" '+onclick+'><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+bdg(e.tipo)+'</div>';
   }).join('')+'</div>';
 }
 function openE(id){
