@@ -1562,16 +1562,18 @@ function dragEd(ev,clienteId){
   ev.dataTransfer.effectAllowed='move';
 }
 function dragFromEd(ev,clienteId){
-  ev.dataTransfer.setData('text/fromEd',clienteId);
+  ev.dataTransfer.setData('text/plain','fromed:'+clienteId);
   ev.dataTransfer.effectAllowed='move';
 }
 function setupAgendaDrop(el){
   if(!el)return;
-  el.ondragover=function(ev){if(ev.dataTransfer.types.indexOf('text/fromed')>-1||ev.dataTransfer.types.indexOf('text/fromEd')>-1){ev.preventDefault();el.classList.add('drop-active');}};
+  el.ondragover=function(ev){ev.preventDefault();el.classList.add('drop-active');};
   el.ondragleave=function(ev){if(!el.contains(ev.relatedTarget))el.classList.remove('drop-active');};
   el.ondrop=function(ev){
     ev.preventDefault();el.classList.remove('drop-active');
-    var cid=ev.dataTransfer.getData('text/fromEd')||ev.dataTransfer.getData('text/fromed');
+    var raw=ev.dataTransfer.getData('text/plain')||'';
+    if(raw.indexOf('fromed:')===-1)return;
+    var cid=raw.replace('fromed:','');
     if(cid)removeDeEdicoes(cid);
   };
 }
