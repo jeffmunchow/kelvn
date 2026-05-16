@@ -327,6 +327,18 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-bubble li{margin:.15rem 0;}
 .ai-bubble strong{font-weight:600;}
 .ai-bubble br{line-height:1.8;}
+.aj-cat{display:block;width:100%;text-align:left;padding:.5rem .75rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);background:transparent;border:none;cursor:pointer;border-radius:8px;margin:1px .5rem;width:calc(100% - 1rem);transition:color .15s,background .15s;}
+.aj-cat:hover{background:var(--surface2);color:var(--text);}
+.aj-cat.active{background:var(--surface2);color:var(--text);font-weight:500;}
+.aj-section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.25rem;}
+.aj-section-desc{font-size:.75rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6;}
+.aj-rows{display:flex;flex-direction:column;}
+.aj-row{display:flex;align-items:center;padding:.85rem 0;border-bottom:.5px solid var(--border);gap:2rem;}
+.aj-row:first-child{border-top:.5px solid var(--border);}
+.aj-label{font-size:.78rem;color:var(--text-muted);min-width:220px;flex-shrink:0;}
+.aj-input{flex:1;background:transparent;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-hint);padding:0;}
+.aj-input::placeholder{color:var(--text-hint);opacity:.5;}
+select.aj-input{cursor:pointer;}
 .meta-checkpoint{position:absolute;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:rgba(128,128,128,.18);border:1.5px solid var(--bg);transition:background .3s,transform .2s;cursor:pointer;z-index:2;}
 .meta-checkpoint:hover{transform:translate(-50%,-50%) scale(1.6);}
 </style>
@@ -865,38 +877,69 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 <!-- AJUSTES -->
 <div class="panel" id="p-ajustes">
   <div class="sh"><div class="st">Ajustes</div></div>
-  <div style="max-width:640px;display:flex;flex-direction:column;gap:2rem;">
+  <div style="display:flex;gap:0;height:calc(100vh - 120px);overflow:hidden;">
 
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
-      <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;">Dados do estúdio</div>
-      <div class="tf" style="grid-template-columns:1fr 1fr;">
-        <div class="field" style="grid-column:1/-1"><label>Nome do estúdio</label><input type="text" id="sd-studio-nome" placeholder="ex: Studio Munchow" oninput="saveSD()"></div>
-        <div class="field" style="grid-column:1/-1"><label>Nome do responsável</label><input type="text" id="sd-studio-responsavel" placeholder="Seu nome completo" oninput="saveSD()"></div>
-        <div class="field"><label>Tipo de documento</label>
-          <select id="sd-studio-tipo-doc" onchange="saveSD()">
-            <option value="CNPJ">CNPJ</option>
-            <option value="CPF">CPF</option>
-          </select>
-        </div>
-        <div class="field"><label>Número (CNPJ ou CPF)</label><input type="text" id="sd-studio-documento" placeholder="00.000.000/0001-00" oninput="saveSD()"></div>
-        <div class="field" style="grid-column:1/-1"><label>Endereço completo</label><input type="text" id="sd-studio-endereco" placeholder="Rua, número, bairro, cidade — UF" oninput="saveSD()"></div>
-        <div class="field"><label>Telefone</label><input type="text" id="sd-studio-telefone" placeholder="(00) 00000-0000" oninput="saveSD()"></div>
-        <div class="field"><label>E-mail</label><input type="text" id="sd-studio-email" placeholder="contato@studio.com" oninput="saveSD()"></div>
-        <div class="field"><label>Chave PIX</label><input type="text" id="sd-studio-pix" placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="saveSD()"></div>
-        <div class="field"><label>Dados bancários</label><input type="text" id="sd-studio-banco" placeholder="Banco / Agência / Conta" oninput="saveSD()"></div>
-        <div class="field"><label>Cidade do foro (contratos)</label><input type="text" id="sd-studio-foro" placeholder="ex: Pelotas" oninput="saveSD()"></div>
-      </div>
-      <div style="font-size:.72rem;color:var(--text-hint);margin-top:.5rem;">Salvo automaticamente. Usado no preenchimento do contrato.</div>
-      <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:.5px solid var(--border);">
-        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;">Metas</div>
-        <div class="tf" style="grid-template-columns:1fr 1fr;">
-          <div class="field"><label>Meta de faturamento anual (R$)</label><input type="number" id="sd-meta-fat-anual" placeholder="ex: 120000" oninput="saveSD()"></div>
-          <div class="field"><label>Meta de casamentos no ano</label><input type="number" id="sd-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD()"></div>
-        </div>
-        <div style="font-size:.72rem;color:var(--text-hint);margin-top:.25rem;">Salvo automaticamente. Aparece na barra do dashboard e em Análises & Metas.</div>
-      </div>
+    <!-- Sidebar de categorias -->
+    <div style="width:200px;flex-shrink:0;border-right:.5px solid var(--border);overflow-y:auto;padding:.5rem 0;">
+      <button class="aj-cat active" id="aj-cat-studio" onclick="switchAJ('studio')">Estúdio</button>
+      <button class="aj-cat" id="aj-cat-pagamento" onclick="switchAJ('pagamento')">Pagamento</button>
+      <button class="aj-cat" id="aj-cat-contratos" onclick="switchAJ('contratos')">Contratos</button>
+      <button class="aj-cat" id="aj-cat-metas" onclick="switchAJ('metas')">Metas</button>
     </div>
 
+    <!-- Área de conteúdo -->
+    <div style="flex:1;overflow-y:auto;padding:2rem 2.5rem;">
+
+      <!-- Estúdio -->
+      <div id="aj-panel-studio">
+        <div class="aj-section-title">Dados do estúdio</div>
+        <div class="aj-section-desc">Informações do seu estúdio usadas no preenchimento de contratos e documentos.</div>
+        <div class="aj-rows">
+          <div class="aj-row"><span class="aj-label">Nome do estúdio</span><input class="aj-input" type="text" id="sd-studio-nome" placeholder="ex: Studio Munchow" oninput="saveSD()"></div>
+          <div class="aj-row"><span class="aj-label">Nome do responsável</span><input class="aj-input" type="text" id="sd-studio-responsavel" placeholder="Seu nome completo" oninput="saveSD()"></div>
+          <div class="aj-row"><span class="aj-label">Tipo de documento</span>
+            <select class="aj-input" id="sd-studio-tipo-doc" onchange="saveSD()">
+              <option value="CNPJ">CNPJ</option>
+              <option value="CPF">CPF</option>
+            </select>
+          </div>
+          <div class="aj-row"><span class="aj-label">Número (CNPJ ou CPF)</span><input class="aj-input" type="text" id="sd-studio-documento" placeholder="00.000.000/0001-00" oninput="saveSD()"></div>
+          <div class="aj-row"><span class="aj-label">Endereço completo</span><input class="aj-input" type="text" id="sd-studio-endereco" placeholder="Rua, número, bairro, cidade — UF" oninput="saveSD()"></div>
+          <div class="aj-row"><span class="aj-label">Telefone</span><input class="aj-input" type="text" id="sd-studio-telefone" placeholder="(00) 00000-0000" oninput="saveSD()"></div>
+          <div class="aj-row"><span class="aj-label">E-mail</span><input class="aj-input" type="text" id="sd-studio-email" placeholder="contato@studio.com" oninput="saveSD()"></div>
+        </div>
+      </div>
+
+      <!-- Pagamento -->
+      <div id="aj-panel-pagamento" style="display:none;">
+        <div class="aj-section-title">Pagamento</div>
+        <div class="aj-section-desc">Dados para recebimento exibidos nos contratos e propostas.</div>
+        <div class="aj-rows">
+          <div class="aj-row"><span class="aj-label">Chave PIX</span><input class="aj-input" type="text" id="sd-studio-pix" placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="saveSD()"></div>
+          <div class="aj-row"><span class="aj-label">Dados bancários</span><input class="aj-input" type="text" id="sd-studio-banco" placeholder="Banco / Agência / Conta" oninput="saveSD()"></div>
+        </div>
+      </div>
+
+      <!-- Contratos -->
+      <div id="aj-panel-contratos" style="display:none;">
+        <div class="aj-section-title">Contratos</div>
+        <div class="aj-section-desc">Configurações usadas no gerador de contratos.</div>
+        <div class="aj-rows">
+          <div class="aj-row"><span class="aj-label">Cidade do foro</span><input class="aj-input" type="text" id="sd-studio-foro" placeholder="ex: Pelotas" oninput="saveSD()"></div>
+        </div>
+      </div>
+
+      <!-- Metas -->
+      <div id="aj-panel-metas" style="display:none;">
+        <div class="aj-section-title">Metas</div>
+        <div class="aj-section-desc">Defina suas metas anuais para acompanhar o progresso no dashboard.</div>
+        <div class="aj-rows">
+          <div class="aj-row"><span class="aj-label">Faturamento anual (R$)</span><input class="aj-input" type="number" id="sd-meta-fat-anual" placeholder="ex: 120000" oninput="saveSD()"></div>
+          <div class="aj-row"><span class="aj-label">Casamentos no ano</span><input class="aj-input" type="number" id="sd-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD()"></div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -1341,6 +1384,8 @@ function goDirecto(name){
   document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
   var btn=document.getElementById('sn-'+name);if(btn)btn.classList.add('active');
   _curSection=name;
+  var barra=document.getElementById('meta-anual-wrap');
+  if(barra)barra.style.display=name==='resumo'?'':'none';
   go(name);
 }
 
@@ -1873,6 +1918,15 @@ function copiarLinkAssinatura(){
 }
 
 // AJUSTES — Studio data
+function switchAJ(name){
+  ['studio','pagamento','contratos','metas'].forEach(function(n){
+    document.getElementById('aj-panel-'+n).style.display='none';
+    var b=document.getElementById('aj-cat-'+n);if(b)b.classList.remove('active');
+  });
+  document.getElementById('aj-panel-'+name).style.display='';
+  var ab=document.getElementById('aj-cat-'+name);if(ab)ab.classList.add('active');
+}
+
 function rSD(){
   var sd=g('sd')||{};
   var map={
