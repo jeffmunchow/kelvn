@@ -3617,17 +3617,29 @@ async function initUserData(){
         if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,titulo:x.titulo,data:cl.data,local:x.local});
       });
       s('edicoes',_edsNow);
-      // Garante eventos futuros suficientes para Próximas atividades (e11-e14)
-      var _evs3=g('eventos');
-      var _evsIds=_evs3.map(function(e){return e.id;});
-      var _futEvs=[
-        {id:'e11',titulo:'Reunião — Camila & Rafael',data:(function(){var d=new Date();d.setDate(d.getDate()+18);d.setHours(15,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c03',local:'Google Meet',notas:'Revisão do contrato e timeline.'},
-        {id:'e12',titulo:'Ensaio — Mariana & Felipe',data:(function(){var d=new Date();d.setDate(d.getDate()+11);d.setHours(17,0,0);return d.toISOString().slice(0,16);})(),tipo:'Ensaio',clienteId:'c08',local:'Orla de Pelotas',notas:'Golden hour no lago.'},
-        {id:'e13',titulo:'Reunião — Beatriz & Lucas',data:(function(){var d=new Date();d.setDate(d.getDate()+25);d.setHours(10,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c02',local:'Cafeteria Central',notas:'Apresentar galeria digital.'},
-        {id:'e14',titulo:'Entrega álbum — Sofia & Rodrigo',data:(function(){var d=new Date();d.setDate(d.getDate()+35);d.setHours(16,0,0);return d.toISOString().slice(0,16);})(),tipo:'Entrega',clienteId:'c09',local:'Estúdio',notas:'Álbum 35x35 finalizado.'}
-      ];
-      var _adicionados=_futEvs.filter(function(e){return _evsIds.indexOf(e.id)===-1;});
-      if(_adicionados.length){s('eventos',_evs3.concat(_adicionados));}
+      // Adiciona e11-e14 uma única vez (flag impede re-adicionar após exclusão)
+      var _sd2=g('sd')||{};
+      if(!_sd2._seeded_evs_v2){
+        var _evs3=g('eventos');
+        var _evsIds=_evs3.map(function(e){return e.id;});
+        var _futEvs=[
+          {id:'e11',titulo:'Reunião — Camila & Rafael',data:(function(){var d=new Date();d.setDate(d.getDate()+18);d.setHours(15,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c03',local:'Google Meet',notas:'Revisão do contrato e timeline.'},
+          {id:'e12',titulo:'Ensaio — Mariana & Felipe',data:(function(){var d=new Date();d.setDate(d.getDate()+11);d.setHours(17,0,0);return d.toISOString().slice(0,16);})(),tipo:'Ensaio',clienteId:'c08',local:'Orla de Pelotas',notas:'Golden hour no lago.'},
+          {id:'e13',titulo:'Reunião — Beatriz & Lucas',data:(function(){var d=new Date();d.setDate(d.getDate()+25);d.setHours(10,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c02',local:'Cafeteria Central',notas:'Apresentar galeria digital.'},
+          {id:'e14',titulo:'Entrega álbum — Sofia & Rodrigo',data:(function(){var d=new Date();d.setDate(d.getDate()+35);d.setHours(16,0,0);return d.toISOString().slice(0,16);})(),tipo:'Entrega',clienteId:'c09',local:'Estúdio',notas:'Álbum 35x35 finalizado.'}
+        ];
+        var _adicionados=_futEvs.filter(function(e){return _evsIds.indexOf(e.id)===-1;});
+        if(_adicionados.length) s('eventos',_evs3.concat(_adicionados));
+        _sd2._seeded_evs_v2=true; s('sd',_sd2);
+      }
+      // Remove de edicoes clientes cujo status atual não é Pós-produção (limpeza de testes)
+      var _edsClean=g('edicoes')||[];
+      var _csClean=g('clientes');
+      var _edsFixed=_edsClean.filter(function(e){
+        var c=_csClean.find(function(x){return x.id===e.clienteId;});
+        return c&&c.status==='Pós-produção';
+      });
+      if(_edsFixed.length!==_edsClean.length) s('edicoes',_edsFixed);
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
