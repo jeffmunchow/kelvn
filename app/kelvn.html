@@ -1439,7 +1439,7 @@ function rR(){
   var el=document.getElementById('r-agenda');
   if(!allEvs.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma atividade futura</div>';}
   else el.innerHTML=allEvs.map(function(e){
-    var d=new Date(e.data+'T12:00');
+    var d=new Date((e.data||'').substring(0,10)+'T12:00');
     var ds=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
     var diasSem=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     var dl=ds+' – '+diasSem[d.getDay()];
