@@ -3602,15 +3602,32 @@ async function initUserData(){
           .forEach(function(c){if(_edsIds.indexOf(c.id)===-1)_eds.push({clienteId:c.id,titulo:c.nome,data:c.data,local:c.local});});
         s('edicoes',_eds);
       }
-      // Garante c11 e c04 em edicoes (clientes Pós-produção do seed original)
+      // Garante c11, c04 e c18 em edicoes (7 total)
       var _edsNow=g('edicoes')||[];
       var _edsNowIds=_edsNow.map(function(e){return e.clienteId;});
       var _allCsNow=g('clientes');
-      [{id:'c11',titulo:'Renata & André Farias',local:'Convento São Bento, Pelotas'},{id:'c04',titulo:'Diana & Thiago Ramos',local:'Castelo de Itaipava, Porto Alegre'}].forEach(function(x){
+      // Adiciona c18 aos clientes se não existir
+      if(!_allCsNow.find(function(c){return c.id==='c18';})){
+        var _c18={id:'c18',nome:'Valentina & Ricardo Souza',local:'Castelo de Itaipava, Petrópolis',data:_f(-88),status:'Pós-produção',email:'val.ricardo@gmail.com',tel:'(24) 99211-5566',valor:22800,contrato:_d(_mo2-8,12),notas:'Álbum em design. Esperando aprovação final do casal.',parcelas:[]};
+        var _csAtual=g('clientes');_csAtual.push(_c18);s('clientes',_csAtual);
+        _allCsNow=g('clientes');
+      }
+      [{id:'c11',titulo:'Renata & André Farias',local:'Convento São Bento, Pelotas'},{id:'c04',titulo:'Diana & Thiago Ramos',local:'Castelo de Itaipava, Porto Alegre'},{id:'c18',titulo:'Valentina & Ricardo Souza',local:'Castelo de Itaipava, Petrópolis'}].forEach(function(x){
         var cl=_allCsNow.find(function(c){return c.id===x.id;});
         if(cl&&_edsNowIds.indexOf(x.id)===-1) _edsNow.push({clienteId:x.id,titulo:x.titulo,data:cl.data,local:x.local});
       });
       s('edicoes',_edsNow);
+      // Garante eventos futuros suficientes para Próximas atividades (e11-e14)
+      var _evs3=g('eventos');
+      var _evsIds=_evs3.map(function(e){return e.id;});
+      var _futEvs=[
+        {id:'e11',titulo:'Reunião — Camila & Rafael',data:(function(){var d=new Date();d.setDate(d.getDate()+18);d.setHours(15,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c03',local:'Google Meet',notas:'Revisão do contrato e timeline.'},
+        {id:'e12',titulo:'Ensaio — Mariana & Felipe',data:(function(){var d=new Date();d.setDate(d.getDate()+11);d.setHours(17,0,0);return d.toISOString().slice(0,16);})(),tipo:'Ensaio',clienteId:'c08',local:'Orla de Pelotas',notas:'Golden hour no lago.'},
+        {id:'e13',titulo:'Reunião — Beatriz & Lucas',data:(function(){var d=new Date();d.setDate(d.getDate()+25);d.setHours(10,0,0);return d.toISOString().slice(0,16);})(),tipo:'Reunião',clienteId:'c02',local:'Cafeteria Central',notas:'Apresentar galeria digital.'},
+        {id:'e14',titulo:'Entrega álbum — Sofia & Rodrigo',data:(function(){var d=new Date();d.setDate(d.getDate()+35);d.setHours(16,0,0);return d.toISOString().slice(0,16);})(),tipo:'Entrega',clienteId:'c09',local:'Estúdio',notas:'Álbum 35x35 finalizado.'}
+      ];
+      var _adicionados=_futEvs.filter(function(e){return _evsIds.indexOf(e.id)===-1;});
+      if(_adicionados.length){s('eventos',_evs3.concat(_adicionados));}
     }
   } catch(e){
     // fallback: se Supabase falhar, usa cache local
