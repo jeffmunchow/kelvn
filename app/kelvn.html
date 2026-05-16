@@ -1659,17 +1659,25 @@ function addCEvento(){
   _cEventos.push({id:uid(),data:'',local:'',status:'Prospect',valor:0});
   rCEventos();
 }
-var _CEV_COLORS={'Prospect':'var(--text-muted)','Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome':'#D4709A','Casamento':'#C4780A','After-party':'#6B9BAF','Pós-produção':'#C43A1A','Álbum design':'#7B5EA7','Entregue':'#2E7D32','Finalizado':'#5C5854'};
-function _cevSelColor(sel){sel.style.color=_CEV_COLORS[sel.value]||'var(--text-muted)';}
+function _cevToggle(i){var d=document.getElementById('cev-drop-'+i);d.style.display=d.style.display==='none'?'block':'none';}
+function _cevSet(i,val){_cEventos[i].status=val;var lbl=document.getElementById('cev-lbl-'+i);lbl.textContent=val;lbl.style.color=_STATUS_COLORS[val]||'var(--text)';document.getElementById('cev-drop-'+i).style.display='none';}
 function rCEventos(){
-  var opts=['Prospect','Sessão','Religioso','Welcome','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
+  var opts=[{v:'Prospect',c:'var(--text-muted)'},{v:'Sessão',c:'#C43A1A'},{v:'Religioso',c:'#2E7D32'},{v:'Welcome',c:'#D4709A'},{v:'Casamento',c:'#C4780A'},{v:'After-party',c:'#6B9BAF'},{v:'Pós-produção',c:'#C43A1A'},{v:'Álbum design',c:'#7B5EA7'},{v:'Entregue',c:'#2E7D32'},{v:'Finalizado',c:'#5C5854'}];
   var el=document.getElementById('mc-eventos-extra');
   if(!el)return;
   el.innerHTML=_cEventos.map(function(ev,i){
-    var col=_CEV_COLORS[ev.status]||'var(--text-muted)';
+    var col=_STATUS_COLORS[ev.status]||'var(--text)';
+    var dropOpts=opts.map(function(o){return '<div onclick="_cevSet('+i+',\''+o.v+'\')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:'+o.c+';" class="sdrop-opt">'+o.v+'</div>';}).join('');
+    var statusDrop='<div style="position:relative;" id="cev-wrap-'+i+'">'
+      +'<div onclick="_cevToggle('+i+')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;background:var(--surface2);font-size:.88rem;user-select:none;">'
+      +'<span id="cev-lbl-'+i+'" style="color:'+col+';">'+ev.status+'</span>'
+      +'<svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.4;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
+      +'</div>'
+      +'<div id="cev-drop-'+i+'" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);">'+dropOpts+'</div>'
+      +'</div>';
     return '<div class="field"><input type="text" class="sd" maxlength="10" placeholder="DD/MM/AAAA" value="'+i2d(ev.data||'')+'" oninput="sdM(this)" onchange="_cEventos['+i+'].data=d2i(this.value)"></div>'
       +'<div class="field"><input type="text" placeholder="Igreja, espaço, cidade" value="'+(ev.local||'')+'" oninput="_cEventos['+i+'].local=this.value"></div>'
-      +'<div class="field"><select style="width:100%;color:'+col+';font-weight:500;" onchange="_cEventos['+i+'].status=this.value;_cevSelColor(this)">'+opts.map(function(o){return '<option'+(ev.status===o?' selected':'')+' style="color:'+ (_CEV_COLORS[o]||'var(--text-muted)')+'">'+o+'</option>';}).join('')+'</select></div>'
+      +'<div class="field">'+statusDrop+'</div>'
       +'<div class="field" style="display:flex;align-items:center;gap:.4rem;"><input type="number" placeholder="0" style="flex:1;min-width:0;" value="'+(ev.valor||'')+'" oninput="_cEventos['+i+'].valor=parseFloat(this.value)||0"><button onclick="_cEventos.splice('+i+',1);rCEventos()" style="background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:.85rem;flex-shrink:0;width:28px;text-align:center;">✕</button></div>';
   }).join('');
 }
@@ -1698,6 +1706,8 @@ function setStatusDrop(val){
 document.addEventListener('click',function(e){
   var wrap=document.getElementById('mc-status-wrap');
   if(wrap&&!wrap.contains(e.target)) document.getElementById('mc-status-drop').style.display='none';
+  // Fecha dropdowns dos eventos extras
+  document.querySelectorAll('[id^="cev-wrap-"]').forEach(function(w){if(!w.contains(e.target)){var d=w.querySelector('[id^="cev-drop-"]');if(d)d.style.display='none';}});
 });
 function openC(id){
   _cId=id||null;fillSel();
