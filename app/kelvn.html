@@ -513,8 +513,8 @@ select.aj-input{cursor:pointer;}
       <div id="r-agenda" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
     </div>
     <div>
-      <div class="col-title">Pós-produção</div>
-      <div id="r-pend" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
+      <div class="col-title">Edições</div>
+      <div id="r-edicoes" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
     </div>
   </div>
 
@@ -1565,18 +1565,22 @@ function rR(){
     return '<div class="ai" onclick="'+onclick+'"><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div></div>';
   }).join('');
 
-  // Próximas 7 tarefas de pós-produção
-  var ps=g('pends').filter(function(p){return !p.done;}).sort(function(a,b){return(a.prazo||'9999-99-99').localeCompare(b.prazo||'9999-99-99');}).slice(0,7);
-  var pe=document.getElementById('r-pend');
-  if(!ps.length){pe.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma pendência em aberto</div>';}
-  else pe.innerHTML=ps.map(function(p){
-    var pl=prazoLabel(p.prazo,p.done);
-    var dot=p.prio==='alta'?'var(--coral)':p.prio==='baixa'?'var(--teal)':'var(--amber)';
+  // Edições em andamento
+  var edicoes=[
+    {titulo:'Diana & Thiago Ramos',sub:'Edição de cor — 847 fotos',badge:'Em andamento',cls:'bc',cor:'var(--amber)'},
+    {titulo:'Juliana & Marcos Oliveira',sub:'Exportação álbum 30x30',badge:'Revisão',cls:'bpo',cor:'var(--coral)'},
+    {titulo:'Renata & André Farias',sub:'Seleção de 1.200 fotos',badge:'Em andamento',cls:'bc',cor:'var(--amber)'},
+    {titulo:'Camila & Rafael Souza',sub:'Edição finalizada — entrega pendente',badge:'Finalizado',cls:'bw',cor:'var(--teal)'},
+    {titulo:'Mariana & Felipe Gomes',sub:'Edição de cor — 620 fotos',badge:'Em andamento',cls:'bc',cor:'var(--amber)'},
+    {titulo:'Ana Clara & Pedro Henrique',sub:'Aguardando arquivos do segundo fotógrafo',badge:'Aguardando',cls:'bp',cor:'var(--text-hint)'},
+    {titulo:'Beatriz & Lucas Ferreira',sub:'Prévia de 50 fotos — prazo em 2 dias',badge:'Urgente',cls:'bpo',cor:'var(--coral)'}
+  ];
+  var re=document.getElementById('r-edicoes');
+  if(re)re.innerHTML=edicoes.map(function(e){
     return '<div class="ai" onclick="goDirecto(\'posproducao\')">'+
-      '<div class="ai-dot" style="background:'+dot+';margin-right:4px;"></div>'+
-      '<div class="ai-info"><div class="ai-title">'+p.desc+'</div>'+
-      '<div class="ai-sub">'+(p.clienteId?cN(p.clienteId):'Geral')+'</div></div>'+
-      (pl.txt?'<span class="badge '+pl.cls+'" style="margin-left:auto;">'+pl.txt+'</span>':'')+
+      '<div class="ai-dot" style="background:'+e.cor+';margin-right:4px;"></div>'+
+      '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+e.sub+'</div></div>'+
+      '<span class="badge '+e.cls+'" style="margin-left:auto;">'+e.badge+'</span>'+
     '</div>';
   }).join('');
   rMetaAnual();
