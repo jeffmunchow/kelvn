@@ -502,7 +502,7 @@ select.aj-input{cursor:pointer;}
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
     <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div><div class="kpi-s">próximos 30 dias</div></div>
     <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
-    <div class="kpi clickable" onclick="goDirecto('posproducao')"><div class="kpi-l">Pós-produção</div><div class="kpi-v ca" id="r-pos-aberto">0</div><div class="kpi-s">pendências em aberto</div></div>
+    <div class="kpi clickable" onclick="goDirecto('posproducao')"><div class="kpi-l">Edições</div><div class="kpi-v ca" id="r-pos-aberto">0</div><div class="kpi-s">em andamento</div></div>
     <div class="kpi clickable" onclick="goDirecto('analises')" title="Ver metas completas"><div class="kpi-l">Meta do mês</div><div class="kpi-v" id="r-meta-v">—</div><div class="kpi-s" id="r-meta-s">configure em Análises</div></div>
   </div>
 
@@ -578,18 +578,6 @@ select.aj-input{cursor:pointer;}
 <div class="panel" id="p-posproducao">
   <div class="ag-split">
 
-    <!-- PENDÊNCIAS -->
-    <div class="ag-col-list">
-      <div class="sh">
-        <div class="st">Pós-produção</div>
-        <div class="sa">
-          <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
-          <button class="btn primary" onclick="openPend()">+ Pendência</button>
-        </div>
-      </div>
-      <div class="tw" id="pend-list"></div>
-    </div>
-
     <!-- EDIÇÕES -->
     <div class="ag-col-list">
       <div class="sh">
@@ -605,6 +593,18 @@ select.aj-input{cursor:pointer;}
         <div class="ai"><div class="ai-dot" style="background:var(--text-hint);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Ana Clara & Pedro Henrique</div><div class="ai-sub">Aguardando arquivos do segundo fotógrafo</div></div><span class="badge bp" style="margin-left:auto;">Aguardando</span></div>
         <div class="ai"><div class="ai-dot" style="background:var(--coral);margin-right:4px;"></div><div class="ai-info"><div class="ai-title">Beatriz & Lucas Ferreira</div><div class="ai-sub">Prévia de 50 fotos — prazo em 2 dias</div></div><span class="badge bpo" style="margin-left:auto;">Urgente</span></div>
       </div>
+    </div>
+
+    <!-- PENDÊNCIAS -->
+    <div class="ag-col-list">
+      <div class="sh">
+        <div class="st">Pós-produção</div>
+        <div class="sa">
+          <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
+          <button class="btn primary" onclick="openPend()">+ Pendência</button>
+        </div>
+      </div>
+      <div class="tw" id="pend-list"></div>
     </div>
 
   </div>
@@ -1532,7 +1532,9 @@ function rR(){
   var inad=calcInadTotal();
   document.getElementById('r-recv').textContent=$m(recv);
   document.getElementById('r-inad').textContent=$m(inad);
-  document.getElementById('r-pos-aberto').textContent=g('pends').filter(function(p){return !p.done;}).length;
+  var edEl=document.getElementById('ed-list');
+  var edCount=edEl?edEl.querySelectorAll('.badge.bc').length:0;
+  document.getElementById('r-pos-aberto').textContent=edCount;
   (function(){
     var metas=g('metas');var elV=document.getElementById('r-meta-v');var elS=document.getElementById('r-meta-s');
     if(!elV||!elS)return;
