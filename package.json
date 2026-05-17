@@ -2,8 +2,11 @@
   "name": "kelvn",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "@sparticuz/chromium": "^131.0.0",
-    "puppeteer-core": "^23.10.0"
+    "@sparticuz/chromium": "121.0.0",
+    "puppeteer-core": "21.10.0"
   }
 }
