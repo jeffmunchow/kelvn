@@ -1630,9 +1630,16 @@ function removeDeEdicoes(evId){
     if(evId.indexOf('_x_')>-1){
       var exId3=evId.split('_x_')[1];
       var exIdx2=(cs2[idx2].eventosExtra||[]).findIndex(function(x){return x.id===exId3;});
-      if(exIdx2>-1){cs2[idx2]=Object.assign({},cs2[idx2],{eventosExtra:cs2[idx2].eventosExtra.map(function(x,i){return i===exIdx2?Object.assign({},x,{status:entry.statusAnterior}):x;})});s('clientes',cs2);}
+      // Só restaura se ainda estiver em Pós-produção (não sobrescreve mudança manual do usuário)
+      if(exIdx2>-1&&cs2[idx2].eventosExtra[exIdx2].status==='Pós-produção'){
+        cs2[idx2]=Object.assign({},cs2[idx2],{eventosExtra:cs2[idx2].eventosExtra.map(function(x,i){return i===exIdx2?Object.assign({},x,{status:entry.statusAnterior}):x;})});
+        s('clientes',cs2);
+      }
     } else {
-      cs2[idx2]=Object.assign({},cs2[idx2],{status:entry.statusAnterior});s('clientes',cs2);
+      // Só restaura se ainda estiver em Pós-produção (não sobrescreve mudança manual do usuário)
+      if(cs2[idx2].status==='Pós-produção'){
+        cs2[idx2]=Object.assign({},cs2[idx2],{status:entry.statusAnterior});s('clientes',cs2);
+      }
     }
   }
   undoCommit();rEdicoes();rR();
@@ -1836,7 +1843,15 @@ function saveC(){
   };
   if(!o.nome){alert('Informe o nome.');return;}
   if(_cId){var i=cs.findIndex(function(c){return c.id===_cId;});if(i>-1)cs[i]=o;}else cs.push(o);
-  undoBegin();s('clientes',cs);undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Cliente salvo');
+  undoBegin();s('clientes',cs);
+  // Se o novo status não é Pós-produção, garante que o evento sai das Edições
+  if(o.status!=='Pós-produção'&&_PRIMARY_STATUS.indexOf(o.status)>-1){
+    var _evId='_c_'+o.id;
+    var _edsAfter=g('edicoes')||[];
+    var _edsAfterFiltered=_edsAfter.filter(function(e){return (e.evId||('_c_'+e.clienteId))!==_evId;});
+    if(_edsAfterFiltered.length!==_edsAfter.length) s('edicoes',_edsAfterFiltered);
+  }
+  undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Cliente salvo');
 }
 function delC(){if(!confirm('Excluir?'))return;undoBegin();s('clientes',g('clientes').filter(function(c){return c.id!==_cId;}));undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído');}
 function rPL(ps){_parc=ps.map(function(p){return Object.assign({},p);});bPD();}
