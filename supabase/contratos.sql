@@ -1,7 +1,7 @@
 -- Tabela contratos
 CREATE TABLE contratos (
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id             UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id             UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   cliente_id          TEXT NOT NULL,
   pacote_id           TEXT,
   html_gerado         TEXT NOT NULL,

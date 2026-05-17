@@ -118,8 +118,21 @@ async function init(){
   renderContrato();
 }
 
+function _injectPreviewCss(html){
+  var css='<style id="_kv_prev">@media screen{'
+    +'html,body{margin:0;padding:0;}'
+    +'body{background:#c4c4c4;padding:28px 0;}'
+    +'.cover{width:210mm;height:297mm;padding:20mm 18mm 18mm 34mm;margin:0 auto 24px;background:#fff;'
+    +'box-shadow:0 2px 16px rgba(0,0,0,.22);box-sizing:border-box;overflow:hidden;'
+    +'display:flex;flex-direction:column;justify-content:space-between;}'
+    +'.content{width:210mm;padding:18mm 18mm 16mm 34mm;margin:0 auto;background:#fff;'
+    +'box-shadow:0 2px 16px rgba(0,0,0,.22);box-sizing:border-box;}'
+    +'}</style>';
+  return html.replace('</head>',css+'</head>');
+}
+
 function renderContrato(){
-  var blob=new Blob([_contrato.html_gerado],{type:'text/html'});
+  var blob=new Blob([_injectPreviewCss(_contrato.html_gerado)],{type:'text/html'});
   var url=URL.createObjectURL(blob);
   var h=window.innerHeight*0.75;
   document.getElementById('app').innerHTML=
