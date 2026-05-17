@@ -2049,16 +2049,29 @@ async function _gerarPdfContrato(templateHtml){
     .replace(/<div style="break-after:\s*always;?\s*"><\/div>/gi,SENTINEL);
   var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
 
-  // Monta HTML isolado para renderizar no iframe oculto
-  var W=794,H=1123; // A4 a 96dpi
-  var renderCss='<style>'+origStyle
+  // A4 em pontos tipográficos (72dpi) — unidade do PDF real.
+  // O template usa pt como unidade de fonte; renderizar na mesma base evita
+  // diferenças de quebra de linha entre o render on-screen e o PDF gerado.
+  var W=595,H=842; // A4 em pt: 595×842
+  // Margens do @page convertidas para px a 72dpi: 18mm=51px, 34mm=96px, 16mm=45px
+  var padTop=51,padRight=51,padBottom=45,padLeft=96;
+
+  // Extrai link de fontes do template (se existir como <link>) ou usa @import do origStyle
+  var fontsLink='<link rel="preconnect" href="https://fonts.googleapis.com">'
+    +'<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">';
+
+  // Remove @import do origStyle (já incluímos via <link> acima para garantir carregamento)
+  var cleanStyle=origStyle.replace(/@import[^;]+;/gi,'');
+
+  var renderCss='<style>'+cleanStyle
     +'*{box-sizing:border-box}'
     +'html,body{margin:0;padding:0;background:#fff}'
-    +'.kv-pg{width:'+W+'px;min-height:'+H+'px;background:#fff;overflow:hidden}'
-    +'.kv-pg.is-content{padding:68px 68px 60px 128px}'
-    +'.cover{width:'+W+'px;min-height:'+H+'px}'
+    +'.kv-pg{width:'+W+'px;height:'+H+'px;background:#fff;overflow:hidden;position:relative}'
+    +'.kv-pg.is-content{padding:'+padTop+'px '+padRight+'px '+padBottom+'px '+padLeft+'px}'
+    +'.cover{width:'+W+'px;height:'+H+'px}'
     +'</style>';
-  var renderHtml='<!DOCTYPE html><html><head><meta charset="UTF-8">'+renderCss+'</head><body>';
+  var renderHtml='<!DOCTYPE html><html><head><meta charset="UTF-8">'+fontsLink+renderCss+'</head><body>';
   if(coverInner)renderHtml+='<div class="cover kv-pg">'+coverInner+'</div>';
   pages.forEach(function(p){renderHtml+='<div class="kv-pg is-content">'+p+'</div>';});
   renderHtml+='</body></html>';
@@ -2080,16 +2093,20 @@ async function _gerarPdfContrato(templateHtml){
   var pdf=new jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
 
   for(var i=0;i<pageEls.length;i++){
-    var canvas=await html2canvas(pageEls[i],{
+    var el=pageEls[i];
+    var canvas=await html2canvas(el,{
       scale:2,
       useCORS:true,
       allowTaint:false,
       logging:false,
       width:W,
+      height:H,
       windowWidth:W,
+      windowHeight:H,
       backgroundColor:'#ffffff'
     });
-    if(i>0)pdf.addPage();
+    if(i>0)pdf.addPage('a4','portrait');
+    // canvas sempre 595×842pt → adiciona exatamente em A4 sem split
     pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);
   }
 
