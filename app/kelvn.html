@@ -1059,8 +1059,8 @@ select.aj-input{cursor:pointer;}
       <button class="btn" onclick="cov('ov-contrato')">Fechar</button>
     </div>
   </div>
-  <div style="height:70vh;overflow:hidden;">
-    <iframe id="contrato-iframe" style="width:100%;height:100%;border:none;display:block;"></iframe>
+  <div style="height:85vh;overflow-y:auto;background:#c4c4c4;">
+    <iframe id="contrato-iframe" style="width:100%;border:none;display:block;" scrolling="no"></iframe>
   </div>
 </div></div>
 
@@ -2012,18 +2012,22 @@ function _abrirModalContrato(html, record){
   btnLink.style.display=(record&&(st==='enviado'||st==='assinado'))?'inline-flex':'none';
   var blob=new Blob([_injectPreviewCss(html)],{type:'text/html'});
   var url=URL.createObjectURL(blob);
-  document.getElementById('contrato-iframe').src=url;
+  var ifr=document.getElementById('contrato-iframe');
+  ifr.onload=function(){try{ifr.style.height=(ifr.contentDocument.body.scrollHeight+32)+'px';}catch(e){}};
+  ifr.src=url;
   document.getElementById('ov-contrato').classList.add('open');
 }
 
 function _injectPreviewCss(html){
+  // Quebra .content em folhas separadas a cada page-break-after
+  html=html.replace(/<div style="page-break-after: always;"><\/div>/g,'</div><div class="content">');
   var css='<style id="_kv_prev">@media screen{'
     +'html,body{margin:0;padding:0;}'
     +'body{background:#c4c4c4;padding:28px 0;}'
-    +'.cover{width:210mm;height:297mm;padding:20mm 18mm 18mm 34mm;margin:0 auto 24px;background:#fff;'
+    +'.cover{width:210mm;min-height:297mm;padding:20mm 18mm 18mm 34mm;margin:0 auto 24px;background:#fff;'
     +'box-shadow:0 2px 16px rgba(0,0,0,.22);box-sizing:border-box;overflow:hidden;'
     +'display:flex;flex-direction:column;justify-content:space-between;}'
-    +'.content{width:210mm;padding:18mm 18mm 16mm 34mm;margin:0 auto;background:#fff;'
+    +'.content{width:210mm;padding:18mm 18mm 16mm 34mm;margin:0 auto 24px;background:#fff;'
     +'box-shadow:0 2px 16px rgba(0,0,0,.22);box-sizing:border-box;}'
     +'}</style>';
   return html.replace('</head>',css+'</head>');
