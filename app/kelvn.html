@@ -1694,8 +1694,8 @@ function rMetaAnual(){
   else{resumoEl.textContent='R$ '+fatAnual.toLocaleString('pt-BR',{maximumFractionDigits:0})+' de R$ '+metaAnual.toLocaleString('pt-BR',{maximumFractionDigits:0});resumoEl.style.color='var(--text-hint)';}
   var container=document.getElementById('meta-anual-checkpoints');
   container.innerHTML='';
-  for(var i=0;i<=10;i++){
-    var checkPct=i*10;
+  for(var i=0;i<=12;i++){
+    var checkPct=parseFloat((i*100/12).toFixed(4));
     var checkValor=metaAnual*checkPct/100;
     var atingido=fatAnual>=checkValor;
     var dotColor=checkPct<=30?'var(--coral)':checkPct<=60?'var(--amber)':'var(--teal)';
