@@ -2038,7 +2038,11 @@ async function _baixarContratoPdf(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({html:_contratoHtmlOriginal})
     });
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    if(!resp.ok){
+      var errText=await resp.text();
+      console.error('PDF API error:',resp.status,errText);
+      throw new Error('HTTP '+resp.status+' — '+errText.slice(0,200));
+    }
     var blob=await resp.blob();
     var url=URL.createObjectURL(blob);
     var a=document.createElement('a');
@@ -2047,7 +2051,7 @@ async function _baixarContratoPdf(){
     setTimeout(function(){URL.revokeObjectURL(url);},1000);
   }catch(e){
     console.error('PDF error:',e);
-    notify('Erro ao gerar PDF. Tente novamente.');
+    notify('Erro ao gerar PDF: '+(e.message||'desconhecido'));
   }finally{
     btn.textContent=orig;
     btn.disabled=false;
