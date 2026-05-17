@@ -2059,17 +2059,21 @@ function _injectPreviewCss(html){
     .replace(/<div style="break-after:\s*always;?\s*"><\/div>/gi,SENTINEL);
   var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
 
-  // origStyle tem @import de fontes + toda a tipografia — fica primeiro.
-  // Sobrescrevemos apenas: background, centralização e containers de página.
-  // Sem flex no body — margin:0 auto nas páginas é mais confiável em iframes.
+  // text-align:center no body + inline-flex/inline-block nas páginas
+  // é a técnica de centralização mais confiável em iframes — não depende
+  // de flex no body nem de largura mínima do viewport.
   var css='<style>'
     +origStyle
     +'html,body{margin:0;padding:0;background:#c4c4c4!important}'
-    +'body{padding:24px 0!important}'
-    +'.cover{width:210mm!important;margin:0 auto 24px!important;background:#fff!important;'
+    +'body{padding:24px 0!important;text-align:center!important}'
+    // inline-flex mantém o layout interno de flex da capa (justify-content:space-between)
+    // mas permite centralização via text-align do pai
+    +'.cover{display:inline-flex!important;vertical-align:top;width:210mm!important;'
+    +'text-align:left;margin:0 0 24px!important;background:#fff!important;'
     +'box-shadow:0 2px 16px rgba(0,0,0,.18)!important}'
-    +'.kv-pg{display:block;width:210mm;min-height:297mm;padding:18mm 18mm 16mm 34mm;'
-    +'margin:0 auto 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
+    +'.kv-pg{display:inline-block;vertical-align:top;width:210mm;min-height:297mm;'
+    +'padding:18mm 18mm 16mm 34mm;text-align:left;margin:0 0 24px;'
+    +'background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
     +'</style>';
 
   var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
