@@ -2052,14 +2052,21 @@ async function _gerarPdfContrato(templateHtml){
   // Monta HTML isolado para renderizar no iframe oculto
   var W=794,H=1123; // A4 a 96dpi (210mm × 297mm)
 
-  var renderCss='<style>'+origStyle
+  // Remove @import do origStyle — fontes são carregadas via <link> abaixo para garantir
+  // que estejam prontas antes do html2canvas. @import assíncrono pode não completar a tempo.
+  var cleanStyle=origStyle.replace(/@import[^;]+;/gi,'');
+
+  var renderCss='<style>'+cleanStyle
     +'*{box-sizing:border-box}'
     +'html,body{margin:0;padding:0;background:#fff}'
     +'.kv-pg{width:'+W+'px;height:'+H+'px;background:#fff;overflow:hidden}'
     +'.kv-pg.is-content{padding:68px 68px 60px 128px}'
     +'.cover{width:'+W+'px;height:'+H+'px}'
     +'</style>';
-  var renderHtml='<!DOCTYPE html><html><head><meta charset="UTF-8">'+renderCss+'</head><body>';
+  var fontsLink='<link rel="preconnect" href="https://fonts.googleapis.com">'
+    +'<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+    +'<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap">';
+  var renderHtml='<!DOCTYPE html><html><head><meta charset="UTF-8">'+fontsLink+renderCss+'</head><body>';
   if(coverInner)renderHtml+='<div class="cover kv-pg">'+coverInner+'</div>';
   pages.forEach(function(p){renderHtml+='<div class="kv-pg is-content">'+p+'</div>';});
   renderHtml+='</body></html>';
