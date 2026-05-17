@@ -2055,28 +2055,31 @@ function _injectPreviewCss(html){
     .replace(/<div style="break-after:\s*always;?\s*"><\/div>/gi,SENTINEL);
   var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
 
-  // text-align:center no body + inline-flex/inline-block nas páginas
-  // é a técnica de centralização mais confiável em iframes — não depende
-  // de flex no body nem de largura mínima do viewport.
+  // Remove regras de body e cover do origStyle para evitar conflitos de cascata
+  var filteredStyle=origStyle
+    .replace(/body\s*\{[^}]*\}/gi,'')
+    .replace(/html\s*\{[^}]*\}/gi,'')
+    .replace(/\.cover\s*\{[^}]*\}/gi,'');
+
   var css='<style>'
-    +origStyle
-    +'html,body{margin:0;padding:0;background:#c4c4c4!important}'
-    +'body{padding:24px 0!important;text-align:center!important}'
-    // inline-flex mantém o layout interno de flex da capa (justify-content:space-between)
-    // mas permite centralização via text-align do pai
-    +'.cover{display:inline-flex!important;vertical-align:top;width:210mm!important;'
-    +'text-align:left;margin:0 0 24px!important;background:#fff!important;'
-    +'box-shadow:0 2px 16px rgba(0,0,0,.18)!important}'
-    +'.kv-pg{display:inline-block;vertical-align:top;width:210mm;min-height:297mm;'
-    +'padding:18mm 18mm 16mm 34mm;text-align:left;margin:0 0 24px;'
-    +'background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
+    +filteredStyle
+    +'*{box-sizing:border-box}'
+    +'html,body{margin:0;padding:0;background:#c4c4c4}'
+    +'#kv-wrap{display:flex;flex-direction:column;align-items:center;'
+    +'padding:24px 0;background:#c4c4c4;min-height:100vh}'
+    +'.cover{display:flex;flex-direction:column;justify-content:space-between;'
+    +'width:210mm;margin:0 0 24px;background:#fff;'
+    +'box-shadow:0 2px 16px rgba(0,0,0,.18)}'
+    +'.kv-pg{width:210mm;min-height:297mm;'
+    +'padding:18mm 18mm 16mm 34mm;'
+    +'margin:0 0 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
     +'</style>';
 
   var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
-    +css+'</head><body>';
+    +css+'</head><body><div id="kv-wrap">';
   if(coverInner)out+='<div class="cover">'+coverInner+'</div>';
   pages.forEach(function(p){if(p.trim())out+='<div class="kv-pg">'+p+'</div>';});
-  out+='</body></html>';
+  out+='</div></body></html>';
   return out;
 }
 
