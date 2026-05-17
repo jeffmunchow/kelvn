@@ -1046,23 +1046,23 @@ select.aj-input{cursor:pointer;}
   </div>
 </div></div>
 
-<!-- MODAL CONTRATO -->
-<div class="overlay" id="ov-contrato"><div class="modal wide" style="width:calc(210mm + 48px);max-width:96vw;padding:0;overflow:hidden;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:.5px solid var(--border-strong);">
+<!-- OVERLAY FULLSCREEN CONTRATO -->
+<div id="ov-contrato" style="display:none;position:fixed;inset:0;z-index:300;flex-direction:column;background:#c4c4c4;">
+  <div style="flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.5rem;background:var(--surface);border-bottom:.5px solid var(--border-strong);">
     <div style="display:flex;align-items:center;gap:.75rem;">
-      <h2 style="font-size:1rem;margin:0;">Contrato</h2>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;margin:0;">Contrato</h2>
       <span id="contrato-status-badge" style="display:none;font-size:.65rem;padding:3px 9px;border-radius:20px;font-weight:500;"></span>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem;">
       <button class="btn" id="contrato-btn-enviar" onclick="enviarContrato()" style="display:none;">Enviar para assinatura</button>
       <button class="btn" id="contrato-btn-copiar-link" onclick="copiarLinkAssinatura()" style="display:none;">Copiar link</button>
-      <button class="btn" onclick="cov('ov-contrato')">Fechar</button>
+      <button class="btn" onclick="document.getElementById('ov-contrato').style.display='none'">Fechar</button>
     </div>
   </div>
-  <div style="height:85vh;overflow-y:auto;background:#c4c4c4;">
+  <div style="flex:1;overflow-y:auto;">
     <iframe id="contrato-iframe" style="width:100%;border:none;display:block;" scrolling="no"></iframe>
   </div>
-</div></div>
+</div>
 
 <!-- MODAL EVENTO -->
 <div class="overlay" id="ov-e"><div class="modal">
@@ -2011,18 +2011,14 @@ function _abrirModalContrato(html, record){
   btnEnviar.style.display=(record&&st==='rascunho')?'inline-flex':'none';
   btnLink.style.display=(record&&(st==='enviado'||st==='assinado'))?'inline-flex':'none';
 
-  // overflow-y:scroll mantém scrollbar sempre visível → largura do iframe constante
-  var wrap=document.querySelector('#ov-contrato .modal>div[style*="overflow-y"]');
-  if(wrap)wrap.style.overflowY='scroll';
-
   var blob=new Blob([_injectPreviewCss(html)],{type:'text/html'});
   var ifr=document.getElementById('contrato-iframe');
-  ifr.style.height='auto';
   ifr.onload=function(){
     try{ifr.style.height=(ifr.contentDocument.body.scrollHeight+32)+'px';}catch(e){}
   };
   ifr.src=URL.createObjectURL(blob);
-  document.getElementById('ov-contrato').classList.add('open');
+  var ov=document.getElementById('ov-contrato');
+  ov.style.display='flex';
 }
 
 function _kvExtract(html,openTag){
