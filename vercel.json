@@ -3,7 +3,7 @@
     "api/contrato-pdf.js": {
       "memory": 1024,
       "maxDuration": 30,
-      "includeFiles": "node_modules/@sparticuz/chromium/**"
+      "includeFiles": "node_modules/@sparticuz/chromium/bin/**"
     }
   },
   "routes": [
