@@ -2026,10 +2026,13 @@ function _injectPreviewCss(html){
 
   var pages=[];
   if(contentEl){
-    // Trabalha na string serializada para evitar adoção de nós entre documentos
+    // querySelectorAll lê o atributo bruto (não o CSSOM normalizado), então encontra
+    // os divs mesmo se o browser normalizar page-break-after → break-after na serialização
     var SENTINEL='__KV_PAGE_BREAK__';
-    var raw=contentEl.innerHTML.replace(/<div\b[^>]*\bpage-break-after\b[^>]*>\s*<\/div>/gi,SENTINEL);
-    pages=raw.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
+    Array.from(contentEl.querySelectorAll('div[style*="page-break-after"]')).forEach(function(el){
+      el.parentNode.replaceChild(doc.createTextNode(SENTINEL),el);
+    });
+    pages=contentEl.innerHTML.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
   }
 
   var css='<style>'
@@ -2037,8 +2040,10 @@ function _injectPreviewCss(html){
     +'@media screen{'
     +'*{box-sizing:border-box}'
     +'html,body{margin:0;padding:0}'
-    +'body{background:#c4c4c4!important;padding:24px 0}'
-    +'.cover{width:210mm!important;min-height:297mm;padding:20mm 18mm 18mm 34mm!important;margin:24px auto!important;'
+    // html também precisa de background para cobrir a área além do body
+    +'html{background:#c4c4c4!important}'
+    +'body{background:#c4c4c4!important;padding:24px;overflow-x:hidden}'
+    +'.cover{width:210mm!important;min-height:297mm;padding:20mm 18mm 18mm 34mm!important;margin:0 auto 24px!important;'
     +'background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}'
     +'.kv-pg{width:210mm;min-height:297mm;padding:18mm 18mm 16mm 34mm;margin:0 auto 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.2)}'
     +'}</style>';
