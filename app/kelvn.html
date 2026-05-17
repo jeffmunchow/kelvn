@@ -2050,13 +2050,19 @@ async function _gerarPdfContrato(templateHtml){
   var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
 
   // Monta HTML isolado para renderizar no iframe oculto
-  var W=794,H=1123; // A4 a 96dpi
-  var renderCss='<style>'+origStyle
+  var W=794,H=1123; // A4 a 96dpi (210mm × 297mm)
+
+  // O template usa pt como unidade de fonte (design para impressão a 72dpi).
+  // No browser a 96dpi, 1pt = 1.333px — texto fica 33% maior que no PDF.
+  // Convertendo pt→px igualamos o render ao tamanho de impressão sem alterar o layout.
+  var origStylePx=origStyle.replace(/(\d*\.?\d+)pt\b/g,function(_,n){return n+'px';});
+
+  var renderCss='<style>'+origStylePx
     +'*{box-sizing:border-box}'
     +'html,body{margin:0;padding:0;background:#fff}'
-    +'.kv-pg{width:'+W+'px;min-height:'+H+'px;background:#fff;overflow:hidden}'
+    +'.kv-pg{width:'+W+'px;height:'+H+'px;background:#fff;overflow:hidden}'
     +'.kv-pg.is-content{padding:68px 68px 60px 128px}'
-    +'.cover{width:'+W+'px;min-height:'+H+'px}'
+    +'.cover{width:'+W+'px;height:'+H+'px}'
     +'</style>';
   var renderHtml='<!DOCTYPE html><html><head><meta charset="UTF-8">'+renderCss+'</head><body>';
   if(coverInner)renderHtml+='<div class="cover kv-pg">'+coverInner+'</div>';
@@ -2086,7 +2092,9 @@ async function _gerarPdfContrato(templateHtml){
       allowTaint:false,
       logging:false,
       width:W,
+      height:H,
       windowWidth:W,
+      windowHeight:H,
       backgroundColor:'#ffffff'
     });
     if(i>0)pdf.addPage();
