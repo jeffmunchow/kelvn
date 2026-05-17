@@ -1,5 +1,7 @@
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import puppeteer from 'puppeteer-core';
+
+const CHROMIUM_PACK = 'https://github.com/Sparticuz/chromium/releases/download/v132.0.0/chromium-v132.0.0-pack.tar';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '4mb' } },
@@ -23,20 +25,19 @@ export default async function handler(req, res) {
   let browser = null;
   const t0 = Date.now();
   try {
-    const executablePath = await chromium.executablePath();
+    const executablePath = await chromium.executablePath(CHROMIUM_PACK);
     const t1 = Date.now();
 
     browser = await puppeteer.launch({
-      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security', '--no-sandbox'],
+      args: chromium.args,
       defaultViewport: chromium.defaultViewport,
       executablePath,
       headless: chromium.headless,
-      ignoreHTTPSErrors: true,
     });
     const t2 = Date.now();
 
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 20000 });
+    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 25000 });
     try { await page.evaluateHandle('document.fonts.ready'); } catch {}
     const t3 = Date.now();
 
