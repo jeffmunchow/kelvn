@@ -1,5 +1,7 @@
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import puppeteer from 'puppeteer-core';
+
+const CHROMIUM_PACK = 'https://github.com/Sparticuz/chromium/releases/download/v121.0.0/chromium-v121.0.0-pack.tar';
 
 export const config = {
   api: {
@@ -26,7 +28,7 @@ export default async function handler(req, res) {
 
   let browser = null;
   try {
-    const executablePath = await chromium.executablePath();
+    const executablePath = await chromium.executablePath(CHROMIUM_PACK);
     browser = await puppeteer.launch({
       args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
       defaultViewport: chromium.defaultViewport,
