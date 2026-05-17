@@ -147,7 +147,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .fki{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:.85rem 1rem;}
 .fkl{font-size:.61rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
 .fkv{font-size:1.1rem;font-weight:500;letter-spacing:-.02em;}
-/* TODO */
 .ta{display:flex;gap:8px;margin-bottom:1.25rem;}
 .ti{flex:1;font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text);outline:none;}
 .ti:focus{border-color:var(--amber);}
@@ -3146,37 +3145,6 @@ function finalizarCompra(){
   cov('ov-checkout');
   setTimeout(function(){ document.getElementById('ov-compra-ok').classList.add('open'); },200);
 }
-function _migrateDemoFin(){
-  var yr=new Date().getFullYear();
-  function dt(month,day){ return yr+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
-  var fatData=[
-    {m:0,cat:'Casamento',v:4200},{m:1,cat:'Casamento',v:3800},{m:2,cat:'Casamento',v:5500},
-    {m:3,cat:'Casamento',v:7200},{m:4,cat:'Casamento',v:6800},{m:5,cat:'Casamento',v:8400},
-    {m:6,cat:'Casamento',v:9100},{m:7,cat:'Casamento',v:7600},{m:8,cat:'Casamento',v:10200},
-    {m:9,cat:'Casamento',v:8900},{m:10,cat:'Casamento',v:11500},{m:11,cat:'Casamento',v:13200},
-    {m:0,cat:'Sessão',v:2200},{m:1,cat:'Sessão',v:1800},{m:2,cat:'Sessão',v:3200},
-    {m:3,cat:'Sessão',v:2800},{m:4,cat:'Sessão',v:4100},{m:5,cat:'Sessão',v:3500},
-    {m:6,cat:'Sessão',v:2900},{m:7,cat:'Sessão',v:3800},{m:8,cat:'Sessão',v:4200},
-    {m:9,cat:'Sessão',v:3100},{m:10,cat:'Sessão',v:2600},{m:11,cat:'Sessão',v:3900},
-    {m:0,cat:'Religioso',v:1200},{m:1,cat:'Religioso',v:900},{m:2,cat:'Religioso',v:1500},
-    {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
-    {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
-    {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
-    {m:0,cat:'Welcome',v:800},{m:2,cat:'Welcome',v:1100},{m:4,cat:'Welcome',v:1400},
-    {m:5,cat:'Welcome',v:1200},{m:7,cat:'Welcome',v:1300},{m:9,cat:'Welcome',v:1000},{m:11,cat:'Welcome',v:1200},
-    {m:0,cat:'After-party',v:1500},{m:2,cat:'After-party',v:2000},{m:4,cat:'After-party',v:2400},
-    {m:5,cat:'After-party',v:2100},{m:7,cat:'After-party',v:2300},{m:9,cat:'After-party',v:2000},{m:11,cat:'After-party',v:2200},
-    {m:0,cat:'Álbum',v:3200},{m:1,cat:'Álbum',v:2800},{m:2,cat:'Álbum',v:4500},
-    {m:3,cat:'Álbum',v:3900},{m:4,cat:'Álbum',v:5500},{m:5,cat:'Álbum',v:4800},
-    {m:6,cat:'Álbum',v:4100},{m:7,cat:'Álbum',v:5200},{m:8,cat:'Álbum',v:5900},
-    {m:9,cat:'Álbum',v:4400},{m:10,cat:'Álbum',v:3800},{m:11,cat:'Álbum',v:5000}
-  ];
-  var despesas=_cache.fin.filter(function(e){ return e.tipo==='saida'; });
-  var novasFin=despesas.concat(fatData.map(function(d){
-    return {id:uid(),desc:'[demo] '+d.cat,valor:d.v,data:dt(d.m,10),cat:d.cat,clienteId:'',tipo:'entrada'};
-  }));
-  s('fin',novasFin);
-}
 
 function fut(daysAhead){ var d=new Date(); d.setDate(d.getDate()+daysAhead); return d.toISOString().split('T')[0]; }
 function seedDemoData(){
@@ -3382,7 +3350,6 @@ var _KEY_MAP = {
   'q_respostas':  {table:'questionarios',      col:'respostas'}
 };
 var _cache = {};
-var _cacheLoaded = false;
 var _syncTimers = {};
 var _realtimeChannel = null;
 function g(k){
@@ -3506,8 +3473,7 @@ async function _loadFromSupabase(){
       localStorage.setItem(_lsKey('q_templates'), JSON.stringify(m.questionarios.templates||[]));
       localStorage.setItem(_lsKey('q_respostas'), JSON.stringify(m.questionarios.respostas||[]));
     }
-    _cacheLoaded=true;
-  }catch(e){ _cacheLoaded=true; }
+  }catch(e){ }
 }
 function _setupRealtime(){
   if(!_currentUser) return;
@@ -3575,7 +3541,6 @@ async function doForgot(){
 async function initUserData(){
   // 1. Carrega localStorage como cache instantâneo enquanto Supabase carrega
   _loadFromLocalCache();
-  _cacheLoaded = true;
 
   // 2. Carrega do Supabase — fonte de verdade
   try{
@@ -3584,59 +3549,11 @@ async function initUserData(){
     if(isAdmin() && (!_cache.clientes || _cache.clientes.length === 0)){
       seedDemoData();
     }
-    // Migração: atualiza fin demo se ainda contém categorias antigas
-    if(isAdmin() && _cache.fin && _cache.fin.length > 0){
-      var oldCats=['Pré-wedding','Retratos','Institucional','Freela'];
-      var hasOld=_cache.fin.some(function(e){ return oldCats.indexOf(e.cat)>-1; });
-      if(hasOld){ _migrateDemoFin(); }
-    }
-    // Migração: garante pend da Renata & André com prazo válido e sem ID duplicado
-    if(isAdmin() && _cache.pends && _cache.pends.length > 0){
-      var ps=_cache.pends.slice();
-      var renataIdx=ps.findIndex(function(p){ return p.desc&&p.desc.indexOf('Renata')>-1; });
-      var needsFix=false;
-      // Corrige id duplicado pd06 em "portfólio"
-      ps=ps.map(function(p){
-        if(p.id==='pd06'&&p.desc&&p.desc.indexOf('portfólio')>-1){ needsFix=true; return Object.assign({},p,{id:'pd07'}); }
-        return p;
-      });
-      if(renataIdx===-1){
-        // Adiciona entrada que faltava
-        var _pd06prazo=new Date();_pd06prazo.setDate(_pd06prazo.getDate()+18);
-        ps.unshift({id:'pd06',desc:'Editar galeria completa — Renata & André',clienteId:'c11',prazo:_pd06prazo.toISOString().slice(0,10),prio:'alta',done:false});
-        needsFix=true;
-      } else if(!ps[renataIdx].prazo){
-        // Corrige prazo inválido salvo anteriormente
-        var _prazoRenata=new Date();_prazoRenata.setDate(_prazoRenata.getDate()+18);
-        ps[renataIdx]=Object.assign({},ps[renataIdx],{prazo:_prazoRenata.toISOString().slice(0,10)});
-        needsFix=true;
-      }
-      if(needsFix) s('pends',ps);
-      // Migração: adiciona pd08 se não existir
-      var ps2=g('pends');
-      if(!ps2.find(function(p){return p.id==='pd08';})){
-        var _pd08prazo=new Date();_pd08prazo.setDate(_pd08prazo.getDate()+45);
-        ps2=ps2.concat([{id:'pd08',desc:'Revisar contrato padrão 2026',clienteId:'',prazo:_pd08prazo.toISOString().slice(0,10),prio:'baixa',done:false}]);
-        s('pends',ps2);
-      }
-    }
     // Migração: deduplicar clientes por ID (mantém primeira ocorrência — a editada pelo usuário)
     if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
       var _seen={}, _deduped=[], _hadDup=false;
       _cache.clientes.forEach(function(c){ if(!_seen[c.id]){_seen[c.id]=true;_deduped.push(c);}else{_hadDup=true;} });
       if(_hadDup){ s('clientes',_deduped); }
-    }
-    // Migração: corrige status antigos de clientes demo
-    if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
-      var oldMap={'Contratado':'Casamento','Sessão Pré-Casamento':'Sessão','Welcome-party':'Welcome'};
-      var cs=_cache.clientes,needsFixC=cs.some(function(c){ return oldMap[c.status]; });
-      if(needsFixC){ s('clientes',cs.map(function(c){ return oldMap[c.status]?Object.assign({},c,{status:oldMap[c.status]}):c; })); }
-      // Migração: corrige tipo 'Welcome-party' → 'Welcome' em eventos
-      var evs2=g('eventos'),needsFixE=evs2.some(function(e){return e.tipo==='Welcome-party';});
-      if(needsFixE){ s('eventos',evs2.map(function(e){return e.tipo==='Welcome-party'?Object.assign({},e,{tipo:'Welcome'}):e;})); }
-      // Migração: corrige status 'Welcome-party' → 'Welcome' em eventosExtra dos clientes
-      var csAll=g('clientes'),needsFixX=csAll.some(function(c){return (c.eventosExtra||[]).some(function(x){return x.status==='Welcome-party';});});
-      if(needsFixX){ s('clientes',csAll.map(function(c){if(!(c.eventosExtra||[]).some(function(x){return x.status==='Welcome-party';}))return c;return Object.assign({},c,{eventosExtra:c.eventosExtra.map(function(x){return x.status==='Welcome-party'?Object.assign({},x,{status:'Welcome'}):x;})});})); }
     }
     // Migração: garante c18 em clientes e c11/c04/c18 em edicoes
     if(isAdmin()){
