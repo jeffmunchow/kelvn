@@ -1,4 +1,10 @@
 {
+  "functions": {
+    "api/contrato-pdf.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",

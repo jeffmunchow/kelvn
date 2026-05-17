@@ -2027,21 +2027,31 @@ function _abrirModalContrato(html, record){
   document.getElementById('ov-contrato').style.display='flex';
 }
 
-function _baixarContratoPdf(){
-  // Cria iframe oculto com o HTML original (com @page rules) e chama print()
-  // O browser usa seu próprio renderizador de PDF — output idêntico ao template
-  var ifr=document.createElement('iframe');
-  ifr.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;visibility:hidden;border:none;';
-  document.body.appendChild(ifr);
-  var blob=new Blob([_contratoHtmlOriginal],{type:'text/html'});
-  ifr.onload=function(){
-    try{
-      ifr.contentWindow.focus();
-      ifr.contentWindow.print();
-    }catch(e){console.error(e);}
-    setTimeout(function(){document.body.removeChild(ifr);},2000);
-  };
-  ifr.src=URL.createObjectURL(blob);
+async function _baixarContratoPdf(){
+  var btn=document.getElementById('contrato-btn-pdf');
+  var orig=btn.textContent;
+  btn.textContent='Gerando…';
+  btn.disabled=true;
+  try{
+    var resp=await fetch('/api/contrato-pdf',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({html:_contratoHtmlOriginal})
+    });
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    var blob=await resp.blob();
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='contrato.pdf';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  }catch(e){
+    console.error('PDF error:',e);
+    notify('Erro ao gerar PDF. Tente novamente.');
+  }finally{
+    btn.textContent=orig;
+    btn.disabled=false;
+  }
 }
 
 function _injectPreviewCss(html){
