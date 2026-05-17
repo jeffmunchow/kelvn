@@ -2045,19 +2045,19 @@ function _baixarContratoPdf(){
 }
 
 function _injectPreviewCss(html){
-  var styleM=html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-  var origStyle=styleM?styleM[1]:'';
-  var bodyM=html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  var body=bodyM?bodyM[1].trim():'';
-  var css='<style>'+origStyle
-    // Sobrescreve apenas o necessário para o preview em tela
-    +'html,body{margin:0;padding:0;background:#c4c4c4}'
-    +'body{display:flex;flex-direction:column;align-items:center;padding:24px 0}'
-    +'.cover{margin-bottom:24px;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
-    +'.content{width:210mm;background:#fff;padding:18mm 18mm 16mm 34mm;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
-    +'div[style*="page-break"]{display:none}'
-    +'</style>';
-  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'+css+'</head><body>'+body+'</body></html>';
+  // Injeta CSS @media screen no HTML original sem alterar nada do template.
+  // - Fundo cinza fora das páginas
+  // - Capa branca (210x297mm, dimensões já vêm do origStyle)
+  // - Conteúdo como bloco branco 210mm de largura, padding igual às margens @page
+  // - Sombras para efeito "papel sobre mesa"
+  // Para impressão, o template usa @page (intacto) e gera o PDF correto.
+  var screenCss='<style>@media screen{'
+    +'html,body{background:#c4c4c4!important;margin:0!important;padding:0!important}'
+    +'body{display:flex!important;flex-direction:column!important;align-items:center!important;padding:24px 0!important;gap:24px!important}'
+    +'.cover{background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;flex-shrink:0!important}'
+    +'.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;flex-shrink:0!important}'
+    +'}</style>';
+  return html.replace('</head>',screenCss+'</head>');
 }
 
 function _kvExtract(html,openTag){
