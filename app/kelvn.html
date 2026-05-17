@@ -1637,7 +1637,7 @@ function dropToEdicoes(clienteId,evId){
   } else {
     if(idx>-1){cs[idx]=Object.assign({},cs[idx],{status:'Pós-produção'});s('clientes',cs);}
   }
-  undoCommit();rEdicoes();rR();
+  undoCommit();rEdicoes();rR();rCalAno();
   if(_curSection==='agenda')rA();
   if(_curSection==='posproducao')rEdicoes();
   notify(titulo+' movido para Edições');
@@ -1667,7 +1667,7 @@ function removeDeEdicoes(evId){
       }
     }
   }
-  undoCommit();rEdicoes();rR();
+  undoCommit();rEdicoes();rR();rCalAno();
   if(_curSection==='agenda')rA();
   notify('Movido de volta para a agenda');
 }
@@ -2108,7 +2108,8 @@ function rCalAno(){
   var el=document.getElementById('ag-cal-grid'); if(!el) return;
   var now=new Date(),ty=now.getFullYear(),tm=now.getMonth(),td=now.getDate();
   document.getElementById('ag-cal-year').textContent=_calAno;
-  var evs=g('eventos').concat(_primaryEventsFromClientes());
+  var _edsCalIds=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
+  var evs=g('eventos').concat(_primaryEventsFromClientes()).filter(function(e){return _edsCalIds.indexOf(e.id)===-1;});
   var evDays={};
   evs.forEach(function(e){
     var d=new Date(e.data);
