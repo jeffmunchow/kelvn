@@ -2026,26 +2026,39 @@ function _injectPreviewCss(html){
 
   var pages=[];
   if(contentEl){
-    // querySelectorAll lê o atributo bruto (não o CSSOM normalizado), então encontra
-    // os divs mesmo se o browser normalizar page-break-after → break-after na serialização
-    var SENTINEL='__KV_PAGE_BREAK__';
-    Array.from(contentEl.querySelectorAll('div[style*="page-break-after"]')).forEach(function(el){
-      el.parentNode.replaceChild(doc.createTextNode(SENTINEL),el);
+    // Detecta divs de quebra via atributo bruto + CSSOM como fallback
+    // (alguns browsers normalizam page-break-after→break-after ao serializar innerHTML)
+    // Verifica também que o elemento está vazio para não pegar outros divs
+    Array.from(contentEl.querySelectorAll('div')).forEach(function(el){
+      if(el.children.length>0||el.textContent.trim()!=='')return;
+      var raw=el.getAttribute('style')||'';
+      var isBreak=raw.indexOf('page-break-after')>-1
+                ||raw.indexOf('break-after')>-1
+                ||el.style.pageBreakAfter==='always'
+                ||(el.style.breakAfter||'').indexOf('page')>-1
+                ||(el.style.breakAfter||'')==='always';
+      if(isBreak)el.setAttribute('data-kvbreak','1');
     });
-    pages=contentEl.innerHTML.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
+    // Split no HTML serializado pelo atributo marcado — independe de normalização CSS
+    pages=contentEl.innerHTML
+      .split(/<div\b[^>]*data-kvbreak="1"[^>]*>\s*<\/div>/i)
+      .map(function(p){return p.trim();})
+      .filter(function(p){return p.length>0;});
   }
 
   var css='<style>'
     +origStyle
     +'@media screen{'
     +'*{box-sizing:border-box}'
-    +'html,body{margin:0;padding:0}'
-    // html também precisa de background para cobrir a área além do body
-    +'html{background:#c4c4c4!important}'
-    +'body{background:#c4c4c4!important;padding:24px;overflow-x:hidden}'
-    +'.cover{width:210mm!important;min-height:297mm;padding:20mm 18mm 18mm 34mm!important;margin:0 auto 24px!important;'
-    +'background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}'
-    +'.kv-pg{width:210mm;min-height:297mm;padding:18mm 18mm 16mm 34mm;margin:0 auto 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.2)}'
+    +'html{margin:0;padding:0;background:#c4c4c4!important}'
+    // padding só vertical — horizontal zero para não criar overflow com páginas de 210mm
+    +'body{margin:0;padding:24px 0;background:#c4c4c4!important;overflow-x:hidden}'
+    +'.cover{width:210mm!important;height:297mm!important;padding:20mm 18mm 18mm 34mm!important;'
+    +'margin:0 auto 24px!important;background:#fff!important;overflow:hidden!important;'
+    +'box-shadow:0 2px 16px rgba(0,0,0,.2);display:flex!important;'
+    +'flex-direction:column!important;justify-content:space-between!important}'
+    +'.kv-pg{display:block;width:210mm;min-height:297mm;padding:18mm 18mm 16mm 34mm;'
+    +'margin:0 auto 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.2)}'
     +'}</style>';
 
   var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
