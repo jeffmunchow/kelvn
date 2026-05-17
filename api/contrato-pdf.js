@@ -1,3 +1,6 @@
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
+
 export const config = {
   api: { bodyParser: { sizeLimit: '4mb' } },
 };
@@ -17,40 +20,49 @@ export default async function handler(req, res) {
   const html = body?.html;
   if (!html) return res.status(400).json({ error: 'html required' });
 
-  const apiKey = process.env.PDFSHIFT_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'config', message: 'PDFSHIFT_API_KEY not set' });
-  }
-
+  let browser = null;
+  const t0 = Date.now();
   try {
-    const resp = await fetch('https://api.pdfshift.io/v3/convert/pdf', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + Buffer.from('api:' + apiKey).toString('base64'),
-      },
-      body: JSON.stringify({
-        source: html,
-        format: 'A4',
-        margin: '0',
-        use_print: false,
-        sandbox: false,
-      }),
+    const executablePath = await chromium.executablePath();
+    const t1 = Date.now();
+
+    browser = await puppeteer.launch({
+      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security', '--no-sandbox'],
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
+    const t2 = Date.now();
 
-    if (!resp.ok) {
-      const errText = await resp.text();
-      console.error('PDFShift error:', resp.status, errText);
-      return res.status(resp.status).json({ error: 'pdfshift_failed', status: resp.status, message: errText.slice(0, 500) });
-    }
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 20000 });
+    try { await page.evaluateHandle('document.fonts.ready'); } catch {}
+    const t3 = Date.now();
 
-    const buf = Buffer.from(await resp.arrayBuffer());
+    const pdf = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      preferCSSPageSize: true,
+    });
+    const t4 = Date.now();
+
+    console.log(`PDF timings: exec=${t1-t0}ms launch=${t2-t1}ms render=${t3-t2}ms pdf=${t4-t3}ms total=${t4-t0}ms`);
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="contrato.pdf"');
-    res.setHeader('Content-Length', buf.length);
-    return res.status(200).send(buf);
+    res.setHeader('Content-Length', pdf.length);
+    return res.status(200).send(Buffer.from(pdf));
   } catch (error) {
     console.error('PDF generation failed:', error);
-    return res.status(500).json({ error: 'pdf_failed', message: error?.message || String(error) });
+    return res.status(500).json({
+      error: 'pdf_failed',
+      message: error?.message || String(error),
+      elapsed_ms: Date.now() - t0,
+    });
+  } finally {
+    if (browser) {
+      try { await browser.close(); } catch {}
+    }
   }
 }

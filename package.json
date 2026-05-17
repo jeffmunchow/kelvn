@@ -1,5 +1,12 @@
 {
   "name": "kelvn",
-  "version": "1.0.2",
-  "private": true
+  "version": "1.1.0",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "121.0.0",
+    "puppeteer-core": "21.10.0"
+  }
 }
