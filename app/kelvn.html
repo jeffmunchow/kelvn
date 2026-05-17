@@ -2090,7 +2090,7 @@ function _injectPreviewCss(html){
   var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
     +'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'
     +css+'</head><body>';
-  if(cover)out+='<div class="cover">'+cover.innerHTML+'</div>';
+  if(coverInner)out+='<div class="cover">'+coverInner+'</div>';
   pages.forEach(function(p){if(p.trim())out+='<div class="kv-pg">'+p+'</div>';});
   out+='</body></html>';
   return out;
