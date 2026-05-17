@@ -2047,29 +2047,18 @@ function _baixarContratoPdf(){
 function _injectPreviewCss(html){
   var styleM=html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
   var origStyle=styleM?styleM[1]:'';
-  var filteredStyle=origStyle
-    .replace(/body\s*\{[^}]*\}/gi,'')
-    .replace(/html\s*\{[^}]*\}/gi,'')
-    .replace(/\.cover\s*\{[^}]*\}/gi,'');
-  var coverInner=_kvExtract(html,'<div class="cover">');
-  var contentInner=_kvExtract(html,'<div class="content">');
-  var SENTINEL='<<<KV>>>';
-  contentInner=contentInner
-    .replace(/<div style="page-break-after:\s*always;?\s*"><\/div>/gi,SENTINEL)
-    .replace(/<div style="break-after:\s*page;?\s*"><\/div>/gi,SENTINEL)
-    .replace(/<div style="break-after:\s*always;?\s*"><\/div>/gi,SENTINEL);
-  var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
-  var css='<style>'+filteredStyle
-    +'*{box-sizing:border-box}'
-    +'html,body{margin:0;padding:0;background:#c4c4c4}'
-    +'#kv-wrap{display:flex;flex-direction:column;align-items:center;padding:24px 0;background:#c4c4c4}'
-    +'.cover{display:flex;flex-direction:column;justify-content:space-between;width:210mm;margin:0 0 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
-    +'.kv-pg{width:210mm;min-height:297mm;padding:18mm 18mm 16mm 34mm;margin:0 0 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
+  // Preview: mostra o HTML como documento contínuo centralizado.
+  // Não tenta simular páginas — evita espaços em branco artificiais.
+  // O PDF correto é gerado via window.print() que usa @page do template.
+  var css='<style>'+origStyle
+    +'@media screen{'
+    +'html,body{margin:0!important;padding:0!important;background:#c4c4c4!important}'
+    +'body{display:flex;justify-content:center;padding:24px 0!important}'
+    +'.cover{box-shadow:0 2px 16px rgba(0,0,0,.18)!important}'
+    +'.content{box-shadow:0 2px 16px rgba(0,0,0,.18);background:#fff;padding:18mm 18mm 16mm 34mm}'
+    +'}'
     +'</style>';
-  var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'+css+'</head><body><div id="kv-wrap">';
-  if(coverInner)out+='<div class="cover">'+coverInner+'</div>';
-  pages.forEach(function(p){if(p.trim())out+='<div class="kv-pg">'+p+'</div>';});
-  out+='</div></body></html>';
+  var out=html.replace(/<style[^>]*>[\s\S]*?<\/style>/i,css);
   return out;
 }
 
