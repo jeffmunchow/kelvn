@@ -1869,12 +1869,18 @@ function saveC(){
   if(!o.nome){alert('Informe o nome.');return;}
   if(_cId){var i=cs.findIndex(function(c){return c.id===_cId;});if(i>-1)cs[i]=o;}else cs.push(o);
   undoBegin();s('clientes',cs);
-  // Se o novo status não é Pós-produção, garante que o evento sai das Edições
-  if(o.status!=='Pós-produção'&&_PRIMARY_STATUS.indexOf(o.status)>-1){
-    var _evId='_c_'+o.id;
-    var _edsAfter=g('edicoes')||[];
-    var _edsAfterFiltered=_edsAfter.filter(function(e){return (e.evId||('_c_'+e.clienteId))!==_evId;});
-    if(_edsAfterFiltered.length!==_edsAfter.length) s('edicoes',_edsAfterFiltered);
+  var _evId='_c_'+o.id;
+  var _edsAfter=g('edicoes')||[];
+  if(o.status==='Pós-produção'){
+    // Entra nas Edições automaticamente se ainda não estiver
+    if(!_edsAfter.find(function(e){return (e.evId||('_c_'+e.clienteId))===_evId;})){
+      _edsAfter.push({clienteId:o.id,evId:_evId,titulo:o.nome,data:o.data,local:o.local||'',statusAnterior:'Pós-produção'});
+      s('edicoes',_edsAfter);
+    }
+  } else if(_PRIMARY_STATUS.indexOf(o.status)>-1){
+    // Sai das Edições se mudou para status primário
+    var _edsFiltered=_edsAfter.filter(function(e){return (e.evId||('_c_'+e.clienteId))!==_evId;});
+    if(_edsFiltered.length!==_edsAfter.length) s('edicoes',_edsFiltered);
   }
   undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Cliente salvo');
 }
@@ -3622,6 +3628,24 @@ async function initUserData(){
           return c.status==='Pós-produção';
         });
         if(_edsFixed.length!==_edsClean.length) s('edicoes',_edsFixed);
+      })();
+      // Sincroniza: garante que todos os clientes em Pós-produção estão nas Edições
+      (function(){
+        var _edsSync=g('edicoes')||[];
+        var _edsEvIds=_edsSync.map(function(e){return e.evId||('_c_'+e.clienteId);});
+        var _csSync=g('clientes');
+        var _changed=false;
+        _csSync.forEach(function(c){
+          if(c.status==='Pós-produção'&&c.data){
+            var evId='_c_'+c.id;
+            if(_edsEvIds.indexOf(evId)===-1){
+              _edsSync.push({clienteId:c.id,evId:evId,titulo:c.nome,data:c.data,local:c.local||'',statusAnterior:'Pós-produção'});
+              _edsEvIds.push(evId);
+              _changed=true;
+            }
+          }
+        });
+        if(_changed) s('edicoes',_edsSync);
       })();
     }
   } catch(e){
