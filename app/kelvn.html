@@ -896,15 +896,14 @@ select.aj-input{cursor:pointer;}
           <div class="aj-row">
             <span class="aj-label">Tema</span>
             <div style="display:flex;align-items:center;gap:.75rem;">
-              <span style="font-size:.78rem;color:var(--text-muted);" id="aj-theme-label">Claro</span>
-              <button class="thm-w" id="aj-theme-toggle" onclick="toggleTheme();_syncThemeUI()">
+              <button class="thm-w" id="aj-theme-toggle" onclick="toggleTheme()">
                 <svg class="thm-ico thm-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>
                 <svg class="thm-ico thm-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 <div class="thm-knob"></div>
               </button>
             </div>
           </div>
-          <div class="aj-row" style="border-top:.5px solid var(--border);margin-top:.5rem;padding-top:1.25rem;">
+          <div class="aj-row">
             <span class="aj-label">Sessão</span>
             <button onclick="doLogout()" style="background:transparent;border:.5px solid var(--border-strong);border-radius:8px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;">Sair da conta</button>
           </div>
