@@ -12,6 +12,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Kelvn — Studio</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -352,6 +354,7 @@ select.aj-input{cursor:pointer;}
 .ai[draggable="true"]:active{cursor:grabbing;opacity:.7;}
 .meta-checkpoint{position:absolute;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:rgba(128,128,128,.18);border:1.5px solid var(--bg);transition:background .3s,transform .2s;cursor:pointer;z-index:2;}
 .meta-checkpoint:hover{transform:translate(-50%,-50%) scale(1.6);}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -1059,8 +1062,12 @@ select.aj-input{cursor:pointer;}
       <button class="btn" onclick="document.getElementById('ov-contrato').style.display='none'">Fechar</button>
     </div>
   </div>
-  <div style="flex:1;overflow-y:auto;">
-    <iframe id="contrato-iframe" style="width:100%;border:none;display:block;" scrolling="no"></iframe>
+  <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+    <div id="contrato-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:1rem;padding:3rem;color:var(--text-muted);font-size:.875rem;">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style="animation:spin 1s linear infinite"><circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="2.5" stroke-dasharray="40 20" stroke-linecap="round"/></svg>
+      <span>Gerando PDF…</span>
+    </div>
+    <embed id="contrato-embed" type="application/pdf" style="display:none;flex:1;width:100%;border:none;min-height:600px;"/>
   </div>
 </div>
 
@@ -2011,14 +2018,83 @@ function _abrirModalContrato(html, record){
   btnEnviar.style.display=(record&&st==='rascunho')?'inline-flex':'none';
   btnLink.style.display=(record&&(st==='enviado'||st==='assinado'))?'inline-flex':'none';
 
-  var blob=new Blob([_injectPreviewCss(html)],{type:'text/html'});
-  var ifr=document.getElementById('contrato-iframe');
-  ifr.onload=function(){
-    try{ifr.style.height=(ifr.contentDocument.body.scrollHeight+32)+'px';}catch(e){}
-  };
-  ifr.src=URL.createObjectURL(blob);
-  var ov=document.getElementById('ov-contrato');
-  ov.style.display='flex';
+  var loading=document.getElementById('contrato-loading');
+  var embed=document.getElementById('contrato-embed');
+  loading.style.display='flex';
+  embed.style.display='none';
+  embed.src='';
+  document.getElementById('ov-contrato').style.display='flex';
+
+  _gerarPdfContrato(html).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    embed.src=url;
+    embed.style.display='block';
+    loading.style.display='none';
+  }).catch(function(err){
+    loading.innerHTML='<span style="color:var(--coral)">Erro ao gerar PDF. Tente novamente.</span>';
+    console.error('PDF error:',err);
+  });
+}
+
+async function _gerarPdfContrato(templateHtml){
+  var styleM=templateHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+  var origStyle=styleM?styleM[1]:'';
+  var coverInner=_kvExtract(templateHtml,'<div class="cover">');
+  var contentInner=_kvExtract(templateHtml,'<div class="content">');
+
+  var SENTINEL='<<<KV>>>';
+  contentInner=contentInner
+    .replace(/<div style="page-break-after:\s*always;?\s*"><\/div>/gi,SENTINEL)
+    .replace(/<div style="break-after:\s*page;?\s*"><\/div>/gi,SENTINEL)
+    .replace(/<div style="break-after:\s*always;?\s*"><\/div>/gi,SENTINEL);
+  var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
+
+  // Monta HTML isolado para renderizar no iframe oculto
+  var W=794,H=1123; // A4 a 96dpi
+  var renderCss='<style>'+origStyle
+    +'*{box-sizing:border-box}'
+    +'html,body{margin:0;padding:0;background:#fff}'
+    +'.kv-pg{width:'+W+'px;min-height:'+H+'px;background:#fff;overflow:hidden}'
+    +'.kv-pg.is-content{padding:68px 68px 60px 128px}'
+    +'.cover{width:'+W+'px;min-height:'+H+'px}'
+    +'</style>';
+  var renderHtml='<!DOCTYPE html><html><head><meta charset="UTF-8">'+renderCss+'</head><body>';
+  if(coverInner)renderHtml+='<div class="cover kv-pg">'+coverInner+'</div>';
+  pages.forEach(function(p){renderHtml+='<div class="kv-pg is-content">'+p+'</div>';});
+  renderHtml+='</body></html>';
+
+  // Iframe oculto fora da tela — sem flashing
+  var ifr=document.createElement('iframe');
+  ifr.style.cssText='position:fixed;left:-9999px;top:0;width:'+W+'px;height:'+(H+50)+'px;visibility:hidden;border:none;pointer-events:none;';
+  document.body.appendChild(ifr);
+
+  await new Promise(function(resolve){
+    ifr.onload=resolve;
+    ifr.srcdoc=renderHtml;
+  });
+
+  // Aguarda carregamento das fontes
+  try{await ifr.contentDocument.fonts.ready;}catch(e){}
+
+  var pageEls=ifr.contentDocument.querySelectorAll('.kv-pg');
+  var pdf=new jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+
+  for(var i=0;i<pageEls.length;i++){
+    var canvas=await html2canvas(pageEls[i],{
+      scale:2,
+      useCORS:true,
+      allowTaint:false,
+      logging:false,
+      width:W,
+      windowWidth:W,
+      backgroundColor:'#ffffff'
+    });
+    if(i>0)pdf.addPage();
+    pdf.addImage(canvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);
+  }
+
+  document.body.removeChild(ifr);
+  return pdf.output('blob');
 }
 
 function _kvExtract(html,openTag){
@@ -2040,48 +2116,6 @@ function _kvExtract(html,openTag){
   return html.substring(start,pos).trim();
 }
 
-function _injectPreviewCss(html){
-  var styleM=html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-  var origStyle=styleM?styleM[1]:'';
-
-  var coverInner=_kvExtract(html,'<div class="cover">');
-  var contentInner=_kvExtract(html,'<div class="content">');
-
-  // Split nas quebras de página — opera na string bruta, sem normalização de browser
-  var SENTINEL='<<<KV>>>';
-  contentInner=contentInner
-    .replace(/<div style="page-break-after:\s*always;?\s*"><\/div>/gi,SENTINEL)
-    .replace(/<div style="break-after:\s*page;?\s*"><\/div>/gi,SENTINEL)
-    .replace(/<div style="break-after:\s*always;?\s*"><\/div>/gi,SENTINEL);
-  var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
-
-  // Remove regras de body e cover do origStyle para evitar conflitos de cascata
-  var filteredStyle=origStyle
-    .replace(/body\s*\{[^}]*\}/gi,'')
-    .replace(/html\s*\{[^}]*\}/gi,'')
-    .replace(/\.cover\s*\{[^}]*\}/gi,'');
-
-  var css='<style>'
-    +filteredStyle
-    +'*{box-sizing:border-box}'
-    +'html,body{margin:0;padding:0;background:#c4c4c4}'
-    +'#kv-wrap{display:flex;flex-direction:column;align-items:center;'
-    +'padding:24px 0;background:#c4c4c4;min-height:100vh}'
-    +'.cover{display:flex;flex-direction:column;justify-content:space-between;'
-    +'width:210mm;margin:0 0 24px;background:#fff;'
-    +'box-shadow:0 2px 16px rgba(0,0,0,.18)}'
-    +'.kv-pg{width:210mm;min-height:297mm;'
-    +'padding:18mm 18mm 16mm 34mm;'
-    +'margin:0 0 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
-    +'</style>';
-
-  var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
-    +css+'</head><body><div id="kv-wrap">';
-  if(coverInner)out+='<div class="cover">'+coverInner+'</div>';
-  pages.forEach(function(p){if(p.trim())out+='<div class="kv-pg">'+p+'</div>';});
-  out+='</div></body></html>';
-  return out;
-}
 
 async function enviarContrato(){
   if(!_contratoRecord||!_currentUser)return;
