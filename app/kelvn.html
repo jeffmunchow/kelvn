@@ -12,7 +12,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Kelvn — Studio</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -1061,7 +1060,7 @@ select.aj-input{cursor:pointer;}
     </div>
   </div>
   <div style="height:85vh;overflow-y:auto;background:#c4c4c4;">
-    <iframe id="contrato-iframe" style="width:100%;height:100%;border:none;display:block;"></iframe>
+    <iframe id="contrato-iframe" style="width:100%;border:none;display:block;" scrolling="no"></iframe>
   </div>
 </div></div>
 
@@ -2001,7 +2000,7 @@ async function gerarContrato(){
   _abrirModalContrato(html, _contratoRecord);
 }
 
-async function _abrirModalContrato(html, record){
+function _abrirModalContrato(html, record){
   var badge=document.getElementById('contrato-status-badge');
   var btnEnviar=document.getElementById('contrato-btn-enviar');
   var btnLink=document.getElementById('contrato-btn-copiar-link');
@@ -2012,39 +2011,18 @@ async function _abrirModalContrato(html, record){
   btnEnviar.style.display=(record&&st==='rascunho')?'inline-flex':'none';
   btnLink.style.display=(record&&(st==='enviado'||st==='assinado'))?'inline-flex':'none';
 
+  // overflow-y:scroll mantém scrollbar sempre visível → largura do iframe constante
   var wrap=document.querySelector('#ov-contrato .modal>div[style*="overflow-y"]');
+  if(wrap)wrap.style.overflowY='scroll';
+
+  var blob=new Blob([_injectPreviewCss(html)],{type:'text/html'});
   var ifr=document.getElementById('contrato-iframe');
-
-  // Mostra estado de carregamento
-  ifr.src='about:blank';
-  ifr.style.height='100%';
-  if(wrap)wrap.style.background='#c4c4c4';
+  ifr.style.height='auto';
+  ifr.onload=function(){
+    try{ifr.style.height=(ifr.contentDocument.body.scrollHeight+32)+'px';}catch(e){}
+  };
+  ifr.src=URL.createObjectURL(blob);
   document.getElementById('ov-contrato').classList.add('open');
-
-  // Elemento temporário fora de tela com o HTML do contrato
-  var tmp=document.createElement('div');
-  tmp.style.cssText='position:fixed;left:-9999px;top:0;width:210mm;background:white;';
-  tmp.innerHTML=html;
-  document.body.appendChild(tmp);
-
-  try{
-    var pdfBlob=await html2pdf().set({
-      margin:0,
-      filename:'contrato.pdf',
-      html2canvas:{scale:2,useCORS:true,letterRendering:true,logging:false},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-    }).from(tmp).outputPdf('blob');
-
-    document.body.removeChild(tmp);
-    var pdfUrl=URL.createObjectURL(pdfBlob);
-    ifr.src=pdfUrl;
-  }catch(e){
-    // Fallback: exibe HTML simples se html2pdf falhar
-    document.body.removeChild(tmp);
-    var blob=new Blob([html],{type:'text/html'});
-    ifr.src=URL.createObjectURL(blob);
-    ifr.style.height='85vh';
-  }
 }
 
 function _kvExtract(html,openTag){
@@ -2081,27 +2059,20 @@ function _injectPreviewCss(html){
     .replace(/<div style="break-after:\s*always;?\s*"><\/div>/gi,SENTINEL);
   var pages=contentInner.split(SENTINEL).map(function(p){return p.trim();}).filter(function(p){return p.length>0;});
 
-  // CSS de preview: body flex para centralizar sem depender de margin:auto + viewport
+  // origStyle primeiro (contém @import das fontes + toda a tipografia do contrato).
+  // Após ele, sobrescrevemos só o que precisa mudar para o preview em tela.
   var css='<style>'
     +origStyle
-    +'@media screen{'
-    +'*{box-sizing:border-box}'
-    // flex no body garante centralização independente da largura do iframe
-    +'html,body{margin:0;padding:0}'
-    +'html{background:#c4c4c4!important}'
-    +'body{background:#c4c4c4!important;display:flex!important;flex-direction:column!important;'
-    +'align-items:center!important;padding:24px 0!important;width:100%!important}'
-    +'.cover{flex-shrink:0;width:210mm!important;height:297mm!important;'
-    +'padding:20mm 18mm 18mm 34mm!important;margin:0 0 24px!important;'
-    +'background:#fff!important;overflow:hidden!important;'
-    +'box-shadow:0 2px 16px rgba(0,0,0,.18);display:flex!important;'
-    +'flex-direction:column!important;justify-content:space-between!important}'
-    +'.kv-pg{flex-shrink:0;width:210mm;min-height:297mm;padding:18mm 18mm 16mm 34mm;'
-    +'margin:0 0 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
-    +'}</style>';
+    // Sobrescreve body background (origStyle tem background:white) e ativa flex para centralizar páginas
+    +'html,body{background:#c4c4c4!important}'
+    +'body{display:flex!important;flex-direction:column!important;align-items:center!important;padding:24px 0!important}'
+    // .cover: origStyle já tem width/height/padding/flex — só adicionamos margin e shadow
+    +'.cover{margin:0 0 24px!important;background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
+    // .kv-pg não existe em origStyle — classe nova só para o preview
+    +'.kv-pg{width:210mm;min-height:297mm;padding:18mm 18mm 16mm 34mm;margin:0 0 24px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
+    +'</style>';
 
   var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
-    +'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'
     +css+'</head><body>';
   if(coverInner)out+='<div class="cover">'+coverInner+'</div>';
   pages.forEach(function(p){if(p.trim())out+='<div class="kv-pg">'+p+'</div>';});
