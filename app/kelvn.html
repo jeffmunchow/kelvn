@@ -2022,45 +2022,33 @@ function _abrirModalContrato(html, record){
   document.getElementById('ov-contrato').classList.add('open');
 }
 
+function _kvExtract(html,openTag){
+  // Extrai o innerHTML do elemento que abre com openTag.
+  // Conta profundidade de <div...> e </div> para lidar com divs aninhadas,
+  // incluindo <div> sem atributos (bug do substr(...,5)==='<div ' não pega <div>).
+  var pos=html.indexOf(openTag);
+  if(pos===-1)return'';
+  pos+=openTag.length;
+  var depth=1,start=pos;
+  while(pos<html.length&&depth>0){
+    if(html[pos]==='<'){
+      // Abre: <div> OU <div ...> — verifica os 4 chars "<div" + que o 5º seja espaço ou ">"
+      if(html.substr(pos,4)==='<div'&&(html[pos+4]===' '||html[pos+4]==='>'||html[pos+4]==='\n'||html[pos+4]==='\t'))depth++;
+      else if(html.substr(pos,6)==='</div>'){depth--;if(depth===0)break;}
+    }
+    pos++;
+  }
+  return html.substring(start,pos).trim();
+}
+
 function _injectPreviewCss(html){
-  // Extrai o <style> original via regex na string bruta (sem DOMParser)
   var styleM=html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
   var origStyle=styleM?styleM[1]:'';
 
-  // Extrai innerHTML da capa percorrendo profundidade de divs na string bruta
-  // (regex simples falha em divs aninhadas)
-  var coverInner='';
-  var ci=html.indexOf('<div class="cover">');
-  if(ci>-1){
-    ci+='<div class="cover">'.length;
-    var depth=1,cs=ci;
-    while(ci<html.length&&depth>0){
-      if(html[ci]==='<'){
-        if(html.substr(ci,5)==='<div ')depth++;
-        else if(html.substr(ci,6)==='</div>'){depth--;if(depth===0)break;}
-      }
-      ci++;
-    }
-    coverInner=html.substring(cs,ci).trim();
-  }
+  var coverInner=_kvExtract(html,'<div class="cover">');
+  var contentInner=_kvExtract(html,'<div class="content">');
 
-  // Extrai innerHTML do .content da mesma forma
-  var contentInner='';
-  var ki=html.indexOf('<div class="content">');
-  if(ki>-1){
-    ki+='<div class="content">'.length;
-    var depth2=1,ks=ki;
-    while(ki<html.length&&depth2>0){
-      if(html[ki]==='<'){
-        if(html.substr(ki,5)==='<div ')depth2++;
-        else if(html.substr(ki,6)==='</div>'){depth2--;if(depth2===0)break;}
-      }
-      ki++;
-    }
-    contentInner=html.substring(ks,ki).trim();
-  }
-
-  // Split nas quebras de página — opera na string original, sem normalização de browser
+  // Split nas quebras de página — opera na string bruta, sem normalização de browser
   var SENTINEL='<<<KV>>>';
   contentInner=contentInner
     .replace(/<div style="page-break-after:\s*always;?\s*"><\/div>/gi,SENTINEL)
