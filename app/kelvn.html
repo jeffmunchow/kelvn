@@ -2019,18 +2019,37 @@ function _abrirModalContrato(html, record){
 }
 
 function _injectPreviewCss(html){
-  // Quebra .content em folhas separadas a cada page-break-after
-  html=html.replace(/<div[^>]*page-break-after[^>]*>\s*<\/div>/g,'</div><div class="content">');
-  var css='<style id="_kv_prev">@media screen{'
-    +'html,body{margin:0;padding:0;}'
-    +'body{background:#c4c4c4;padding:24px;box-sizing:border-box;}'
-    +'.cover{width:210mm;min-height:297mm;padding:20mm 18mm 18mm 34mm;margin:0 auto 20px;background:#fff;'
-    +'box-shadow:0 2px 16px rgba(0,0,0,.22);box-sizing:border-box;overflow:hidden;'
-    +'display:flex;flex-direction:column;justify-content:space-between;}'
-    +'.content{width:210mm;padding:18mm 18mm 16mm 34mm;margin:0 auto 20px;background:#fff;'
-    +'box-shadow:0 2px 16px rgba(0,0,0,.22);box-sizing:border-box;}'
+  // Usa DOMParser para dividir o contrato em páginas pela DOM — mais confiável que regex
+  var doc=(new DOMParser()).parseFromString(html,'text/html');
+  var origStyle=doc.querySelector('style')?doc.querySelector('style').textContent:'';
+  var cover=doc.querySelector('.cover');
+  var contentEl=doc.querySelector('.content');
+  var pages=[];
+  if(contentEl){
+    var cur=document.createElement('div');
+    Array.from(contentEl.childNodes).forEach(function(node){
+      var isBreak=node.nodeType===1&&((node.getAttribute&&(node.getAttribute('style')||'').indexOf('page-break-after')>-1));
+      if(isBreak){if(cur.innerHTML.trim())pages.push(cur.innerHTML);cur=document.createElement('div');}
+      else{cur.appendChild(node.cloneNode(true));}
+    });
+    if(cur.innerHTML.trim())pages.push(cur.innerHTML);
+  }
+  var css='<style>'+origStyle
+    +'@media screen{'
+    +'*{box-sizing:border-box}'
+    +'html,body{margin:0;padding:0}'
+    +'body{background:#c4c4c4!important;padding:24px}'
+    +'.cover{width:210mm!important;min-height:297mm;padding:20mm 18mm 18mm 34mm!important;margin:0 auto 20px!important;'
+    +'background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}'
+    +'.kv-pg{width:210mm;padding:18mm 18mm 16mm 34mm;margin:0 auto 20px;background:#fff;box-shadow:0 2px 16px rgba(0,0,0,.2)}'
     +'}</style>';
-  return html.replace('</head>',css+'</head>');
+  var out='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
+    +'<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'
+    +css+'</head><body>';
+  if(cover)out+='<div class="cover">'+cover.innerHTML+'</div>';
+  pages.forEach(function(p){if(p.trim())out+='<div class="kv-pg">'+p+'</div>';});
+  out+='</body></html>';
+  return out;
 }
 
 async function enviarContrato(){
