@@ -2047,19 +2047,17 @@ function _baixarContratoPdf(){
 function _injectPreviewCss(html){
   var styleM=html.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
   var origStyle=styleM?styleM[1]:'';
-  // Preview: mostra o HTML como documento contínuo centralizado.
-  // Não tenta simular páginas — evita espaços em branco artificiais.
-  // O PDF correto é gerado via window.print() que usa @page do template.
+  var bodyM=html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  var body=bodyM?bodyM[1].trim():'';
   var css='<style>'+origStyle
-    +'@media screen{'
-    +'html,body{margin:0!important;padding:0!important;background:#c4c4c4!important}'
-    +'body{display:flex!important;flex-direction:column!important;align-items:center!important;padding:24px 0!important}'
-    +'.cover{margin-bottom:24px!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important}'
+    // Sobrescreve apenas o necessário para o preview em tela
+    +'html,body{margin:0;padding:0;background:#c4c4c4}'
+    +'body{display:flex;flex-direction:column;align-items:center;padding:24px 0}'
+    +'.cover{margin-bottom:24px;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
     +'.content{width:210mm;background:#fff;padding:18mm 18mm 16mm 34mm;box-shadow:0 2px 16px rgba(0,0,0,.18)}'
-    +'}'
+    +'div[style*="page-break"]{display:none}'
     +'</style>';
-  var out=html.replace(/<style[^>]*>[\s\S]*?<\/style>/i,css);
-  return out;
+  return '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'+css+'</head><body>'+body+'</body></html>';
 }
 
 function _kvExtract(html,openTag){
