@@ -1575,7 +1575,9 @@ function rR(){
     .filter(function(e){
       if(!e.data) return false;
       var d=new Date(e.data);
-      if(isNaN(d)||d<now) return false;
+      if(isNaN(d)) return false;
+      var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+      if(d<today) return false;
       if(_edsEvIds.indexOf(e.id)>-1) return false;
       return true;
     })
