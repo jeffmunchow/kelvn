@@ -2662,7 +2662,7 @@ function savePK(){
 }
 function delPK(){if(!confirm('Excluir?'))return;undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();notify('Excluído');}
 var _eqId=null;
-var _eqColW=[220,150,230,160];
+var _eqColW=(function(){try{var s=localStorage.getItem('kelvn_eq_col_w');if(s)return JSON.parse(s);}catch(e){}return[220,150,230,160];})();
 function rEQ(){
   var es=g('equipe');
   var el=document.getElementById('eq-list');
@@ -2703,7 +2703,7 @@ function rEQ(){
         _eqColW[ci]=Math.max(80,sw+(ev.clientX-sx));
         el.querySelectorAll('[data-eq-col="'+ci+'"]').forEach(function(c){c.style.width=_eqColW[ci]+'px';});
       }
-      function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);}
+      function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);try{localStorage.setItem('kelvn_eq_col_w',JSON.stringify(_eqColW));}catch(e){}}
       document.addEventListener('mousemove',onMove);
       document.addEventListener('mouseup',onUp);
     });
