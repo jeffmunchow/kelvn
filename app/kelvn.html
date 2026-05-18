@@ -2143,17 +2143,51 @@ async function abrirEditorTemplate(){
   });
 
   var container=document.getElementById('template-editor-blocos');
-  container.innerHTML=blocos.map(function(b,i){
-    return '<div style="margin-bottom:1.25rem;">'
-      +'<div contenteditable="true" spellcheck="false" data-idx="'+i+'" style="font-family:\'DM Sans\',sans-serif;font-size:.88rem;line-height:1.7;color:var(--text);background:var(--surface2);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .875rem;outline:none;min-height:1.5rem;" onfocus="this.style.borderColor=\'var(--border-strong)\'" onblur="this.style.borderColor=\'var(--border)\'">'
-      +b.html
-      +'</div>'
-      +'</div>';
-  }).join('');
+  _renderBlocos(container,blocos);
 
   document.getElementById('ov-template-editor').style.display='flex';
   window._templateBlocos=blocos;
   _syncTemplateStatus();
+}
+
+function _blocoHtml(html,idx){
+  var addBtn='<button onclick="_addBloco('+idx+')" title="Adicionar cláusula abaixo" style="display:block;width:100%;margin:.3rem 0;background:none;border:none;border-top:.5px dashed var(--border);cursor:pointer;color:var(--text-hint);font-size:.72rem;padding:3px 0;opacity:.5;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">+ adicionar cláusula</button>';
+  return '<div class="te-bloco" data-idx="'+idx+'" style="position:relative;margin-bottom:.25rem;">'
+    +'<div style="display:flex;gap:.5rem;align-items:flex-start;">'
+    +'<div contenteditable="true" spellcheck="false" style="flex:1;font-family:\'DM Sans\',sans-serif;font-size:.88rem;line-height:1.7;color:var(--text);background:var(--surface2);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .875rem;outline:none;min-height:1.5rem;" onfocus="this.style.borderColor=\'var(--border-strong)\'" onblur="this.style.borderColor=\'var(--border)\'">'+html+'</div>'
+    +'<button onclick="_removeBloco('+idx+')" title="Remover cláusula" style="flex-shrink:0;margin-top:6px;background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:1rem;line-height:1;padding:2px 6px;border-radius:4px;" onmouseover="this.style.color=\'var(--coral)\'" onmouseout="this.style.color=\'var(--text-hint)\'">×</button>'
+    +'</div>'
+    +addBtn
+    +'</div>';
+}
+
+function _renderBlocos(container,blocos){
+  container.innerHTML=blocos.map(function(b,i){return _blocoHtml(b.html,i);}).join('');
+  window._templateBlocos=blocos;
+}
+
+function _addBloco(afterIdx){
+  var c=document.getElementById('template-editor-blocos');
+  var blocos=_colectaBlocos();
+  blocos.splice(afterIdx+1,0,{html:'',path:[]});
+  _renderBlocos(c,blocos);
+  var novo=c.querySelectorAll('[contenteditable]')[afterIdx+1];
+  if(novo)novo.focus();
+}
+
+function _removeBloco(idx){
+  var c=document.getElementById('template-editor-blocos');
+  var blocos=_colectaBlocos();
+  if(blocos.length<=1){notify('O contrato precisa ter pelo menos uma cláusula.');return;}
+  blocos.splice(idx,1);
+  _renderBlocos(c,blocos);
+}
+
+function _colectaBlocos(){
+  var els=document.getElementById('template-editor-blocos').querySelectorAll('[contenteditable]');
+  var blocos=window._templateBlocos?window._templateBlocos.slice():[];
+  els.forEach(function(el,i){if(blocos[i])blocos[i].html=el.innerHTML;else blocos.push({html:el.innerHTML,path:[]});});
+  return blocos;
 }
 
 function salvarTemplate(){
@@ -2162,8 +2196,18 @@ function salvarTemplate(){
     var doc=parser.parseFromString(_templateHtmlBase,'text/html');
     var sel='p, li, h1, h2, h3, h4, td, th';
     var nodes=Array.from(doc.querySelectorAll(sel)).filter(function(n){return n.textContent.trim().length>1;});
-    var editados=document.getElementById('template-editor-blocos').querySelectorAll('[contenteditable]');
-    editados.forEach(function(el,i){if(nodes[i])nodes[i].innerHTML=el.innerHTML;});
+    var blocos=_colectaBlocos();
+    // Atualiza blocos originais
+    blocos.forEach(function(b,i){if(nodes[i])nodes[i].innerHTML=b.html;});
+    // Cláusulas novas (sem path) são adicionadas ao final do .content
+    var novas=blocos.filter(function(b){return !b.path||b.path.length===0;});
+    if(novas.length){
+      var contentEl=doc.querySelector('.content')||doc.body;
+      novas.forEach(function(b){
+        if(!b.html.trim())return;
+        var p=doc.createElement('p');p.innerHTML=b.html;contentEl.appendChild(p);
+      });
+    }
     var result='<!DOCTYPE html>'+doc.documentElement.outerHTML;
     s('contrato_template',result);
     document.getElementById('ov-template-editor').style.display='none';
