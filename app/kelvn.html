@@ -941,8 +941,8 @@ select.aj-input{cursor:pointer;}
             <span class="aj-label">Template do contrato<span style="display:block;font-size:.72rem;font-weight:400;color:var(--text-hint);margin-top:2px;">Edite as cláusulas e o texto padrão do contrato</span></span>
             <button class="btn" onclick="abrirEditorTemplate()">Editar template</button>
           </div>
-          <div class="aj-row" id="aj-template-status" style="display:none;">
-            <span class="aj-label" style="color:var(--text-hint);font-size:.73rem;">Template personalizado ativo</span>
+          <div class="aj-row">
+            <span class="aj-label" style="color:var(--text-hint);font-size:.73rem;" id="aj-template-status-label">Template padrão em uso</span>
             <button class="btn" style="color:var(--coral);font-size:.73rem;" onclick="resetarTemplate()">Restaurar padrão</button>
           </div>
         </div>
@@ -2137,7 +2137,7 @@ async function abrirEditorTemplate(){
   var ifr=document.getElementById('template-editor-iframe');
   console.log('[editor] overlay encontrado:',!!ov,'iframe encontrado:',!!ifr);
   if(!ov||!ifr){notify('Erro interno: modal não encontrado');return;}
-  var editorHtml=html.replace('</head>','<style>@media screen{html,body{background:#e8e8e8!important;margin:0!important;padding:0!important}body{display:block!important}.cover{width:210mm!important;background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important}.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;margin-top:24px!important}}</style></head>');
+  var editorHtml=html.replace('</head>','<style>@media screen{html,body{background:#e8e8e8!important;margin:0!important;padding:0!important}body{display:block!important}.cover{width:210mm!important;background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important}.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;margin-top:24px!important}*{user-select:text!important;-webkit-user-select:text!important;cursor:text!important;}}</style></head>');
   var blob=new Blob([editorHtml],{type:'text/html'});
   ifr.onload=function(){
     try{
@@ -2173,8 +2173,9 @@ function resetarTemplate(){
 }
 
 function _syncTemplateStatus(){
-  var row=document.getElementById('aj-template-status');
-  if(row)row.style.display=g('contrato_template')?'flex':'none';
+  var lbl=document.getElementById('aj-template-status-label');
+  var hasCustom=typeof g('contrato_template')==='string'&&g('contrato_template').length>0;
+  if(lbl)lbl.textContent=hasCustom?'Template personalizado ativo':'Template padrão em uso';
 }
 
 function _injectPreviewCss(html){
