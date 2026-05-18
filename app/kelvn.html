@@ -3768,8 +3768,10 @@ function s(k,v){
   localStorage.setItem('kelvn_'+uid+k, JSON.stringify(v));
   if(_currentUser && _KEY_MAP[k]){ _syncKey(k,v); }
 }
+var _syncPending={};
 function _syncKey(k,v){
   clearTimeout(_syncTimers[k]);
+  _syncPending[k]=true;
   _syncTimers[k]=setTimeout(async function(){
     var map=_KEY_MAP[k]; if(!map) return;
     try{
@@ -3777,6 +3779,7 @@ function _syncKey(k,v){
       row[map.col]=v;
       await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
     }catch(e){ }
+    finally{ _syncPending[k]=false; }
   },800);
 }
 function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
@@ -3863,7 +3866,7 @@ function _setupRealtime(){
         if(table==='eventos')            { _cache.eventos=r.data||[]; rCalAno(); }
         if(table==='financeiro')         _cache.fin         =r.data||[];
         if(table==='financeiro_pessoal') _cache.fin_pessoal =r.data||[];
-        if(table==='posproducao')        { _cache.edicoes=r.edicoes||[]; _cache.entregas=r.entregas||[]; _cache.pends=r.pends||[]; _cache.todos=r.todos||[]; }
+        if(table==='posproducao')        { if(!_syncPending['edicoes'])  _cache.edicoes =r.edicoes ||[]; if(!_syncPending['entregas']) _cache.entregas=r.entregas||[]; if(!_syncPending['pends']) _cache.pends=r.pends||[]; if(!_syncPending['todos']) _cache.todos=r.todos||[]; }
         if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; }
         if(table==='questionarios')      { _cache.q_templates=r.templates||[]; _cache.q_respostas=r.respostas||[]; }
         rR();
