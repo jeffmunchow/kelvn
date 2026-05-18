@@ -2023,7 +2023,20 @@ function _abrirModalContrato(html, record){
   var ifr=document.getElementById('contrato-iframe');
   var blob=new Blob([_injectPreviewCss(html)],{type:'text/html'});
   ifr.onload=function(){
-    try{ifr.style.height=(ifr.contentDocument.body.scrollHeight+32)+'px';}catch(e){}
+    function _ajustaAltura(){
+      try{
+        var h=ifr.contentDocument.body.scrollHeight;
+        if(h>100)ifr.style.height=h+'px';
+      }catch(e){}
+    }
+    _ajustaAltura();
+    try{
+      ifr.contentDocument.fonts.ready.then(function(){
+        _ajustaAltura();
+      });
+    }catch(e){}
+    setTimeout(_ajustaAltura,800);
+    setTimeout(_ajustaAltura,2000);
   };
   ifr.src=URL.createObjectURL(blob);
   document.getElementById('ov-contrato').style.display='flex';
