@@ -937,6 +937,14 @@ select.aj-input{cursor:pointer;}
         <div class="aj-section-desc">Configurações usadas no gerador de contratos.</div>
         <div class="aj-rows">
           <div class="aj-row"><span class="aj-label">Cidade do foro</span><input class="aj-input" type="text" id="sd-studio-foro" placeholder="ex: Pelotas" oninput="saveSD()"></div>
+          <div class="aj-row">
+            <span class="aj-label">Template do contrato<span style="display:block;font-size:.72rem;font-weight:400;color:var(--text-hint);margin-top:2px;">Edite as cláusulas e o texto padrão do contrato</span></span>
+            <button class="btn" onclick="abrirEditorTemplate()">Editar template</button>
+          </div>
+          <div class="aj-row" id="aj-template-status" style="display:none;">
+            <span class="aj-label" style="color:var(--text-hint);font-size:.73rem;">Template personalizado ativo</span>
+            <button class="btn" style="color:var(--coral);font-size:.73rem;" onclick="resetarTemplate()">Restaurar padrão</button>
+          </div>
         </div>
       </div>
 
@@ -1062,6 +1070,23 @@ select.aj-input{cursor:pointer;}
     </div>
     <!-- iframe exatamente A4 -->
     <iframe id="contrato-iframe" style="width:100%;border:none;display:block;border-radius:0 0 var(--radius-sm) var(--radius-sm);" scrolling="no"></iframe>
+  </div>
+</div>
+
+<!-- MODAL EDITOR DE TEMPLATE -->
+<div id="ov-template-editor" style="display:none;position:fixed;inset:0;z-index:400;flex-direction:column;background:var(--surface);">
+  <div style="flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.5rem;border-bottom:.5px solid var(--border-strong);">
+    <div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;margin:0;">Template do contrato</h2>
+      <div style="font-size:.72rem;color:var(--text-hint);margin-top:2px;">Edite diretamente no documento. Os campos entre {{ }} são preenchidos automaticamente.</div>
+    </div>
+    <div style="display:flex;gap:.5rem;">
+      <button class="btn" onclick="document.getElementById('ov-template-editor').style.display='none'">Cancelar</button>
+      <button class="btn primary" onclick="salvarTemplate()">Salvar template</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow:hidden;background:#c4c4c4;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;">
+    <iframe id="template-editor-iframe" style="width:210mm;border:none;flex-shrink:0;min-height:297mm;" scrolling="no"></iframe>
   </div>
 </div>
 
@@ -1983,13 +2008,15 @@ async function gerarContrato(){
     contrato_data_geracao:dataGeracao
   };
 
-  var html='';
-  try{
-    var resp=await fetch('/contrato_template.html');
-    if(!resp.ok)throw new Error('template not found');
-    html=await resp.text();
-  }catch(e){
-    notify('Template não encontrado em /contrato_template.html');return;
+  var html=g('contrato_template')||'';
+  if(!html){
+    try{
+      var resp=await fetch('/contrato_template.html');
+      if(!resp.ok)throw new Error('template not found');
+      html=await resp.text();
+    }catch(e){
+      notify('Template não encontrado em /contrato_template.html');return;
+    }
   }
 
   // Preenche placeholders
@@ -2090,6 +2117,52 @@ async function _baixarContratoPdf(){
   }
 }
 
+async function abrirEditorTemplate(){
+  var html=g('contrato_template')||'';
+  if(!html){
+    try{var r=await fetch('/contrato_template.html');html=await r.text();}catch(e){notify('Erro ao carregar template');return;}
+  }
+  var ifr=document.getElementById('template-editor-iframe');
+  var editorHtml=html.replace('</head>','<style>@media screen{html,body{background:#e8e8e8!important;margin:0!important;padding:0!important}body{display:block!important}.cover{width:210mm!important;background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important}.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;margin-top:24px!important}}</style></head>');
+  var blob=new Blob([editorHtml],{type:'text/html'});
+  ifr.onload=function(){
+    try{
+      ifr.contentDocument.designMode='on';
+      var h=ifr.contentDocument.body.scrollHeight;
+      if(h>100)ifr.style.height=h+'px';
+      ifr.contentDocument.fonts.ready.then(function(){ifr.style.height=ifr.contentDocument.body.scrollHeight+'px';});
+      setTimeout(function(){ifr.style.height=ifr.contentDocument.body.scrollHeight+'px';},800);
+    }catch(e){}
+  };
+  ifr.src=URL.createObjectURL(blob);
+  document.getElementById('ov-template-editor').style.display='flex';
+  _syncTemplateStatus();
+}
+
+function salvarTemplate(){
+  var ifr=document.getElementById('template-editor-iframe');
+  try{
+    var html=ifr.contentDocument.documentElement.outerHTML;
+    html=html.replace(/<style>@media screen\{.*?\}<\/style>/s,'');
+    s('contrato_template',html);
+    document.getElementById('ov-template-editor').style.display='none';
+    _syncTemplateStatus();
+    notify('Template salvo');
+  }catch(e){notify('Erro ao salvar template');}
+}
+
+function resetarTemplate(){
+  if(!confirm('Restaurar o template padrão? O template personalizado será removido.'))return;
+  s('contrato_template','');
+  _syncTemplateStatus();
+  notify('Template padrão restaurado');
+}
+
+function _syncTemplateStatus(){
+  var row=document.getElementById('aj-template-status');
+  if(row)row.style.display=g('contrato_template')?'flex':'none';
+}
+
 function _injectPreviewCss(html){
   // Injeta CSS @media screen no HTML original sem alterar nada do template.
   // - Fundo cinza fora das páginas
@@ -2156,6 +2229,7 @@ function switchAJ(name){
   var ab=document.getElementById('aj-cat-'+name);if(ab)ab.classList.add('active');
   if(name==='geral') _syncThemeUI();
   if(name==='equipe'){_loadEqColW();rEQ();}
+  if(name==='contratos') _syncTemplateStatus();
 }
 function _syncThemeUI(){
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -3535,7 +3609,8 @@ var _KEY_MAP = {
   'tiposReuniao': {table:'configuracoes',      col:'tipos_reuniao'},
   'slots':        {table:'configuracoes',      col:'slots'},
   'sd':           {table:'configuracoes',      col:'sd'},
-  'eq_col_w':    {table:'configuracoes',      col:'eq_col_w'},
+  'eq_col_w':          {table:'configuracoes', col:'eq_col_w'},
+  'contrato_template': {table:'configuracoes', col:'contrato_template'},
   'q_templates':  {table:'questionarios',      col:'templates'},
   'q_respostas':  {table:'questionarios',      col:'respostas'}
 };
@@ -3602,7 +3677,7 @@ function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
 
 function _loadFromLocalCache(){
   // Carrega dados do localStorage instantaneamente
-  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','eq_col_w'];
+  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','eq_col_w','contrato_template'];
   var hasAny=false;
   keys.forEach(function(k){
     var raw=localStorage.getItem(_lsKey(k));
@@ -3654,7 +3729,7 @@ async function _loadFromSupabase(){
       });
     }
     if(m.configuracoes){
-      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',eq_col_w:'eq_col_w'};
+      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',eq_col_w:'eq_col_w',contrato_template:'contrato_template'};
       Object.keys(cmap).forEach(function(col){
         localStorage.setItem(_lsKey(cmap[col]), JSON.stringify(m.configuracoes[col]||[]));
       });
