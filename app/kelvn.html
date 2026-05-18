@@ -1040,7 +1040,7 @@ select.aj-input{cursor:pointer;}
 
   <div class="ma">
     <button class="btn" style="color:var(--coral);display:none;" id="mc-del" onclick="delC()">Excluir</button>
-    <button class="btn" style="display:none;" id="mc-contrato-btn" onclick="gerarContrato()">Gerar contrato</button>
+    <button class="btn" style="display:none;" id="mc-contrato-btn" onclick="gerarContrato()"><span id="mc-contrato-dot" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--border-strong);margin-right:6px;flex-shrink:0;"></span>Contrato</button>
     <div style="flex:1"></div>
     <button class="btn" onclick="cov('ov-c')">Cancelar</button>
     <button class="btn primary" onclick="saveC()">Salvar</button>
@@ -1053,7 +1053,6 @@ select.aj-input{cursor:pointer;}
     <!-- barra de ações -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--surface);border-radius:var(--radius-sm) var(--radius-sm) 0 0;border:.5px solid var(--border-strong);">
       <div style="display:flex;align-items:center;gap:.6rem;">
-        <h2 style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;margin:0;">Contrato</h2>
         <span id="contrato-status-badge" style="display:none;font-size:.62rem;padding:2px 8px;border-radius:20px;font-weight:500;"></span>
       </div>
       <div style="display:flex;align-items:center;gap:.4rem;">
@@ -1820,6 +1819,15 @@ function openC(id){
     document.getElementById('mc-notas').value=c.notas||'';
     document.getElementById('mc-del').style.display='inline-flex';
     document.getElementById('mc-contrato-btn').style.display='inline-flex';
+    var dot=document.getElementById('mc-contrato-dot');
+    dot.style.background='var(--border-strong)';
+    if(_currentUser){
+      _sb.from('contratos').select('status').eq('user_id',_currentUser.id).eq('cliente_id',id).order('criado_em',{ascending:false}).limit(1).maybeSingle().then(function(r){
+        if(r.data){
+          dot.style.background=r.data.status==='assinado'?'var(--teal)':'var(--coral)';
+        }
+      });
+    }
     rPL(c.parcelas||[]);
     _cEventos=(c.eventosExtra||[]).map(function(e){return Object.assign({},e);});rCEventos();
     // contrato fields
