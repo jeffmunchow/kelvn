@@ -2008,7 +2008,7 @@ async function gerarContrato(){
     contrato_data_geracao:dataGeracao
   };
 
-  var html=g('contrato_template')||'';
+  var html=(typeof g('contrato_template')==='string'&&g('contrato_template'))||'';
   if(!html){
     try{
       var resp=await fetch('/contrato_template.html');
@@ -2119,7 +2119,7 @@ async function _baixarContratoPdf(){
 
 async function abrirEditorTemplate(){
   console.log('[editor] abrirEditorTemplate iniciado');
-  var html=g('contrato_template')||'';
+  var html=(typeof g('contrato_template')==='string'&&g('contrato_template'))||'';
   console.log('[editor] template salvo:', html?'sim ('+html.length+' chars)':'não');
   if(!html){
     try{
@@ -3744,10 +3744,13 @@ async function _loadFromSupabase(){
       });
     }
     if(m.configuracoes){
-      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',eq_col_w:'eq_col_w',contrato_template:'contrato_template'};
+      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',eq_col_w:'eq_col_w'};
       Object.keys(cmap).forEach(function(col){
         localStorage.setItem(_lsKey(cmap[col]), JSON.stringify(m.configuracoes[col]||[]));
       });
+      var ct=m.configuracoes.contrato_template||'';
+      _cache.contrato_template=ct;
+      localStorage.setItem(_lsKey('contrato_template'),JSON.stringify(ct));
     }
     if(m.questionarios){
       localStorage.setItem(_lsKey('q_templates'), JSON.stringify(m.questionarios.templates||[]));
