@@ -2141,7 +2141,8 @@ async function abrirEditorTemplate(){
   var blob=new Blob([editorHtml],{type:'text/html'});
   ifr.onload=function(){
     try{
-      ifr.contentDocument.designMode='on';
+      ifr.contentDocument.body.contentEditable='true';
+      ifr.contentDocument.body.spellcheck=false;
       var h=ifr.contentDocument.body.scrollHeight;
       if(h>100)ifr.style.height=h+'px';
       ifr.contentDocument.fonts.ready.then(function(){ifr.style.height=ifr.contentDocument.body.scrollHeight+'px';});
@@ -2157,7 +2158,7 @@ function salvarTemplate(){
   var ifr=document.getElementById('template-editor-iframe');
   try{
     var html=ifr.contentDocument.documentElement.outerHTML;
-    html=html.replace(/<style>@media screen\{.*?\}<\/style>/s,'');
+    html=html.replace(/<style>[^<]*@media screen[^<]*<\/style>/g,'');
     s('contrato_template',html);
     document.getElementById('ov-template-editor').style.display='none';
     _syncTemplateStatus();
