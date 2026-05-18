@@ -1078,15 +1078,15 @@ select.aj-input{cursor:pointer;}
   <div style="flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.5rem;border-bottom:.5px solid var(--border-strong);">
     <div>
       <h2 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;margin:0;">Template do contrato</h2>
-      <div style="font-size:.72rem;color:var(--text-hint);margin-top:2px;">Edite diretamente no documento. Os campos entre {{ }} são preenchidos automaticamente.</div>
+      <div style="font-size:.72rem;color:var(--text-hint);margin-top:2px;">Edite os textos das cláusulas. Os campos <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;">{{nome}}</code> são preenchidos automaticamente.</div>
     </div>
     <div style="display:flex;gap:.5rem;">
-      <button class="btn" onclick="document.getElementById('ov-template-editor').style.display='none'">Cancelar</button>
+      <button class="btn" onclick="fecharEditorTemplate()">Cancelar</button>
       <button class="btn primary" onclick="salvarTemplate()">Salvar template</button>
     </div>
   </div>
-  <div style="flex:1;overflow:hidden;background:#c4c4c4;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;">
-    <iframe id="template-editor-iframe" style="width:210mm;border:none;flex-shrink:0;min-height:297mm;" scrolling="no"></iframe>
+  <div style="flex:1;overflow-y:auto;padding:2rem 2.5rem;max-width:860px;margin:0 auto;width:100%;box-sizing:border-box;">
+    <div id="template-editor-blocos"></div>
   </div>
 </div>
 
@@ -2117,53 +2117,63 @@ async function _baixarContratoPdf(){
   }
 }
 
+var _templateHtmlBase='';
+
 async function abrirEditorTemplate(){
-  console.log('[editor] abrirEditorTemplate iniciado');
-  var html=(typeof g('contrato_template')==='string'&&g('contrato_template'))||'';
-  console.log('[editor] template salvo:', html?'sim ('+html.length+' chars)':'não');
-  if(!html){
+  _templateHtmlBase=(typeof g('contrato_template')==='string'&&g('contrato_template'))||'';
+  if(!_templateHtmlBase){
     try{
       var r=await fetch('/contrato_template.html');
       if(!r.ok)throw new Error('HTTP '+r.status);
-      html=await r.text();
-      console.log('[editor] template carregado do servidor: '+html.length+' chars');
-    }catch(e){
-      console.error('[editor] erro ao carregar template:',e);
-      notify('Erro ao carregar template: '+e.message);
-      return;
-    }
+      _templateHtmlBase=await r.text();
+    }catch(e){notify('Erro ao carregar template: '+e.message);return;}
   }
-  var ov=document.getElementById('ov-template-editor');
-  var ifr=document.getElementById('template-editor-iframe');
-  console.log('[editor] overlay encontrado:',!!ov,'iframe encontrado:',!!ifr);
-  if(!ov||!ifr){notify('Erro interno: modal não encontrado');return;}
-  var editorHtml=html.replace('</head>','<style>@media screen{html,body{background:#e8e8e8!important;margin:0!important;padding:0!important}body{display:block!important}.cover{width:210mm!important;background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important}.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;margin-top:24px!important}*{user-select:text!important;-webkit-user-select:text!important;cursor:text!important;}}</style></head>');
-  var blob=new Blob([editorHtml],{type:'text/html'});
-  ifr.onload=function(){
-    try{
-      ifr.contentDocument.body.contentEditable='true';
-      ifr.contentDocument.body.spellcheck=false;
-      var h=ifr.contentDocument.body.scrollHeight;
-      if(h>100)ifr.style.height=h+'px';
-      ifr.contentDocument.fonts.ready.then(function(){ifr.style.height=ifr.contentDocument.body.scrollHeight+'px';});
-      setTimeout(function(){ifr.style.height=ifr.contentDocument.body.scrollHeight+'px';},800);
-    }catch(e){console.error('[editor] iframe onload erro:',e);}
-  };
-  ifr.src=URL.createObjectURL(blob);
-  ov.style.display='flex';
+
+  // Extrai blocos de texto editáveis (p, li, h1-h6, td) com seu conteúdo HTML
+  var parser=new DOMParser();
+  var doc=parser.parseFromString(_templateHtmlBase,'text/html');
+  var sel='p, li, h1, h2, h3, h4, td, th';
+  var nodes=doc.querySelectorAll(sel);
+  var blocos=[];
+  nodes.forEach(function(n){
+    var txt=n.textContent.trim();
+    if(txt&&txt.length>1){
+      blocos.push({html:n.innerHTML,path:_getNodePath(n,doc.body)});
+    }
+  });
+
+  var container=document.getElementById('template-editor-blocos');
+  container.innerHTML=blocos.map(function(b,i){
+    return '<div style="margin-bottom:1.25rem;">'
+      +'<div contenteditable="true" spellcheck="false" data-idx="'+i+'" style="font-family:\'DM Sans\',sans-serif;font-size:.88rem;line-height:1.7;color:var(--text);background:var(--surface2);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .875rem;outline:none;min-height:1.5rem;" onfocus="this.style.borderColor=\'var(--border-strong)\'" onblur="this.style.borderColor=\'var(--border)\'">'
+      +b.html
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  document.getElementById('ov-template-editor').style.display='flex';
+  window._templateBlocos=blocos;
   _syncTemplateStatus();
 }
 
 function salvarTemplate(){
-  var ifr=document.getElementById('template-editor-iframe');
   try{
-    var html=ifr.contentDocument.documentElement.outerHTML;
-    html=html.replace(/<style>[^<]*@media screen[^<]*<\/style>/g,'');
-    s('contrato_template',html);
+    var parser=new DOMParser();
+    var doc=parser.parseFromString(_templateHtmlBase,'text/html');
+    var sel='p, li, h1, h2, h3, h4, td, th';
+    var nodes=Array.from(doc.querySelectorAll(sel)).filter(function(n){return n.textContent.trim().length>1;});
+    var editados=document.getElementById('template-editor-blocos').querySelectorAll('[contenteditable]');
+    editados.forEach(function(el,i){if(nodes[i])nodes[i].innerHTML=el.innerHTML;});
+    var result='<!DOCTYPE html>'+doc.documentElement.outerHTML;
+    s('contrato_template',result);
     document.getElementById('ov-template-editor').style.display='none';
     _syncTemplateStatus();
     notify('Template salvo');
-  }catch(e){notify('Erro ao salvar template');}
+  }catch(e){console.error(e);notify('Erro ao salvar template');}
+}
+
+function fecharEditorTemplate(){
+  document.getElementById('ov-template-editor').style.display='none';
 }
 
 function resetarTemplate(){
@@ -2171,6 +2181,13 @@ function resetarTemplate(){
   s('contrato_template','');
   _syncTemplateStatus();
   notify('Template padrão restaurado');
+}
+
+function _getNodePath(node,root){
+  var path=[];
+  var n=node;
+  while(n&&n!==root){path.unshift(Array.from(n.parentNode.children).indexOf(n));n=n.parentNode;}
+  return path;
 }
 
 function _syncTemplateStatus(){
