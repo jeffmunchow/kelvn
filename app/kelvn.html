@@ -1115,7 +1115,7 @@ select.aj-input{cursor:pointer;}
 
 <!-- MODAL PENDÊNCIA -->
 <div class="overlay" id="ov-p"><div class="modal">
-  <h2 id="mp-t">Nova Pendência</h2>
+  <h2 id="mp-t">Nova Tarefa</h2>
   <div class="field"><label>Descrição</label><input type="text" id="mp-desc" placeholder="ex: Editar galeria"></div>
   <div class="field"><label>Cliente</label><select id="mp-cliente"><option value="">— geral —</option></select></div>
   <div class="field"><label>Prazo</label><input type="text" class="sd" maxlength="10" id="mp-prazo" placeholder="DD/MM/AAAA" autocomplete="off"></div>
@@ -2562,7 +2562,7 @@ function openPend(id){
     document.getElementById('mp-prazo').value=fd(p.prazo);document.getElementById('mp-prio').value=p.prio||'normal';
     document.getElementById('mp-del').style.display='inline-flex';
   }else{
-    document.getElementById('mp-t').textContent='Nova Pendência';
+    document.getElementById('mp-t').textContent='Nova Tarefa';
     ['mp-desc','mp-prazo'].forEach(function(i){document.getElementById(i).value='';});
     document.getElementById('mp-prio').value='normal';document.getElementById('mp-del').style.display='none';
   }
