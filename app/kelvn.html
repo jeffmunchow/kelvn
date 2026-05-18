@@ -1540,7 +1540,15 @@ function rR(){
   var inad=calcInadTotal();
   document.getElementById('r-recv').textContent=$m(recv);
   document.getElementById('r-inad').textContent=$m(inad);
-  var pends=(g('pends')||[]).filter(function(p){return !p.done;});
+  var _po={alta:0,media:1,baixa:2};
+  var pends=(g('pends')||[]).filter(function(p){return !p.done;}).sort(function(a,b){
+    var pa=_po[a.prio]??1,pb=_po[b.prio]??1;
+    if(pa!==pb)return pa-pb;
+    if(!a.prazo&&!b.prazo)return 0;
+    if(!a.prazo)return 1;
+    if(!b.prazo)return -1;
+    return a.prazo.localeCompare(b.prazo);
+  });
   var topPend=pends[0];
   var posEl=document.getElementById('r-pos-aberto');
   var posSubEl=document.getElementById('r-pos-sub');
