@@ -1599,13 +1599,14 @@ function _fasesIcons(e){
     var done=!!fases[p.k];
     var color=done?'var(--text)':'var(--text-hint)';
     var opacity=done?'1':'0.45';
-    return '<button class="ed-fase-btn" title="'+p.label+'" draggable="false" onclick="event.stopPropagation();toggleFase(\''+e.clienteId+'\',\''+p.k+'\')" style="color:'+color+';opacity:'+opacity+';background:none;border:none;cursor:pointer;padding:2px 3px;line-height:0;display:flex;align-items:center;">'+p.svg+'</button>';
+    var evKey=e.evId||('_c_'+e.clienteId);
+    return '<button class="ed-fase-btn" title="'+p.label+'" draggable="false" onclick="event.stopPropagation();toggleFase(\''+evKey+'\',\''+p.k+'\')" style="color:'+color+';opacity:'+opacity+';background:none;border:none;cursor:pointer;padding:2px 3px;line-height:0;display:flex;align-items:center;">'+p.svg+'</button>';
   }).join('')+'</div>';
 }
 
-function toggleFase(clienteId,fase){
+function toggleFase(evKey,fase){
   var eds=(g('edicoes')||[]).slice();
-  var idx=eds.findIndex(function(e){return e.clienteId===clienteId;});
+  var idx=eds.findIndex(function(e){return (e.evId||('_c_'+e.clienteId))===evKey;});
   if(idx===-1)return;
   if(!eds[idx].fases)eds[idx].fases={};
   eds[idx].fases[fase]=!eds[idx].fases[fase];
