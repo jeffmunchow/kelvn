@@ -1986,6 +1986,9 @@ async function gerarContrato(){
   html=html.replace(/\{\{(\w+)\}\}/g,function(_,key){return dados[key]!==undefined?dados[key]:'';});
 
   // Salva no Supabase
+  if(!_currentUser){
+    console.warn('[contrato] _currentUser é null — contrato não será salvo no Supabase');
+  }
   if(_currentUser){
     var token=uid();
     var expira=new Date();expira.setDate(expira.getDate()+7);
@@ -1998,6 +2001,10 @@ async function gerarContrato(){
       token_assinatura:token,
       token_expira_em:expira.toISOString()
     }).select().maybeSingle();
+    if(res.error){
+      console.error('[contrato] insert error:', JSON.stringify(res.error));
+      notify('Erro ao salvar contrato: '+res.error.message);
+    }
     _contratoRecord=res.data||null;
   }
 
@@ -3803,10 +3810,27 @@ _sb.auth.onAuthStateChange(function(event, session){
     if(!document.getElementById('resetScreen').classList.contains('visible')){
       onLogin(session.user);
     }
-  } else if(event==='SIGNED_OUT'){
+  } else if(event==='SIGNED_OUT' || event==='TOKEN_REFRESHED' && !session){
+    _currentUser=null;
+    showAuthScreen(); showLogin();
+  } else if(event==='USER_UPDATED' && !session){
+    _currentUser=null;
     showAuthScreen(); showLogin();
   }
 });
+
+// Detecta token inválido em qualquer chamada ao Supabase
+var _sbOrigFetch=window.fetch;
+window.fetch=function(){
+  return _sbOrigFetch.apply(this,arguments).then(function(r){
+    if(r.status===401&&_currentUser){
+      console.warn('[auth] 401 detectado — sessão expirada, redirecionando para login');
+      _currentUser=null;
+      _sb.auth.signOut().then(function(){ showAuthScreen(); showLogin(); notify('Sessão expirada. Faça login novamente.'); });
+    }
+    return r;
+  });
+};
 
 async function doResetPassword(){
   var btn=document.getElementById('resetBtn');
