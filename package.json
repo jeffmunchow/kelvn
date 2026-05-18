@@ -1,6 +1,6 @@
 {
   "name": "kelvn",
-  "version": "1.2.0",
+  "version": "1.4.25",
   "private": true,
   "engines": {
     "node": "22.x"
