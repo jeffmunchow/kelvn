@@ -2659,30 +2659,52 @@ function savePK(){
 }
 function delPK(){if(!confirm('Excluir?'))return;undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();notify('Excluído');}
 var _eqId=null;
+var _eqColW=[220,150,230,160];
 function rEQ(){
   var es=g('equipe');
   var el=document.getElementById('eq-list');
   if(!el)return;
-  if(!es.length){el.innerHTML='<div style="font-size:.78rem;color:var(--text-hint);font-style:italic;padding:.5rem 0;">Nenhum membro cadastrado</div>';return;}
-  var colStyle='font-size:.78rem;color:var(--text);';
-  var hStyle='font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;';
-  var grid='display:grid;grid-template-columns:1.4fr 1fr 1.5fr 1fr 60px;gap:.75rem;align-items:center;padding:.6rem 0;border-bottom:.5px solid var(--border);max-width:900px;';
-  el.innerHTML='<div style="'+grid+'border-top:.5px solid var(--border);">'
-    +'<span style="'+hStyle+'">Nome</span>'
-    +'<span style="'+hStyle+'">Função</span>'
-    +'<span style="'+hStyle+'">E-mail</span>'
-    +'<span style="'+hStyle+'">Telefone</span>'
-    +'<span></span>'
-    +'</div>'
-    +es.map(function(e){
-      return '<div style="'+grid+'">'
-        +'<span style="'+colStyle+'font-weight:500;">'+e.nome+'</span>'
-        +'<span style="'+colStyle+'color:var(--text-muted);">'+( e.funcao||'—')+'</span>'
-        +'<span style="'+colStyle+'color:var(--text-muted);">'+(e.email||'—')+'</span>'
-        +'<span style="'+colStyle+'color:var(--text-muted);">'+(e.tel||'—')+'</span>'
-        +'<button class="btn" style="font-size:.72rem;padding:3px 10px;white-space:nowrap;" onclick="openEq(\''+e.id+'\')">Editar</button>'
-        +'</div>';
+  var hStyle='font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;padding:.55rem .75rem;box-sizing:border-box;position:relative;flex-shrink:0;overflow:hidden;';
+  var cStyle='font-size:.78rem;padding:.55rem .75rem;box-sizing:border-box;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;';
+  var rowStyle='display:flex;align-items:center;border-bottom:.5px solid var(--border);width:100%;';
+  var handleStyle='position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:2;display:flex;align-items:center;justify-content:center;';
+  var handleLineStyle='width:1px;height:60%;background:var(--border-strong);opacity:.4;pointer-events:none;';
+
+  var labels=['Nome','Função','E-mail','Telefone'];
+  var headerCells=labels.map(function(l,i){
+    var handle=i<3?'<div class="eq-rh" data-i="'+i+'" style="'+handleStyle+'"><div style="'+handleLineStyle+'"></div></div>':'';
+    return '<div style="'+hStyle+'width:'+_eqColW[i]+'px;" data-eq-col="'+i+'">'+l+handle+'</div>';
+  }).join('');
+  var header='<div style="'+rowStyle+'border-top:.5px solid var(--border);">'+headerCells+'<div style="flex:1;"></div></div>';
+
+  var rows=!es.length
+    ?'<div style="font-size:.78rem;color:var(--text-hint);font-style:italic;padding:.75rem;">Nenhum membro cadastrado</div>'
+    :es.map(function(e){
+      var cells=[
+        '<div style="'+cStyle+'width:'+_eqColW[0]+'px;font-weight:500;color:var(--text);" data-eq-col="0">'+e.nome+'</div>',
+        '<div style="'+cStyle+'width:'+_eqColW[1]+'px;color:var(--text-muted);" data-eq-col="1">'+(e.funcao||'—')+'</div>',
+        '<div style="'+cStyle+'width:'+_eqColW[2]+'px;color:var(--text-muted);" data-eq-col="2">'+(e.email||'—')+'</div>',
+        '<div style="'+cStyle+'width:'+_eqColW[3]+'px;color:var(--text-muted);" data-eq-col="3">'+(e.tel||'—')+'</div>',
+      ].join('');
+      return '<div style="'+rowStyle+'">'+cells+'<div style="flex:1;display:flex;align-items:center;padding:0 .75rem;"><button class="btn" style="font-size:.72rem;padding:3px 10px;" onclick="openEq(\''+e.id+'\')">Editar</button></div></div>';
     }).join('');
+
+  el.innerHTML=header+rows;
+
+  el.querySelectorAll('.eq-rh').forEach(function(h){
+    h.addEventListener('mousedown',function(ev){
+      ev.preventDefault();
+      var ci=parseInt(h.getAttribute('data-i'));
+      var sx=ev.clientX,sw=_eqColW[ci];
+      function onMove(ev){
+        _eqColW[ci]=Math.max(80,sw+(ev.clientX-sx));
+        el.querySelectorAll('[data-eq-col="'+ci+'"]').forEach(function(c){c.style.width=_eqColW[ci]+'px';});
+      }
+      function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);}
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+  });
 }
 function openEq(id){
   _eqId=id||null;
