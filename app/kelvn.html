@@ -1574,10 +1574,7 @@ function rR(){
   var allEvs=g('eventos').concat(_primaryEventsFromClientes())
     .filter(function(e){
       if(!e.data) return false;
-      var d=new Date(e.data);
-      if(isNaN(d)) return false;
-      var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-      if(d<today) return false;
+      if(isNaN(new Date(e.data))) return false;
       if(_edsEvIds.indexOf(e.id)>-1) return false;
       return true;
     })
