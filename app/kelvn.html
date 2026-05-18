@@ -1048,21 +1048,23 @@ select.aj-input{cursor:pointer;}
 </div></div>
 
 <!-- OVERLAY FULLSCREEN CONTRATO -->
-<div id="ov-contrato" style="display:none;position:fixed;inset:0;z-index:300;flex-direction:column;background:#c4c4c4;">
-  <div style="flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.5rem;background:var(--surface);border-bottom:.5px solid var(--border-strong);">
-    <div style="display:flex;align-items:center;gap:.75rem;">
-      <h2 style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;margin:0;">Contrato</h2>
-      <span id="contrato-status-badge" style="display:none;font-size:.65rem;padding:3px 9px;border-radius:20px;font-weight:500;"></span>
+<div id="ov-contrato" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.55);overflow-y:auto;padding:2rem 1rem 3rem;">
+  <div style="width:210mm;max-width:100%;margin:0 auto;display:flex;flex-direction:column;gap:0;">
+    <!-- barra de ações -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--surface);border-radius:var(--radius-sm) var(--radius-sm) 0 0;border:.5px solid var(--border-strong);">
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <h2 style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;margin:0;">Contrato</h2>
+        <span id="contrato-status-badge" style="display:none;font-size:.62rem;padding:2px 8px;border-radius:20px;font-weight:500;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <button class="btn" id="contrato-btn-enviar" onclick="enviarContrato()" style="display:none;">Enviar para assinatura</button>
+        <button class="btn" id="contrato-btn-copiar-link" onclick="copiarLinkAssinatura()" style="display:none;">Copiar link</button>
+        <button class="btn" id="contrato-btn-pdf" onclick="_baixarContratoPdf()" style="display:none;">Baixar PDF</button>
+        <button class="btn" onclick="document.getElementById('ov-contrato').style.display='none'">Fechar</button>
+      </div>
     </div>
-    <div style="display:flex;align-items:center;gap:.5rem;">
-      <button class="btn" id="contrato-btn-enviar" onclick="enviarContrato()" style="display:none;">Enviar para assinatura</button>
-      <button class="btn" id="contrato-btn-copiar-link" onclick="copiarLinkAssinatura()" style="display:none;">Copiar link</button>
-      <button class="btn" id="contrato-btn-pdf" onclick="_baixarContratoPdf()" style="display:none;">Baixar PDF</button>
-      <button class="btn" onclick="document.getElementById('ov-contrato').style.display='none'">Fechar</button>
-    </div>
-  </div>
-  <div style="flex:1;overflow-y:auto;">
-    <iframe id="contrato-iframe" style="width:100%;border:none;display:block;" scrolling="no"></iframe>
+    <!-- iframe exatamente A4 -->
+    <iframe id="contrato-iframe" style="width:210mm;max-width:100%;border:none;display:block;border-radius:0 0 var(--radius-sm) var(--radius-sm);" scrolling="no"></iframe>
   </div>
 </div>
 
