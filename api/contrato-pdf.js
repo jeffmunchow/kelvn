@@ -1,7 +1,4 @@
-import chromium from '@sparticuz/chromium-min';
-import puppeteer from 'puppeteer-core';
-
-const CHROMIUM_PACK = 'https://github.com/Sparticuz/chromium/releases/download/v132.0.0/chromium-v132.0.0-pack.tar';
+const BROWSERLESS_TOKEN = '2UXSEs19xerqqFb519fb241062efb3309bde0aa013eb278bb';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '4mb' } },
@@ -22,38 +19,41 @@ export default async function handler(req, res) {
   const html = body?.html;
   if (!html) return res.status(400).json({ error: 'html required' });
 
-  let browser = null;
   const t0 = Date.now();
   try {
-    const executablePath = await chromium.executablePath(CHROMIUM_PACK);
-    const t1 = Date.now();
+    const response = await fetch(
+      `https://chrome.browserless.io/pdf?token=${BROWSERLESS_TOKEN}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          html,
+          options: {
+            format: 'A4',
+            printBackground: true,
+            preferCSSPageSize: true,
+          },
+        }),
+      }
+    );
 
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath,
-      headless: chromium.headless,
-    });
-    const t2 = Date.now();
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Browserless error:', response.status, errText);
+      return res.status(500).json({
+        error: 'pdf_failed',
+        message: `Browserless ${response.status}: ${errText.slice(0, 200)}`,
+        elapsed_ms: Date.now() - t0,
+      });
+    }
 
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 25000 });
-    try { await page.evaluateHandle('document.fonts.ready'); } catch {}
-    const t3 = Date.now();
-
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      preferCSSPageSize: true,
-    });
-    const t4 = Date.now();
-
-    console.log(`PDF timings: exec=${t1-t0}ms launch=${t2-t1}ms render=${t3-t2}ms pdf=${t4-t3}ms total=${t4-t0}ms`);
+    const pdf = Buffer.from(await response.arrayBuffer());
+    console.log(`PDF generated in ${Date.now() - t0}ms, size=${pdf.length}`);
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="contrato.pdf"');
     res.setHeader('Content-Length', pdf.length);
-    return res.status(200).send(Buffer.from(pdf));
+    return res.status(200).send(pdf);
   } catch (error) {
     console.error('PDF generation failed:', error);
     return res.status(500).json({
@@ -61,9 +61,5 @@ export default async function handler(req, res) {
       message: error?.message || String(error),
       elapsed_ms: Date.now() - t0,
     });
-  } finally {
-    if (browser) {
-      try { await browser.close(); } catch {}
-    }
   }
 }
