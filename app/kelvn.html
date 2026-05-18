@@ -952,9 +952,10 @@ select.aj-input{cursor:pointer;}
 
       <!-- Equipe -->
       <div id="aj-panel-equipe" style="display:none;">
-        <div class="aj-section-title" style="display:flex;align-items:center;justify-content:space-between;">Equipe<button class="btn primary" onclick="openEq()">+ Membro</button></div>
+        <div class="aj-section-title">Equipe</div>
         <div class="aj-section-desc">Membros da sua equipe de fotografia.</div>
-        <div id="eq-list" style="display:flex;flex-direction:column;gap:.75rem;margin-top:1rem;"></div>
+        <div id="eq-list"></div>
+        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openEq()">+ Adicionar membro</button>
       </div>
 
     </div>
@@ -2661,11 +2662,15 @@ var _eqId=null;
 function rEQ(){
   var es=g('equipe');
   var el=document.getElementById('eq-list');
-  if(!es.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum membro cadastrado</div>';return;}
-  el.innerHTML=es.map(function(e){
-    var ini=(e.nome||'?').charAt(0).toUpperCase();
-    return '<div class="eqcard" onclick="openEq(\''+e.id+'\')"><div class="eq-avatar">'+ini+'</div><div style="flex:1"><div class="eq-nome">'+e.nome+'</div><div class="eq-funcao">'+e.funcao+(e.email?' · '+e.email:'')+'</div></div><button class="ra" onclick="event.stopPropagation();openEq(\''+e.id+'\')">Editar</button></div>';
-  }).join('');
+  if(!el)return;
+  if(!es.length){el.innerHTML='<div style="font-size:.78rem;color:var(--text-hint);font-style:italic;padding:.5rem 0;">Nenhum membro cadastrado</div>';return;}
+  el.innerHTML='<div class="aj-rows">'+es.map(function(e){
+    var sub=[e.funcao,e.email,e.tel].filter(Boolean).join(' · ');
+    return '<div class="aj-row" style="cursor:pointer;" onclick="openEq(\''+e.id+'\')">'
+      +'<span class="aj-label" style="font-weight:500;color:var(--text);">'+e.nome+'<span style="font-weight:400;color:var(--text-muted);margin-left:.5rem;font-size:.75rem;">'+sub+'</span></span>'
+      +'<button class="btn" style="font-size:.73rem;padding:4px 10px;" onclick="event.stopPropagation();openEq(\''+e.id+'\')">Editar</button>'
+      +'</div>';
+  }).join('')+'</div>';
 }
 function openEq(id){
   _eqId=id||null;
