@@ -2155,7 +2155,7 @@ function switchAJ(name){
   document.getElementById('aj-panel-'+name).style.display='';
   var ab=document.getElementById('aj-cat-'+name);if(ab)ab.classList.add('active');
   if(name==='geral') _syncThemeUI();
-  if(name==='equipe') rEQ();
+  if(name==='equipe'){_loadEqColW();rEQ();}
 }
 function _syncThemeUI(){
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -2662,7 +2662,8 @@ function savePK(){
 }
 function delPK(){if(!confirm('Excluir?'))return;undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();notify('Excluído');}
 var _eqId=null;
-var _eqColW=(function(){try{var s=localStorage.getItem('kelvn_eq_col_w');if(s)return JSON.parse(s);}catch(e){}return[220,150,230,160];})();
+var _eqColW=[220,150,230,160];
+function _loadEqColW(){var v=g('eq_col_w');if(Array.isArray(v)&&v.length===4)_eqColW=v;}
 function rEQ(){
   var es=g('equipe');
   var el=document.getElementById('eq-list');
@@ -2703,7 +2704,7 @@ function rEQ(){
         _eqColW[ci]=Math.max(80,sw+(ev.clientX-sx));
         el.querySelectorAll('[data-eq-col="'+ci+'"]').forEach(function(c){c.style.width=_eqColW[ci]+'px';});
       }
-      function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);try{localStorage.setItem('kelvn_eq_col_w',JSON.stringify(_eqColW));}catch(e){}}
+      function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);s('eq_col_w',_eqColW);}
       document.addEventListener('mousemove',onMove);
       document.addEventListener('mouseup',onUp);
     });
@@ -3534,6 +3535,7 @@ var _KEY_MAP = {
   'tiposReuniao': {table:'configuracoes',      col:'tipos_reuniao'},
   'slots':        {table:'configuracoes',      col:'slots'},
   'sd':           {table:'configuracoes',      col:'sd'},
+  'eq_col_w':    {table:'configuracoes',      col:'eq_col_w'},
   'q_templates':  {table:'questionarios',      col:'templates'},
   'q_respostas':  {table:'questionarios',      col:'respostas'}
 };
@@ -3600,7 +3602,7 @@ function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
 
 function _loadFromLocalCache(){
   // Carrega dados do localStorage instantaneamente
-  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas'];
+  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','eq_col_w'];
   var hasAny=false;
   keys.forEach(function(k){
     var raw=localStorage.getItem(_lsKey(k));
@@ -3652,7 +3654,7 @@ async function _loadFromSupabase(){
       });
     }
     if(m.configuracoes){
-      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd'};
+      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',eq_col_w:'eq_col_w'};
       Object.keys(cmap).forEach(function(col){
         localStorage.setItem(_lsKey(cmap[col]), JSON.stringify(m.configuracoes[col]||[]));
       });
