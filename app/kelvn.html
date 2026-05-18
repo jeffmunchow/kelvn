@@ -1597,7 +1597,7 @@ function _fasesIcons(e){
   ];
   return '<div class="ed-fases" draggable="false" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">'+phases.map(function(p){
     var done=!!fases[p.k];
-    var color=done?'var(--text)':'var(--text-hint)';
+    var color=done?'var(--text-muted)':'var(--text-hint)';
     var opacity=done?'1':'0.45';
     var evKey=e.evId||('_c_'+e.clienteId);
     return '<button class="ed-fase-btn" title="'+p.label+'" draggable="false" onclick="event.stopPropagation();toggleFase(\''+evKey+'\',\''+p.k+'\')" style="color:'+color+';opacity:'+opacity+';background:none;border:none;cursor:pointer;padding:2px 3px;line-height:0;display:flex;align-items:center;">'+p.svg+'</button>';
