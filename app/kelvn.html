@@ -145,7 +145,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-title{font-size:.82rem;color:var(--text);}
 .ai-sub{font-size:.67rem;color:var(--text-hint);margin-top:2px;}
 .ed-fases{display:flex;align-items:center;gap:2px;margin-left:auto;flex-shrink:0;}
-.ed-fase-btn:hover{opacity:1!important;}
+.ed-fase-btn:hover{opacity:.75!important;}
 /* PEND CARD */
 .pc{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;cursor:pointer;}
 .pc:hover{border-color:var(--border-strong);}
@@ -1597,7 +1597,7 @@ function _fasesIcons(e){
   ];
   return '<div class="ed-fases" draggable="false" onmousedown="event.stopPropagation()" onclick="event.stopPropagation()">'+phases.map(function(p){
     var done=!!fases[p.k];
-    var color=done?'var(--amber)':'var(--text-hint)';
+    var color=done?'var(--text)':'var(--text-hint)';
     var opacity=done?'1':'0.45';
     return '<button class="ed-fase-btn" title="'+p.label+'" draggable="false" onclick="event.stopPropagation();toggleFase(\''+e.clienteId+'\',\''+p.k+'\')" style="color:'+color+';opacity:'+opacity+';background:none;border:none;cursor:pointer;padding:2px 3px;line-height:0;display:flex;align-items:center;">'+p.svg+'</button>';
   }).join('')+'</div>';
