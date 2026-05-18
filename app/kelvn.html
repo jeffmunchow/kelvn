@@ -1064,7 +1064,7 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <!-- iframe exatamente A4 -->
-    <iframe id="contrato-iframe" style="width:210mm;max-width:100%;border:none;display:block;border-radius:0 0 var(--radius-sm) var(--radius-sm);" scrolling="no"></iframe>
+    <iframe id="contrato-iframe" style="width:100%;border:none;display:block;border-radius:0 0 var(--radius-sm) var(--radius-sm);" scrolling="no"></iframe>
   </div>
 </div>
 
@@ -2081,10 +2081,10 @@ function _injectPreviewCss(html){
   // - Sombras para efeito "papel sobre mesa"
   // Para impressão, o template usa @page (intacto) e gera o PDF correto.
   var screenCss='<style>@media screen{'
-    +'html,body{background:#c4c4c4!important;margin:0!important;padding:0!important}'
-    +'body{display:flex!important;flex-direction:column!important;align-items:center!important;padding:24px 0!important;gap:24px!important}'
-    +'.cover{background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;flex-shrink:0!important}'
-    +'.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;flex-shrink:0!important}'
+    +'html,body{background:#e8e8e8!important;margin:0!important;padding:0!important}'
+    +'body{display:block!important;}'
+    +'.cover{width:210mm!important;background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;}'
+    +'.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;margin-top:24px!important}'
     +'}</style>';
   return html.replace('</head>',screenCss+'</head>');
 }
