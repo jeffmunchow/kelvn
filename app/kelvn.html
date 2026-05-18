@@ -1990,7 +1990,7 @@ async function gerarContrato(){
     console.warn('[contrato] _currentUser é null — contrato não será salvo no Supabase');
   }
   if(_currentUser){
-    var token=uid();
+    var token=crypto.randomUUID();
     var expira=new Date();expira.setDate(expira.getDate()+7);
     var res=await _sb.from('contratos').insert({
       user_id:_currentUser.id,
