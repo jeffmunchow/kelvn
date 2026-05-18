@@ -2536,7 +2536,16 @@ function delE(){if(!confirm('Excluir?'))return;undoBegin();s('eventos',g('evento
 var _pId=null;
 function rPe(){
   var flt=document.getElementById('pend-filter').value;
-  var ps=g('pends').filter(function(p){return flt==='all'||(flt==='open'&&!p.done)||(flt==='done'&&p.done);});
+  var _prioOrd={alta:0,media:1,baixa:2};
+  var ps=g('pends').filter(function(p){return flt==='all'||(flt==='open'&&!p.done)||(flt==='done'&&p.done);})
+    .sort(function(a,b){
+      var pa=_prioOrd[a.prio]??1, pb=_prioOrd[b.prio]??1;
+      if(pa!==pb) return pa-pb;
+      if(!a.prazo&&!b.prazo) return 0;
+      if(!a.prazo) return 1;
+      if(!b.prazo) return -1;
+      return a.prazo.localeCompare(b.prazo);
+    });
   var el=document.getElementById('pend-list');
   if(!ps.length){el.innerHTML='<div class="ai" style="cursor:default;opacity:.6;">Nenhuma pendência</div>';return;}
   el.innerHTML=ps.map(function(p){
