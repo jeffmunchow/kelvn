@@ -2118,11 +2118,25 @@ async function _baixarContratoPdf(){
 }
 
 async function abrirEditorTemplate(){
+  console.log('[editor] abrirEditorTemplate iniciado');
   var html=g('contrato_template')||'';
+  console.log('[editor] template salvo:', html?'sim ('+html.length+' chars)':'não');
   if(!html){
-    try{var r=await fetch('/contrato_template.html');html=await r.text();}catch(e){notify('Erro ao carregar template');return;}
+    try{
+      var r=await fetch('/contrato_template.html');
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      html=await r.text();
+      console.log('[editor] template carregado do servidor: '+html.length+' chars');
+    }catch(e){
+      console.error('[editor] erro ao carregar template:',e);
+      notify('Erro ao carregar template: '+e.message);
+      return;
+    }
   }
+  var ov=document.getElementById('ov-template-editor');
   var ifr=document.getElementById('template-editor-iframe');
+  console.log('[editor] overlay encontrado:',!!ov,'iframe encontrado:',!!ifr);
+  if(!ov||!ifr){notify('Erro interno: modal não encontrado');return;}
   var editorHtml=html.replace('</head>','<style>@media screen{html,body{background:#e8e8e8!important;margin:0!important;padding:0!important}body{display:block!important}.cover{width:210mm!important;background:#fff!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important}.content{width:210mm!important;background:#fff!important;padding:18mm 18mm 16mm 34mm!important;box-shadow:0 2px 16px rgba(0,0,0,.18)!important;margin-top:24px!important}}</style></head>');
   var blob=new Blob([editorHtml],{type:'text/html'});
   ifr.onload=function(){
@@ -2132,10 +2146,10 @@ async function abrirEditorTemplate(){
       if(h>100)ifr.style.height=h+'px';
       ifr.contentDocument.fonts.ready.then(function(){ifr.style.height=ifr.contentDocument.body.scrollHeight+'px';});
       setTimeout(function(){ifr.style.height=ifr.contentDocument.body.scrollHeight+'px';},800);
-    }catch(e){}
+    }catch(e){console.error('[editor] iframe onload erro:',e);}
   };
   ifr.src=URL.createObjectURL(blob);
-  document.getElementById('ov-template-editor').style.display='flex';
+  ov.style.display='flex';
   _syncTemplateStatus();
 }
 
