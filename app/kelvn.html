@@ -734,8 +734,16 @@ select.aj-input{cursor:pointer;}
 
 <!-- QUESTIONÁRIOS -->
 <div class="panel" id="p-questionarios">
+  <!-- TEMPLATES -->
+  <div id="qp-panel-templates">
+    <div class="sh">
+      <div class="st">Templates de questionário</div>
+      <div class="sa"><button class="btn primary" onclick="openQT()">+ Template</button></div>
+    </div>
+    <div id="qt-list"></div>
+  </div>
   <!-- RESPOSTAS -->
-  <div id="qp-panel-respostas">
+  <div id="qp-panel-respostas" style="margin-top:2rem;">
     <div class="sh">
       <div class="st">Questionários enviados</div>
       <div class="sa">
@@ -746,14 +754,6 @@ select.aj-input{cursor:pointer;}
     <div class="tw"><div class="ts"><table><thead><tr>
       <th>Cliente</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
     </tr></thead><tbody id="qr-tbody"></tbody></table></div></div>
-  </div>
-  <!-- TEMPLATES -->
-  <div id="qp-panel-templates" style="margin-top:2rem;">
-    <div class="sh">
-      <div class="st">Templates de questionário</div>
-      <div class="sa"><button class="btn primary" onclick="openQT()">+ Template</button></div>
-    </div>
-    <div id="qt-list"></div>
   </div>
 </div>
 
