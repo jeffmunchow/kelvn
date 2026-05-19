@@ -3106,7 +3106,7 @@ function rQR(){
       '<td class="tdn">'+(r.clienteId?cN(r.clienteId):'—')+'</td>'+
       '<td>'+(r.templateId?g('q_templates').find(function(t){return t.id===r.templateId;})||{nome:'—'}:{nome:'—'}).nome+'</td>'+
       '<td>'+fd(r.data)+'</td>'+
-      '<td style="color:var(--text-muted);font-size:.78rem;">'+(r.status||'—')+'</td>'+
+      '<td style="font-size:.78rem;color:'+(r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)')+'">'+(r.status||'—')+'</td>'+
       '<td><button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button></td>'+
     '</tr>';
   }).join('');
