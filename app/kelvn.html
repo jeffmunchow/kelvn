@@ -3106,7 +3106,7 @@ function rQR(){
       '<td class="tdn">'+(r.clienteId?cN(r.clienteId):'—')+'</td>'+
       '<td>'+(r.templateId?g('q_templates').find(function(t){return t.id===r.templateId;})||{nome:'—'}:{nome:'—'}).nome+'</td>'+
       '<td>'+fd(r.data)+'</td>'+
-      '<td><span class="badge '+(statusBdg[r.status]||'bp')+'">'+r.status+'</span></td>'+
+      '<td style="color:var(--text-muted);font-size:.78rem;">'+(r.status||'—')+'</td>'+
       '<td><button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button></td>'+
     '</tr>';
   }).join('');
