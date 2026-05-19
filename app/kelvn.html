@@ -165,9 +165,9 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .tdl:hover{color:var(--coral);}
 /* GRID */
 .two{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
-.ag-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
+.ag-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch;}
 .ag-col-list{display:flex;flex-direction:column;}
-.ag-col-list .tw{overflow-y:auto;max-height:600px;}
+.ag-col-list .tw{overflow-y:auto;flex:1;}
 .ag-col-cal{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;}
 .ag-cal-header{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-bottom:1.25rem;}
 .ag-cal-year{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
