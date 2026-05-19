@@ -166,6 +166,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 /* GRID */
 .two{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
 .ag-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
+.ag-col-list{display:flex;flex-direction:column;}
+.ag-col-list .tw{overflow-y:auto;flex:1;min-height:0;}
 .ag-col-cal{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;}
 .ag-cal-header{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-bottom:1.25rem;}
 .ag-cal-year{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
@@ -2450,7 +2452,18 @@ function rCalAno(){
     html+='</div></div>';
   }
   el.innerHTML=html;
+  _syncAgH();
 }
+function _syncAgH(){
+  requestAnimationFrame(function(){
+    var cal=document.querySelector('#p-agenda .ag-col-cal');
+    var lst=document.querySelector('#p-agenda .ag-col-list');
+    if(!cal||!lst) return;
+    var h=cal.offsetHeight;
+    if(h>0) lst.style.height=h+'px';
+  });
+}
+window.addEventListener('resize',function(){if(document.getElementById('p-agenda').style.display!=='none')_syncAgH();});
 var _PRIMARY_STATUS=['Sessão','Religioso','Welcome','Casamento','After'];
 var _PRIMARY_COLORS={'Sessão':'var(--coral)','Religioso':'var(--teal)','Welcome':'#D4709A','Casamento':'var(--amber)','After':'#6B9BAF'};
 var _DIAS_SEM=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
