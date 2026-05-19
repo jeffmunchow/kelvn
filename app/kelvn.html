@@ -167,7 +167,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
 .ag-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;}
 .ag-col-list{display:flex;flex-direction:column;}
-.ag-col-list .tw{overflow-y:auto;}
+.ag-col-list .tw{overflow-y:auto;max-height:calc(17 * 3.9rem);}
 .ag-col-cal{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;}
 .ag-cal-header{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-bottom:1.25rem;}
 .ag-cal-year{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
@@ -2452,7 +2452,6 @@ function rCalAno(){
     html+='</div></div>';
   }
   el.innerHTML=html;
-  setTimeout(_syncAgendaListHeight,50);
 }
 var _PRIMARY_STATUS=['Sessão','Religioso','Welcome','Casamento','After'];
 var _PRIMARY_COLORS={'Sessão':'var(--coral)','Religioso':'var(--teal)','Welcome':'#D4709A','Casamento':'var(--amber)','After':'#6B9BAF'};
@@ -2518,12 +2517,6 @@ function rA(){
     var dragAttr=isPrimary?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
     return '<div class="ai'+(past?' past':'')+'"'+dragAttr+' data-id="'+e.id+'" '+onclick+'><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+(isAuto?'<span class="st-prospect">Questionário</span>':bdg(e.tipo))+'</div>';
   }).join('')+'</div>';
-  setTimeout(_syncAgendaListHeight,50);
-}
-function _syncAgendaListHeight(){
-  var cal=document.querySelector('#p-agenda .ag-col-cal');
-  var tw=document.querySelector('#p-agenda .ag-col-list .tw');
-  if(cal&&tw) tw.style.maxHeight=cal.offsetHeight+'px';
 }
 function openE(id){
   _eId=id||null;fillSel();
