@@ -1106,7 +1106,7 @@ select.aj-input{cursor:pointer;}
   <h2 id="me-t">Novo Evento</h2>
   <div class="field"><label>Título</label><input type="text" id="me-titulo" placeholder="ex: Casamento Silva & Souza"></div>
   <div class="field"><label>Data e hora</label><input type="datetime-local" id="me-data"></div>
-  <div class="field"><label>Tipo</label><select id="me-tipo"><option>Casamento</option><option>Ensaio</option><option>Reunião</option><option>Entrega</option><option>Outro</option></select></div>
+  <div class="field"><label>Tipo</label><select id="me-tipo"><option>Reunião</option><option>Entrega</option><option>Outro</option></select></div>
   <div class="field"><label>Cliente</label><select id="me-cliente"><option value="">— nenhum —</option></select></div>
   <div class="field"><label>Local</label><input type="text" id="me-local" placeholder="Igreja, estúdio, online..."></div>
   <div class="field"><label>Notas</label><textarea id="me-notas" rows="2"></textarea></div>
@@ -2541,7 +2541,7 @@ function openE(id){
   }else{
     document.getElementById('me-t').textContent='Novo Evento';
     ['me-titulo','me-local','me-notas'].forEach(function(i){document.getElementById(i).value='';});
-    document.getElementById('me-data').value='';document.getElementById('me-tipo').value='Casamento';
+    document.getElementById('me-data').value='';document.getElementById('me-tipo').value='Reunião';
     document.getElementById('me-del').style.display='none';
   }
   document.getElementById('ov-e').classList.add('open');
