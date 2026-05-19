@@ -1587,7 +1587,7 @@ function rR(){
     var subParts=isAuto?[e.local||'',e._jaEnviado?'Enviado — clique para reenviar':'Clique para enviar via WhatsApp']:e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var subSec=subParts.filter(Boolean).join(' – ');
     var dragAttr=e._fromCliente?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
-    return '<div class="ai"'+dragAttr+' onclick="'+onclick+'"><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div>'+(isAuto?'<span class="st-prospect">Questionário</span>':'')+'</div>';
+    return '<div class="ai"'+dragAttr+' onclick="'+onclick+'"><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+subSec+'</div></div></div>';
   }).join('');
   setupAgendaDrop(el);
 
