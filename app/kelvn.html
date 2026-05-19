@@ -59,12 +59,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* Toggle tema com ícones sol/lua */
 .thm-w{position:relative;width:58px;height:28px;background:var(--border-strong);border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;flex-shrink:0;border:none;padding:0;}
 .thm-w .thm-ico{position:absolute;width:13px;height:13px;pointer-events:none;transition:opacity .2s,color .2s;}
-.thm-w .thm-sun{left:7px;color:#C4780A;opacity:1;}
+.thm-w .thm-sun{left:7px;color:var(--amber);opacity:1;}
 .thm-w .thm-moon{right:7px;color:var(--text-muted);opacity:.4;}
 .thm-w .thm-knob{position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s;pointer-events:none;}
 [data-theme="dark"] .thm-w .thm-knob{transform:translateX(30px);}
 [data-theme="dark"] .thm-w .thm-sun{opacity:.35;color:var(--text-hint);}
-[data-theme="dark"] .thm-w .thm-moon{opacity:1;color:#C4780A;}
+[data-theme="dark"] .thm-w .thm-moon{opacity:1;color:var(--amber);}
 /* BODY */
 .body{padding:1rem 2rem 2rem;width:100%;}
 @media(max-width:768px){.body{padding:1.25rem;}.snav{display:none;}.main{margin-left:0;}}
@@ -109,30 +109,20 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .bc{background:var(--amber-light);color:var(--amber);}
 /* Status de cliente — sem balão, só cor na palavra */
 .st-prospect{color:#9E9892;font-size:.61rem;}
-.st-sessao{color:#C43A1A;font-size:.61rem;}
-.st-religioso{color:#2E7D32;font-size:.61rem;}
+.st-sessao{color:var(--coral);font-size:.61rem;}
+.st-religioso{color:var(--teal);font-size:.61rem;}
 .st-welcome{color:#D4709A;font-size:.61rem;}
-.st-casamento{color:#C4780A;font-size:.61rem;}
+.st-casamento{color:var(--amber);font-size:.61rem;}
 .st-after{color:#6B9BAF;font-size:.61rem;}
-.st-pos{color:#C43A1A;font-size:.61rem;}
-.st-album{color:#7B5EA7;font-size:.61rem;}
-.st-entregue{color:#2E7D32;font-size:.61rem;}
+.st-pos{color:var(--coral);font-size:.61rem;}
+.st-album{color:var(--purple);font-size:.61rem;}
+.st-entregue{color:var(--teal);font-size:.61rem;}
 .st-finalizado{color:#5C5854;font-size:.61rem;}
-[data-theme="dark"] .st-prospect{color:#5C5854;}
-[data-theme="dark"] .st-sessao{color:#CC4A28;}
-[data-theme="dark"] .st-religioso{color:#66BB6A;}
-[data-theme="dark"] .st-welcome{color:#E88AB4;}
-[data-theme="dark"] .st-casamento{color:#D4902A;}
-[data-theme="dark"] .st-after{color:#8BBDCF;}
-[data-theme="dark"] .st-pos{color:#CC4A28;}
-[data-theme="dark"] .st-album{color:#9B7EC8;}
-[data-theme="dark"] .st-entregue{color:#66BB6A;}
-[data-theme="dark"] .st-finalizado{color:#5C5854;}
 .bpc{background:var(--purple-light);color:var(--purple);}
 .bw{background:var(--teal-light);color:var(--teal);}
 .bpo{background:var(--coral-light);color:var(--coral);}
-.be{background:#E8F5E9;color:#2E7D32;}
-[data-theme="dark"] .be{background:#0A1F0B;color:#66BB6A;}
+.be{background:var(--teal-light);color:var(--teal);}
+[data-theme="dark"] .be{background:var(--teal-light);color:var(--teal);}
 .bf{background:var(--surface2);color:var(--text-hint);}
 /* AGENDA */
 .ai{background:var(--surface);padding:.85rem 1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:.5px solid var(--border-strong);cursor:pointer;}
@@ -1002,14 +992,14 @@ select.aj-input{cursor:pointer;}
         </div>
         <div id="mc-status-drop" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);">
           <div onclick="setStatusDrop('Prospect')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;" class="sdrop-opt st-prospect-opt">Prospect</div>
-          <div onclick="setStatusDrop('Sessão')"       style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C43A1A;" class="sdrop-opt">Sessão</div>
-          <div onclick="setStatusDrop('Religioso')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#2E7D32;" class="sdrop-opt">Religioso</div>
+          <div onclick="setStatusDrop('Sessão')"       style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--coral);" class="sdrop-opt">Sessão</div>
+          <div onclick="setStatusDrop('Religioso')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--teal);" class="sdrop-opt">Religioso</div>
           <div onclick="setStatusDrop('Welcome')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#D4709A;" class="sdrop-opt">Welcome</div>
-          <div onclick="setStatusDrop('Casamento')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C4780A;" class="sdrop-opt">Casamento</div>
+          <div onclick="setStatusDrop('Casamento')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--amber);" class="sdrop-opt">Casamento</div>
           <div onclick="setStatusDrop('After')"  style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#6B9BAF;" class="sdrop-opt">After</div>
-          <div onclick="setStatusDrop('Edição')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#C43A1A;" class="sdrop-opt">Edição</div>
-          <div onclick="setStatusDrop('Álbum design')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#7B5EA7;" class="sdrop-opt">Álbum design</div>
-          <div onclick="setStatusDrop('Entregue')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#2E7D32;" class="sdrop-opt">Entregue</div>
+          <div onclick="setStatusDrop('Edição')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--coral);" class="sdrop-opt">Edição</div>
+          <div onclick="setStatusDrop('Álbum design')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--purple);" class="sdrop-opt">Álbum design</div>
+          <div onclick="setStatusDrop('Entregue')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--teal);" class="sdrop-opt">Entregue</div>
           <div onclick="setStatusDrop('Finalizado')"   style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#5C5854;" class="sdrop-opt">Finalizado</div>
         </div>
       </div>
@@ -1583,7 +1573,7 @@ function rR(){
   else el.innerHTML=allEvs.map(function(e){
     var dl=fmtEvDate(e.data);
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
-    var col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)';
+    var col=e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)';
     var onclick=e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
     var ht=e._fromCliente?'':fmtEvTime(e.data);
     var subParts=e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',ht];
@@ -1795,11 +1785,11 @@ function rPipeline(){
   var el=document.getElementById('r-pipeline');if(!el)return;
   var etapas=[
     {key:'Prospect',     color:'#9E9892', label:'Prospect'},
-    {key:'Sessão',       color:'#C43A1A', label:'Sessão'},
-    {key:'Casamento',    color:'#C4780A', label:'Casamento'},
-    {key:'Edição', color:'#C43A1A', label:'Edição'},
-    {key:'Álbum design', color:'#7B5EA7', label:'Álbum'},
-    {key:'Entregue',     color:'#2E7D32', label:'Entregue'}
+    {key:'Sessão',       color:'var(--coral)', label:'Sessão'},
+    {key:'Casamento',    color:'var(--amber)', label:'Casamento'},
+    {key:'Edição', color:'var(--coral)', label:'Edição'},
+    {key:'Álbum design', color:'var(--purple)', label:'Álbum'},
+    {key:'Entregue',     color:'var(--teal)', label:'Entregue'}
   ];
   var cs=g('clientes');
   var html='';
@@ -1823,7 +1813,7 @@ function addCEvento(){
 function _cevToggle(i){var d=document.getElementById('cev-drop-'+i);d.style.display=d.style.display==='none'?'block':'none';}
 function _cevSet(i,val){_cEventos[i].status=val;var lbl=document.getElementById('cev-lbl-'+i);lbl.textContent=val;lbl.style.color=_STATUS_COLORS[val]||'var(--text)';document.getElementById('cev-drop-'+i).style.display='none';}
 function rCEventos(){
-  var opts=[{v:'Prospect',c:'var(--text-muted)'},{v:'Sessão',c:'#C43A1A'},{v:'Religioso',c:'#2E7D32'},{v:'Welcome',c:'#D4709A'},{v:'Casamento',c:'#C4780A'},{v:'After',c:'#6B9BAF'},{v:'Edição',c:'#C43A1A'},{v:'Álbum design',c:'#7B5EA7'},{v:'Entregue',c:'#2E7D32'},{v:'Finalizado',c:'#5C5854'}];
+  var opts=[{v:'Prospect',c:'var(--text-muted)'},{v:'Sessão',c:'var(--coral)'},{v:'Religioso',c:'var(--teal)'},{v:'Welcome',c:'#D4709A'},{v:'Casamento',c:'var(--amber)'},{v:'After',c:'#6B9BAF'},{v:'Edição',c:'var(--coral)'},{v:'Álbum design',c:'var(--purple)'},{v:'Entregue',c:'var(--teal)'},{v:'Finalizado',c:'#5C5854'}];
   var el=document.getElementById('mc-eventos-extra');
   if(!el)return;
   el.innerHTML=_cEventos.map(function(ev,i){
@@ -1852,7 +1842,7 @@ function rC(){
     return '<tr onclick="openC(\''+c.id+'\')"><td class="tdn">'+(c.nome||'—')+'</td><td>'+fd(c.data)+'</td><td>'+(c.local||'—')+'</td><td>'+$m(c.valor||0)+'</td><td>'+$m(paid)+'</td><td>'+bdg(c.status)+'</td><td><button class="ra" onclick="event.stopPropagation();openC(\''+c.id+'\')">Editar</button></td></tr>';
   }).join('');
 }
-var _STATUS_COLORS={'Prospect':'','Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome':'#D4709A','Casamento':'#C4780A','After':'#6B9BAF','Edição':'#C43A1A','Álbum design':'#7B5EA7','Entregue':'#2E7D32','Finalizado':'#5C5854'};
+var _STATUS_COLORS={'Prospect':'','Sessão':'var(--coral)','Religioso':'var(--teal)','Welcome':'#D4709A','Casamento':'var(--amber)','After':'#6B9BAF','Edição':'var(--coral)','Álbum design':'var(--purple)','Entregue':'var(--teal)','Finalizado':'#5C5854'};
 function toggleStatusDrop(){
   var d=document.getElementById('mc-status-drop');
   d.style.display=d.style.display==='none'?'block':'none';
@@ -2452,7 +2442,7 @@ function rCalAno(){
   el.innerHTML=html;
 }
 var _PRIMARY_STATUS=['Sessão','Religioso','Welcome','Casamento','After'];
-var _PRIMARY_COLORS={'Sessão':'#C43A1A','Religioso':'#2E7D32','Welcome':'#D4709A','Casamento':'#C4780A','After':'#6B9BAF'};
+var _PRIMARY_COLORS={'Sessão':'var(--coral)','Religioso':'var(--teal)','Welcome':'#D4709A','Casamento':'var(--amber)','After':'#6B9BAF'};
 var _DIAS_SEM=['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
 function fmtEvDate(dataStr){
   var d=new Date((dataStr||'').substring(0,10)+'T12:00');
@@ -2506,7 +2496,7 @@ function rA(){
     var isPrimary=!!e._fromCliente;
     var dl=fmtEvDate(e.data);
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
-    var col=isPrimary?(_PRIMARY_COLORS[e.tipo]||'#C4780A'):'var(--text-hint)',past=d<now;
+    var col=isPrimary?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)',past=d<now;
     var onclick=isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
     var ht=isPrimary?'':fmtEvTime(e.data);
     var subParts=isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',ht];
@@ -3278,12 +3268,12 @@ function saveDisp(){
   localStorage.setItem('kelvn_disp',JSON.stringify(disp));
 }
 var PRODUTOS=[
-  {key:'Sessão',        color:'#C43A1A'},
-  {key:'Religioso',     color:'#2E7D32'},
+  {key:'Sessão',        color:'var(--coral)'},
+  {key:'Religioso',     color:'var(--teal)'},
   {key:'Welcome', color:'#D4709A'},
-  {key:'Casamento',     color:'#C4780A'},
+  {key:'Casamento',     color:'var(--amber)'},
   {key:'After',   color:'#6B9BAF'},
-  {key:'Álbum',         color:'#7B5EA7'}
+  {key:'Álbum',         color:'var(--purple)'}
 ];
 
 function renderFatChart(){
@@ -3429,10 +3419,10 @@ function makeCover(eb,size){
   return '<div style="'+bgStyle+'width:'+size+';aspect-ratio:2/3;border-radius:5px 10px 10px 5px;position:relative;overflow:hidden;box-shadow:3px 5px 16px rgba(0,0,0,.25);">'+
     (realImg?'':
       '<div style="position:absolute;inset:0;padding:1.25rem 1rem 1rem 1.5rem;display:flex;flex-direction:column;justify-content:space-between;">'+
-        '<div style="font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:'+(eb.tagColor||'#C4780A')+';font-weight:500;">Kelvn · Ebook</div>'+
+        '<div style="font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:'+(eb.tagColor||'var(--amber)')+';font-weight:500;">Kelvn · Ebook</div>'+
         '<div>'+
           '<div style="font-family:\'Playfair Display\',serif;font-size:.95rem;font-weight:600;color:'+(eb.textColor||'#fff')+';line-height:1.3;margin-bottom:.5rem;">'+eb.titulo+'</div>'+
-          '<div style="width:24px;height:1.5px;background:'+(eb.tagColor||'#C4780A')+';"></div>'+
+          '<div style="width:24px;height:1.5px;background:'+(eb.tagColor||'var(--amber)')+';"></div>'+
         '</div>'+
       '</div>'
     )+
