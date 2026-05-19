@@ -734,20 +734,8 @@ select.aj-input{cursor:pointer;}
 
 <!-- QUESTIONÁRIOS -->
 <div class="panel" id="p-questionarios">
-  <div class="pills" style="margin-bottom:1.5rem;">
-    <button class="pill active" id="qp-pill-templates" onclick="switchQP('templates')">Templates</button>
-    <button class="pill"        id="qp-pill-respostas" onclick="switchQP('respostas')">Enviados</button>
-  </div>
-  <!-- TEMPLATES -->
-  <div id="qp-panel-templates">
-    <div class="sh">
-      <div class="st">Templates de questionário</div>
-      <div class="sa"><button class="btn primary" onclick="openQT()">+ Template</button></div>
-    </div>
-    <div id="qt-list"></div>
-  </div>
   <!-- RESPOSTAS -->
-  <div id="qp-panel-respostas" style="display:none;">
+  <div id="qp-panel-respostas">
     <div class="sh">
       <div class="st">Questionários enviados</div>
       <div class="sa">
@@ -758,6 +746,14 @@ select.aj-input{cursor:pointer;}
     <div class="tw"><div class="ts"><table><thead><tr>
       <th>Cliente</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
     </tr></thead><tbody id="qr-tbody"></tbody></table></div></div>
+  </div>
+  <!-- TEMPLATES -->
+  <div id="qp-panel-templates" style="margin-top:2rem;">
+    <div class="sh">
+      <div class="st">Templates de questionário</div>
+      <div class="sa"><button class="btn primary" onclick="openQT()">+ Template</button></div>
+    </div>
+    <div id="qt-list"></div>
   </div>
 </div>
 
@@ -1476,15 +1472,7 @@ function switchFP(name){
   var ap=document.getElementById('fp-pill-'+name);if(ap)ap.classList.add('active');
   if(name==='emp')rF();if(name==='pes')rFP();if(name==='dre')rDRE();if(name==='prec')calcPrec();if(name==='imp')calcImp();if(name==='inad')rInad();
 }
-function switchQP(name){
-  ['templates','respostas'].forEach(function(n){
-    document.getElementById('qp-panel-'+n).style.display='none';
-    var pill=document.getElementById('qp-pill-'+n);if(pill)pill.classList.remove('active');
-  });
-  document.getElementById('qp-panel-'+name).style.display='';
-  var ap=document.getElementById('qp-pill-'+name);if(ap)ap.classList.add('active');
-  if(name==='templates')rQT();if(name==='respostas')rQR();
-}
+function switchQP(){}
 function switchAG2(name){
   ['tipos','slots','disp'].forEach(function(n){document.getElementById('ag2-panel-'+n).style.display='none';document.getElementById('ag2-'+n).classList.remove('active');});
   document.getElementById('ag2-panel-'+name).style.display='';document.getElementById('ag2-'+name).classList.add('active');
@@ -3054,6 +3042,7 @@ function calcPrec(){
 }
 var _qtId=null,_qtPerguntas=[];
 function rQT(){
+  rQR();
   var ts=g('q_templates');
   var el=document.getElementById('qt-list');
   if(!ts.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum template criado. Crie um para começar.</div>';return;}
