@@ -3122,12 +3122,12 @@ function delAuto(id){
   rAuto();
 }
 function _getAutoEventos(){
-  var autos=(g('automacoes')||[]).filter(function(a){return a.tipo==='pre-evento'&&a.dias>0;});
-  if(!autos.length)return[];
+  var autos=g('automacoes')||[];
   var evs=[];
   var primary=_primaryEventsFromClientes();
-  var jaEnviados=(g('q_respostas')||[]);
-  autos.forEach(function(a){
+  var jaEnviados=g('q_respostas')||[];
+  // pré-evento
+  autos.filter(function(a){return a.tipo==='pre-evento'&&a.dias>0;}).forEach(function(a){
     primary.forEach(function(ev){
       var c=g('clientes').find(function(x){return x.id===ev.clienteId;});
       if(!c||!ev.data)return;
@@ -3138,20 +3138,17 @@ function _getAutoEventos(){
       var autoKey='_auto_'+a.id+'_'+ev.id;
       var jaFeito=jaEnviados.find(function(r){return r._autoKey===autoKey;});
       var t=(g('q_templates')||[]).find(function(x){return x.id===a.templateId;})||{nome:'Questionário'};
-      evs.push({
-        id:autoKey,
-        titulo:'Enviar questionário: '+t.nome,
-        data:sendStr+'T09:00',
-        tipo:'_auto',
-        clienteId:ev.clienteId,
-        local:c.nome,
-        _isAuto:true,
-        _autoKey:autoKey,
-        _autoId:a.id,
-        _templateId:a.templateId,
-        _jaEnviado:!!jaFeito,
-        _tel:c.tel||'',
-      });
+      evs.push({id:autoKey,titulo:'Enviar questionário: '+t.nome,data:sendStr+'T09:00',tipo:'_auto',clienteId:ev.clienteId,local:c.nome,_isAuto:true,_autoKey:autoKey,_autoId:a.id,_templateId:a.templateId,_jaEnviado:!!jaFeito,_tel:c.tel||''});
+    });
+  });
+  // pós-entrega
+  autos.filter(function(a){return a.tipo==='pos-entrega';}).forEach(function(a){
+    g('clientes').filter(function(c){return c.status==='Entregue';}).forEach(function(c){
+      var autoKey='_autoent_'+a.id+'_'+c.id;
+      var jaFeito=jaEnviados.find(function(r){return r._autoKey===autoKey;});
+      var t=(g('q_templates')||[]).find(function(x){return x.id===a.templateId;})||{nome:'Questionário de feedback'};
+      var sendStr=jaFeito?jaFeito.data:new Date().toISOString().substring(0,10);
+      evs.push({id:autoKey,titulo:'Enviar questionário: '+t.nome,data:sendStr+'T09:00',tipo:'_auto',clienteId:c.id,local:c.nome,_isAuto:true,_autoKey:autoKey,_autoId:a.id,_templateId:a.templateId,_jaEnviado:!!jaFeito,_tel:c.tel||''});
     });
   });
   return evs;
@@ -3176,25 +3173,8 @@ function _whatsAutoEnviar(autoKey){
   rA();rR();
 }
 function _triggerAutosPosEntrega(clienteId){
-  var autos=(g('automacoes')||[]).filter(function(a){return a.tipo==='pos-entrega';});
-  if(!autos.length)return;
-  var c=g('clientes').find(function(x){return x.id===clienteId;});
-  if(!c)return;
-  autos.forEach(function(a){
-    var autoKey='_autoent_'+a.id+'_'+clienteId;
-    var jaEnviados=g('q_respostas')||[];
-    if(jaEnviados.find(function(r){return r._autoKey===autoKey;}))return;
-    var t=(g('q_templates')||[]).find(function(x){return x.id===a.templateId;})||{nome:'nosso questionário de feedback'};
-    var phone=(c.tel||'').replace(/\D/g,'');
-    if(phone.length===11)phone='55'+phone;
-    var msg='Olá '+c.nome.split('&')[0].trim()+'! 🎉\n\nFoi uma honra fotografar o dia de vocês. Agora que a galeria foi entregue, adoraríamos saber o que acharam! Poderia responder '+t.nome+'? O retorno de vocês é muito importante para nós. 💛';
-    var r_entry={id:uid(),clienteId:clienteId,templateId:a.templateId,data:new Date().toISOString().substring(0,10),status:'Enviado',_autoKey:autoKey};
-    var rs=(g('q_respostas')||[]).slice();
-    rs.push(r_entry);
-    s('q_respostas',rs);
-    setTimeout(function(){window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');},300);
-    notify('Questionário de feedback aberto para '+c.nome);
-  });
+  // Evento virtual gerado automaticamente via _getAutoEventos() — apenas re-renderiza
+  rA();rR();
 }
 // ── FIM AUTOMAÇÕES ───────────────────────────────────────────────────
 
