@@ -1584,7 +1584,7 @@ function rR(){
     var dl=fmtEvDate(e.data);
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
     var isAuto=!!e._isAuto;
-    var col=isAuto?(e._jaEnviado?'var(--teal)':'var(--amber)'):e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)';
+    var col=isAuto?'var(--text-hint)':e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)';
     var onclick=isAuto?'_whatsAutoEnviar(\''+e.id+'\')':e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
     var subParts=isAuto?[e.local||'',e._jaEnviado?'Enviado — clique para reenviar':'Clique para enviar via WhatsApp']:e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var subSec=subParts.filter(Boolean).join(' – ');
@@ -2521,7 +2521,7 @@ function rA(){
     var isAuto=!!e._isAuto;
     var dl=fmtEvDate(e.data);
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
-    var col=isAuto?(e._jaEnviado?'var(--teal)':'var(--amber)'):isPrimary?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)',past=d<now;
+    var col=isAuto?'var(--text-hint)':isPrimary?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)',past=d<now;
     var onclick=isAuto?'onclick="_whatsAutoEnviar(\''+e.id+'\')"':isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
     var subParts=isAuto?[e.local||'',e._jaEnviado?'Enviado — clique para reenviar':'Clique para enviar via WhatsApp']:isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var sub=subParts.filter(Boolean).join(' – ');
