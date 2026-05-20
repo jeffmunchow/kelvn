@@ -748,7 +748,7 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div class="tw"><div class="ts"><table><thead><tr>
-      <th>Cliente</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
+      <th>Cliente</th><th>Data evento</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
     </tr></thead><tbody id="qr-tbody"></tbody></table></div></div>
   </div>
 </div>
@@ -3325,9 +3325,11 @@ function rQR(){
     var cor=r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)';
     var clickAttr=r.id?'onclick="verRespostas(\''+r.id+'\')"':'';
     var editBtn=r.id?'<button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button>':'<span style="font-size:.72rem;color:var(--text-hint);">—</span>';
-    var sub=ev?(ev.tipo+' – '+fd((ev.data||'').substring(0,10))):'';
+    var sub=ev?ev.tipo:'';
+    var evData=ev?fd((ev.data||'').substring(0,10)):'—';
     return '<tr '+clickAttr+'>'+
       '<td class="tdn"><div>'+(c.nome||'—')+'</div>'+(sub?'<div style="font-size:.7rem;color:var(--text-hint);">'+sub+'</div>':'')+'</td>'+
+      '<td>'+evData+'</td>'+
       '<td>'+(tNome)+'</td>'+
       '<td>'+(r.data?fd(r.data):'—')+'</td>'+
       '<td style="font-size:.78rem;color:'+cor+'">'+r.status+'</td>'+
