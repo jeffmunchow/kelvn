@@ -4070,13 +4070,25 @@ function seedDemoData(){
   fatData.forEach(function(d){
     finEntries.push({id:uid(),desc:'[demo] '+d.cat,valor:d.v,data:dt(d.m,10),cat:d.cat,clienteId:'',tipo:'entrada'});
   });
+  // entradas do ano anterior (para comparações temporais)
+  function dtPrev(month,day){ return (yr-1)+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
+  fatData.forEach(function(d){
+    // ~78% do valor atual, variando levemente por mês para parecer real
+    var prevV=Math.round(d.v*(0.65+(d.m%5)*0.05));
+    finEntries.push({id:uid(),desc:'[demo] '+d.cat,valor:prevV,data:dtPrev(d.m,10),cat:d.cat,clienteId:'',tipo:'entrada'});
+  });
   // despesas
-  [{m:0,v:800,c:'Equipamento'},{m:1,v:350,c:'Software'},{m:2,v:600,c:'Marketing'},
+  var despesasData=[{m:0,v:800,c:'Equipamento'},{m:1,v:350,c:'Software'},{m:2,v:600,c:'Marketing'},
    {m:3,v:1200,c:'Equipe'},{m:4,v:400,c:'Deslocamento'},{m:5,v:900,c:'Equipe'},
    {m:6,v:700,c:'Marketing'},{m:7,v:1500,c:'Equipamento'},{m:8,v:450,c:'Software'},
-   {m:9,v:800,c:'Equipe'},{m:10,v:600,c:'Deslocamento'},{m:11,v:1100,c:'Imposto'}
-  ].forEach(function(d){
+   {m:9,v:800,c:'Equipe'},{m:10,v:600,c:'Deslocamento'},{m:11,v:1100,c:'Imposto'}];
+  despesasData.forEach(function(d){
     finEntries.push({id:uid(),desc:'[demo] '+d.c,valor:d.v,data:dt(d.m,20),cat:d.c,clienteId:'',tipo:'saida'});
+  });
+  // despesas do ano anterior
+  despesasData.forEach(function(d){
+    var prevV=Math.round(d.v*(0.70+(d.m%4)*0.04));
+    finEntries.push({id:uid(),desc:'[demo] '+d.c,valor:prevV,data:dtPrev(d.m,20),cat:d.c,clienteId:'',tipo:'saida'});
   });
   s('fin',finEntries);
   s('pends',[
@@ -4466,6 +4478,47 @@ async function initUserData(){
         else { _finDup=true; }
       });
       if(_finDup) s('fin',_finDedup);
+    }
+    // Migração admin: backfill entradas demo do ano anterior (para comparações temporais)
+    if(isAdmin() && _cache.fin && _cache.fin.length){
+      var _yrA=new Date().getFullYear();
+      var _hasPrev=_cache.fin.some(function(e){
+        return e.desc&&e.desc.indexOf('[demo]')===0&&e.data&&new Date(e.data).getFullYear()===(_yrA-1);
+      });
+      if(!_hasPrev){
+        var _finBF=_cache.fin.slice();
+        var _bfFat=[
+          {m:0,cat:'Casamento',v:4200},{m:1,cat:'Casamento',v:3800},{m:2,cat:'Casamento',v:5500},
+          {m:3,cat:'Casamento',v:7200},{m:4,cat:'Casamento',v:6800},{m:5,cat:'Casamento',v:8400},
+          {m:6,cat:'Casamento',v:9100},{m:7,cat:'Casamento',v:7600},{m:8,cat:'Casamento',v:10200},
+          {m:9,cat:'Casamento',v:8900},{m:10,cat:'Casamento',v:11500},{m:11,cat:'Casamento',v:13200},
+          {m:0,cat:'Sessão',v:2200},{m:1,cat:'Sessão',v:1800},{m:2,cat:'Sessão',v:3200},
+          {m:3,cat:'Sessão',v:2800},{m:4,cat:'Sessão',v:4100},{m:5,cat:'Sessão',v:3500},
+          {m:6,cat:'Sessão',v:2900},{m:7,cat:'Sessão',v:3800},{m:8,cat:'Sessão',v:4200},
+          {m:9,cat:'Sessão',v:3100},{m:10,cat:'Sessão',v:2600},{m:11,cat:'Sessão',v:3900},
+          {m:0,cat:'Religioso',v:1200},{m:1,cat:'Religioso',v:900},{m:2,cat:'Religioso',v:1500},
+          {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
+          {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
+          {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
+          {m:0,cat:'Álbum',v:3200},{m:1,cat:'Álbum',v:2800},{m:2,cat:'Álbum',v:4500},
+          {m:3,cat:'Álbum',v:3900},{m:4,cat:'Álbum',v:5500},{m:5,cat:'Álbum',v:4800},
+          {m:6,cat:'Álbum',v:4100},{m:7,cat:'Álbum',v:5200},{m:8,cat:'Álbum',v:5900},
+          {m:9,cat:'Álbum',v:4400},{m:10,cat:'Álbum',v:3800},{m:11,cat:'Álbum',v:5000}
+        ];
+        _bfFat.forEach(function(d){
+          var pv=Math.round(d.v*(0.65+(d.m%5)*0.05));
+          _finBF.push({id:uid(),desc:'[demo] '+d.cat,valor:pv,data:(_yrA-1)+'-'+String(d.m+1).padStart(2,'0')+'-10',cat:d.cat,clienteId:'',tipo:'entrada'});
+        });
+        var _bfDesp=[{m:0,v:800,c:'Equipamento'},{m:1,v:350,c:'Software'},{m:2,v:600,c:'Marketing'},
+         {m:3,v:1200,c:'Equipe'},{m:4,v:400,c:'Deslocamento'},{m:5,v:900,c:'Equipe'},
+         {m:6,v:700,c:'Marketing'},{m:7,v:1500,c:'Equipamento'},{m:8,v:450,c:'Software'},
+         {m:9,v:800,c:'Equipe'},{m:10,v:600,c:'Deslocamento'},{m:11,v:1100,c:'Imposto'}];
+        _bfDesp.forEach(function(d){
+          var pv=Math.round(d.v*(0.70+(d.m%4)*0.04));
+          _finBF.push({id:uid(),desc:'[demo] '+d.c,valor:pv,data:(_yrA-1)+'-'+String(d.m+1).padStart(2,'0')+'-20',cat:d.c,clienteId:'',tipo:'saida'});
+        });
+        s('fin',_finBF);
+      }
     }
     // Migração: garante c18 em clientes e c11/c04/c18 em edicoes
     if(isAdmin()){
