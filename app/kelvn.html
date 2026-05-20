@@ -3116,7 +3116,7 @@ function rAuto(){
     var t=ts.find(function(x){return x.id===a.templateId;})||{nome:'—'};
     var desc=a.tipo==='pos-entrega'?'Ao mudar para Entregue':''+a.dias+' dias antes do evento';
     var ativo=a.ativo!==false;
-    var trackBg=ativo?'#888':'var(--border-strong)';
+    var trackBg=ativo?'var(--text-muted)':'var(--border-strong)';
     var thumbX=ativo?'translateX(14px)':'translateX(0)';
     return '<div class="kv-auto-row'+(ativo?'':' off')+'" style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
       '<div style="flex:1;">'+
