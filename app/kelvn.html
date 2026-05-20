@@ -102,6 +102,7 @@ td{padding:10px 12px;border-bottom:.5px solid var(--border);color:var(--text-mut
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--surface2);cursor:pointer;}
 .tdn{color:var(--text);}
+.tsub{font-size:.72rem;color:var(--text-hint);margin-top:1px;}
 .empty{padding:2.5rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;}
 /* BADGE */
 .badge{display:inline-block;font-size:.61rem;padding:2px 8px;border-radius:20px;white-space:nowrap;}
@@ -3317,7 +3318,7 @@ function rQR(){
     return da.localeCompare(db);
   });
 
-  if(!linhas.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum evento com status Sessão ou Casamento</td></tr>';return;}
+  if(!linhas.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum evento encontrado</td></tr>';return;}
 
   tb.innerHTML=linhas.map(function(l){
     var r=l.r, c=l.c, ev=l.ev;
@@ -3328,7 +3329,7 @@ function rQR(){
     var sub=ev?ev.tipo:'';
     var evData=ev?fd((ev.data||'').substring(0,10)):'—';
     return '<tr '+clickAttr+'>'+
-      '<td class="tdn"><div>'+(c.nome||'—')+'</div>'+(sub?'<div style="font-size:.7rem;color:var(--text-hint);">'+sub+'</div>':'')+'</td>'+
+      '<td class="tdn"><div>'+(c.nome||'—')+'</div>'+(sub?'<div class="tsub">'+sub+'</div>':'')+'</td>'+
       '<td>'+evData+'</td>'+
       '<td>'+(tNome)+'</td>'+
       '<td>'+(r.data?fd(r.data):'—')+'</td>'+
