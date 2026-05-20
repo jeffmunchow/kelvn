@@ -3345,9 +3345,9 @@ function rQR(){
   var clientes=g('clientes')||[];
   var tb=document.getElementById('qr-tbody');
 
-  // Clientes elegíveis: qualquer status primário ativo (Sessão, Religioso, Welcome, Casamento, After)
+  // Clientes elegíveis: status primário ativo + Edição
   var primary=_primaryEventsFromClientes();
-  var eligivelIds=clientes.filter(function(c){return _PRIMARY_STATUS.indexOf(c.status)>-1;}).map(function(c){return c.id;});
+  var eligivelIds=clientes.filter(function(c){return _PRIMARY_STATUS.indexOf(c.status)>-1||c.status==='Edição';}).map(function(c){return c.id;});
   // Todos os eventos primários desses clientes
   var elegíveis=primary.filter(function(ev){return eligivelIds.indexOf(ev.clienteId)>-1;});
 
