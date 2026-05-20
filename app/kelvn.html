@@ -3348,8 +3348,13 @@ function rQR(){
   // Clientes elegíveis: status primário ativo + Edição
   var primary=_primaryEventsFromClientes();
   var eligivelIds=clientes.filter(function(c){return _PRIMARY_STATUS.indexOf(c.status)>-1||c.status==='Edição';}).map(function(c){return c.id;});
-  // Todos os eventos primários desses clientes
+  // Eventos primários para clientes com status primário
   var elegíveis=primary.filter(function(ev){return eligivelIds.indexOf(ev.clienteId)>-1;});
+  // Clientes em Edição não têm eventos primários — adicionar como entrada sem evento
+  var comEvento=elegíveis.map(function(ev){return ev.clienteId;});
+  clientes.filter(function(c){return c.status==='Edição'&&comEvento.indexOf(c.id)===-1;}).forEach(function(c){
+    elegíveis.push({id:'_edicao_'+c.id,clienteId:c.id,tipo:'Edição',data:(c.data||'')+'T00:00',_fromCliente:true});
+  });
 
   var linhas=[];
 
