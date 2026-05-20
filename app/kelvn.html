@@ -3378,15 +3378,11 @@ function rQR(){
       rsUsadas.push(resp.id);
       linhas.push({r:resp,c:c,ev:ev});
     } else {
-      if(c.status==='Edição'){
-        // Cria e persiste entrada Pendente com template padrão
-        var novaEntry={id:uid(),clienteId:ev.clienteId,templateId:_fbTid,data:new Date().toISOString().substring(0,10),status:'Pendente'};
-        rs=rs.slice(); rs.push(novaEntry); rsUsadas.push(novaEntry.id); rsMod=true;
-        linhas.push({r:novaEntry,c:c,ev:ev});
-      } else {
-        // Entrada virtual sem id — botão Editar não aparece
-        linhas.push({r:{id:null,clienteId:ev.clienteId,templateId:null,data:null,status:'Pendente'},c:c,ev:ev});
-      }
+      // Cria e persiste entrada Pendente para todos os clientes elegíveis
+      var tplPadrao=c.status==='Edição'?_fbTid:null;
+      var novaEntry={id:uid(),clienteId:ev.clienteId,templateId:tplPadrao,data:new Date().toISOString().substring(0,10),status:'Pendente'};
+      rs=rs.slice(); rs.push(novaEntry); rsUsadas.push(novaEntry.id); rsMod=true;
+      linhas.push({r:novaEntry,c:c,ev:ev});
     }
   });
   if(rsMod) s('q_respostas',rs);
