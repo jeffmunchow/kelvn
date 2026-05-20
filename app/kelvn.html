@@ -3274,53 +3274,58 @@ function rQR(){
   var clientes=g('clientes')||[];
   var tb=document.getElementById('qr-tbody');
 
-  // Clientes elegíveis: Sessão ou Casamento
-  var elegiveis=clientes.filter(function(c){return c.status==='Sessão'||c.status==='Casamento';});
+  // Todos os eventos primários elegíveis (Sessão ou Casamento), um por evento
+  var primary=_primaryEventsFromClientes();
+  var elegíveis=primary.filter(function(ev){
+    return ev.tipo==='Sessão'||ev.tipo==='Casamento';
+  });
 
-  // Monta lista unificada: para cada cliente elegível, pega a resposta mais recente (ou cria entrada virtual Pendente)
   var linhas=[];
-  elegiveis.forEach(function(c){
-    var resps=rs.filter(function(r){return r.clienteId===c.id;}).sort(function(a,b){return new Date(b.data||0)-new Date(a.data||0);});
-    if(resps.length){
-      resps.forEach(function(r){ linhas.push({r:r,c:c}); });
+
+  // Para cada evento elegível, encontra a resposta vinculada (por _autoKey contendo evId, ou por clienteId sem evId específico)
+  elegíveis.forEach(function(ev){
+    var c=clientes.find(function(x){return x.id===ev.clienteId;})||{nome:'—',id:ev.clienteId};
+    // Resposta vinculada a este evento específico (via _autoKey)
+    var resp=rs.find(function(r){return r._autoKey&&r._autoKey.indexOf(ev.id)>-1;});
+    // Se não, resposta genérica do cliente (sem _autoKey ou com clienteId)
+    if(!resp) resp=rs.find(function(r){return r.clienteId===ev.clienteId&&(!r._autoKey||r._autoKey==='');});
+    if(resp){
+      linhas.push({r:resp,c:c,ev:ev});
     } else {
-      // Virtual — ainda não teve questionário enviado
-      linhas.push({r:{id:null,clienteId:c.id,templateId:null,data:null,status:'Pendente'},c:c});
+      linhas.push({r:{id:null,clienteId:ev.clienteId,templateId:null,data:null,status:'Pendente'},c:c,ev:ev});
     }
   });
 
-  // Também inclui respostas de clientes fora do filtro (histórico)
+  // Histórico: respostas que não foram associadas a nenhum evento elegível
   rs.forEach(function(r){
     var jaIncluso=linhas.find(function(l){return l.r.id===r.id;});
     if(!jaIncluso){
       var c=clientes.find(function(x){return x.id===r.clienteId;})||{nome:'—'};
-      linhas.push({r:r,c:c});
+      linhas.push({r:r,c:c,ev:null});
     }
   });
 
-  // Filtra por status se selecionado
+  // Filtra por status
   if(sf) linhas=linhas.filter(function(l){return l.r.status===sf;});
 
-  // Ordena pela data do evento principal do cliente (mais próximo primeiro)
-  var primary=_primaryEventsFromClientes();
-  function _evDataCliente(clienteId){
-    var ev=primary.find(function(e){return e.clienteId===clienteId;});
-    return ev?ev.data:'9999';
-  }
+  // Ordena pela data do evento
   linhas.sort(function(a,b){
-    return _evDataCliente(a.c.id).localeCompare(_evDataCliente(b.c.id));
+    var da=a.ev?a.ev.data:'9999';
+    var db=b.ev?b.ev.data:'9999';
+    return da.localeCompare(db);
   });
 
-  if(!linhas.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum cliente com status Sessão ou Casamento</td></tr>';return;}
+  if(!linhas.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum evento com status Sessão ou Casamento</td></tr>';return;}
 
   tb.innerHTML=linhas.map(function(l){
-    var r=l.r, c=l.c;
+    var r=l.r, c=l.c, ev=l.ev;
     var tNome=r.templateId?(g('q_templates').find(function(t){return t.id===r.templateId;})||{nome:'—'}).nome:'—';
     var cor=r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)';
     var clickAttr=r.id?'onclick="verRespostas(\''+r.id+'\')"':'';
     var editBtn=r.id?'<button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button>':'<span style="font-size:.72rem;color:var(--text-hint);">—</span>';
+    var sub=ev?(ev.tipo+' · '+fd(ev.data)):'';
     return '<tr '+clickAttr+'>'+
-      '<td class="tdn">'+(c.nome||'—')+'</td>'+
+      '<td class="tdn"><div>'+(c.nome||'—')+'</div>'+(sub?'<div style="font-size:.7rem;color:var(--text-hint);">'+sub+'</div>':'')+'</td>'+
       '<td>'+(tNome)+'</td>'+
       '<td>'+(r.data?fd(r.data):'—')+'</td>'+
       '<td style="font-size:.78rem;color:'+cor+'">'+r.status+'</td>'+
