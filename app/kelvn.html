@@ -1525,7 +1525,7 @@ function pN(id){var p=g('pacotes').find(function(x){return x.id===id;});return p
 function fillSel(extras){
   var cs=g('clientes');
   var sels=extras||[];
-  var base=[['me-cliente','— nenhum —'],['mp-cliente','— geral —'],['mf-cliente','— nenhum —'],['morc-cliente','— selecione —'],['med-cliente','— selecione —'],['ment-cliente','— selecione —']];
+  var base=[['me-cliente','— nenhum —'],['mp-cliente','— geral —'],['mf-cliente','— nenhum —'],['morc-cliente','— selecione —'],['med-cliente','— selecione —'],['ment-cliente','— selecione —'],['mqr-cliente','— selecione —']];
   base.concat(sels).forEach(function(x){
     var el=document.getElementById(x[0]);if(!el)return;
     el.innerHTML='<option value="">'+x[1]+'</option>'+cs.map(function(c){return '<option value="'+c.id+'">'+c.nome+'</option>';}).join('');
