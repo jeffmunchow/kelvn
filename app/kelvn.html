@@ -1988,6 +1988,21 @@ function saveC(){
   }
   undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Cliente salvo');
   if(o.status==='Entregue'&&(!ex||ex.status!=='Entregue'))_triggerAutosPosEntrega(o.id);
+  if(o.status==='Edição'&&(!ex||ex.status!=='Edição')){
+    // Ao entrar em Edição: define questionário de feedback pós-entrega como Pendente
+    var _fbTemplate=(g('q_templates')||[]).find(function(t){return t.nome&&t.nome.toLowerCase().indexOf('pós-entrega')>-1||t.nome&&t.nome.toLowerCase().indexOf('pos-entrega')>-1||t.nome&&t.nome.toLowerCase().indexOf('feedback')>-1;});
+    var _fbTid=_fbTemplate?_fbTemplate.id:((g('q_templates')||[])[0]||{}).id||null;
+    var _fbRs=(g('q_respostas')||[]).slice();
+    var _fbExist=_fbRs.find(function(r){return r.clienteId===o.id&&r.status!=='Respondido';});
+    if(_fbExist){
+      _fbExist.status='Pendente';
+      if(_fbTid) _fbExist.templateId=_fbTid;
+    } else {
+      _fbRs.push({id:uid(),clienteId:o.id,templateId:_fbTid,data:new Date().toISOString().substring(0,10),status:'Pendente'});
+    }
+    s('q_respostas',_fbRs);
+    rQT();
+  }
 }
 function delC(){if(!confirm('Excluir?'))return;undoBegin();s('clientes',g('clientes').filter(function(c){return c.id!==_cId;}));undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído');}
 function rPL(ps){_parc=ps.map(function(p){return Object.assign({},p);});bPD();}
