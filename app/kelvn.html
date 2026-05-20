@@ -3128,12 +3128,12 @@ function openAuto(id){
   if(!tOpts){alert('Crie um template de questionário primeiro.');return;}
   var tipoPosEntrega=a&&a.tipo==='pos-entrega';
   var html='<div style="display:flex;flex-direction:column;gap:1rem;">'+
-    '<div class="field"><label>Template</label><select id="mauto-template" class="sd">'+tOpts+'</select></div>'+
-    '<div class="field"><label>Quando enviar</label><select id="mauto-tipo" class="sd" onchange="document.getElementById(\'mauto-dias-row\').style.display=this.value===\'pre-evento\'?\'\':\' none\'">'+
+    '<div class="field"><label>Template</label><select id="mauto-template" class="fi">'+tOpts+'</select></div>'+
+    '<div class="field"><label>Quando enviar</label><select id="mauto-tipo" class="fi" onchange="document.getElementById(\'mauto-dias-row\').style.display=this.value===\'pre-evento\'?\'\':\' none\'">'+
       '<option value="pre-evento"'+(!tipoPosEntrega?' selected':'')+'>X dias antes do evento</option>'+
       '<option value="pos-entrega"'+(tipoPosEntrega?' selected':'')+'>Ao mudar status para Entregue</option>'+
     '</select></div>'+
-    '<div class="field" id="mauto-dias-row" style="'+(tipoPosEntrega?'display:none':'')+'"><label>Dias antes</label><input type="number" id="mauto-dias" class="sd" min="1" max="365" value="'+(a?a.dias:30)+'"></div>'+
+    '<div class="field" id="mauto-dias-row" style="'+(tipoPosEntrega?'display:none':'')+'"><label>Dias antes</label><input type="number" id="mauto-dias" class="fi" min="1" max="365" value="'+(a?a.dias:30)+'"></div>'+
   '</div>';
   var ov=document.createElement('div');
   ov.id='ov-auto-temp';
