@@ -3358,21 +3358,33 @@ function rQR(){
 
   var linhas=[];
 
+  // Template padrão de feedback para clientes em Edição
+  var _fbTemplate=(g('q_templates')||[]).find(function(t){return t.nome&&(t.nome.toLowerCase().indexOf('pós-entrega')>-1||t.nome.toLowerCase().indexOf('pos-entrega')>-1||t.nome.toLowerCase().indexOf('feedback')>-1);});
+  var _fbTid=_fbTemplate?_fbTemplate.id:((g('q_templates')||[])[0]||{}).id||null;
+
   // Para cada evento elegível, associa respostas por clienteId (mais recentes primeiro)
   var rsUsadas=[];
+  var rsMod=false;
   elegíveis.forEach(function(ev){
     var c=clientes.find(function(x){return x.id===ev.clienteId;})||{nome:'—',id:ev.clienteId};
     var resps=rs.filter(function(r){return r.clienteId===ev.clienteId&&rsUsadas.indexOf(r.id)===-1;})
                 .sort(function(a,b){return new Date(b.data||0)-new Date(a.data||0);});
     if(resps.length){
-      // Associa uma resposta por evento (a mais recente ainda não usada)
       var resp=resps[0];
+      // Se cliente está em Edição e resposta não tem template, atribui o padrão
+      if(c.status==='Edição'&&!resp.templateId&&_fbTid){
+        resp.templateId=_fbTid; rsMod=true;
+      }
       rsUsadas.push(resp.id);
       linhas.push({r:resp,c:c,ev:ev});
     } else {
-      linhas.push({r:{id:null,clienteId:ev.clienteId,templateId:null,data:null,status:'Pendente'},c:c,ev:ev});
+      // Cria e persiste entrada Pendente com template padrão para clientes em Edição
+      var novaEntry={id:uid(),clienteId:ev.clienteId,templateId:(c.status==='Edição'?_fbTid:null),data:new Date().toISOString().substring(0,10),status:'Pendente'};
+      if(c.status==='Edição'){ rs=rs.slice(); rs.push(novaEntry); rsUsadas.push(novaEntry.id); rsMod=true; }
+      linhas.push({r:novaEntry,c:c,ev:ev});
     }
   });
+  if(rsMod) s('q_respostas',rs);
 
   // Respostas extras do mesmo cliente (quando há mais respostas do que eventos elegíveis)
   rs.forEach(function(r){
