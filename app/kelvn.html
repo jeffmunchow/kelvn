@@ -3323,10 +3323,9 @@ function rQR(){
     var cor=r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)';
     var clickAttr=r.id?'onclick="verRespostas(\''+r.id+'\')"':'';
     var editBtn=r.id?'<button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button>':'<span style="font-size:.72rem;color:var(--text-hint);">—</span>';
-    var sub=ev?ev.tipo:'';
-    var subCor=sub?(_STATUS_COLORS[sub]||'var(--text-hint)'):'var(--text-hint)';
+    var sub=ev?(ev.tipo+' – '+fd(ev.data)):'';
     return '<tr '+clickAttr+'>'+
-      '<td class="tdn"><div>'+(c.nome||'—')+'</div>'+(sub?'<div style="font-size:.7rem;color:'+subCor+';">'+sub+'</div>':'')+'</td>'+
+      '<td class="tdn"><div>'+(c.nome||'—')+'</div>'+(sub?'<div style="font-size:.7rem;color:var(--text-hint);">'+sub+'</div>':'')+'</td>'+
       '<td>'+(tNome)+'</td>'+
       '<td>'+(r.data?fd(r.data):'—')+'</td>'+
       '<td style="font-size:.78rem;color:'+cor+'">'+r.status+'</td>'+
