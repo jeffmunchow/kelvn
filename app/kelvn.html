@@ -2036,12 +2036,28 @@ function tgP(i){
   if(_cId){
     var parc=_parc[i];
     if(!parc.id){parc.id=uid();}
+    // Persiste imediatamente as parcelas no cliente para que o id da parcela sobreviva
+    var clientes=g('clientes');
+    var ci=clientes.findIndex(function(c){return c.id===_cId;});
+    if(ci>-1){
+      clientes[ci].parcelas=_parc.slice();
+      s('clientes',clientes);
+    }
     var parcKey='parcela:'+_cId+':'+parc.id;
     if(parc.pago){
       var fin=g('fin');
+      // Dedup: remove qualquer entrada auto duplicada para a mesma parcela (mesmo cliente, valor, data)
+      var dup=fin.filter(function(e){
+        return e.auto&&e.clienteId===_cId&&e.parcela_ref!==parcKey&&
+               parseFloat(e.valor||0)===parseFloat(parc.valor||0)&&
+               (e.data||'')===(parc.data||'');
+      });
+      if(dup.length){
+        fin=fin.filter(function(e){return dup.indexOf(e)===-1;});
+      }
       var existe=fin.find(function(e){return e.parcela_ref===parcKey;});
       if(!existe){
-        var cliente=g('clientes').find(function(c){return c.id===_cId;});
+        var cliente=clientes.find(function(c){return c.id===_cId;});
         fin.push({
           id:uid(),
           desc:'Parcela — '+(cliente?cliente.nome:''),
@@ -2055,6 +2071,8 @@ function tgP(i){
         });
         s('fin',fin);
         notify('Parcela registrada no Financeiro.');
+      } else if(dup.length){
+        s('fin',fin);
       }
     } else {
       var finRem=g('fin').filter(function(e){return e.parcela_ref!==parcKey;});
@@ -4394,6 +4412,17 @@ async function initUserData(){
       var _seen={}, _deduped=[], _hadDup=false;
       _cache.clientes.forEach(function(c){ if(!_seen[c.id]){_seen[c.id]=true;_deduped.push(c);}else{_hadDup=true;} });
       if(_hadDup){ s('clientes',_deduped); }
+    }
+    // Migração: dedup entradas auto de parcela (mesmo cliente/valor/data → mantém a primeira)
+    if(_cache.fin && _cache.fin.length){
+      var _finSeen={}, _finDedup=[], _finDup=false;
+      _cache.fin.forEach(function(e){
+        if(!e.auto||!e.clienteId){ _finDedup.push(e); return; }
+        var k=e.clienteId+'|'+parseFloat(e.valor||0)+'|'+(e.data||'');
+        if(!_finSeen[k]){ _finSeen[k]=true; _finDedup.push(e); }
+        else { _finDup=true; }
+      });
+      if(_finDup) s('fin',_finDedup);
     }
     // Migração: garante c18 em clientes e c11/c04/c18 em edicoes
     if(isAdmin()){
