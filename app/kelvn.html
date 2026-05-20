@@ -3282,27 +3282,29 @@ function rQR(){
 
   var linhas=[];
 
-  // Para cada evento elegível, encontra a resposta vinculada (por _autoKey contendo evId, ou por clienteId sem evId específico)
+  // Para cada evento elegível, associa respostas por clienteId (mais recentes primeiro)
+  var rsUsadas=[];
   elegíveis.forEach(function(ev){
     var c=clientes.find(function(x){return x.id===ev.clienteId;})||{nome:'—',id:ev.clienteId};
-    // Resposta vinculada a este evento específico (via _autoKey)
-    var resp=rs.find(function(r){return r._autoKey&&r._autoKey.indexOf(ev.id)>-1;});
-    // Se não, resposta genérica do cliente (sem _autoKey ou com clienteId)
-    if(!resp) resp=rs.find(function(r){return r.clienteId===ev.clienteId&&(!r._autoKey||r._autoKey==='');});
-    if(resp){
+    var resps=rs.filter(function(r){return r.clienteId===ev.clienteId&&rsUsadas.indexOf(r.id)===-1;})
+                .sort(function(a,b){return new Date(b.data||0)-new Date(a.data||0);});
+    if(resps.length){
+      // Associa uma resposta por evento (a mais recente ainda não usada)
+      var resp=resps[0];
+      rsUsadas.push(resp.id);
       linhas.push({r:resp,c:c,ev:ev});
     } else {
       linhas.push({r:{id:null,clienteId:ev.clienteId,templateId:null,data:null,status:'Pendente'},c:c,ev:ev});
     }
   });
 
-  // Histórico: respostas que não foram associadas a nenhum evento elegível
+  // Respostas extras do mesmo cliente (quando há mais respostas do que eventos elegíveis)
   rs.forEach(function(r){
-    var jaIncluso=linhas.find(function(l){return l.r.id===r.id;});
-    if(!jaIncluso){
-      var c=clientes.find(function(x){return x.id===r.clienteId;})||{nome:'—'};
-      linhas.push({r:r,c:c,ev:null});
-    }
+    if(rsUsadas.indexOf(r.id)>-1) return;
+    var evMatch=elegíveis.find(function(ev){return ev.clienteId===r.clienteId;});
+    var c=clientes.find(function(x){return x.id===r.clienteId;})||{nome:'—'};
+    linhas.push({r:r,c:c,ev:evMatch||null});
+    if(r.id) rsUsadas.push(r.id);
   });
 
   // Filtra por status
