@@ -3202,12 +3202,14 @@ function _openAutoCard(autoKey){
   html+='<div style="font-size:.9rem;font-weight:500;">'+c.nome+'</div>';
   html+='</div>';
   if(perguntas.length){
-    html+='<div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.5rem;">Perguntas do template</div>';
-    html+='<ol style="padding-left:1.25rem;display:flex;flex-direction:column;gap:.4rem;">';
-    perguntas.forEach(function(p){
-      html+='<li style="font-size:.82rem;color:var(--text);">'+p.texto+'</li>';
+    html+='<div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem;">Perguntas do template</div>';
+    html+='<div style="display:flex;flex-direction:column;gap:1rem;">';
+    perguntas.forEach(function(p,i){
+      html+='<div style="background:var(--surface2);border-radius:8px;padding:.75rem 1rem;">'+
+        '<div style="font-size:.72rem;color:var(--text-hint);">'+(i+1)+'. '+p.texto+'</div>'+
+      '</div>';
     });
-    html+='</ol>';
+    html+='</div>';
   } else {
     html+='<div style="font-size:.82rem;color:var(--text-hint);font-style:italic;">Template sem perguntas cadastradas.</div>';
   }
