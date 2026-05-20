@@ -199,6 +199,14 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 /* ROW ACTION */
 .ra{font-family:'DM Sans',sans-serif;font-size:.67rem;color:var(--text-hint);background:none;border:.5px solid var(--border-strong);border-radius:4px;padding:2px 8px;cursor:pointer;}
 .ra:hover{color:var(--text);}
+.kv-toggle{position:relative;display:inline-flex;align-items:center;cursor:pointer;width:32px;height:18px;flex-shrink:0;}
+.kv-toggle input{opacity:0;width:0;height:0;position:absolute;}
+.kv-toggle-track{position:absolute;inset:0;background:var(--border-strong);border-radius:18px;transition:background .2s;}
+.kv-toggle input:checked~.kv-toggle-track{background:var(--teal);}
+.kv-toggle-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.kv-toggle input:checked~.kv-toggle-track~.kv-toggle-thumb{transform:translateX(14px);}
+.kv-auto-row{transition:opacity .2s;}
+.kv-auto-row.off{opacity:.38;}
 /* MODAL */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:1rem;}
 .overlay.open{display:flex;}
@@ -3107,12 +3115,17 @@ function rAuto(){
   el.innerHTML=autos.map(function(a){
     var t=ts.find(function(x){return x.id===a.templateId;})||{nome:'—'};
     var desc=a.tipo==='pos-entrega'?'Ao mudar para Entregue':''+a.dias+' dias antes do evento';
-    return '<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
+    var ativo=a.ativo!==false;
+    return '<div class="kv-auto-row'+(ativo?'':' off')+'" style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
+      '<label class="kv-toggle" title="'+(ativo?'Desativar':'Ativar')+'" onclick="event.preventDefault();toggleAuto(\''+a.id+'\')">'+
+        '<input type="checkbox"'+(ativo?' checked':'')+' readonly>'+
+        '<span class="kv-toggle-track"></span>'+
+        '<span class="kv-toggle-thumb"></span>'+
+      '</label>'+
       '<div style="flex:1;">'+
         '<div style="font-size:.82rem;color:var(--text);">'+t.nome+'</div>'+
         '<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+desc+'</div>'+
       '</div>'+
-      '<button class="btn" onclick="toggleAuto(\''+a.id+'\')" title="'+(a.ativo===false?'Ativar':'Desativar')+'" style="font-size:.72rem;padding:3px 10px;color:'+(a.ativo===false?'var(--text-hint)':'var(--teal)')+';">'+(a.ativo===false?'Desligada':'Ligada')+'</button>'+
       '<button class="btn" onclick="openAuto(\''+a.id+'\')">Editar</button>'+
       '<button class="btn" onclick="delAuto(\''+a.id+'\')" style="color:var(--coral);">Remover</button>'+
     '</div>';
