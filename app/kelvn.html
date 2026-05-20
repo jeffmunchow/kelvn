@@ -3112,6 +3112,7 @@ function rAuto(){
         '<div style="font-size:.82rem;color:var(--text);">'+t.nome+'</div>'+
         '<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+desc+'</div>'+
       '</div>'+
+      '<button class="btn" onclick="toggleAuto(\''+a.id+'\')" title="'+(a.ativo===false?'Ativar':'Desativar')+'" style="font-size:.72rem;padding:3px 10px;color:'+(a.ativo===false?'var(--text-hint)':'var(--teal)')+';">'+(a.ativo===false?'Desligada':'Ligada')+'</button>'+
       '<button class="btn" onclick="openAuto(\''+a.id+'\')">Editar</button>'+
       '<button class="btn" onclick="delAuto(\''+a.id+'\')" style="color:var(--coral);">Remover</button>'+
     '</div>';
@@ -3161,6 +3162,14 @@ function saveAuto(){
   document.getElementById('ov-auto-temp').remove();
   rAuto();
 }
+function toggleAuto(id){
+  var autos=(g('automacoes')||[]).slice();
+  var a=autos.find(function(x){return x.id===id;});
+  if(!a)return;
+  a.ativo=a.ativo===false?true:false;
+  s('automacoes',autos);
+  rAuto();
+}
 function delAuto(id){
   if(!confirm('Remover automação?'))return;
   s('automacoes',(g('automacoes')||[]).filter(function(x){return x.id!==id;}));
@@ -3172,7 +3181,7 @@ function _getAutoEventos(){
   var primary=_primaryEventsFromClientes();
   var jaEnviados=g('q_respostas')||[];
   // pré-evento
-  autos.filter(function(a){return a.tipo==='pre-evento'&&a.dias>0;}).forEach(function(a){
+  autos.filter(function(a){return a.ativo!==false&&a.tipo==='pre-evento'&&a.dias>0;}).forEach(function(a){
     primary.forEach(function(ev){
       var c=g('clientes').find(function(x){return x.id===ev.clienteId;});
       if(!c||!ev.data)return;
@@ -3187,7 +3196,7 @@ function _getAutoEventos(){
     });
   });
   // pós-entrega
-  autos.filter(function(a){return a.tipo==='pos-entrega';}).forEach(function(a){
+  autos.filter(function(a){return a.ativo!==false&&a.tipo==='pos-entrega';}).forEach(function(a){
     g('clientes').filter(function(c){return c.status==='Entregue';}).forEach(function(c){
       var autoKey='_autoent_'+a.id+'_'+c.id;
       var jaFeito=jaEnviados.find(function(r){return r._autoKey===autoKey;});
