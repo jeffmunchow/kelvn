@@ -3116,7 +3116,7 @@ function rAuto(){
     var t=ts.find(function(x){return x.id===a.templateId;})||{nome:'—'};
     var desc=a.tipo==='pos-entrega'?'Ao mudar para Entregue':''+a.dias+' dias antes do evento';
     var ativo=a.ativo!==false;
-    var trackBg=ativo?'var(--text)':'var(--border-strong)';
+    var trackBg=ativo?'#888':'var(--border-strong)';
     var thumbX=ativo?'translateX(14px)':'translateX(0)';
     return '<div class="kv-auto-row'+(ativo?'':' off')+'" style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
       '<div style="flex:1;">'+
@@ -3125,7 +3125,7 @@ function rAuto(){
       '</div>'+
       '<div onclick="toggleAuto(\''+a.id+'\')" title="'+(ativo?'Desativar':'Ativar')+'" style="position:relative;width:32px;height:18px;flex-shrink:0;cursor:pointer;align-self:center;">'+
         '<span style="position:absolute;inset:0;background:'+trackBg+';border-radius:18px;transition:background .2s;"></span>'+
-        '<span style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:var(--bg);border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.25);transform:'+thumbX+';transition:transform .2s;"></span>'+
+        '<span style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.25);transform:'+thumbX+';transition:transform .2s;"></span>'+
       '</div>'+
       '<button class="btn" onclick="openAuto(\''+a.id+'\')">Editar</button>'+
       '<button class="btn" onclick="delAuto(\''+a.id+'\')" style="color:var(--coral);">Remover</button>'+
