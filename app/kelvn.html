@@ -756,7 +756,7 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div class="tw"><div class="ts"><table><thead><tr>
-      <th>Cliente</th><th>Data evento</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
+      <th>Cliente</th><th>Data evento</th><th>Status cliente</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
     </tr></thead><tbody id="qr-tbody"></tbody></table></div></div>
   </div>
 </div>
@@ -3432,7 +3432,7 @@ function rQR(){
     return da.localeCompare(db);
   });
 
-  if(!linhas.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum evento encontrado</td></tr>';return;}
+  if(!linhas.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nenhum evento encontrado</td></tr>';return;}
 
   tb.innerHTML=linhas.map(function(l){
     var r=l.r, c=l.c, ev=l.ev;
@@ -3446,8 +3446,9 @@ function rQR(){
     var sub=ev?ev.tipo:'';
     var evData=ev?fd((ev.data||'').substring(0,10)):'—';
     return '<tr '+clickAttr+'>'+
-      '<td class="tdn"><div>'+(c.nome||'—')+'</div>'+(sub?'<div class="tsub">'+sub+'</div>':'')+'</td>'+
+      '<td class="tdn">'+(c.nome||'—')+'</td>'+
       '<td>'+evData+'</td>'+
+      '<td style="font-size:.78rem;color:var(--text-muted);">'+(sub||'—')+'</td>'+
       '<td>'+(tNome)+'</td>'+
       '<td>'+(r.data?fd(r.data):'—')+'</td>'+
       '<td style="font-size:.61rem;color:'+stCor+'">'+r.status+'</td>'+
