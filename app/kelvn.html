@@ -3323,7 +3323,7 @@ function rQR(){
   tb.innerHTML=linhas.map(function(l){
     var r=l.r, c=l.c, ev=l.ev;
     var tNome=r.templateId?(g('q_templates').find(function(t){return t.id===r.templateId;})||{nome:'—'}).nome:'—';
-    var cor=r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)';
+    var stCls=r.status==='Pendente'?'bpo':r.status==='Enviado'?'bc':r.status==='Respondido'?'bw':'bp';
     var clickAttr=r.id?'onclick="verRespostas(\''+r.id+'\')"':'';
     var editBtn=r.id?'<button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button>':'<span style="font-size:.72rem;color:var(--text-hint);">—</span>';
     var sub=ev?ev.tipo:'';
@@ -3333,7 +3333,7 @@ function rQR(){
       '<td>'+evData+'</td>'+
       '<td>'+(tNome)+'</td>'+
       '<td>'+(r.data?fd(r.data):'—')+'</td>'+
-      '<td style="font-size:.78rem;color:'+cor+'">'+r.status+'</td>'+
+      '<td><span class="badge '+stCls+'">'+r.status+'</span></td>'+
       '<td>'+editBtn+'</td>'+
     '</tr>';
   }).join('');
