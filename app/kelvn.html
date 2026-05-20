@@ -3255,17 +3255,59 @@ function delQT(){if(!confirm('Excluir?'))return;undoBegin();s('q_templates',g('q
 var _qrId=null;
 function rQR(){
   var sf=(document.getElementById('qr-status-filter')||{value:''}).value;
-  var rs=g('q_respostas').filter(function(r){return !sf||r.status===sf;}).sort(function(a,b){return new Date(b.data||0)-new Date(a.data||0);});
+  var rs=g('q_respostas')||[];
+  var clientes=g('clientes')||[];
   var tb=document.getElementById('qr-tbody');
-  if(!rs.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum questionário enviado</td></tr>';return;}
-  var statusBdg={'Pendente':'bpo','Enviado':'bc','Respondido':'bw'};
-  tb.innerHTML=rs.map(function(r){
-    return '<tr onclick="verRespostas(\''+r.id+'\')">'+
-      '<td class="tdn">'+(r.clienteId?cN(r.clienteId):'—')+'</td>'+
-      '<td>'+(r.templateId?g('q_templates').find(function(t){return t.id===r.templateId;})||{nome:'—'}:{nome:'—'}).nome+'</td>'+
-      '<td>'+fd(r.data)+'</td>'+
-      '<td style="font-size:.78rem;color:'+(r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)')+'">'+(r.status||'—')+'</td>'+
-      '<td><button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button></td>'+
+
+  // Clientes elegíveis: Sessão ou Casamento
+  var elegiveis=clientes.filter(function(c){return c.status==='Sessão'||c.status==='Casamento';});
+
+  // Monta lista unificada: para cada cliente elegível, pega a resposta mais recente (ou cria entrada virtual Pendente)
+  var linhas=[];
+  elegiveis.forEach(function(c){
+    var resps=rs.filter(function(r){return r.clienteId===c.id;}).sort(function(a,b){return new Date(b.data||0)-new Date(a.data||0);});
+    if(resps.length){
+      resps.forEach(function(r){ linhas.push({r:r,c:c}); });
+    } else {
+      // Virtual — ainda não teve questionário enviado
+      linhas.push({r:{id:null,clienteId:c.id,templateId:null,data:null,status:'Pendente'},c:c});
+    }
+  });
+
+  // Também inclui respostas de clientes fora do filtro (histórico)
+  rs.forEach(function(r){
+    var jaIncluso=linhas.find(function(l){return l.r.id===r.id;});
+    if(!jaIncluso){
+      var c=clientes.find(function(x){return x.id===r.clienteId;})||{nome:'—'};
+      linhas.push({r:r,c:c});
+    }
+  });
+
+  // Filtra por status se selecionado
+  if(sf) linhas=linhas.filter(function(l){return l.r.status===sf;});
+
+  // Ordena: Pendente primeiro, depois Enviado, depois Respondido; dentro de cada grupo por nome
+  var ord={Pendente:0,Enviado:1,Respondido:2};
+  linhas.sort(function(a,b){
+    var oa=ord[a.r.status]??3, ob=ord[b.r.status]??3;
+    if(oa!==ob) return oa-ob;
+    return (a.c.nome||'').localeCompare(b.c.nome||'');
+  });
+
+  if(!linhas.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum cliente com status Sessão ou Casamento</td></tr>';return;}
+
+  tb.innerHTML=linhas.map(function(l){
+    var r=l.r, c=l.c;
+    var tNome=r.templateId?(g('q_templates').find(function(t){return t.id===r.templateId;})||{nome:'—'}).nome:'—';
+    var cor=r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)';
+    var clickAttr=r.id?'onclick="verRespostas(\''+r.id+'\')"':'';
+    var editBtn=r.id?'<button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button>':'<span style="font-size:.72rem;color:var(--text-hint);">—</span>';
+    return '<tr '+clickAttr+'>'+
+      '<td class="tdn">'+(c.nome||'—')+'</td>'+
+      '<td>'+(tNome)+'</td>'+
+      '<td>'+(r.data?fd(r.data):'—')+'</td>'+
+      '<td style="font-size:.78rem;color:'+cor+'">'+r.status+'</td>'+
+      '<td>'+editBtn+'</td>'+
     '</tr>';
   }).join('');
 }
