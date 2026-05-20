@@ -4032,6 +4032,11 @@ function seedDemoData(){
       ]}
   ]);
 
+  s('automacoes',[
+    {id:'auto01',templateId:'qt01',tipo:'pre-evento',dias:30,ativo:false},
+    {id:'auto02',templateId:'qt02',tipo:'pos-entrega',dias:0,ativo:false}
+  ]);
+
   s('q_respostas',[
     {id:'qr01',clienteId:'c08',templateId:'qt01',data:dt(m,8),status:'Respondido',
       respostas:{qp1:'Queremos sentir que o dia foi exatamente como sonhamos. Leve, íntimo e emocionante.',qp2:'A troca de alianças e a saída da cerimônia.',qp3:'Sim',qp4:'4',qp5:'Nossa avó materna está doente e pode não ter muitas fotos. Ela é muito especial para nós.',qp6:'16h na Igreja São Pedro de Alcântara.'}},
@@ -4314,6 +4319,31 @@ async function initUserData(){
     // Se admin e Supabase não tem dados, semeia demo
     if(isAdmin() && (!_cache.clientes || _cache.clientes.length === 0)){
       seedDemoData();
+    }
+    // Garante templates e automações padrão para todos os usuários (desligadas por padrão)
+    if(!_cache.q_templates || _cache.q_templates.length===0){
+      s('q_templates',[
+        {id:'qt01',nome:'Questionário pré-casamento',desc:'Enviado 30 dias antes. Detalhes do dia.',perguntas:[
+          {id:'qp1',texto:'Como vocês gostariam de se sentir ao ver as fotos do casamento?',tipo:'texto'},
+          {id:'qp2',texto:'Há algum momento do dia que consideram imprescindível registrar?',tipo:'texto'},
+          {id:'qp3',texto:'Têm preferência por fotos mais posadas ou espontâneas?',tipo:'sim_nao'},
+          {id:'qp4',texto:'De 1 a 5, qual a importância das fotos de família?',tipo:'escala'},
+          {id:'qp5',texto:'Há algum familiar ou pessoa especial que merece atenção especial nas fotos?',tipo:'texto'},
+          {id:'qp6',texto:'Qual o horário da cerimônia e onde será realizada?',tipo:'texto'}
+        ]},
+        {id:'qt02',nome:'Feedback pós-entrega',desc:'Enviado após entrega da galeria.',perguntas:[
+          {id:'qp7',texto:'De 1 a 5, como avalia a experiência geral?',tipo:'escala'},
+          {id:'qp8',texto:'As fotos capturaram a essência do dia?',tipo:'sim_nao'},
+          {id:'qp9',texto:'Há algo que poderia ter sido feito de forma diferente?',tipo:'texto'},
+          {id:'qp10',texto:'Você indicaria nosso trabalho para amigos?',tipo:'sim_nao'}
+        ]}
+      ]);
+    }
+    if(!_cache.automacoes || _cache.automacoes.length===0){
+      s('automacoes',[
+        {id:'auto01',templateId:'qt01',tipo:'pre-evento',dias:30,ativo:false},
+        {id:'auto02',templateId:'qt02',tipo:'pos-entrega',dias:0,ativo:false}
+      ]);
     }
     // Migração: deduplicar clientes por ID (mantém primeira ocorrência — a editada pelo usuário)
     if(isAdmin() && _cache.clientes && _cache.clientes.length > 0){
