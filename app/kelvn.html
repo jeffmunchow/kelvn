@@ -3181,13 +3181,20 @@ function _getAutoEventos(){
 }
 var _autoCardKey=null;
 function _openAutoCard(autoKey){
-  var allAuto=_getAutoEventos();
-  var autoEv=allAuto.find(function(x){return x.id===autoKey;});
-  if(!autoEv)return;
-  var c=g('clientes').find(function(x){return x.id===autoEv.clienteId;})||{nome:'—'};
-  var t=(g('q_templates')||[]).find(function(x){return x.id===autoEv._templateId;})||{nome:'Questionário',perguntas:[]};
-  var jaEnviado=autoEv._jaEnviado;
-  _autoCardKey=autoKey;
+  // Aceita autoKey (string) ou objeto {clienteId, templateId, jaEnviado}
+  var clienteId, templateId, jaEnviado;
+  if(typeof autoKey==='object'){
+    clienteId=autoKey.clienteId; templateId=autoKey.templateId; jaEnviado=autoKey.jaEnviado;
+    _autoCardKey=null;
+  } else {
+    var allAuto=_getAutoEventos();
+    var autoEv=allAuto.find(function(x){return x.id===autoKey;});
+    if(!autoEv)return;
+    clienteId=autoEv.clienteId; templateId=autoEv._templateId; jaEnviado=autoEv._jaEnviado;
+    _autoCardKey=autoKey;
+  }
+  var c=g('clientes').find(function(x){return x.id===clienteId;})||{nome:'—'};
+  var t=(g('q_templates')||[]).find(function(x){return x.id===templateId;})||{nome:'Questionário',perguntas:[]};
   document.getElementById('maq-titulo').textContent=t.nome;
   var perguntas=t.perguntas||[];
   var html='<div style="margin-bottom:1rem;">';
@@ -3211,9 +3218,8 @@ function _openAutoCard(autoKey){
   document.getElementById('ov-auto-q').classList.add('open');
 }
 function _whatsAutoEnviarFromCard(){
-  if(!_autoCardKey)return;
   cov('ov-auto-q');
-  _whatsAutoEnviar(_autoCardKey);
+  if(_autoCardKey) _whatsAutoEnviar(_autoCardKey);
 }
 async function _whatsAutoEnviar(autoKey){
   var allAuto=_getAutoEventos();
@@ -3370,7 +3376,10 @@ function rQR(){
     var r=l.r, c=l.c, ev=l.ev;
     var tNome=r.templateId?(g('q_templates').find(function(t){return t.id===r.templateId;})||{nome:'—'}).nome:'—';
     var stCor=r.status==='Pendente'?'var(--coral)':r.status==='Enviado'?'var(--amber)':r.status==='Respondido'?'var(--teal)':'var(--text-muted)';
-    var clickAttr=r.id?'onclick="verRespostas(\''+r.id+'\')"':'';
+    var autoKey=r._autoKey||null;
+    var clickArg=autoKey?'\''+autoKey+'\'':'{clienteId:\''+r.clienteId+'\',templateId:\''+(r.templateId||'')+'\',jaEnviado:'+(r.status==='Enviado')+'}';
+    var clickAttr=r.status==='Respondido'?(r.id?'onclick="verRespostas(\''+r.id+'\')"':'')
+                 :'onclick="_openAutoCard('+clickArg+')"';
     var editBtn=r.id?'<button class="ra" onclick="event.stopPropagation();openQR(\''+r.id+'\')">Editar</button>':'<span style="font-size:.72rem;color:var(--text-hint);">—</span>';
     var sub=ev?ev.tipo:'';
     var evData=ev?fd((ev.data||'').substring(0,10)):'—';
