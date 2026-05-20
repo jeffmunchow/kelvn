@@ -3286,12 +3286,14 @@ function rQR(){
   // Filtra por status se selecionado
   if(sf) linhas=linhas.filter(function(l){return l.r.status===sf;});
 
-  // Ordena: Pendente primeiro, depois Enviado, depois Respondido; dentro de cada grupo por nome
-  var ord={Pendente:0,Enviado:1,Respondido:2};
+  // Ordena pela data do evento principal do cliente (mais próximo primeiro)
+  var primary=_primaryEventsFromClientes();
+  function _evDataCliente(clienteId){
+    var ev=primary.find(function(e){return e.clienteId===clienteId;});
+    return ev?ev.data:'9999';
+  }
   linhas.sort(function(a,b){
-    var oa=ord[a.r.status]??3, ob=ord[b.r.status]??3;
-    if(oa!==ob) return oa-ob;
-    return (a.c.nome||'').localeCompare(b.c.nome||'');
+    return _evDataCliente(a.c.id).localeCompare(_evDataCliente(b.c.id));
   });
 
   if(!linhas.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum cliente com status Sessão ou Casamento</td></tr>';return;}
