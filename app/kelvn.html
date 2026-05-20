@@ -3308,10 +3308,10 @@ function rQR(){
   // Filtra por status
   if(sf) linhas=linhas.filter(function(l){return l.r.status===sf;});
 
-  // Ordena pela data do evento
+  // Ordena pela data do evento (mais próximo primeiro)
   linhas.sort(function(a,b){
-    var da=a.ev?a.ev.data:'9999';
-    var db=b.ev?b.ev.data:'9999';
+    var da=a.ev?(a.ev.data||'').substring(0,10):'9999-99-99';
+    var db=b.ev?(b.ev.data||'').substring(0,10):'9999-99-99';
     return da.localeCompare(db);
   });
 
