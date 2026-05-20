@@ -1314,6 +1314,16 @@ select.aj-input{cursor:pointer;}
   <div class="ma"><button class="btn" onclick="cov('ov-qresp')">Fechar</button></div>
 </div></div>
 
+<!-- MODAL CARD QUESTIONÁRIO (agenda/dashboard) -->
+<div class="overlay" id="ov-auto-q"><div class="modal">
+  <h2 id="maq-titulo">Questionário</h2>
+  <div id="maq-body" style="margin-bottom:1.25rem;"></div>
+  <div class="ma">
+    <button class="btn" onclick="cov('ov-auto-q')">Fechar</button>
+    <button class="btn primary" id="maq-btn-enviar" onclick="_whatsAutoEnviarFromCard()">Enviar via WhatsApp</button>
+  </div>
+</div></div>
+
 <!-- MODAL TIPO DE REUNIÃO -->
 <div class="overlay" id="ov-tr"><div class="modal">
   <h2 id="mtr-t">Novo tipo de reunião</h2>
@@ -1601,7 +1611,7 @@ function rR(){
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
     var isAuto=!!e._isAuto;
     var col=isAuto?'var(--text-hint)':e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)';
-    var onclick=isAuto?'_whatsAutoEnviar(\''+e.id+'\')':e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
+    var onclick=isAuto?'_openAutoCard(\''+e.id+'\')':e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
     var subParts=isAuto?[e.local||'',e._jaEnviado?'Enviado — clique para reenviar':'Clique para enviar via WhatsApp']:e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var subSec=subParts.filter(Boolean).join(' – ');
     var dragAttr=e._fromCliente?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
@@ -2538,7 +2548,7 @@ function rA(){
     var dl=fmtEvDate(e.data);
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
     var col=isAuto?'var(--text-hint)':isPrimary?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)',past=d<now;
-    var onclick=isAuto?'onclick="_whatsAutoEnviar(\''+e.id+'\')"':isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
+    var onclick=isAuto?'onclick="_openAutoCard(\''+e.id+'\')"':isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
     var subParts=isAuto?[e.local||'',e._jaEnviado?'Enviado — clique para reenviar':'Clique para enviar via WhatsApp']:isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var sub=subParts.filter(Boolean).join(' – ');
     var dragAttr=isPrimary?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
@@ -3168,6 +3178,42 @@ function _getAutoEventos(){
     });
   });
   return evs;
+}
+var _autoCardKey=null;
+function _openAutoCard(autoKey){
+  var allAuto=_getAutoEventos();
+  var autoEv=allAuto.find(function(x){return x.id===autoKey;});
+  if(!autoEv)return;
+  var c=g('clientes').find(function(x){return x.id===autoEv.clienteId;})||{nome:'—'};
+  var t=(g('q_templates')||[]).find(function(x){return x.id===autoEv._templateId;})||{nome:'Questionário',perguntas:[]};
+  var jaEnviado=autoEv._jaEnviado;
+  _autoCardKey=autoKey;
+  document.getElementById('maq-titulo').textContent=t.nome;
+  var perguntas=t.perguntas||[];
+  var html='<div style="margin-bottom:1rem;">';
+  html+='<div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">Cliente</div>';
+  html+='<div style="font-size:.9rem;font-weight:500;">'+c.nome+'</div>';
+  html+='</div>';
+  if(perguntas.length){
+    html+='<div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.5rem;">Perguntas do template</div>';
+    html+='<ol style="padding-left:1.25rem;display:flex;flex-direction:column;gap:.4rem;">';
+    perguntas.forEach(function(p){
+      html+='<li style="font-size:.82rem;color:var(--text);">'+p.texto+'</li>';
+    });
+    html+='</ol>';
+  } else {
+    html+='<div style="font-size:.82rem;color:var(--text-hint);font-style:italic;">Template sem perguntas cadastradas.</div>';
+  }
+  if(jaEnviado){
+    html+='<div style="margin-top:1rem;font-size:.78rem;color:var(--teal);">✓ Já enviado — clique em Enviar para reenviar</div>';
+  }
+  document.getElementById('maq-body').innerHTML=html;
+  document.getElementById('ov-auto-q').classList.add('open');
+}
+function _whatsAutoEnviarFromCard(){
+  if(!_autoCardKey)return;
+  cov('ov-auto-q');
+  _whatsAutoEnviar(_autoCardKey);
 }
 async function _whatsAutoEnviar(autoKey){
   var allAuto=_getAutoEventos();
