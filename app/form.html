@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Questionário — Kelvn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F7F4EF;
+      --surface: #FFFFFF;
+      --surface2: #F0EDE6;
+      --border: rgba(0,0,0,0.07);
+      --border-strong: rgba(0,0,0,0.13);
+      --text: #1A1814;
+      --text-muted: #6B6660;
+      --text-hint: #B0ABA6;
+      --amber: #C4780A;
+      --amber-light: #FDF3E3;
+      --teal: #0A7864;
+      --teal-light: #E3F4EF;
+      --coral: #C43A1A;
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Logo ── */
+    .logo {
+      font-family: 'Cherry Bomb One', cursive;
+      font-size: 1.6rem;
+      color: var(--amber);
+      letter-spacing: -.01em;
+      margin-bottom: 2.5rem;
+      text-decoration: none;
+    }
+
+    /* ── Card principal ── */
+    .card {
+      background: var(--surface);
+      border: .5px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: .4rem;
+    }
+
+    .card-desc {
+      font-size: .83rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    /* ── Perguntas ── */
+    .pergunta {
+      margin-bottom: 1.75rem;
+    }
+
+    .pergunta label {
+      display: block;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: .5rem;
+    }
+
+    .pergunta span.num {
+      color: var(--text-hint);
+      font-weight: 400;
+      margin-right: .3rem;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: .5px solid var(--border-strong);
+      border-radius: 8px;
+      padding: .65rem .85rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .83rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+      resize: vertical;
+    }
+
+    textarea { min-height: 90px; }
+
+    textarea:focus, input[type="text"]:focus {
+      border-color: var(--amber);
+    }
+
+    /* ── Escala ── */
+    .escala {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+
+    .escala-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      border: .5px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .escala-btn:hover { border-color: var(--amber); color: var(--amber); }
+    .escala-btn.sel { background: var(--amber); border-color: var(--amber); color: #fff; }
+
+    .escala-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: .4rem;
+      font-size: .7rem;
+      color: var(--text-hint);
+    }
+
+    /* ── Botão enviar ── */
+    .btn-enviar {
+      width: 100%;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 8px;
+      padding: .85rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .88rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: .5rem;
+      transition: opacity .15s;
+    }
+
+    .btn-enviar:hover { opacity: .85; }
+    .btn-enviar:disabled { opacity: .4; cursor: default; }
+
+    /* ── Estados ── */
+    .estado {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .estado-icon {
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .estado-titulo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: .5rem;
+    }
+
+    .estado-sub {
+      font-size: .83rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .estado.sucesso .estado-icon::after { content: '✦'; color: var(--amber); }
+    .estado.erro    .estado-icon::after { content: '✕'; color: var(--coral); }
+    .estado.loading .estado-icon::after { content: '…'; color: var(--text-hint); }
+
+    .divider {
+      border: none;
+      border-top: .5px solid var(--border);
+      margin: 1.75rem 0;
+    }
+
+    /* ── Rodapé ── */
+    .footer {
+      margin-top: 2rem;
+      font-size: .72rem;
+      color: var(--text-hint);
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 1.75rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <a class="logo" href="https://kelvn.com.br">kelvn</a>
+
+  <div class="card" id="card">
+    <div class="estado loading" id="st-loading">
+      <div class="estado-icon"></div>
+      <div class="estado-titulo">Carregando questionário…</div>
+    </div>
+  </div>
+
+  <div class="footer">Enviado por um fotógrafo que usa a <strong>Kelvn</strong></div>
+
+  <script>
+    var SUPABASE_URL = 'https://lbsepogmbusfkdgnencb.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_ETRT-8mRm7AXdgaKyn_DgQ_Whq5sxav';
+    var _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    var _token = null;
+    var _dados = null;
+    var _respostas = {};
+
+    // ── Init ──────────────────────────────────────────────────
+    (function init(){
+      var params = new URLSearchParams(window.location.search);
+      _token = params.get('t');
+      if(!_token){ mostrarErro('Link inválido.', 'Este link não é válido ou está incompleto.'); return; }
+      carregarFormulario();
+    })();
+
+    async function carregarFormulario(){
+      var res = await _sb.from('q_form_tokens').select('*').eq('token', _token).single();
+      if(res.error || !res.data){ mostrarErro('Não encontrado.', 'Este questionário não existe ou o link expirou.'); return; }
+      _dados = res.data;
+      if(_dados.status === 'respondido'){ mostrarRespondido(); return; }
+      renderForm();
+    }
+
+    // ── Render ────────────────────────────────────────────────
+    function renderForm(){
+      var perguntas = _dados.perguntas || [];
+      var nome = (_dados.cliente_nome || '').split('&')[0].trim();
+
+      var html = '';
+      html += '<div class="card-title">' + (_dados.template_nome || 'Questionário') + '</div>';
+      html += '<div class="card-desc">Olá, ' + (nome || 'tudo bem?') + '! Preencha as perguntas abaixo. Leva menos de 2 minutos. 💛</div>';
+
+      if(!perguntas.length){
+        html += '<div style="font-size:.83rem;color:var(--text-hint);font-style:italic;">Este questionário não tem perguntas cadastradas.</div>';
+      } else {
+        perguntas.forEach(function(p, i){
+          html += '<div class="pergunta" id="pg-'+i+'">';
+          html += '<label><span class="num">'+(i+1)+'.</span>'+escHtml(p.texto)+'</label>';
+          if(p.tipo === 'escala'){
+            html += '<div class="escala" id="esc-'+i+'">';
+            for(var n=1;n<=5;n++){
+              html += '<button class="escala-btn" onclick="selecionaEscala('+i+','+n+',this)">'+n+'</button>';
+            }
+            html += '</div>';
+            html += '<div class="escala-labels"><span>Ruim</span><span>Excelente</span></div>';
+          } else {
+            html += '<textarea id="r-'+i+'" placeholder="Sua resposta…" oninput="salvaResposta('+i+',this.value)"></textarea>';
+          }
+          html += '</div>';
+          if(i < perguntas.length - 1) html += '<hr class="divider">';
+        });
+        html += '<button class="btn-enviar" id="btn-enviar" onclick="enviar()">Enviar respostas</button>';
+      }
+
+      document.getElementById('card').innerHTML = html;
+    }
+
+    function selecionaEscala(idx, val, btn){
+      var cont = document.getElementById('esc-'+idx);
+      cont.querySelectorAll('.escala-btn').forEach(function(b){ b.classList.remove('sel'); });
+      btn.classList.add('sel');
+      _respostas[idx] = val;
+    }
+
+    function salvaResposta(idx, val){
+      _respostas[idx] = val;
+    }
+
+    // ── Envio ─────────────────────────────────────────────────
+    async function enviar(){
+      var perguntas = _dados.perguntas || [];
+
+      // Valida campos obrigatórios
+      var incompleto = false;
+      perguntas.forEach(function(p, i){
+        var r = _respostas[i];
+        if(r === undefined || r === null || r === ''){
+          document.getElementById('pg-'+i).style.outline = '1.5px solid var(--coral)';
+          document.getElementById('pg-'+i).style.borderRadius = '8px';
+          document.getElementById('pg-'+i).style.padding = '8px';
+          incompleto = true;
+        }
+      });
+      if(incompleto){ return; }
+
+      var btn = document.getElementById('btn-enviar');
+      btn.disabled = true;
+      btn.textContent = 'Enviando…';
+
+      var respostasFormatadas = {};
+      perguntas.forEach(function(p, i){
+        respostasFormatadas[p.id || String(i)] = { pergunta: p.texto, resposta: _respostas[i] };
+      });
+
+      var res = await _sb.from('q_form_tokens')
+        .update({ status: 'respondido', respostas: respostasFormatadas, submitted_at: new Date().toISOString() })
+        .eq('token', _token)
+        .eq('status', 'pendente');
+
+      if(res.error){ btn.disabled = false; btn.textContent = 'Enviar respostas'; alert('Erro ao enviar. Tente novamente.'); return; }
+
+      mostrarRespondido();
+    }
+
+    // ── Estados ───────────────────────────────────────────────
+    function mostrarRespondido(){
+      document.getElementById('card').innerHTML =
+        '<div class="estado sucesso">' +
+        '<div class="estado-icon"></div>' +
+        '<div class="estado-titulo">Obrigado pelas respostas!</div>' +
+        '<div class="estado-sub">Suas respostas foram recebidas com sucesso.<br>Isso significa muito para quem fotografou esse momento especial. 💛</div>' +
+        '</div>';
+    }
+
+    function mostrarErro(titulo, sub){
+      document.getElementById('card').innerHTML =
+        '<div class="estado erro">' +
+        '<div class="estado-icon"></div>' +
+        '<div class="estado-titulo">'+escHtml(titulo)+'</div>' +
+        '<div class="estado-sub">'+escHtml(sub)+'</div>' +
+        '</div>';
+    }
+
+    function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  </script>
+</body>
+</html>

@@ -15,6 +15,11 @@
       "dest": "/app/assinar.html"
     },
     {
+      "src": "/form",
+      "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
+      "dest": "/app/form.html"
+    },
+    {
       "src": "/(.*)",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
       "dest": "/app/$1"

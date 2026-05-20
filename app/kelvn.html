@@ -3153,22 +3153,43 @@ function _getAutoEventos(){
   });
   return evs;
 }
-function _whatsAutoEnviar(autoKey){
-  var ev=(g('automacoes')||[]);
-  var autos=g('automacoes')||[];
+async function _whatsAutoEnviar(autoKey){
   var allAuto=_getAutoEventos();
   var autoEv=allAuto.find(function(x){return x.id===autoKey;});
   if(!autoEv)return;
   var c=g('clientes').find(function(x){return x.id===autoEv.clienteId;});
   if(!c)return;
-  var t=(g('q_templates')||[]).find(function(x){return x.id===autoEv._templateId;})||{nome:'nosso questionário'};
+  var t=(g('q_templates')||[]).find(function(x){return x.id===autoEv._templateId;})||{nome:'nosso questionário',perguntas:[]};
   var phone=(c.tel||'').replace(/\D/g,'');
   if(phone.length===11)phone='55'+phone;
-  var msg='Olá '+c.nome.split('&')[0].trim()+', tudo bem? 😊\n\nComo combinado, gostaríamos de pedir que vocês respondam '+t.nome+'.\n\nAssim conseguimos personalizar ainda mais o trabalho de vocês. 🙏';
-  var r_entry={id:uid(),clienteId:c.id,templateId:autoEv._templateId,data:new Date().toISOString().substring(0,10),status:'Enviado',_autoKey:autoKey};
+
+  // Cria ou reutiliza entrada em q_respostas local
   var rs=(g('q_respostas')||[]).slice();
-  if(!rs.find(function(x){return x._autoKey===autoKey;}))rs.push(r_entry);
-  s('q_respostas',rs);
+  var entry=rs.find(function(x){return x._autoKey===autoKey;});
+  if(!entry){
+    entry={id:uid(),clienteId:c.id,templateId:autoEv._templateId,data:new Date().toISOString().substring(0,10),status:'Enviado',_autoKey:autoKey};
+    rs.push(entry);
+    s('q_respostas',rs);
+  }
+
+  // Gera token único e salva no Supabase para o formulário público
+  var token=uid()+uid();
+  var tokenRow={
+    token:token,
+    user_id:_currentUser.id,
+    template_id:autoEv._templateId,
+    cliente_id:c.id,
+    cliente_nome:c.nome,
+    resposta_id:entry.id,
+    template_nome:t.nome,
+    perguntas:t.perguntas||[],
+    status:'pendente'
+  };
+  await _sb.from('q_form_tokens').upsert(tokenRow,{onConflict:'resposta_id'});
+
+  var formLink='https://app.kelvn.com.br/form?t='+token;
+  var nome=c.nome.split('&')[0].trim();
+  var msg='Olá '+nome+', tudo bem? 😊\n\nComo combinado, gostaríamos de pedir que vocês respondam ao nosso questionário.\n\nLeva menos de 2 minutos e ajuda muito no nosso trabalho. 🙏\n\n'+formLink;
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
   rA();rR();
 }
@@ -4033,6 +4054,23 @@ function _setupRealtime(){
       }
     );
   });
+  // Detecta quando cliente responde o formulário público
+  _realtimeChannel.on('postgres_changes',
+    {event:'UPDATE',schema:'public',table:'q_form_tokens',filter:'user_id=eq.'+_currentUser.id},
+    function(payload){
+      var row=payload.new;
+      if(row.status!=='respondido')return;
+      var rs=(g('q_respostas')||[]).slice();
+      var idx=rs.findIndex(function(r){return r.id===row.resposta_id;});
+      if(idx>-1){
+        rs[idx].status='Respondido';
+        rs[idx].respostas=row.respostas||{};
+        s('q_respostas',rs);
+        notify('✦ '+row.cliente_nome+' respondeu o questionário!');
+        rQT();rR();
+      }
+    }
+  );
   _realtimeChannel.subscribe();
 }
 
