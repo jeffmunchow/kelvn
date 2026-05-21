@@ -646,8 +646,9 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- EMPRESA -->
   <div id="fp-panel-emp">
+    <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
     <!-- SCORE DE SAÚDE FINANCEIRA -->
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;max-width:50%;">
+    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;flex:1;max-width:50%;">
       <div style="display:flex;align-items:center;gap:20px;">
         <!-- Left: score + label -->
         <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding-right:20px;border-right:.5px solid var(--border);">
@@ -680,9 +681,7 @@ select.aj-input{cursor:pointer;}
         </div>
       </div>
     </div>
-    <div class="sh">
-      <div class="st"></div>
-      <div class="sa">
+      <div class="sa" style="flex:1;justify-content:flex-end;flex-wrap:wrap;">
         <input class="fi" type="text" id="fin-search" placeholder="Buscar..." oninput="rF()" style="width:120px;">
         <select class="fi" id="fin-period" onchange="rF()"><option value="all">Todo período</option><option value="month">Este mês</option><option value="year">Este ano</option></select>
         <select class="fi" id="fin-tipo" onchange="rF()"><option value="">Todos</option><option value="entrada">Entradas</option><option value="saida">Saídas</option></select>
