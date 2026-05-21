@@ -2033,9 +2033,6 @@ function openC(id){
         if(r.data){
           var assin=r.data.status==='assinado';
           dot.style.background=assin?'var(--teal)':'var(--coral)';
-          // Cacheia status no cliente para uso offline (ex: rDRE)
-          var _cs=g('clientes');var _ci=_cs.findIndex(function(x){return x.id===id;});
-          if(_ci>-1&&_cs[_ci].contrato_assinado!==assin){_cs[_ci].contrato_assinado=assin;s('clientes',_cs);}
         }
       });
     }
@@ -3458,7 +3455,7 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
   svg.innerHTML=html;
 }
 
-function rDRE(){
+async function rDRE(){
   var per=document.getElementById('dre-period').value,now=new Date();
   var yr=now.getFullYear(),mo=now.getMonth();
   var t3=new Date(now);t3.setMonth(t3.getMonth()-3);t3.setDate(1);
@@ -3516,12 +3513,17 @@ function rDRE(){
   var chM=mensalKeys.map(function(k){var pct=Math.round(mensalMap[k]/maxM*100);var parts=k.split('-');var lbl=meses[parseInt(parts[1])-1]+(per==='year'||per==='all'?' '+parts[0].slice(2):'');return '<div class="bar-row"><div class="bar-label" title="'+lbl+'">'+lbl+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(mensalMap[k])+'</div></div>';}).join('');
   document.getElementById('dre-mensal').innerHTML=chM?'<div class="bar-wrap">'+chM+'</div>':'<div style="font-size:.78rem;color:var(--text-hint);">Sem receitas no período.</div>';
 
-  // Serviços contratados no período
+  // Serviços contratados no período — só clientes com contrato assinado no Supabase
   var _servOrder=['Casamento','Sessão','Religioso','Welcome','After','Álbum'];
   var _servCount={};_servOrder.forEach(function(s){_servCount[s]=0;});
+  var _assinadosIds={};
+  if(_currentUser){
+    var _sbRes=await _sb.from('contratos').select('cliente_id').eq('user_id',_currentUser.id).eq('status','assinado');
+    if(_sbRes.data){_sbRes.data.forEach(function(r){_assinadosIds[r.cliente_id]=true;});}
+  }
   var _clientes=g('clientes');
   _clientes.forEach(function(c){
-    // Filtra por data do contrato; se não tiver contrato, inclui em todos os períodos
+    if(!_assinadosIds[c.id])return;
     var dc=c.contrato?new Date(c.contrato):null;
     var inPer=false;
     if(per==='all'||!dc) inPer=true;
@@ -3531,7 +3533,7 @@ function rDRE(){
       else if(per==='semester') inPer=dc>=t6&&dc<=now;
       else if(per==='year') inPer=dc>=t12&&dc<=now;
     }
-    if(inPer&&c.contrato_assinado&&c.servicos&&c.servicos.length){
+    if(inPer&&c.servicos&&c.servicos.length){
       c.servicos.forEach(function(s){var tipo=s.tipo||s;var qtd=s.qtd||1;if(_servCount[tipo]!==undefined)_servCount[tipo]+=qtd;});
     }
   });
@@ -4809,35 +4811,35 @@ function seedDemoData(){
   function dt(month,day){ return yr+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); }
   function futDT(daysAhead,h,min){ var d=new Date(); d.setDate(d.getDate()+daysAhead); d.setHours(h,min,0); return d.toISOString().slice(0,16); }
   var clientes=[
-    {id:'c01',nome:'Ana Clara & Pedro Henrique',local:'Herdade das Oliveiras, Pelotas',data:fut(42),status:'Casamento',email:'anaclara@email.com',tel:'(53) 99812-4400',valor:18500,contrato_assinado:true,contrato:dt(m-2,10),notas:'Gostam de luz natural. Estilo editorial.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Religioso',qtd:1},{tipo:'After',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c01',nome:'Ana Clara & Pedro Henrique',local:'Herdade das Oliveiras, Pelotas',data:fut(42),status:'Casamento',email:'anaclara@email.com',tel:'(53) 99812-4400',valor:18500,contrato:dt(m-2,10),notas:'Gostam de luz natural. Estilo editorial.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Religioso',qtd:1},{tipo:'After',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p1',data:dt(m-2,10),valor:5000,pago:true},{id:'p2',data:dt(m,15),valor:6000,pago:false},{id:'p3',data:fut(42),valor:7500,pago:false}]},
-    {id:'c02',nome:'Beatriz & Lucas Ferreira',local:'Espaço Villa Flores, Bagé',data:fut(89),status:'Sessão',email:'bea.lucas@gmail.com',tel:'(53) 98765-3322',valor:14800,contrato_assinado:true,contrato:dt(m-1,5),notas:'Querem ensaio na praia antes.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Álbum',qtd:2}],
+    {id:'c02',nome:'Beatriz & Lucas Ferreira',local:'Espaço Villa Flores, Bagé',data:fut(89),status:'Sessão',email:'bea.lucas@gmail.com',tel:'(53) 98765-3322',valor:14800,contrato:dt(m-1,5),notas:'Querem ensaio na praia antes.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Álbum',qtd:2}],
       parcelas:[{id:'p4',data:dt(m-1,5),valor:4800,pago:true},{id:'p5',data:fut(30),valor:5000,pago:false},{id:'p6',data:fut(89),valor:5000,pago:false}]},
-    {id:'c03',nome:'Camila & Rafael Souza',local:'Quinta dos Pinheiros, Caxias do Sul',data:fut(127),status:'Casamento',email:'camilarafa@email.com',tel:'(54) 99100-7788',valor:22000,contrato_assinado:true,contrato:dt(m-1,18),notas:'Cerimônia ao ar livre. Recepção noturna com luz de vela.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Religioso',qtd:1},{tipo:'After',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c03',nome:'Camila & Rafael Souza',local:'Quinta dos Pinheiros, Caxias do Sul',data:fut(127),status:'Casamento',email:'camilarafa@email.com',tel:'(54) 99100-7788',valor:22000,contrato:dt(m-1,18),notas:'Cerimônia ao ar livre. Recepção noturna com luz de vela.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Religioso',qtd:1},{tipo:'After',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p7',data:dt(m-1,18),valor:7000,pago:true},{id:'p8',data:fut(60),valor:7500,pago:false},{id:'p9',data:fut(127),valor:7500,pago:false}]},
-    {id:'c04',nome:'Diana & Thiago Ramos',local:'Castelo de Itaipava, Porto Alegre',data:fut(-15),status:'Edição',email:'di.thiago@gmail.com',tel:'(51) 98800-1234',valor:16200,contrato_assinado:true,contrato:dt(m-3,2),notas:'Entrega prevista em 45 dias.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c04',nome:'Diana & Thiago Ramos',local:'Castelo de Itaipava, Porto Alegre',data:fut(-15),status:'Edição',email:'di.thiago@gmail.com',tel:'(51) 98800-1234',valor:16200,contrato:dt(m-3,2),notas:'Entrega prevista em 45 dias.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p10',data:dt(m-3,2),valor:5000,pago:true},{id:'p11',data:dt(m-2,2),valor:5600,pago:true},{id:'p12',data:dt(m-1,2),valor:5600,pago:true}]},
     {id:'c05',nome:'Fernanda & Gustavo Lima',local:'Haras Santa Fé, Gramado',data:fut(180),status:'Prospect',email:'fer.gus@email.com',tel:'(54) 99444-9900',valor:0,contrato:'',notas:'Aguardando resposta do orçamento enviado.',servicos:[{tipo:'Casamento',qtd:1}],parcelas:[]},
-    {id:'c06',nome:'Juliana & Marcos Oliveira',local:'Convento São Francisco, Pelotas',data:fut(-60),status:'Entregue',email:'ju.marcos@gmail.com',tel:'(53) 99211-6655',valor:12800,contrato_assinado:true,contrato:dt(m-5,10),notas:'Galeria entregue. Cliente super satisfeita.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Religioso',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c06',nome:'Juliana & Marcos Oliveira',local:'Convento São Francisco, Pelotas',data:fut(-60),status:'Entregue',email:'ju.marcos@gmail.com',tel:'(53) 99211-6655',valor:12800,contrato:dt(m-5,10),notas:'Galeria entregue. Cliente super satisfeita.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Religioso',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p13',data:dt(m-5,10),valor:4000,pago:true},{id:'p14',data:dt(m-4,10),valor:4400,pago:true},{id:'p15',data:dt(m-3,10),valor:4400,pago:true}]},
-    {id:'c07',nome:'Larissa & Bruno Costa',local:'Palácio dos Leões, Florianópolis',data:fut(220),status:'Casamento',email:'larissa.bruno@email.com',tel:'(48) 99300-2211',valor:25000,contrato_assinado:true,contrato:dt(m-1,22),notas:'Destino wedding. Acompanhamento 3 dias.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Welcome',qtd:1},{tipo:'After',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c07',nome:'Larissa & Bruno Costa',local:'Palácio dos Leões, Florianópolis',data:fut(220),status:'Casamento',email:'larissa.bruno@email.com',tel:'(48) 99300-2211',valor:25000,contrato:dt(m-1,22),notas:'Destino wedding. Acompanhamento 3 dias.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Welcome',qtd:1},{tipo:'After',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p16',data:dt(m-1,22),valor:8000,pago:true},{id:'p17',data:fut(90),valor:8500,pago:false},{id:'p18',data:fut(220),valor:8500,pago:false}]},
-    {id:'c09',nome:'Sofia & Rodrigo Mendes',local:'Quinta das Palmeiras, Porto Alegre',data:fut(6),status:'Casamento',email:'sofi.rod@gmail.com',tel:'(51) 99321-8844',valor:17800,contrato_assinado:true,contrato:dt(m-1,12),notas:'Cerimônia civil e religiosa no mesmo dia.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Religioso',qtd:1}],parcelas:[]},
-    {id:'c10',nome:'Isabela & Thiago Nunes',local:'Praia da Ferrugem, Garopaba',data:fut(10),status:'Sessão',email:'isa.thiago@email.com',tel:'(48) 99788-5566',valor:2800,contrato_assinado:true,contrato:dt(m,3),notas:'Sessão na praia ao entardecer.',servicos:[{tipo:'Sessão',qtd:1}],parcelas:[]},
-    {id:'c11',nome:'Renata & André Farias',local:'Convento São Bento, Pelotas',data:fut(-22),status:'Edição',email:'re.andre@gmail.com',tel:'(53) 98555-3311',valor:15900,contrato_assinado:true,contrato:dt(m-3,15),notas:'Edição em andamento. Prévia em 2 semanas.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Álbum',qtd:1}],parcelas:[]},
-    {id:'c08',nome:'Mariana & Felipe Gomes',local:'Sítio dos Ipês, Pelotas',data:fut(14),status:'Casamento',email:'mari.fel@gmail.com',tel:'(53) 98999-7700',valor:13500,contrato_assinado:true,contrato:dt(m-2,8),notas:'Tudo confirmado. Timeline enviada.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c09',nome:'Sofia & Rodrigo Mendes',local:'Quinta das Palmeiras, Porto Alegre',data:fut(6),status:'Casamento',email:'sofi.rod@gmail.com',tel:'(51) 99321-8844',valor:17800,contrato:dt(m-1,12),notas:'Cerimônia civil e religiosa no mesmo dia.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Religioso',qtd:1}],parcelas:[]},
+    {id:'c10',nome:'Isabela & Thiago Nunes',local:'Praia da Ferrugem, Garopaba',data:fut(10),status:'Sessão',email:'isa.thiago@email.com',tel:'(48) 99788-5566',valor:2800,contrato:dt(m,3),notas:'Sessão na praia ao entardecer.',servicos:[{tipo:'Sessão',qtd:1}],parcelas:[]},
+    {id:'c11',nome:'Renata & André Farias',local:'Convento São Bento, Pelotas',data:fut(-22),status:'Edição',email:'re.andre@gmail.com',tel:'(53) 98555-3311',valor:15900,contrato:dt(m-3,15),notas:'Edição em andamento. Prévia em 2 semanas.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Álbum',qtd:1}],parcelas:[]},
+    {id:'c08',nome:'Mariana & Felipe Gomes',local:'Sítio dos Ipês, Pelotas',data:fut(14),status:'Casamento',email:'mari.fel@gmail.com',tel:'(53) 98999-7700',valor:13500,contrato:dt(m-2,8),notas:'Tudo confirmado. Timeline enviada.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p19',data:dt(m-2,8),valor:4500,pago:true},{id:'p20',data:dt(m-1,8),valor:4500,pago:true},{id:'p21',data:fut(14),valor:4500,pago:false}]},
-    {id:'c12',nome:'Aline & Rafael Mendonça',local:'Espaço Villa Verde, Caxias do Sul',data:fut(-9),status:'Edição',email:'aline.rafa@email.com',tel:'(54) 99234-5512',valor:13200,contrato_assinado:true,contrato:dt(m-3,8),notas:'Preset cinematográfico aplicado. Aguardando aprovação da seleção.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1}],
+    {id:'c12',nome:'Aline & Rafael Mendonça',local:'Espaço Villa Verde, Caxias do Sul',data:fut(-9),status:'Edição',email:'aline.rafa@email.com',tel:'(54) 99234-5512',valor:13200,contrato:dt(m-3,8),notas:'Preset cinematográfico aplicado. Aguardando aprovação da seleção.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1}],
       parcelas:[{id:'p22',data:dt(m-3,8),valor:4400,pago:true},{id:'p23',data:dt(m-2,8),valor:4400,pago:true},{id:'p24',data:dt(m-1,8),valor:4400,pago:true}]},
-    {id:'c13',nome:'Carolina & Vinicius Borges',local:'Quinta dos Sonhos, Porto Alegre',data:fut(-33),status:'Edição',email:'caro.vini@gmail.com',tel:'(51) 99876-2230',valor:17500,contrato_assinado:true,contrato:dt(m-5,3),notas:'Edição 70% concluída. Cliente pediu atenção especial à cerimônia.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Welcome',qtd:1},{tipo:'After',qtd:1}],
+    {id:'c13',nome:'Carolina & Vinicius Borges',local:'Quinta dos Sonhos, Porto Alegre',data:fut(-33),status:'Edição',email:'caro.vini@gmail.com',tel:'(51) 99876-2230',valor:17500,contrato:dt(m-5,3),notas:'Edição 70% concluída. Cliente pediu atenção especial à cerimônia.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Welcome',qtd:1},{tipo:'After',qtd:1}],
       parcelas:[{id:'p25',data:dt(m-5,3),valor:5800,pago:true},{id:'p26',data:dt(m-4,3),valor:5850,pago:true},{id:'p27',data:dt(m-3,3),valor:5850,pago:true}]},
-    {id:'c14',nome:'Júlia & Eduardo Lima',local:'Fazenda Vista Alegre, São Leopoldo',data:fut(-47),status:'Edição',email:'ju.edu@email.com',tel:'(51) 98411-7700',valor:15100,contrato_assinado:true,contrato:dt(m-6,14),notas:'Na fase de finalização. Galeria quase pronta para envio.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c14',nome:'Júlia & Eduardo Lima',local:'Fazenda Vista Alegre, São Leopoldo',data:fut(-47),status:'Edição',email:'ju.edu@email.com',tel:'(51) 98411-7700',valor:15100,contrato:dt(m-6,14),notas:'Na fase de finalização. Galeria quase pronta para envio.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p28',data:dt(m-6,14),valor:5000,pago:true},{id:'p29',data:dt(m-4,14),valor:5050,pago:true},{id:'p30',data:dt(m-2,14),valor:5050,pago:true}]},
-    {id:'c15',nome:'Priscila & Henrique Costa',local:'Hotel Continental, Santa Maria',data:fut(-61),status:'Edição',email:'pri.henrique@gmail.com',tel:'(55) 99300-4488',valor:11800,contrato_assinado:true,contrato:dt(m-6,20),notas:'Revisão final em andamento. Entrega do álbum prevista para próximo mês.',servicos:[{tipo:'Casamento',qtd:1}],
+    {id:'c15',nome:'Priscila & Henrique Costa',local:'Hotel Continental, Santa Maria',data:fut(-61),status:'Edição',email:'pri.henrique@gmail.com',tel:'(55) 99300-4488',valor:11800,contrato:dt(m-6,20),notas:'Revisão final em andamento. Entrega do álbum prevista para próximo mês.',servicos:[{tipo:'Casamento',qtd:1}],
       parcelas:[{id:'p31',data:dt(m-6,20),valor:3900,pago:true},{id:'p32',data:dt(m-5,20),valor:3950,pago:true},{id:'p33',data:dt(m-2,20),valor:3950,pago:true}]},
-    {id:'c17',nome:'Gabriela & Mateus Corrêa',local:'Vinícola Miolo, Bento Gonçalves',data:fut(22),status:'Casamento',email:'gabi.mateus@email.com',tel:'(54) 99512-3344',valor:21500,contrato_assinado:true,contrato:dt(m-1,10),notas:'Cerimônia ao entardecer entre as videiras. Casal muito animado.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1}],
+    {id:'c17',nome:'Gabriela & Mateus Corrêa',local:'Vinícola Miolo, Bento Gonçalves',data:fut(22),status:'Casamento',email:'gabi.mateus@email.com',tel:'(54) 99512-3344',valor:21500,contrato:dt(m-1,10),notas:'Cerimônia ao entardecer entre as videiras. Casal muito animado.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1}],
       parcelas:[{id:'p37',data:dt(m-1,10),valor:7000,pago:true},{id:'p38',data:fut(10),valor:7250,pago:false},{id:'p39',data:fut(22),valor:7250,pago:false}]},
-    {id:'c16',nome:'Tainá & Gabriel Machado',local:'Chácara dos Ipês, Bento Gonçalves',data:fut(-74),status:'Edição',email:'taina.gabriel@email.com',tel:'(54) 98866-1133',valor:19400,contrato_assinado:true,contrato:dt(m-7,5),notas:'Edição de vídeo em paralelo. Aguardando material do videomaker.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Álbum',qtd:1}],
+    {id:'c16',nome:'Tainá & Gabriel Machado',local:'Chácara dos Ipês, Bento Gonçalves',data:fut(-74),status:'Edição',email:'taina.gabriel@email.com',tel:'(54) 98866-1133',valor:19400,contrato:dt(m-7,5),notas:'Edição de vídeo em paralelo. Aguardando material do videomaker.',servicos:[{tipo:'Casamento',qtd:1},{tipo:'Sessão',qtd:1},{tipo:'Álbum',qtd:1}],
       parcelas:[{id:'p34',data:dt(m-7,5),valor:6400,pago:true},{id:'p35',data:dt(m-5,5),valor:6500,pago:true},{id:'p36',data:dt(m-3,5),valor:6500,pago:true}]}
   ];
   s('clientes',clientes);
