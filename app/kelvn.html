@@ -3346,16 +3346,29 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
 
   var html='';
 
+  // Linhas horizontais de guia (4 níveis)
+  function fmtK(v){var abs=Math.abs(v);if(abs>=1000)return (v/1000).toFixed(abs>=10000?0:1)+'k';return Math.round(v);}
+  var hLevels=[minS, minS+(maxS-minS)*0.33, minS+(maxS-minS)*0.66, maxS];
+  hLevels.forEach(function(v){
+    var y=yPos(v);
+    html+='<line x1="'+PAD.left+'" y1="'+y+'" x2="'+(W-PAD.right)+'" y2="'+y+'" stroke="'+gridColor+'" stroke-width="1"/>';
+    html+='<text x="'+(PAD.left-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textColor+'" font-family="DM Sans,sans-serif">R$ '+fmtK(v)+'</text>';
+  });
+
+  // Linhas verticais de guia (por mês)
+  var curV=new Date(hoje);
+  curV.setDate(1);
+  while(curV<=limite){
+    var xv=xPos(curV);
+    if(xv>=PAD.left&&xv<=W-PAD.right){
+      html+='<line x1="'+xv+'" y1="'+PAD.top+'" x2="'+xv+'" y2="'+(H-PAD.bottom)+'" stroke="'+gridColor+'" stroke-width="1"/>';
+    }
+    curV.setMonth(curV.getMonth()+1);
+  }
+
   // Linha do zero
   var yZero=yPos(0);
-  html+='<line x1="'+PAD.left+'" y1="'+yZero+'" x2="'+(W-PAD.right)+'" y2="'+yZero+'" stroke="'+gridColor+'" stroke-width="1" stroke-dasharray="3,3"/>';
-
-  // Eixo Y — labels
-  function fmtK(v){var abs=Math.abs(v);if(abs>=1000)return (v/1000).toFixed(abs>=10000?0:1)+'k';return Math.round(v);}
-  [minS,(minS+maxS)/2,maxS].forEach(function(v){
-    var y=yPos(v);
-    html+='<text x="'+(PAD.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textColor+'" font-family="DM Sans,sans-serif">R$ '+fmtK(v)+'</text>';
-  });
+  html+='<line x1="'+PAD.left+'" y1="'+yZero+'" x2="'+(W-PAD.right)+'" y2="'+yZero+'" stroke="'+gridColor+'" stroke-width="1.5" stroke-dasharray="4,3"/>';
 
   // Barras de evento (atrás da linha)
   eventos.forEach(function(e){
