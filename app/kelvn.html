@@ -646,42 +646,55 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- EMPRESA -->
   <div id="fp-panel-emp">
-    <div style="display:flex;align-items:flex-end;gap:1.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-    <!-- SCORE DE SAÚDE FINANCEIRA -->
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;flex:1;max-width:calc(50% - .375rem);">
-      <div style="display:flex;align-items:center;gap:20px;">
-        <!-- Left: score + label -->
-        <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding-right:20px;border-right:.5px solid var(--border);">
-          <div style="width:52px;height:52px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <div id="saude-score" style="font-size:20px;font-weight:500;color:var(--amber);">—</div>
+    <!-- TOPO: saúde + KPIs lado a lado -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+
+      <!-- Coluna esquerda: card de saúde -->
+      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+        <div style="display:flex;align-items:center;gap:20px;">
+          <!-- Left: score + label -->
+          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding-right:20px;border-right:.5px solid var(--border);">
+            <div style="width:52px;height:52px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <div id="saude-score" style="font-size:20px;font-weight:500;color:var(--amber);">—</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;">Saúde do negócio</div>
+              <div id="saude-label" style="font-size:14px;font-weight:500;color:var(--text);margin-top:8px;">Calculando…</div>
+            </div>
           </div>
-          <div>
-            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;">Saúde do negócio</div>
-            <div id="saude-label" style="font-size:14px;font-weight:500;color:var(--text);margin-top:8px;">Calculando…</div>
-          </div>
-        </div>
-        <!-- Right: 4 indicators -->
-        <div style="display:flex;align-items:flex-start;flex:1;">
-          <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
-            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Pró-labore</div>
-            <div id="saude-p1" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--text);">—</div>
-          </div>
-          <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
-            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Inadimplência</div>
-            <div id="saude-p2" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--coral);">—</div>
-          </div>
-          <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
-            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Caixa do mês</div>
-            <div id="saude-p3" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--teal);">—</div>
-          </div>
-          <div style="flex:1;text-align:center;padding:0 .875rem;">
-            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Pipeline</div>
-            <div id="saude-p4" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--amber);">—</div>
+          <!-- Right: 4 indicators -->
+          <div style="display:flex;align-items:flex-start;flex:1;">
+            <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
+              <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Pró-labore</div>
+              <div id="saude-p1" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--text);">—</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
+              <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Inadimplência</div>
+              <div id="saude-p2" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--coral);">—</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
+              <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Caixa do mês</div>
+              <div id="saude-p3" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--teal);">—</div>
+            </div>
+            <div style="flex:1;text-align:center;padding:0 .875rem;">
+              <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Pipeline</div>
+              <div id="saude-p4" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--amber);">—</div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Coluna direita: card com 4 KPIs em grid 2x2 -->
+      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;align-items:center;">
+        <div class="fk" id="fin-kpis" style="width:100%;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:0;"></div>
+      </div>
+
     </div>
-      <div class="sa" style="flex:1;justify-content:flex-end;flex-wrap:wrap;">
+
+    <!-- LINHA DE CONTROLES -->
+    <div class="sh">
+      <div class="st"></div>
+      <div class="sa">
         <input class="fi" type="text" id="fin-search" placeholder="Buscar..." oninput="rF()" style="width:120px;">
         <select class="fi" id="fin-period" onchange="rF()"><option value="all">Todo período</option><option value="month">Este mês</option><option value="year">Este ano</option></select>
         <select class="fi" id="fin-tipo" onchange="rF()"><option value="">Todos</option><option value="entrada">Entradas</option><option value="saida">Saídas</option></select>
@@ -689,7 +702,8 @@ select.aj-input{cursor:pointer;}
         <button class="btn primary" onclick="openF('entrada')">+ Entrada</button>
       </div>
     </div>
-    <div class="fk" id="fin-kpis"></div>
+
+    <!-- TABELA -->
     <div class="tw"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fin-tbody"></tbody></table></div></div>
   </div>
   <!-- FLUXO DE CAIXA -->
