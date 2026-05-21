@@ -730,6 +730,10 @@ select.aj-input{cursor:pointer;}
     <div class="st" style="margin-bottom:1.5rem;">Calculadora de precificação</div>
     <div class="two" style="align-items:start;">
       <div>
+        <div style="margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <button class="btn" onclick="puxarCustosReais()">Puxar custos reais do Financeiro</button>
+          <span style="font-size:.7rem;color:var(--text-hint);">Usa a média dos últimos 6 meses</span>
+        </div>
         <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Seus custos mensais fixos</div>
         <div class="field"><label>Aluguel / coworking (R$)</label><input type="number" id="prec-aluguel" placeholder="0" oninput="calcPrec()"></div>
         <div class="field"><label>Softwares e assinaturas (R$)</label><input type="number" id="prec-soft" placeholder="0" oninput="calcPrec()"></div>
@@ -750,6 +754,10 @@ select.aj-input{cursor:pointer;}
   <div id="fp-panel-imp" style="display:none;">
     <div class="st" style="margin-bottom:1.5rem;">Calculadora de impostos</div>
     <div style="max-width:480px;">
+      <div style="margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <button class="btn" onclick="puxarFaturamentoReal()">Usar faturamento real do ano</button>
+        <span style="font-size:.7rem;color:var(--text-hint);">Preenche com base no Financeiro do ano corrente</span>
+      </div>
       <div class="field"><label>Regime tributário</label>
         <select id="imp-regime" onchange="calcImp()">
           <option value="mei">MEI</option>
@@ -3220,6 +3228,15 @@ function calcImp(){
     html='<div class="calc-result"><div class="cr-label">Lucro presumido estimado</div><div class="cr-value">'+$m(total)+'/mês</div></div>';
     html+='<div style="margin-top:.75rem;font-size:.72rem;color:var(--text-hint);line-height:1.8;">IRPJ: '+$m(irpj)+' · CSLL: '+$m(csll)+'<br>PIS: '+$m(pis)+' · COFINS: '+$m(cofins)+' · ISS: '+$m(iss)+'</div>';
   }
+  // Projeção anual do imposto
+  if(fatAnual>0||fat>0){
+    var impostoAnual=total*12;
+    html+='<div style="margin-top:1rem;padding:1rem 1.25rem;background:var(--surface2);border-radius:var(--radius-sm);">'+
+      '<div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Projeção anual</div>'+
+      '<div style="font-size:1.2rem;font-weight:500;letter-spacing:-.02em;">'+$m(impostoAnual)+'/ano</div>'+
+      '<div style="font-size:.66rem;color:var(--text-hint);margin-top:3px;line-height:1.5;">Reserve mensalmente pra não ser pego de surpresa.</div>'+
+    '</div>';
+  }
   el.innerHTML=html;
 }
 function calcInadTotal(){
@@ -3477,7 +3494,86 @@ function calcPrec(){
     '<div style="font-size:.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço ideal (+15% para crescimento)</div>'+
     '<div style="font-size:1.6rem;font-weight:500;color:var(--teal);letter-spacing:-.03em;">'+$m(precoIdeal)+'</div>'+
     '</div>'+
-    (horas?'<div style="margin-top:.75rem;font-size:.72rem;color:var(--text-hint);">Valor por hora de trabalho: '+$m(precoSugerido/horas)+'/h</div>':'');
+    (horas?'<div style="margin-top:.75rem;font-size:.72rem;color:var(--text-hint);">Valor por hora de trabalho: '+$m(precoSugerido/horas)+'/h</div>':'')+
+    '<button class="btn primary" style="width:100%;margin-top:1rem;" onclick="criarPacoteComPreco('+precoSugerido.toFixed(2)+')">Criar pacote com esse preço</button>';
+}
+
+function puxarCustosReais(){
+  var fin=g('fin');
+  var seisMesesAtras=new Date();
+  seisMesesAtras.setMonth(seisMesesAtras.getMonth()-6);
+  var saidasRecentes=fin.filter(function(e){
+    if(e.tipo!=='saida'||!e.data)return false;
+    return new Date(e.data)>=seisMesesAtras;
+  });
+  var porCat={};
+  saidasRecentes.forEach(function(e){
+    porCat[e.cat]=(porCat[e.cat]||0)+parseFloat(e.valor||0);
+  });
+  var mapa={
+    'Software':'prec-soft',
+    'Equipamento':'prec-equip',
+    'Marketing':'prec-mkt',
+    'Aluguel':'prec-aluguel',
+    'Deslocamento':'prec-outros',
+    'Hospedagem':'prec-outros',
+    'Alimentação':'prec-outros',
+    'Equipe':'prec-outros',
+    'Imposto':'prec-outros',
+    'Outro':'prec-outros'
+  };
+  var soma={'prec-aluguel':0,'prec-soft':0,'prec-equip':0,'prec-mkt':0,'prec-outros':0};
+  Object.keys(porCat).forEach(function(cat){
+    var campo=mapa[cat];
+    if(campo) soma[campo]+=porCat[cat]/6;
+  });
+  Object.keys(soma).forEach(function(campo){
+    if(soma[campo]>0){
+      var el=document.getElementById(campo);
+      if(el) el.value=Math.round(soma[campo]);
+    }
+  });
+  // Volume real de casamentos por mês (últimos 12 meses, status pós-cerimônia)
+  var clientes=g('clientes');
+  var umAnoAtras=new Date();
+  umAnoAtras.setFullYear(umAnoAtras.getFullYear()-1);
+  var casamentos12m=clientes.filter(function(c){
+    if(!c.data)return false;
+    var d=pd(c.data);
+    return d&&d>=umAnoAtras&&['Casamento','Pós-produção','Edição','Álbum','Entregue','Finalizado'].indexOf(c.status)>-1;
+  }).length;
+  var mediaMes=Math.max(1,Math.round(casamentos12m/12));
+  var wmEl=document.getElementById('prec-wed-mes');
+  if(wmEl) wmEl.value=mediaMes;
+  calcPrec();
+  notify('Custos reais carregados.');
+}
+
+function puxarFaturamentoReal(){
+  var now=new Date();
+  var yr=now.getFullYear();
+  var fin=g('fin');
+  var fatAno=fin.filter(function(e){
+    return e.tipo==='entrada'&&e.data&&new Date(e.data).getFullYear()===yr;
+  }).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var mesAtual=now.getMonth()+1;
+  var mediaMensal=fatAno/mesAtual;
+  document.getElementById('imp-fat').value=Math.round(mediaMensal);
+  document.getElementById('imp-fat-anual').value=Math.round(fatAno);
+  calcImp();
+  notify('Faturamento real carregado.');
+}
+
+function criarPacoteComPreco(valor){
+  _pkId=null;
+  document.getElementById('mpk-t').textContent='Novo Pacote';
+  ['mpk-nome','mpk-hora-extra','mpk-desc','mpk-escopo','mpk-horas','mpk-fotos-minimo','mpk-deslocamento','mpk-itens'].forEach(function(i){
+    var el=document.getElementById(i);if(el) el.value='';
+  });
+  document.getElementById('mpk-valor').value=Math.round(valor);
+  document.getElementById('mpk-segundo-fotografo').value='Incluso';
+  document.getElementById('mpk-del').style.display='none';
+  document.getElementById('ov-pk').classList.add('open');
 }
 var _qtId=null,_qtPerguntas=[];
 // ── AUTOMAÇÕES ──────────────────────────────────────────────────────
