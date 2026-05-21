@@ -245,10 +245,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .pkcard-desc{font-size:.75rem;color:var(--text-hint);line-height:1.5;}
 /* BAR CHART */
 .bar-wrap{display:flex;flex-direction:column;gap:8px;margin-top:.5rem;}
-.serv-chip{display:inline-flex;align-items:center;cursor:pointer;}.serv-chip input{display:none;}
-.serv-chip span{font-size:.72rem;font-family:'DM Sans',sans-serif;font-weight:400;text-transform:none;letter-spacing:0;padding:3px 10px;border-radius:20px;border:.5px solid var(--border-strong);color:var(--text-hint);background:var(--surface2);transition:color .15s;}
-.serv-chip input:checked+span{color:var(--text);}
-.serv-qtd{display:none;width:32px;font-size:.72rem;font-family:'DM Sans',sans-serif;font-weight:400;border:.5px solid var(--border-strong);border-radius:4px;padding:2px 4px;background:var(--surface2);color:var(--text);text-align:center;margin-left:.2rem;}
+.serv-chip{display:inline-flex;align-items:center;cursor:pointer;font-size:.72rem;font-family:'DM Sans',sans-serif;font-weight:400;text-transform:none;letter-spacing:0;padding:3px 10px;border-radius:20px;border:.5px solid var(--border-strong);color:var(--text-hint);background:var(--surface2);transition:color .15s;user-select:none;}
+.serv-chip.ativo{color:var(--text);}
 .bar-row{display:flex;align-items:center;gap:10px;font-size:.72rem;}
 .bar-label{width:90px;color:var(--text-muted);flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bar-track{flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden;}
@@ -1147,12 +1145,12 @@ select.aj-input{cursor:pointer;}
   <div class="field" style="margin-top:1rem;">
     <label>Serviços incluídos no pacote</label>
     <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem;" id="mc-servicos-wrap">
-      <div style="display:flex;align-items:center;"><label class="serv-chip"><input type="checkbox" id="mc-serv-casamento" value="Casamento" onchange="toggleServQtd(this)"><span>Casamento</span></label><input type="number" class="serv-qtd" id="mc-qtd-casamento" value="1" min="1" max="99"></div>
-      <div style="display:flex;align-items:center;"><label class="serv-chip"><input type="checkbox" id="mc-serv-sessao" value="Sessão" onchange="toggleServQtd(this)"><span>Sessão</span></label><input type="number" class="serv-qtd" id="mc-qtd-sessao" value="1" min="1" max="99"></div>
-      <div style="display:flex;align-items:center;"><label class="serv-chip"><input type="checkbox" id="mc-serv-religioso" value="Religioso" onchange="toggleServQtd(this)"><span>Religioso</span></label><input type="number" class="serv-qtd" id="mc-qtd-religioso" value="1" min="1" max="99"></div>
-      <div style="display:flex;align-items:center;"><label class="serv-chip"><input type="checkbox" id="mc-serv-welcome" value="Welcome" onchange="toggleServQtd(this)"><span>Welcome</span></label><input type="number" class="serv-qtd" id="mc-qtd-welcome" value="1" min="1" max="99"></div>
-      <div style="display:flex;align-items:center;"><label class="serv-chip"><input type="checkbox" id="mc-serv-after" value="After" onchange="toggleServQtd(this)"><span>After</span></label><input type="number" class="serv-qtd" id="mc-qtd-after" value="1" min="1" max="99"></div>
-      <div style="display:flex;align-items:center;"><label class="serv-chip"><input type="checkbox" id="mc-serv-album" value="Álbum" onchange="toggleServQtd(this)"><span>Álbum</span></label><input type="number" class="serv-qtd" id="mc-qtd-album" value="1" min="1" max="99"></div>
+      <div class="serv-chip" data-tipo="Casamento" data-qtd="0" onclick="incServ(this)" oncontextmenu="resetServ(this);return false;">Casamento</div>
+      <div class="serv-chip" data-tipo="Sessão"    data-qtd="0" onclick="incServ(this)" oncontextmenu="resetServ(this);return false;">Sessão</div>
+      <div class="serv-chip" data-tipo="Religioso" data-qtd="0" onclick="incServ(this)" oncontextmenu="resetServ(this);return false;">Religioso</div>
+      <div class="serv-chip" data-tipo="Welcome"   data-qtd="0" onclick="incServ(this)" oncontextmenu="resetServ(this);return false;">Welcome</div>
+      <div class="serv-chip" data-tipo="After"     data-qtd="0" onclick="incServ(this)" oncontextmenu="resetServ(this);return false;">After</div>
+      <div class="serv-chip" data-tipo="Álbum"     data-qtd="0" onclick="incServ(this)" oncontextmenu="resetServ(this);return false;">Álbum</div>
     </div>
   </div>
 
@@ -1644,12 +1642,10 @@ function fillSel(extras){
   var mcpsel=document.getElementById('mc-pacote-id');
   if(mcpsel)mcpsel.innerHTML='<option value="">— nenhum —</option>'+ps.map(function(p){return '<option value="'+p.id+'">'+p.nome+' — '+$m(p.valor)+'</option>';}).join('');
 }
-var _SERV_KEYS=['casamento','sessao','religioso','welcome','after','album'];
-function toggleServQtd(cb){
-  var key=cb.id.replace('mc-serv-','');
-  var qtdEl=document.getElementById('mc-qtd-'+key);
-  if(qtdEl){qtdEl.style.display=cb.checked?'inline-block':'none';if(cb.checked&&qtdEl.value<1)qtdEl.value=1;}
-}
+function _servChipLabel(el){var q=parseInt(el.dataset.qtd||0);el.textContent=el.dataset.tipo+(q>1?' ×'+q:'');el.classList.toggle('ativo',q>0);}
+function incServ(el){el.dataset.qtd=(parseInt(el.dataset.qtd||0)+1);_servChipLabel(el);}
+function resetServ(el){el.dataset.qtd=0;_servChipLabel(el);}
+function resetServicos(){document.querySelectorAll('#mc-servicos-wrap .serv-chip').forEach(function(el){el.dataset.qtd=0;_servChipLabel(el);});}
 function toggleContratoFields(){
   var el=document.getElementById('mc-contrato-fields');
   var chev=document.getElementById('mc-contrato-chev');
@@ -2023,7 +2019,7 @@ function openC(id){
     document.getElementById('mc-email').value=c.email||'';document.getElementById('mc-tel').value=c.tel||'';
     document.getElementById('mc-valor').value=c.valor||'';
     document.getElementById('mc-notas').value=c.notas||'';
-    var _sv=c.servicos||[];_SERV_KEYS.forEach(function(key){var cb=document.getElementById('mc-serv-'+key);var qtdEl=document.getElementById('mc-qtd-'+key);if(!cb)return;var found=_sv.find(function(s){return (s.tipo||s)===cb.value;});cb.checked=!!found;qtdEl.style.display=found?'inline-block':'none';qtdEl.value=found?(found.qtd||1):1;});
+    var _sv=c.servicos||[];document.querySelectorAll('#mc-servicos-wrap .serv-chip').forEach(function(el){var found=_sv.find(function(s){return (s.tipo||s)===el.dataset.tipo;});el.dataset.qtd=found?(found.qtd||1):0;_servChipLabel(el);});
     document.getElementById('mc-del').style.display='inline-flex';
     document.getElementById('mc-contrato-btn').style.display='inline-flex';
     var dot=document.getElementById('mc-contrato-dot');
@@ -2051,7 +2047,7 @@ function openC(id){
     document.getElementById('mc-t').textContent='Novo Cliente';
     ['mc-nome','mc-local','mc-data','mc-email','mc-tel','mc-valor','mc-notas','mc-noivo1','mc-noivo2','mc-contratante-nome','mc-contratante-cpf','mc-contratante-rg','mc-contratante-endereco','mc-horario-inicio','mc-horario-termino'].forEach(function(i){document.getElementById(i).value='';});
     document.getElementById('mc-pacote-id').value='';
-    _SERV_KEYS.forEach(function(key){var cb=document.getElementById('mc-serv-'+key);var qtdEl=document.getElementById('mc-qtd-'+key);if(cb)cb.checked=false;if(qtdEl){qtdEl.style.display='none';qtdEl.value=1;}});
+    resetServicos();
     setStatusDrop('Prospect');
     document.getElementById('mc-del').style.display='none';
     document.getElementById('mc-contrato-btn').style.display='none';
@@ -2085,7 +2081,7 @@ function saveC(){
     horario_inicio:document.getElementById('mc-horario-inicio').value.trim(),
     horario_termino:document.getElementById('mc-horario-termino').value.trim(),
     pacote_id:document.getElementById('mc-pacote-id').value,
-    servicos:_SERV_KEYS.filter(function(key){var cb=document.getElementById('mc-serv-'+key);return cb&&cb.checked;}).map(function(key){var cb=document.getElementById('mc-serv-'+key);var qtdEl=document.getElementById('mc-qtd-'+key);return {tipo:cb.value,qtd:parseInt(qtdEl&&qtdEl.value||1)||1};})
+    servicos:Array.from(document.querySelectorAll('#mc-servicos-wrap .serv-chip')).filter(function(el){return parseInt(el.dataset.qtd||0)>0;}).map(function(el){return {tipo:el.dataset.tipo,qtd:parseInt(el.dataset.qtd);};})
   };
   if(!o.nome){alert('Informe o nome.');return;}
   if(_cId){var i=cs.findIndex(function(c){return c.id===_cId;});if(i>-1)cs[i]=o;}else cs.push(o);
