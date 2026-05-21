@@ -647,15 +647,38 @@ select.aj-input{cursor:pointer;}
   <!-- EMPRESA -->
   <div id="fp-panel-emp">
     <!-- SCORE DE SAÚDE FINANCEIRA -->
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.75rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:1.25rem;flex-shrink:0;">
-        <div id="saude-score" style="font-family:'Cherry Bomb One',cursive;font-size:2.8rem;line-height:1;letter-spacing:-.04em;">—</div>
-        <div>
-          <div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">Saúde do negócio</div>
-          <div id="saude-label" style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;">Calculando…</div>
+    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:20px;">
+        <!-- Left: score + label -->
+        <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding-right:20px;border-right:.5px solid var(--border);">
+          <div style="width:52px;height:52px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div id="saude-score" style="font-size:20px;font-weight:500;color:var(--amber);">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;">Saúde do negócio</div>
+            <div id="saude-label" style="font-size:14px;font-weight:500;color:var(--text);margin-top:8px;">Calculando…</div>
+          </div>
+        </div>
+        <!-- Right: 4 indicators -->
+        <div style="display:flex;align-items:flex-start;flex:1;">
+          <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
+            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Pró-labore</div>
+            <div id="saude-p1" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--text);">—</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
+            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Inadimplência</div>
+            <div id="saude-p2" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--coral);">—</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
+            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Caixa do mês</div>
+            <div id="saude-p3" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--teal);">—</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:0 .875rem;">
+            <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Pipeline</div>
+            <div id="saude-p4" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--amber);">—</div>
+          </div>
         </div>
       </div>
-      <div id="saude-pilares" style="display:flex;gap:1.5rem;flex-wrap:wrap;flex:1;justify-content:flex-end;"></div>
     </div>
     <div class="sh">
       <div class="st">Financeiro — Empresa</div>
@@ -2894,20 +2917,18 @@ function rSaude(){
   if(scoreEl){scoreEl.textContent=total;scoreEl.style.color=cor;}
   if(labelEl){labelEl.textContent=label;labelEl.style.color=cor;}
 
-  var pilaresHTML=[
-    {label:'Pró-labore',val:p1,ok:p1>=25},
-    {label:'Inadimplência',val:p2,ok:p2>=22},
-    {label:'Caixa do mês',val:p3,ok:p3>=25},
-    {label:'Pipeline',val:p4,ok:p4>=18}
-  ].map(function(p){
-    var corP=p.ok?'var(--teal)':p.val===0?'var(--coral)':'var(--amber)';
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;min-width:75px;">'+
-      '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;">'+p.label+'</div>'+
-      '<div style="width:34px;height:34px;border-radius:50%;border:1.5px solid '+corP+';display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:500;color:'+corP+';">'+p.val+'</div>'+
-    '</div>';
-  }).join('');
-  var pilaresEl=document.getElementById('saude-pilares');
-  if(pilaresEl) pilaresEl.innerHTML=pilaresHTML;
+  // Pró-labore
+  var el1=document.getElementById('saude-p1');
+  if(el1){el1.textContent=teveProLabore?'✓ Sim':'✗ Não';el1.style.color=teveProLabore?'var(--teal)':'var(--coral)';}
+  // Inadimplência
+  var el2=document.getElementById('saude-p2');
+  if(el2) el2.textContent=fatAno>0?(inadPct*100).toFixed(1)+'%':'—';
+  // Caixa do mês
+  var el3=document.getElementById('saude-p3');
+  if(el3){el3.textContent=(saldoMes>=0?'+':'')+$m(saldoMes);el3.style.color=saldoMes>=0?'var(--teal)':'var(--coral)';}
+  // Pipeline
+  var el4=document.getElementById('saude-p4');
+  if(el4) el4.textContent=contratosFuturos+' evento'+(contratosFuturos!==1?'s':'');
 }
 function calcVariacao(tipoFiltro,periodoFiltro){
   var fin=g('fin');
