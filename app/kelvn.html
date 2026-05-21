@@ -3517,16 +3517,16 @@ function rDRE(){
   var _servCount={};_servOrder.forEach(function(s){_servCount[s]=0;});
   var _clientes=g('clientes');
   _clientes.forEach(function(c){
-    // Usa data do contrato se disponível, senão ignora filtro de período
-    var d=c.contrato?new Date(c.contrato):(c.data?new Date(c.data):null);
+    // Filtra por data do contrato; se não tiver contrato, inclui em todos os períodos
+    var dc=c.contrato?new Date(c.contrato):null;
     var inPer=false;
-    if(per==='all') inPer=true;
-    else if(d){
-      if(per==='month') inPer=d.getMonth()===mo&&d.getFullYear()===yr;
-      else if(per==='quarter') inPer=d>=t3&&d<=now;
-      else if(per==='semester') inPer=d>=t6&&d<=now;
-      else if(per==='year') inPer=d>=t12&&d<=now;
-    } else inPer=true; // sem data de contrato: inclui sempre
+    if(per==='all'||!dc) inPer=true;
+    else{
+      if(per==='month') inPer=dc.getMonth()===mo&&dc.getFullYear()===yr;
+      else if(per==='quarter') inPer=dc>=t3&&dc<=now;
+      else if(per==='semester') inPer=dc>=t6&&dc<=now;
+      else if(per==='year') inPer=dc>=t12&&dc<=now;
+    }
     if(inPer&&c.servicos&&c.servicos.length){
       c.servicos.forEach(function(s){var tipo=s.tipo||s;var qtd=s.qtd||1;if(_servCount[tipo]!==undefined)_servCount[tipo]+=qtd;});
     }
