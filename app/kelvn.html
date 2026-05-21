@@ -714,15 +714,18 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- FLUXO DE CAIXA -->
   <div id="fp-panel-fluxo" style="display:none;">
-    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:.75rem;">
-      <select class="fi" id="fluxo-horizonte" onchange="rFluxo()">
-        <option value="30">Próximos 30 dias</option>
-        <option value="60">Próximos 60 dias</option>
-        <option value="90" selected>Próximos 90 dias</option>
-        <option value="180">Próximos 6 meses</option>
-      </select>
-    </div>
     <div class="fk" id="fluxo-kpis"></div>
+    <div class="sh" style="margin-bottom:1.25rem;">
+      <div class="st"></div>
+      <div class="sa">
+        <select class="fi" id="fluxo-horizonte" onchange="rFluxo()">
+          <option value="30">Próximos 30 dias</option>
+          <option value="60">Próximos 60 dias</option>
+          <option value="90" selected>Próximos 90 dias</option>
+          <option value="180">Próximos 6 meses</option>
+        </select>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
       <!-- Esquerda: lista -->
       <div id="fluxo-lista" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
