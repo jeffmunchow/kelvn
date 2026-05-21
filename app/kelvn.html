@@ -757,7 +757,7 @@ select.aj-input{cursor:pointer;}
   <div id="fp-panel-dre" style="display:none;">
     <div class="sh"><div class="st">Balanço do período</div>
       <div class="sa">
-        <select class="fi" id="dre-period" onchange="rDRE()"><option value="year">Este ano</option><option value="month">Este mês</option><option value="all">Total</option></select>
+        <select class="fi" id="dre-period" onchange="rDRE()"><option value="month">Este mês</option><option value="quarter">Trimestre</option><option value="semester">Semestre</option><option value="year">Este ano</option><option value="all">Total</option></select>
         <button class="btn" onclick="exportarBalanco('csv')" title="Baixar CSV para o contador">Baixar CSV</button>
         <button class="btn" onclick="exportarBalanco('pdf')" title="Imprimir como PDF">Imprimir</button>
       </div>
@@ -3410,7 +3410,16 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
 
 function rDRE(){
   var per=document.getElementById('dre-period').value,now=new Date();
-  function filtFin(arr){return arr.filter(function(e){var d=e.data?new Date(e.data):null;if(per==='month'&&d&&(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear()))return false;if(per==='year'&&d&&d.getFullYear()!==now.getFullYear())return false;return true;});}
+  var yr=now.getFullYear(),mo=now.getMonth();
+  var qStart=mo-mo%3, sStart=mo<6?0:6;
+  function filtFin(arr){return arr.filter(function(e){
+    var d=e.data?new Date(e.data):null;if(!d)return per==='all';
+    if(per==='month')return d.getMonth()===mo&&d.getFullYear()===yr;
+    if(per==='quarter')return d.getFullYear()===yr&&d.getMonth()>=qStart&&d.getMonth()<qStart+3;
+    if(per==='semester')return d.getFullYear()===yr&&d.getMonth()>=sStart&&d.getMonth()<sStart+6;
+    if(per==='year')return d.getFullYear()===yr;
+    return true;
+  });}
   var fe=filtFin(g('fin'));
   var receitas=fe.filter(function(e){return e.tipo==='entrada';});
   var despesas=fe.filter(function(e){return e.tipo==='saida';});
@@ -3434,14 +3443,24 @@ function rDRE(){
 
 function exportarBalanco(formato){
   var per=document.getElementById('dre-period').value,now=new Date();
-  function filtFin(arr){return arr.filter(function(e){var d=e.data?new Date(e.data):null;if(per==='month'&&d&&(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear()))return false;if(per==='year'&&d&&d.getFullYear()!==now.getFullYear())return false;return true;});}
+  var yr=now.getFullYear(),mo=now.getMonth();
+  var qStart=mo-mo%3,sStart=mo<6?0:6;
+  function filtFin(arr){return arr.filter(function(e){
+    var d=e.data?new Date(e.data):null;if(!d)return per==='all';
+    if(per==='month')return d.getMonth()===mo&&d.getFullYear()===yr;
+    if(per==='quarter')return d.getFullYear()===yr&&d.getMonth()>=qStart&&d.getMonth()<qStart+3;
+    if(per==='semester')return d.getFullYear()===yr&&d.getMonth()>=sStart&&d.getMonth()<sStart+6;
+    if(per==='year')return d.getFullYear()===yr;
+    return true;
+  });}
   var fe=filtFin(g('fin')).slice().sort(function(a,b){return new Date(a.data||0)-new Date(b.data||0);});
   var receitas=fe.filter(function(e){return e.tipo==='entrada';});
   var despesas=fe.filter(function(e){return e.tipo==='saida';});
   var totRec=receitas.reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
   var totDesp=despesas.reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
   var lucro=totRec-totDesp;
-  var pLabel=per==='month'?'Este mês ('+(now.getMonth()+1)+'/'+now.getFullYear()+')':per==='year'?'Este ano ('+now.getFullYear()+')':'Total';
+  var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var pLabel=per==='month'?'Este mês ('+meses[mo]+'/'+yr+')':per==='quarter'?'Trimestre '+(Math.floor(mo/3)+1)+'/'+yr:per==='semester'?'Semestre '+(mo<6?1:2)+'/'+yr:per==='year'?'Este ano ('+yr+')':'Total';
   var stampDate=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
 
   if(formato==='csv'){
