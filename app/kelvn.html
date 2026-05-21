@@ -3083,9 +3083,9 @@ async function gerarMensagem(dadosSaude){
     '',
     '--- TAREFA ---',
     '',
-    'Escreva exatamente 2 a 3 frases sobre a saúde financeira do fotógrafo com base',
-    'nos dados fornecidos. Responda SOMENTE as frases. Sem introdução, sem aspas,',
-    'sem markdown, sem título.'
+    'Escreva entre 4 e 6 frases sobre a saúde financeira do fotógrafo com base',
+    'nos dados fornecidos. A resposta deve ter entre 200 e 240 tokens.',
+    'Responda SOMENTE as frases. Sem introdução, sem aspas, sem markdown, sem título.'
   ].join('\n');
 
   var userPrompt='Dados da saúde financeira deste mês:\n'+JSON.stringify(ctx,null,2);
@@ -3096,7 +3096,7 @@ async function gerarMensagem(dadosSaude){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:240,
+        max_tokens:300,
         system:systemPrompt,
         messages:[{role:'user',content:userPrompt}]
       })
