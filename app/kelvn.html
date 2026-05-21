@@ -3914,7 +3914,8 @@ function rAN(){
 var _precLoaded=false;
 function loadPrec(){
   if(_precLoaded)return;
-  var cfg=g('prec_config');
+  var sd=g('sd')||{};
+  var cfg=sd.prec_config;
   if(cfg&&typeof cfg==='object'&&!Array.isArray(cfg)){
     var campos=['prec-aluguel','prec-soft','prec-equip','prec-mkt','prec-outros','prec-prolabore','prec-wed-mes','prec-horas','prec-margem','prec-imposto','prec-custo-var','prec-preco-atual'];
     campos.forEach(function(id){
@@ -3928,7 +3929,9 @@ function savePrec(){
   var campos=['prec-aluguel','prec-soft','prec-equip','prec-mkt','prec-outros','prec-prolabore','prec-wed-mes','prec-horas','prec-margem','prec-imposto','prec-custo-var','prec-preco-atual'];
   var cfg={};
   campos.forEach(function(id){var el=document.getElementById(id);if(el)cfg[id]=el.value;});
-  s('prec_config',cfg);
+  var sd=g('sd')||{};
+  sd.prec_config=cfg;
+  s('sd',sd);
 }
 function calcPrec(){
   var aluguel=parseFloat(document.getElementById('prec-aluguel').value)||0;
