@@ -757,7 +757,7 @@ select.aj-input{cursor:pointer;}
   <div id="fp-panel-dre" style="display:none;">
     <div class="sh"><div class="st">Balanço do período</div>
       <div class="sa">
-        <select class="fi" id="dre-period" onchange="rDRE()"><option value="month">Este mês</option><option value="quarter">Trimestre</option><option value="semester">Semestre</option><option value="year">Este ano</option><option value="all">Total</option></select>
+        <select class="fi" id="dre-period" onchange="rDRE()"><option value="month">Este mês</option><option value="quarter">Últimos 3 meses</option><option value="semester">Últimos 6 meses</option><option value="year">Este ano</option><option value="all">Total</option></select>
         <button class="btn" onclick="exportarBalanco('csv')" title="Baixar CSV para o contador">Baixar CSV</button>
         <button class="btn" onclick="exportarBalanco('pdf')" title="Imprimir como PDF">Imprimir</button>
       </div>
@@ -3411,12 +3411,13 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
 function rDRE(){
   var per=document.getElementById('dre-period').value,now=new Date();
   var yr=now.getFullYear(),mo=now.getMonth();
-  var qStart=mo-mo%3, sStart=mo<6?0:6;
+  var t3=new Date(now);t3.setMonth(t3.getMonth()-3);t3.setDate(1);
+  var t6=new Date(now);t6.setMonth(t6.getMonth()-6);t6.setDate(1);
   function filtFin(arr){return arr.filter(function(e){
     var d=e.data?new Date(e.data):null;if(!d)return per==='all';
     if(per==='month')return d.getMonth()===mo&&d.getFullYear()===yr;
-    if(per==='quarter')return d.getFullYear()===yr&&d.getMonth()>=qStart&&d.getMonth()<qStart+3;
-    if(per==='semester')return d.getFullYear()===yr&&d.getMonth()>=sStart&&d.getMonth()<sStart+6;
+    if(per==='quarter')return d>=t3&&d<=now;
+    if(per==='semester')return d>=t6&&d<=now;
     if(per==='year')return d.getFullYear()===yr;
     return true;
   });}
@@ -3444,12 +3445,13 @@ function rDRE(){
 function exportarBalanco(formato){
   var per=document.getElementById('dre-period').value,now=new Date();
   var yr=now.getFullYear(),mo=now.getMonth();
-  var qStart=mo-mo%3,sStart=mo<6?0:6;
+  var t3=new Date(now);t3.setMonth(t3.getMonth()-3);t3.setDate(1);
+  var t6=new Date(now);t6.setMonth(t6.getMonth()-6);t6.setDate(1);
   function filtFin(arr){return arr.filter(function(e){
     var d=e.data?new Date(e.data):null;if(!d)return per==='all';
     if(per==='month')return d.getMonth()===mo&&d.getFullYear()===yr;
-    if(per==='quarter')return d.getFullYear()===yr&&d.getMonth()>=qStart&&d.getMonth()<qStart+3;
-    if(per==='semester')return d.getFullYear()===yr&&d.getMonth()>=sStart&&d.getMonth()<sStart+6;
+    if(per==='quarter')return d>=t3&&d<=now;
+    if(per==='semester')return d>=t6&&d<=now;
     if(per==='year')return d.getFullYear()===yr;
     return true;
   });}
@@ -3460,7 +3462,7 @@ function exportarBalanco(formato){
   var totDesp=despesas.reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
   var lucro=totRec-totDesp;
   var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  var pLabel=per==='month'?'Este mês ('+meses[mo]+'/'+yr+')':per==='quarter'?'Trimestre '+(Math.floor(mo/3)+1)+'/'+yr:per==='semester'?'Semestre '+(mo<6?1:2)+'/'+yr:per==='year'?'Este ano ('+yr+')':'Total';
+  var pLabel=per==='month'?'Este mês ('+meses[mo]+'/'+yr+')':per==='quarter'?'Últimos 3 meses':per==='semester'?'Últimos 6 meses':per==='year'?'Este ano ('+yr+')':'Total';
   var stampDate=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
 
   if(formato==='csv'){
