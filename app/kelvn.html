@@ -3355,15 +3355,15 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
     html+='<text x="'+(PAD.left-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textColor+'" font-family="DM Sans,sans-serif">R$ '+fmtK(v)+'</text>';
   });
 
-  // Linhas verticais de guia (por mês)
+  // Linhas verticais de guia (semanais)
   var curV=new Date(hoje);
-  curV.setDate(1);
+  curV.setHours(0,0,0,0);
   while(curV<=limite){
     var xv=xPos(curV);
     if(xv>=PAD.left&&xv<=W-PAD.right){
       html+='<line x1="'+xv+'" y1="'+PAD.top+'" x2="'+xv+'" y2="'+(H-PAD.bottom)+'" stroke="'+gridColor+'" stroke-width="1"/>';
     }
-    curV.setMonth(curV.getMonth()+1);
+    curV.setDate(curV.getDate()+7);
   }
 
   // Linha do zero
