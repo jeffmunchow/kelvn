@@ -713,7 +713,11 @@ select.aj-input{cursor:pointer;}
   <!-- DRE -->
   <div id="fp-panel-dre" style="display:none;">
     <div class="sh"><div class="st">Balanço do período</div>
-      <div class="sa"><select class="fi" id="dre-period" onchange="rDRE()"><option value="year">Este ano</option><option value="month">Este mês</option><option value="all">Total</option></select></div>
+      <div class="sa">
+        <select class="fi" id="dre-period" onchange="rDRE()"><option value="year">Este ano</option><option value="month">Este mês</option><option value="all">Total</option></select>
+        <button class="btn" onclick="exportarBalanco('csv')" title="Baixar CSV para o contador">Baixar CSV</button>
+        <button class="btn" onclick="exportarBalanco('pdf')" title="Imprimir como PDF">Imprimir</button>
+      </div>
     </div>
     <div class="two">
       <div class="tw" style="padding:1.25rem;" id="dre-content"></div>
@@ -3043,7 +3047,7 @@ function rFluxo(){
       if(p.pago||!p.data)return;
       var d=pd(p.data);
       if(d&&d>=hoje&&d<=limite){
-        entradasProj.push({data:p.data,dataObj:d,desc:'Parcela — '+(c.nome||''),valor:parseFloat(p.valor||0),tipo:'entrada',clienteId:c.id});
+        entradasProj.push({data:p.data,dataObj:d,desc:'Parcela — '+(c.nome||''),valor:parseFloat(p.valor||0),tipo:'entrada',clienteId:c.id,parcelaId:p.id});
       }
     });
   });
@@ -3054,7 +3058,7 @@ function rFluxo(){
     if(e.tipo!=='saida'||!e.data)return;
     var d=pd(e.data)||new Date(e.data);
     if(d&&d>=hoje&&d<=limite){
-      saidasProj.push({data:e.data,dataObj:d,desc:e.desc,valor:parseFloat(e.valor||0),tipo:'saida',cat:e.cat});
+      saidasProj.push({data:e.data,dataObj:d,desc:e.desc,valor:parseFloat(e.valor||0),tipo:'saida',cat:e.cat,finId:e.id});
     }
   });
 
@@ -3083,7 +3087,8 @@ function rFluxo(){
     var col=e.tipo==='entrada'?'var(--teal)':'var(--coral)';
     var dias=Math.round((e.dataObj-hoje)/86400000);
     var diasLbl=dias===0?'hoje':dias===1?'amanhã':'em '+dias+'d';
-    return '<div style="display:flex;align-items:center;gap:1rem;padding:.75rem 1.25rem;border-bottom:.5px solid var(--border);">'+
+    var click=e.tipo==='entrada'?'openC(\''+e.clienteId+'\')':'openF(null,\''+e.finId+'\')';
+    return '<div onclick="'+click+'" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1.25rem;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .12s;" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'">'+
       '<div style="font-size:.72rem;color:var(--text-muted);min-width:74px;">'+fd(e.data)+'</div>'+
       '<div style="width:8px;height:8px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'+
       '<div style="flex:1;">'+
@@ -3196,6 +3201,90 @@ function rDRE(){
   var ch=Object.keys(rCats).map(function(k){var pct=Math.round(rCats[k]/maxV*100);return '<div class="bar-row"><div class="bar-label">'+k.slice(0,10)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(rCats[k])+'</div></div>';}).join('');
   document.getElementById('dre-chart').innerHTML='<div class="bar-wrap">'+ch+'</div>';
 }
+
+function exportarBalanco(formato){
+  var per=document.getElementById('dre-period').value,now=new Date();
+  function filtFin(arr){return arr.filter(function(e){var d=e.data?new Date(e.data):null;if(per==='month'&&d&&(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear()))return false;if(per==='year'&&d&&d.getFullYear()!==now.getFullYear())return false;return true;});}
+  var fe=filtFin(g('fin')).slice().sort(function(a,b){return new Date(a.data||0)-new Date(b.data||0);});
+  var receitas=fe.filter(function(e){return e.tipo==='entrada';});
+  var despesas=fe.filter(function(e){return e.tipo==='saida';});
+  var totRec=receitas.reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var totDesp=despesas.reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var lucro=totRec-totDesp;
+  var pLabel=per==='month'?'Este mês ('+(now.getMonth()+1)+'/'+now.getFullYear()+')':per==='year'?'Este ano ('+now.getFullYear()+')':'Total';
+  var stampDate=String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
+
+  if(formato==='csv'){
+    var esc=function(v){v=String(v==null?'':v);if(v.indexOf(',')>-1||v.indexOf('"')>-1||v.indexOf('\n')>-1) v='"'+v.replace(/"/g,'""')+'"';return v;};
+    var linhas=[];
+    linhas.push(['Balanço — '+pLabel].join(','));
+    linhas.push(['Gerado em',stampDate].join(','));
+    linhas.push('');
+    linhas.push(['Data','Descrição','Categoria','Cliente','Tipo','Valor'].join(','));
+    fe.forEach(function(e){
+      linhas.push([
+        fd(e.data),
+        esc(e.desc||''),
+        esc(e.cat||''),
+        esc(e.clienteId?cN(e.clienteId):''),
+        e.tipo,
+        parseFloat(e.valor||0).toFixed(2).replace('.',',')
+      ].join(','));
+    });
+    linhas.push('');
+    linhas.push(['','','','','Total entradas',totRec.toFixed(2).replace('.',',')].join(','));
+    linhas.push(['','','','','Total saídas',totDesp.toFixed(2).replace('.',',')].join(','));
+    linhas.push(['','','','','Resultado',lucro.toFixed(2).replace('.',',')].join(','));
+    var blob=new Blob(['﻿'+linhas.join('\n')],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='balanco_'+per+'_'+now.getFullYear()+(per==='month'?'_'+String(now.getMonth()+1).padStart(2,'0'):'')+'.csv';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    notify('CSV baixado.');
+    return;
+  }
+
+  // PDF — abre janela de impressão
+  var w=window.open('','_blank');
+  if(!w){alert('Permita abrir janelas pop-up para imprimir.');return;}
+  var estudio=(g('sd')||{}).estudio||'';
+  function rowsHtml(arr){
+    return arr.map(function(e){
+      return '<tr><td>'+fd(e.data)+'</td><td>'+(e.desc||'—')+'</td><td>'+(e.cat||'—')+'</td><td>'+(e.clienteId?cN(e.clienteId):'—')+'</td><td style="text-align:right;">R$ '+parseFloat(e.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';
+    }).join('');
+  }
+  w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Balanço — '+pLabel+'</title>'+
+    '<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0;}'+
+    'body{font-family:Helvetica,Arial,sans-serif;color:#1A1814;padding:32px 40px;background:#fff;}'+
+    'h1{font-family:Georgia,serif;font-size:22px;font-weight:600;margin-bottom:4px;}'+
+    '.sub{font-size:12px;color:#6B6660;margin-bottom:24px;}'+
+    'h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#6B6660;margin:28px 0 10px;font-weight:600;}'+
+    'table{width:100%;border-collapse:collapse;font-size:12px;}'+
+    'th{text-align:left;padding:8px 6px;border-bottom:1px solid #1A1814;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}'+
+    'th:last-child,td:last-child{text-align:right;}'+
+    'td{padding:6px;border-bottom:.5px solid #ccc;}'+
+    '.totais{margin-top:24px;border-top:1px solid #1A1814;padding-top:12px;}'+
+    '.totl{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}'+
+    '.totl.fin{font-weight:600;font-size:15px;border-top:1px solid #ccc;padding-top:10px;margin-top:6px;}'+
+    '.ent{color:#0A7864;}.sai{color:#C43A1A;}'+
+    '@media print{body{padding:0;}}'+
+    '</style></head><body>'+
+    '<h1>Balanço — '+pLabel+'</h1>'+
+    '<div class="sub">'+(estudio?estudio+' · ':'')+'Gerado em '+stampDate+'</div>'+
+    (receitas.length?'<h2>Entradas</h2><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Valor</th></tr></thead><tbody>'+rowsHtml(receitas)+'</tbody></table>':'')+
+    (despesas.length?'<h2>Saídas</h2><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Valor</th></tr></thead><tbody>'+rowsHtml(despesas)+'</tbody></table>':'')+
+    '<div class="totais">'+
+      '<div class="totl"><span>Total entradas</span><span class="ent">R$ '+totRec.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span></div>'+
+      '<div class="totl"><span>Total saídas</span><span class="sai">R$ '+totDesp.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span></div>'+
+      '<div class="totl fin"><span>Resultado</span><span class="'+(lucro>=0?'ent':'sai')+'">R$ '+lucro.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span></div>'+
+    '</div>'+
+    '<script>window.onload=function(){window.print();};<\/script>'+
+    '</body></html>');
+  w.document.close();
+}
+
 function calcImp(){
   var regime=document.getElementById('imp-regime').value;
   var fat=parseFloat(document.getElementById('imp-fat').value)||0;
