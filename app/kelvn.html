@@ -684,9 +684,9 @@ select.aj-input{cursor:pointer;}
           </div>
         </div>
         <!-- PALAVRA AMIGA -->
-        <div id="saude-palavra-wrap" style="margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border);min-height:48px;display:flex;align-items:flex-start;gap:.65rem;">
-          <div id="saude-palavra-loading" style="display:none;flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--text-hint);margin-top:6px;animation:saudePulse 1.2s ease-in-out infinite;"></div>
-          <div id="saude-palavra-txt" style="font-size:.78rem;line-height:1.65;color:var(--text-muted);flex:1;"></div>
+        <div id="saude-msg-wrap" style="margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border);min-height:48px;display:flex;align-items:flex-start;gap:.65rem;">
+          <div id="saude-msg-loading" style="display:none;flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--text-hint);margin-top:6px;animation:saudePulse 1.2s ease-in-out infinite;"></div>
+          <div id="saude-msg-txt" style="font-size:.78rem;line-height:1.65;color:var(--text-muted);flex:1;"></div>
         </div>
       </div>
 
@@ -2976,8 +2976,8 @@ function rSaude(){
     return d.getMonth()===now2.getMonth()&&d.getFullYear()===now2.getFullYear();
   }).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
 
-  // Chama geração da palavra amiga (async, não bloqueia render)
-  gerarPalavraAmiga({
+  // Chama geração da mensagem (async, não bloqueia render)
+  gerarMensagem({
     score:total,label:label,
     p1:p1,p2:p2,p3:p3,p4:p4,
     pilarCritico:pilarCritico,
@@ -2987,10 +2987,10 @@ function rSaude(){
     contratosFuturos:contratosFuturos
   });
 }
-async function gerarPalavraAmiga(dadosSaude){
-  var wrapEl=document.getElementById('saude-palavra-wrap');
-  var txtEl=document.getElementById('saude-palavra-txt');
-  var loadEl=document.getElementById('saude-palavra-loading');
+async function gerarMensagem(dadosSaude){
+  var wrapEl=document.getElementById('saude-msg-wrap');
+  var txtEl=document.getElementById('saude-msg-txt');
+  var loadEl=document.getElementById('saude-msg-loading');
   if(!wrapEl||!txtEl)return;
 
   // Carrega cache do Supabase na primeira chamada da sessão
@@ -3090,7 +3090,7 @@ async function gerarPalavraAmiga(dadosSaude){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:120,
+        max_tokens:240,
         system:systemPrompt,
         messages:[{role:'user',content:userPrompt}]
       })
@@ -3110,7 +3110,7 @@ async function gerarPalavraAmiga(dadosSaude){
     loadEl.style.display='none';
     if(_saudeCache&&_saudeCache.msg){txtEl.innerHTML=_saudeCache.msg;}
     else{wrapEl.style.display='none';}
-    console.warn('Palavra amiga: erro na chamada IA',e);
+    console.warn('Mensagem IA: erro na chamada',e);
   }
 }
 function calcVariacao(tipoFiltro,periodoFiltro){
