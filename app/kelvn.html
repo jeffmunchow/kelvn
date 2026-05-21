@@ -637,6 +637,7 @@ select.aj-input{cursor:pointer;}
 <div class="panel" id="p-financeiro">
   <div class="pills" style="margin-bottom:1.5rem;">
     <button class="pill active" id="fp-pill-emp"  onclick="switchFP('emp')">Empresa</button>
+    <button class="pill"        id="fp-pill-fluxo" onclick="switchFP('fluxo')">Fluxo de caixa</button>
     <button class="pill"        id="fp-pill-pes"  onclick="switchFP('pes')">Pessoal</button>
     <button class="pill"        id="fp-pill-dre"  onclick="switchFP('dre')">Balanço</button>
     <button class="pill"        id="fp-pill-prec" onclick="switchFP('prec')">Precificação</button>
@@ -668,6 +669,33 @@ select.aj-input{cursor:pointer;}
     </div>
     <div class="fk" id="fin-kpis"></div>
     <div class="tw"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fin-tbody"></tbody></table></div></div>
+  </div>
+  <!-- FLUXO DE CAIXA -->
+  <div id="fp-panel-fluxo" style="display:none;">
+    <div class="sh">
+      <div class="st">Fluxo de caixa projetado</div>
+      <div class="sa">
+        <select class="fi" id="fluxo-horizonte" onchange="rFluxo()">
+          <option value="30">Próximos 30 dias</option>
+          <option value="60">Próximos 60 dias</option>
+          <option value="90" selected>Próximos 90 dias</option>
+          <option value="180">Próximos 6 meses</option>
+        </select>
+      </div>
+    </div>
+    <div class="fk" id="fluxo-kpis"></div>
+    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
+        <div style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;">Saldo acumulado projetado</div>
+        <div style="display:flex;gap:1rem;font-size:.65rem;color:var(--text-hint);">
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-right:5px;vertical-align:middle;"></span>Entrada</span>
+          <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);margin-right:5px;vertical-align:middle;"></span>Saída</span>
+          <span><span style="display:inline-block;width:18px;height:2px;background:var(--amber);margin-right:5px;vertical-align:middle;"></span>Saldo</span>
+        </div>
+      </div>
+      <svg id="fluxo-chart" width="100%" height="300" style="display:block;overflow:visible;"></svg>
+    </div>
+    <div id="fluxo-lista" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
   </div>
   <!-- PESSOAL -->
   <div id="fp-panel-pes" style="display:none;">
@@ -1508,13 +1536,13 @@ function switchPP(name){
   if(name==='pend')rPe();if(name==='edicoes')rED();if(name==='entregas')rENT();
 }
 function switchFP(name){
-  ['emp','pes','dre','prec','imp','inad'].forEach(function(n){
-    document.getElementById('fp-panel-'+n).style.display='none';
+  ['emp','fluxo','pes','dre','prec','imp','inad'].forEach(function(n){
+    var pan=document.getElementById('fp-panel-'+n);if(pan)pan.style.display='none';
     var pill=document.getElementById('fp-pill-'+n);if(pill)pill.classList.remove('active');
   });
-  document.getElementById('fp-panel-'+name).style.display='';
+  var ePan=document.getElementById('fp-panel-'+name);if(ePan)ePan.style.display='';
   var ap=document.getElementById('fp-pill-'+name);if(ap)ap.classList.add('active');
-  if(name==='emp')rF();if(name==='pes')rFP();if(name==='dre')rDRE();if(name==='prec')calcPrec();if(name==='imp')calcImp();if(name==='inad')rInad();
+  if(name==='emp')rF();if(name==='fluxo')rFluxo();if(name==='pes')rFP();if(name==='dre')rDRE();if(name==='prec')calcPrec();if(name==='imp')calcImp();if(name==='inad')rInad();
 }
 function switchQP(){}
 function switchAG2(name){
@@ -2993,6 +3021,150 @@ function saveFP(){
   undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Salvo');
 }
 function delFP(){if(!confirm('Excluir?'))return;undoBegin();s('fin_pessoal',g('fin_pessoal').filter(function(e){return e.id!==_fpId;}));undoCommit();cov('ov-fp');rFP();notify('Excluído');}
+
+function rFluxo(){
+  var hzEl=document.getElementById('fluxo-horizonte');
+  var horizonte=hzEl?parseInt(hzEl.value)||90:90;
+  var hoje=today();
+  var limite=new Date(hoje.getTime()+horizonte*86400000);
+
+  // Entradas projetadas: parcelas não pagas com data no futuro
+  var entradasProj=[];
+  g('clientes').forEach(function(c){
+    (c.parcelas||[]).forEach(function(p){
+      if(p.pago||!p.data)return;
+      var d=pd(p.data);
+      if(d&&d>=hoje&&d<=limite){
+        entradasProj.push({data:p.data,dataObj:d,desc:'Parcela — '+(c.nome||''),valor:parseFloat(p.valor||0),tipo:'entrada',clienteId:c.id});
+      }
+    });
+  });
+
+  // Saídas conhecidas: fin tipo saida com data futura
+  var saidasProj=[];
+  g('fin').forEach(function(e){
+    if(e.tipo!=='saida'||!e.data)return;
+    var d=pd(e.data)||new Date(e.data);
+    if(d&&d>=hoje&&d<=limite){
+      saidasProj.push({data:e.data,dataObj:d,desc:e.desc,valor:parseFloat(e.valor||0),tipo:'saida',cat:e.cat});
+    }
+  });
+
+  var todos=entradasProj.concat(saidasProj).sort(function(a,b){return a.dataObj-b.dataObj;});
+
+  // KPIs
+  var totalEntra=entradasProj.reduce(function(a,e){return a+e.valor;},0);
+  var totalSai=saidasProj.reduce(function(a,e){return a+e.valor;},0);
+  var saldoProjetado=totalEntra-totalSai;
+
+  document.getElementById('fluxo-kpis').innerHTML=
+    '<div class="fki"><div class="fkl">A receber no período</div><div class="fkv ct">'+$m(totalEntra)+'</div></div>'+
+    '<div class="fki"><div class="fkl">Saídas previstas</div><div class="fkv cc">'+$m(totalSai)+'</div></div>'+
+    '<div class="fki"><div class="fkl">Saldo projetado</div><div class="fkv '+(saldoProjetado>=0?'ct':'cc')+'">'+$m(saldoProjetado)+'</div></div>'+
+    '<div class="fki"><div class="fkl">Eventos no período</div><div class="fkv ca">'+todos.length+'</div></div>';
+
+  renderFluxoChart(todos,hoje,limite,horizonte);
+
+  var listaEl=document.getElementById('fluxo-lista');
+  if(!todos.length){
+    listaEl.innerHTML='<div style="padding:2rem;text-align:center;font-size:.82rem;color:var(--text-hint);">Nada previsto pra esse período. Quando tiver parcela a vencer ou despesa marcada, vai aparecer aqui.</div>';
+    return;
+  }
+  listaEl.innerHTML=todos.map(function(e){
+    var sign=e.tipo==='entrada'?'+':'−';
+    var col=e.tipo==='entrada'?'var(--teal)':'var(--coral)';
+    var dias=Math.round((e.dataObj-hoje)/86400000);
+    var diasLbl=dias===0?'hoje':dias===1?'amanhã':'em '+dias+'d';
+    return '<div style="display:flex;align-items:center;gap:1rem;padding:.75rem 1.25rem;border-bottom:.5px solid var(--border);">'+
+      '<div style="font-size:.72rem;color:var(--text-muted);min-width:74px;">'+fd(e.data)+'</div>'+
+      '<div style="width:8px;height:8px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'+
+      '<div style="flex:1;">'+
+        '<div style="font-size:.82rem;color:var(--text);">'+(e.desc||'—')+'</div>'+
+        '<div style="font-size:.66rem;color:var(--text-hint);margin-top:1px;">'+diasLbl+'</div>'+
+      '</div>'+
+      '<div style="color:'+col+';font-weight:500;font-size:.85rem;">'+sign+' '+$m(e.valor)+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderFluxoChart(eventos,hoje,limite,horizonte){
+  var svg=document.getElementById('fluxo-chart');
+  if(!svg)return;
+  var W=svg.getBoundingClientRect().width||800;
+  var H=300;
+  var PAD={top:20,right:20,bottom:30,left:55};
+  var cW=W-PAD.left-PAD.right;
+  var cH=H-PAD.top-PAD.bottom;
+
+  // Saldo acumulado por evento
+  var saldoAtual=0;
+  var pontos=[{d:hoje,saldo:0}];
+  eventos.forEach(function(e){
+    saldoAtual+=e.tipo==='entrada'?e.valor:-e.valor;
+    pontos.push({d:e.dataObj,saldo:saldoAtual});
+  });
+  // ponto final no horizonte
+  if(eventos.length){
+    pontos.push({d:limite,saldo:saldoAtual});
+  }
+
+  var minS=Math.min.apply(null,pontos.map(function(p){return p.saldo;}).concat([0]));
+  var maxS=Math.max.apply(null,pontos.map(function(p){return p.saldo;}).concat([0]));
+  var rangeS=(maxS-minS)||1;
+  var totalMs=limite-hoje;
+
+  function xPos(d){return PAD.left+((d-hoje)/totalMs)*cW;}
+  function yPos(v){return PAD.top+cH-((v-minS)/rangeS)*cH;}
+
+  var isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  var gridColor=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  var textColor=isDark?'#7C7670':'#B0ABA6';
+
+  var html='';
+
+  // Linha do zero
+  var yZero=yPos(0);
+  html+='<line x1="'+PAD.left+'" y1="'+yZero+'" x2="'+(W-PAD.right)+'" y2="'+yZero+'" stroke="'+gridColor+'" stroke-width="1" stroke-dasharray="3,3"/>';
+
+  // Eixo Y — labels
+  function fmtK(v){var abs=Math.abs(v);if(abs>=1000)return (v/1000).toFixed(abs>=10000?0:1)+'k';return Math.round(v);}
+  [minS,(minS+maxS)/2,maxS].forEach(function(v){
+    var y=yPos(v);
+    html+='<text x="'+(PAD.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textColor+'" font-family="DM Sans,sans-serif">R$ '+fmtK(v)+'</text>';
+  });
+
+  // Barras de evento (atrás da linha)
+  eventos.forEach(function(e){
+    var x=xPos(e.dataObj);
+    var col=e.tipo==='entrada'?'var(--teal)':'var(--coral)';
+    var alturaBar=Math.min(50,(e.valor/Math.max(1,Math.max(Math.abs(maxS),Math.abs(minS))))*cH*0.4);
+    var sinal=e.tipo==='entrada'?-1:1;
+    var yBar=yZero+(sinal>0?0:-alturaBar);
+    html+='<rect x="'+(x-2)+'" y="'+yBar+'" width="4" height="'+alturaBar+'" fill="'+col+'" opacity="0.55" rx="1"/>';
+  });
+
+  // Linha do saldo
+  if(pontos.length>1){
+    var path='M'+pontos.map(function(p){return xPos(p.d)+','+yPos(p.saldo);}).join(' L');
+    html+='<path d="'+path+'" stroke="var(--amber)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+
+  // Marcadores de mês no eixo X
+  var curD=new Date(hoje);
+  curD.setDate(1);
+  while(curD<=limite){
+    var x=xPos(curD);
+    if(x>=PAD.left&&x<=W-PAD.right){
+      var lbl=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][curD.getMonth()];
+      html+='<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="'+textColor+'" font-family="DM Sans,sans-serif">'+lbl+'</text>';
+    }
+    curD.setMonth(curD.getMonth()+1);
+  }
+
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.innerHTML=html;
+}
+
 function rDRE(){
   var per=document.getElementById('dre-period').value,now=new Date();
   function filtFin(arr){return arr.filter(function(e){var d=e.data?new Date(e.data):null;if(per==='month'&&d&&(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear()))return false;if(per==='year'&&d&&d.getFullYear()!==now.getFullYear())return false;return true;});}
