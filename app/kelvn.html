@@ -277,7 +277,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .notif{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:var(--bg);font-size:.78rem;padding:10px 18px;border-radius:40px;z-index:9999;opacity:0;transition:opacity .3s,transform .3s;transform:translateY(8px);pointer-events:none;}
 .notif.show{opacity:1;transform:translateY(0);}
 /* INADIMPLENCIA */
-.inad-card{background:var(--surface);border:.5px solid var(--coral);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;}
+.inad-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;}
 .inad-nome{font-size:.88rem;color:var(--text);}
 .inad-meta{font-size:.7rem;color:var(--text-hint);margin-top:3px;}
 .inad-valor{font-size:1.1rem;font-weight:500;color:var(--coral);}
@@ -3706,18 +3706,77 @@ function calcInadTotal(){
   return total;
 }
 function rInad(){
-  var td=today();var result=[];
+  var td=today();var now=new Date();var result=[];
   g('clientes').forEach(function(c){
     var atrasadas=(c.parcelas||[]).filter(function(p){if(p.pago||!p.data)return false;var ppd=pd(p.data);return ppd&&ppd<td;});
-    if(atrasadas.length){var tot=atrasadas.reduce(function(a,p){return a+parseFloat(p.valor||0);},0);result.push({nome:c.nome,parcelas:atrasadas.length,valor:tot,status:c.status});}
+    if(atrasadas.length){
+      var tot=atrasadas.reduce(function(a,p){return a+parseFloat(p.valor||0);},0);
+      // Find oldest overdue parcela (most days)
+      var maxDias=atrasadas.reduce(function(max,p){
+        var ppd=pd(p.data);
+        var dias=ppd?Math.floor((now-ppd)/(1000*60*60*24)):0;
+        return dias>max?dias:max;
+      },0);
+      // Grab first overdue parcela id for quick pay
+      var primeiraId=atrasadas[0].id;
+      result.push({id:c.id,nome:c.nome,qtd:atrasadas.length,valor:tot,status:c.status,diasMax:maxDias,primeiraId:primeiraId,todasIds:atrasadas.map(function(p){return p.id;})});
+    }
   });
   var el=document.getElementById('inad-content');
-  if(!result.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhuma inadimplência detectada 🎉</div>';return;}
+  if(!result.length){
+    el.innerHTML='<div style="padding:3rem;text-align:center;font-size:.78rem;color:var(--text-hint);">Nenhuma parcela em atraso. Semana boa.</div>';
+    return;
+  }
   var totalGeral=result.reduce(function(a,r){return a+r.valor;},0);
-  el.innerHTML='<div style="margin-bottom:1rem;padding:.85rem 1.25rem;background:var(--coral-light);border:.5px solid var(--coral);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;"><span style="font-size:.78rem;color:var(--coral);">Total em atraso</span><span style="font-size:1.2rem;font-weight:500;color:var(--coral);">'+$m(totalGeral)+'</span></div>'+
-  result.map(function(r){
-    return '<div class="inad-card"><div class="pr"><div><div class="inad-nome">'+r.nome+'</div><div class="inad-meta">'+r.parcelas+' parcela(s) em atraso · '+bdg(r.status)+'</div></div><div class="inad-valor">'+$m(r.valor)+'</div></div></div>';
+  var totalClientes=result.length;
+  var diasMax=result.reduce(function(max,r){return r.diasMax>max?r.diasMax:max;},0);
+  // KPIs
+  var kpis='<div class="fk" style="margin-bottom:1.5rem;">'+
+    '<div class="kpi"><div class="kpi-l">Total em atraso</div><div class="kpi-v" style="color:var(--coral);">'+$m(totalGeral)+'</div><div class="kpi-s">soma de todas as parcelas</div></div>'+
+    '<div class="kpi"><div class="kpi-l">Clientes inadimplentes</div><div class="kpi-v">'+totalClientes+'</div><div class="kpi-s">com parcela vencida</div></div>'+
+    '<div class="kpi"><div class="kpi-l">Parcela mais antiga</div><div class="kpi-v" style="color:var(--coral);">'+diasMax+' dias</div><div class="kpi-s">em atraso</div></div>'+
+  '</div>';
+  // Cards
+  var cards=result.map(function(r){
+    var diasLabel=r.diasMax===1?'1 dia em atraso':r.diasMax+' dias em atraso';
+    var diasCor=r.diasMax>30?'var(--coral)':r.diasMax>7?'var(--amber-deep)':'var(--text-hint)';
+    return '<div class="inad-card">'+
+      '<div class="pr" style="align-items:center;">'+
+        '<div style="flex:1;">'+
+          '<div class="inad-nome">'+r.nome+'</div>'+
+          '<div class="inad-meta">'+r.qtd+' parcela'+(r.qtd>1?'s':'')+' em atraso · '+bdg(r.status)+' · <span style="color:'+diasCor+';">'+diasLabel+'</span></div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:1rem;">'+
+          '<div class="inad-valor">'+$m(r.valor)+'</div>'+
+          '<button class="btn" style="font-size:.72rem;white-space:nowrap;" onclick="pagarParcelaInad(\''+r.id+'\',\''+r.todasIds.join(',')+'\')">Marcar como pago</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
   }).join('');
+  el.innerHTML=kpis+cards;
+}
+function pagarParcelaInad(clienteId, idsStr){
+  var ids=idsStr.split(',');
+  var clientes=g('clientes');
+  var ci=clientes.findIndex(function(c){return c.id===clienteId;});
+  if(ci===-1)return;
+  var fin=g('fin');
+  var cliente=clientes[ci];
+  var now=new Date().toISOString().split('T')[0];
+  ids.forEach(function(pid){
+    var pi=(cliente.parcelas||[]).findIndex(function(p){return p.id===pid;});
+    if(pi===-1)return;
+    clientes[ci].parcelas[pi].pago=true;
+    var parcKey='parcela:'+clienteId+':'+pid;
+    var existe=fin.find(function(e){return e.parcela_ref===parcKey;});
+    if(!existe){
+      fin.push({id:uid(),desc:'Parcela — '+cliente.nome,valor:parseFloat(clientes[ci].parcelas[pi].valor||0),data:clientes[ci].parcelas[pi].data||now,cat:'Parcela',clienteId:clienteId,tipo:'entrada',parcela_ref:parcKey,auto:true});
+    }
+  });
+  s('clientes',clientes);
+  s('fin',fin);
+  notify('Parcela'+(ids.length>1?'s':'')+' marcada'+(ids.length>1?'s':'')+' como pago.');
+  rInad();
 }
 var _pkId=null;
 function rPK(){
