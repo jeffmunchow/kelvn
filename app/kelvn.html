@@ -1283,20 +1283,7 @@ select.aj-input{cursor:pointer;}
   <div class="field"><label>Descrição</label><input type="text" id="mf-desc" placeholder="ex: Sinal Maria &amp; João"></div>
   <div class="field"><label>Valor (R$)</label><input type="number" id="mf-valor" placeholder="0"></div>
   <div class="field"><label>Data</label><input type="text" class="sd" maxlength="10" id="mf-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
-  <div class="field"><label>Categoria</label><select id="mf-cat">
-    <optgroup label="Tipo de serviço">
-      <option>Casamento</option><option>Pré-wedding</option><option>Retratos</option>
-      <option>Institucional</option><option>Freela</option>
-    </optgroup>
-    <optgroup label="Tipo de pagamento">
-      <option>Contrato</option><option>Sinal</option><option>Parcela</option><option>Saldo final</option>
-    </optgroup>
-    <optgroup label="Despesas">
-      <option>Equipamento</option><option>Software</option><option>Marketing</option>
-      <option>Deslocamento</option><option>Alimentação</option><option>Hospedagem</option>
-      <option>Equipe</option><option>Imposto</option><option>Outro</option>
-    </optgroup>
-  </select></div>
+  <div class="field"><label>Categoria</label><select id="mf-cat"></select></div>
   <div class="field"><label>Cliente</label><select id="mf-cliente"><option value="">— nenhum —</option></select></div>
   <input type="hidden" id="mf-tipo" value="entrada">
   <div class="ma">
@@ -3201,11 +3188,41 @@ function rF(){
     return '<tr onclick="openF(null,\''+e.id+'\')"><td>'+fd(e.data)+'</td><td class="tdn">'+(e.desc||'—')+autoBadge+'</td><td>'+(e.cat||'—')+'</td><td>'+(e.clienteId?cN(e.clienteId):'—')+'</td><td><span class="badge" style="background:'+(e.tipo==='entrada'?'var(--teal-light)':'var(--coral-light)')+';color:'+col+';">'+e.tipo+'</span></td><td style="color:'+col+';font-weight:500;">'+sign+' '+$m(e.valor)+'</td><td><button class="ra" onclick="event.stopPropagation();openF(null,\''+e.id+'\')">Editar</button></td></tr>';
   }).join('');
 }
+function _buildCatOpts(tipo){
+  var sel=document.getElementById('mf-cat');
+  if(tipo==='entrada'){
+    sel.innerHTML='<optgroup label="Tipo de serviço"><option>Retratos</option><option>Institucional</option><option>Freela</option></optgroup><optgroup label="Tipo de pagamento"><option>Contrato</option><option>Sinal</option><option>Parcela</option><option>Saldo final</option></optgroup>';
+  } else {
+    sel.innerHTML='<optgroup label="Despesas"><option>Equipamento</option><option>Software</option><option>Marketing</option><option>Deslocamento</option><option>Alimentação</option><option>Hospedagem</option><option>Equipe</option><option>Imposto</option><option>Outro</option></optgroup>';
+  }
+}
 function openF(tipo,id){
   _fId=id||null;fillSel();
   var td=new Date(),ts=String(td.getDate()).padStart(2,'0')+'/'+String(td.getMonth()+1).padStart(2,'0')+'/'+td.getFullYear();
-  if(id){var e=g('fin').find(function(x){return x.id===id;});if(!e)return;document.getElementById('mf-t').textContent='Editar Lançamento';document.getElementById('mf-desc').value=e.desc||'';document.getElementById('mf-valor').value=e.valor||'';document.getElementById('mf-data').value=fd(e.data);document.getElementById('mf-cat').value=e.cat||'Contrato';document.getElementById('mf-cliente').value=e.clienteId||'';document.getElementById('mf-tipo').value=e.tipo||'entrada';document.getElementById('mf-del').style.display='inline-flex';}
-  else{document.getElementById('mf-t').textContent=tipo==='entrada'?'Nova Entrada':'Nova Saída';document.getElementById('mf-desc').value='';document.getElementById('mf-valor').value='';document.getElementById('mf-data').value=ts;document.getElementById('mf-cat').value=tipo==='entrada'?'Contrato':'Equipamento';document.getElementById('mf-cliente').value='';document.getElementById('mf-tipo').value=tipo||'entrada';document.getElementById('mf-del').style.display='none';}
+  if(id){
+    var e=g('fin').find(function(x){return x.id===id;});if(!e)return;
+    var t=e.tipo||'entrada';
+    _buildCatOpts(t);
+    document.getElementById('mf-t').textContent='Editar Lançamento';
+    document.getElementById('mf-desc').value=e.desc||'';
+    document.getElementById('mf-valor').value=e.valor||'';
+    document.getElementById('mf-data').value=fd(e.data);
+    document.getElementById('mf-cat').value=e.cat||'Contrato';
+    document.getElementById('mf-cliente').value=e.clienteId||'';
+    document.getElementById('mf-tipo').value=t;
+    document.getElementById('mf-del').style.display='inline-flex';
+  } else {
+    var t2=tipo||'entrada';
+    _buildCatOpts(t2);
+    document.getElementById('mf-t').textContent=t2==='entrada'?'Nova Entrada':'Nova Saída';
+    document.getElementById('mf-desc').value='';
+    document.getElementById('mf-valor').value='';
+    document.getElementById('mf-data').value=ts;
+    document.getElementById('mf-cat').value=t2==='entrada'?'Contrato':'Equipamento';
+    document.getElementById('mf-cliente').value='';
+    document.getElementById('mf-tipo').value=t2;
+    document.getElementById('mf-del').style.display='none';
+  }
   document.getElementById('ov-f').classList.add('open');
 }
 function saveF(){
