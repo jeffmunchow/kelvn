@@ -4758,24 +4758,24 @@ function seedDemoData(){
     {m:3,cat:'Casamento',v:7200},{m:4,cat:'Casamento',v:6800},{m:5,cat:'Casamento',v:8400},
     {m:6,cat:'Casamento',v:9100},{m:7,cat:'Casamento',v:7600},{m:8,cat:'Casamento',v:10200},
     {m:9,cat:'Casamento',v:8900},{m:10,cat:'Casamento',v:11500},{m:11,cat:'Casamento',v:13200},
-    {m:0,cat:'Sessão',v:2200},{m:1,cat:'Sessão',v:1800},{m:2,cat:'Sessão',v:3200},
-    {m:3,cat:'Sessão',v:2800},{m:4,cat:'Sessão',v:4100},{m:5,cat:'Sessão',v:3500},
-    {m:6,cat:'Sessão',v:2900},{m:7,cat:'Sessão',v:3800},{m:8,cat:'Sessão',v:4200},
-    {m:9,cat:'Sessão',v:3100},{m:10,cat:'Sessão',v:2600},{m:11,cat:'Sessão',v:3900},
-    {m:0,cat:'Religioso',v:1200},{m:1,cat:'Religioso',v:900},{m:2,cat:'Religioso',v:1500},
-    {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
-    {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
-    {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
-    {m:0,cat:'Welcome',v:800},{m:2,cat:'Welcome',v:1100},{m:4,cat:'Welcome',v:1400},
-    {m:5,cat:'Welcome',v:1200},{m:7,cat:'Welcome',v:1300},{m:9,cat:'Welcome',v:1000},
-    {m:11,cat:'Welcome',v:1200},
-    {m:0,cat:'After',v:1500},{m:2,cat:'After',v:2000},{m:4,cat:'After',v:2400},
-    {m:5,cat:'After',v:2100},{m:7,cat:'After',v:2300},{m:9,cat:'After',v:2000},
-    {m:11,cat:'After',v:2200},
-    {m:0,cat:'Álbum',v:3200},{m:1,cat:'Álbum',v:2800},{m:2,cat:'Álbum',v:4500},
-    {m:3,cat:'Álbum',v:3900},{m:4,cat:'Álbum',v:5500},{m:5,cat:'Álbum',v:4800},
-    {m:6,cat:'Álbum',v:4100},{m:7,cat:'Álbum',v:5200},{m:8,cat:'Álbum',v:5900},
-    {m:9,cat:'Álbum',v:4400},{m:10,cat:'Álbum',v:3800},{m:11,cat:'Álbum',v:5000}
+    {m:0,cat:'Pré-wedding',v:2200},{m:1,cat:'Pré-wedding',v:1800},{m:2,cat:'Pré-wedding',v:3200},
+    {m:3,cat:'Pré-wedding',v:2800},{m:4,cat:'Pré-wedding',v:4100},{m:5,cat:'Pré-wedding',v:3500},
+    {m:6,cat:'Pré-wedding',v:2900},{m:7,cat:'Pré-wedding',v:3800},{m:8,cat:'Pré-wedding',v:4200},
+    {m:9,cat:'Pré-wedding',v:3100},{m:10,cat:'Pré-wedding',v:2600},{m:11,cat:'Pré-wedding',v:3900},
+    {m:0,cat:'Retratos',v:1200},{m:1,cat:'Retratos',v:900},{m:2,cat:'Retratos',v:1500},
+    {m:3,cat:'Retratos',v:1100},{m:4,cat:'Retratos',v:1800},{m:5,cat:'Retratos',v:1400},
+    {m:6,cat:'Retratos',v:1000},{m:7,cat:'Retratos',v:1600},{m:8,cat:'Retratos',v:1900},
+    {m:9,cat:'Retratos',v:1300},{m:10,cat:'Retratos',v:1100},{m:11,cat:'Retratos',v:1700},
+    {m:0,cat:'Freela',v:800},{m:2,cat:'Freela',v:1100},{m:4,cat:'Freela',v:1400},
+    {m:5,cat:'Freela',v:1200},{m:7,cat:'Freela',v:1300},{m:9,cat:'Freela',v:1000},
+    {m:11,cat:'Freela',v:1200},
+    {m:0,cat:'Contrato',v:1500},{m:2,cat:'Contrato',v:2000},{m:4,cat:'Contrato',v:2400},
+    {m:5,cat:'Contrato',v:2100},{m:7,cat:'Contrato',v:2300},{m:9,cat:'Contrato',v:2000},
+    {m:11,cat:'Contrato',v:2200},
+    {m:0,cat:'Saldo final',v:3200},{m:1,cat:'Saldo final',v:2800},{m:2,cat:'Saldo final',v:4500},
+    {m:3,cat:'Saldo final',v:3900},{m:4,cat:'Saldo final',v:5500},{m:5,cat:'Saldo final',v:4800},
+    {m:6,cat:'Saldo final',v:4100},{m:7,cat:'Saldo final',v:5200},{m:8,cat:'Saldo final',v:5900},
+    {m:9,cat:'Saldo final',v:4400},{m:10,cat:'Saldo final',v:3800},{m:11,cat:'Saldo final',v:5000}
   ];
   fatData.forEach(function(d){
     finEntries.push({id:uid(),desc:'[demo] '+d.cat,valor:d.v,data:dt(d.m,10),cat:d.cat,clienteId:'',tipo:'entrada'});
@@ -5202,18 +5202,18 @@ async function initUserData(){
           {m:3,cat:'Casamento',v:7200},{m:4,cat:'Casamento',v:6800},{m:5,cat:'Casamento',v:8400},
           {m:6,cat:'Casamento',v:9100},{m:7,cat:'Casamento',v:7600},{m:8,cat:'Casamento',v:10200},
           {m:9,cat:'Casamento',v:8900},{m:10,cat:'Casamento',v:11500},{m:11,cat:'Casamento',v:13200},
-          {m:0,cat:'Sessão',v:2200},{m:1,cat:'Sessão',v:1800},{m:2,cat:'Sessão',v:3200},
-          {m:3,cat:'Sessão',v:2800},{m:4,cat:'Sessão',v:4100},{m:5,cat:'Sessão',v:3500},
-          {m:6,cat:'Sessão',v:2900},{m:7,cat:'Sessão',v:3800},{m:8,cat:'Sessão',v:4200},
-          {m:9,cat:'Sessão',v:3100},{m:10,cat:'Sessão',v:2600},{m:11,cat:'Sessão',v:3900},
-          {m:0,cat:'Religioso',v:1200},{m:1,cat:'Religioso',v:900},{m:2,cat:'Religioso',v:1500},
-          {m:3,cat:'Religioso',v:1100},{m:4,cat:'Religioso',v:1800},{m:5,cat:'Religioso',v:1400},
-          {m:6,cat:'Religioso',v:1000},{m:7,cat:'Religioso',v:1600},{m:8,cat:'Religioso',v:1900},
-          {m:9,cat:'Religioso',v:1300},{m:10,cat:'Religioso',v:1100},{m:11,cat:'Religioso',v:1700},
-          {m:0,cat:'Álbum',v:3200},{m:1,cat:'Álbum',v:2800},{m:2,cat:'Álbum',v:4500},
-          {m:3,cat:'Álbum',v:3900},{m:4,cat:'Álbum',v:5500},{m:5,cat:'Álbum',v:4800},
-          {m:6,cat:'Álbum',v:4100},{m:7,cat:'Álbum',v:5200},{m:8,cat:'Álbum',v:5900},
-          {m:9,cat:'Álbum',v:4400},{m:10,cat:'Álbum',v:3800},{m:11,cat:'Álbum',v:5000}
+          {m:0,cat:'Pré-wedding',v:2200},{m:1,cat:'Pré-wedding',v:1800},{m:2,cat:'Pré-wedding',v:3200},
+          {m:3,cat:'Pré-wedding',v:2800},{m:4,cat:'Pré-wedding',v:4100},{m:5,cat:'Pré-wedding',v:3500},
+          {m:6,cat:'Pré-wedding',v:2900},{m:7,cat:'Pré-wedding',v:3800},{m:8,cat:'Pré-wedding',v:4200},
+          {m:9,cat:'Pré-wedding',v:3100},{m:10,cat:'Pré-wedding',v:2600},{m:11,cat:'Pré-wedding',v:3900},
+          {m:0,cat:'Retratos',v:1200},{m:1,cat:'Retratos',v:900},{m:2,cat:'Retratos',v:1500},
+          {m:3,cat:'Retratos',v:1100},{m:4,cat:'Retratos',v:1800},{m:5,cat:'Retratos',v:1400},
+          {m:6,cat:'Retratos',v:1000},{m:7,cat:'Retratos',v:1600},{m:8,cat:'Retratos',v:1900},
+          {m:9,cat:'Retratos',v:1300},{m:10,cat:'Retratos',v:1100},{m:11,cat:'Retratos',v:1700},
+          {m:0,cat:'Saldo final',v:3200},{m:1,cat:'Saldo final',v:2800},{m:2,cat:'Saldo final',v:4500},
+          {m:3,cat:'Saldo final',v:3900},{m:4,cat:'Saldo final',v:5500},{m:5,cat:'Saldo final',v:4800},
+          {m:6,cat:'Saldo final',v:4100},{m:7,cat:'Saldo final',v:5200},{m:8,cat:'Saldo final',v:5900},
+          {m:9,cat:'Saldo final',v:4400},{m:10,cat:'Saldo final',v:3800},{m:11,cat:'Saldo final',v:5000}
         ];
         _bfFat.forEach(function(d){
           var pv=Math.round(d.v*(0.65+(d.m%5)*0.05));
@@ -5230,6 +5230,13 @@ async function initUserData(){
         s('fin',_finBF);
       }
     }
+    // Migração: atualiza categorias antigas dos lançamentos demo para categorias atuais
+    (function(){
+      var catMap={'Sessão':'Pré-wedding','Religioso':'Retratos','Welcome':'Freela','After':'Contrato','Álbum':'Saldo final','Welcome-party':'Freela','After-party':'Contrato'};
+      var _finM=g('fin');var changed=false;
+      _finM.forEach(function(e){if(catMap[e.cat]){e.cat=catMap[e.cat];e.desc=(e.desc||'').replace(e.cat,catMap[e.cat]);changed=true;}});
+      if(changed)s('fin',_finM);
+    })();
     // Migração: garante c18 em clientes e c11/c04/c18 em edicoes
     if(isAdmin()){
       var _n=new Date(),_yr2=_n.getFullYear(),_mo2=_n.getMonth();
