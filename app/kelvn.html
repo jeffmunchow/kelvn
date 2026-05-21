@@ -246,10 +246,10 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 /* BAR CHART */
 .bar-wrap{display:flex;flex-direction:column;gap:8px;margin-top:.5rem;}
 .bar-row{display:flex;align-items:center;gap:10px;font-size:.72rem;}
-.bar-label{width:80px;color:var(--text-muted);flex-shrink:0;text-align:right;}
+.bar-label{width:90px;color:var(--text-muted);flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bar-track{flex:1;background:var(--surface2);border-radius:4px;height:8px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:4px;background:var(--amber);transition:width .4s;}
-.bar-val{width:70px;color:var(--text-hint);flex-shrink:0;}
+.bar-val{width:100px;color:var(--text-hint);flex-shrink:0;white-space:nowrap;text-align:right;}
 /* EQUIPE CARD */
 .eqcard{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;display:flex;align-items:center;gap:1rem;cursor:pointer;}
 .eqcard:hover{border-color:var(--border-strong);}
@@ -3439,7 +3439,7 @@ function rDRE(){
   document.getElementById('dre-content').innerHTML=html;
   // Chart
   var maxV=Math.max.apply(null,Object.values(rCats).concat([1]));
-  var ch=Object.keys(rCats).map(function(k){var pct=Math.round(rCats[k]/maxV*100);return '<div class="bar-row"><div class="bar-label">'+k.slice(0,10)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(rCats[k])+'</div></div>';}).join('');
+  var ch=Object.keys(rCats).map(function(k){var pct=Math.round(rCats[k]/maxV*100);return '<div class="bar-row"><div class="bar-label" title="'+k+'">'+k+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(rCats[k])+'</div></div>';}).join('');
   document.getElementById('dre-chart').innerHTML='<div class="bar-wrap">'+ch+'</div>';
 }
 
