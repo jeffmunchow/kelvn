@@ -715,7 +715,7 @@ select.aj-input{cursor:pointer;}
   <!-- FLUXO DE CAIXA -->
   <div id="fp-panel-fluxo" style="display:none;">
     <div class="sh">
-      <div class="st">Fluxo de caixa projetado</div>
+      <div class="st"></div>
       <div class="sa">
         <select class="fi" id="fluxo-horizonte" onchange="rFluxo()">
           <option value="30">Próximos 30 dias</option>
@@ -726,18 +726,19 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div class="fk" id="fluxo-kpis"></div>
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:1rem;">
-        <div style="font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;">Saldo acumulado projetado</div>
-        <div style="display:flex;gap:1rem;font-size:.65rem;color:var(--text-hint);">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <!-- Esquerda: lista -->
+      <div id="fluxo-lista" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
+      <!-- Direita: gráfico -->
+      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
+        <div style="display:flex;justify-content:flex-end;gap:1rem;font-size:.65rem;color:var(--text-hint);margin-bottom:1rem;flex-wrap:wrap;">
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-right:5px;vertical-align:middle;"></span>Entrada</span>
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);margin-right:5px;vertical-align:middle;"></span>Saída</span>
           <span><span style="display:inline-block;width:18px;height:2px;background:var(--amber);margin-right:5px;vertical-align:middle;"></span>Saldo</span>
         </div>
+        <svg id="fluxo-chart" width="100%" height="300" style="display:block;overflow:visible;"></svg>
       </div>
-      <svg id="fluxo-chart" width="100%" height="300" style="display:block;overflow:visible;"></svg>
     </div>
-    <div id="fluxo-lista" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
   </div>
   <!-- PESSOAL -->
   <div id="fp-panel-pes" style="display:none;">
