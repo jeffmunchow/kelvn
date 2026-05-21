@@ -3285,7 +3285,7 @@ function rFluxo(){
     '<div class="fki"><div class="fkl">Saldo projetado</div><div class="fkv '+(saldoProjetado>=0?'ct':'cc')+'">'+$m(saldoProjetado)+'</div></div>'+
     '<div class="fki"><div class="fkl">Eventos no período</div><div class="fkv ca">'+todos.length+'</div></div>';
 
-  renderFluxoChart(todos,hoje,limite,horizonte);
+  requestAnimationFrame(function(){ renderFluxoChart(todos,hoje,limite,horizonte); });
 
   var listaEl=document.getElementById('fluxo-lista');
   if(!todos.length){
@@ -3316,7 +3316,7 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
   var rect=svg.getBoundingClientRect();
   var W=rect.width||800;
   var H=Math.max(200,rect.height||300);
-  var PAD={top:20,right:20,bottom:30,left:55};
+  var PAD={top:8,right:12,bottom:24,left:50};
   var cW=W-PAD.left-PAD.right;
   var cH=H-PAD.top-PAD.bottom;
 
