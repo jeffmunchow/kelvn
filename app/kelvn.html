@@ -784,26 +784,38 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- PRECIFICAÇÃO -->
   <div id="fp-panel-prec" style="display:none;">
-    <div class="st" style="margin-bottom:1.5rem;">Calculadora de precificação</div>
-    <div class="two" style="align-items:start;">
-      <div>
-        <div style="margin-bottom:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
-          <button class="btn" onclick="puxarCustosReais()">Puxar custos reais do Financeiro</button>
-          <span style="font-size:.7rem;color:var(--text-hint);">Usa a média dos últimos 6 meses</span>
-        </div>
-        <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Seus custos mensais fixos</div>
-        <div class="field"><label>Aluguel / coworking (R$)</label><input type="number" id="prec-aluguel" placeholder="0" oninput="calcPrec()"></div>
-        <div class="field"><label>Softwares e assinaturas (R$)</label><input type="number" id="prec-soft" placeholder="0" oninput="calcPrec()"></div>
-        <div class="field"><label>Equipamentos (amort. mensal) (R$)</label><input type="number" id="prec-equip" placeholder="0" oninput="calcPrec()"></div>
-        <div class="field"><label>Marketing e divulgação (R$)</label><input type="number" id="prec-mkt" placeholder="0" oninput="calcPrec()"></div>
-        <div class="field"><label>Outros custos fixos (R$)</label><input type="number" id="prec-outros" placeholder="0" oninput="calcPrec()"></div>
-        <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin:.75rem 0 1rem;">Parâmetros do negócio</div>
-        <div class="field"><label>Casamentos por mês (média)</label><input type="number" id="prec-wed-mes" placeholder="ex: 4" min="1" oninput="calcPrec()"></div>
-        <div class="field"><label>Horas trabalhadas por casamento</label><input type="number" id="prec-horas" placeholder="ex: 20" oninput="calcPrec()"></div>
-        <div class="field"><label>Margem de lucro desejada (%)</label><input type="number" id="prec-margem" placeholder="ex: 40" oninput="calcPrec()"></div>
-        <div class="field"><label>Taxa média de impostos (%)</label><input type="number" id="prec-imposto" placeholder="ex: 6" oninput="calcPrec()"></div>
-        <div class="field"><label>Custo variável por casamento (R$)</label><input type="number" id="prec-custo-var" placeholder="ex: gasolina, alimentação..." oninput="calcPrec()"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+      <div class="st">Calculadora de precificação</div>
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <button class="btn" onclick="puxarCustosReais()">Puxar custos reais do Financeiro</button>
+        <span style="font-size:.68rem;color:var(--text-hint);">Média dos últimos 6 meses</span>
       </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+      <!-- Coluna esquerda: dois blocos de input -->
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <!-- Bloco 1: O que você gasta -->
+        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+          <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;">① O que você gasta por mês</div>
+          <div class="field"><label>Aluguel / coworking (R$)</label><input type="number" id="prec-aluguel" placeholder="0" oninput="calcPrec()"></div>
+          <div class="field"><label>Softwares e assinaturas (R$)</label><input type="number" id="prec-soft" placeholder="0" oninput="calcPrec()"></div>
+          <div class="field"><label>Equipamentos — amortização mensal (R$)</label><input type="number" id="prec-equip" placeholder="0" oninput="calcPrec()"></div>
+          <div class="field"><label>Marketing e divulgação (R$)</label><input type="number" id="prec-mkt" placeholder="0" oninput="calcPrec()"></div>
+          <div class="field"><label>Outros custos fixos (R$)</label><input type="number" id="prec-outros" placeholder="0" oninput="calcPrec()"></div>
+          <div class="field"><label>Pró-labore desejado (R$)</label><input type="number" id="prec-prolabore" placeholder="quanto você quer se pagar" oninput="calcPrec()"></div>
+        </div>
+        <!-- Bloco 2: Como você trabalha -->
+        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+          <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;">② Como você trabalha</div>
+          <div class="field"><label>Casamentos por mês (média)</label><input type="number" id="prec-wed-mes" placeholder="ex: 4" min="1" oninput="calcPrec()"></div>
+          <div class="field"><label>Horas trabalhadas por casamento</label><input type="number" id="prec-horas" placeholder="ex: 15" oninput="calcPrec()"></div>
+          <div class="field"><label>Custo variável por casamento (R$)</label><input type="number" id="prec-custo-var" placeholder="deslocamento, alimentação..." oninput="calcPrec()"></div>
+          <div class="field"><label>Margem de lucro desejada (%)</label><input type="number" id="prec-margem" placeholder="ex: 40" oninput="calcPrec()"></div>
+          <div class="field"><label>Taxa de impostos (%) <span style="font-size:.65rem;color:var(--text-hint);font-weight:400;">MEI: 6% · Simples: 15% · L. Presumido: 32%</span></label><input type="number" id="prec-imposto" placeholder="ex: 6" min="0" max="40" oninput="calcPrec()"></div>
+          <div class="field" style="margin-top:.5rem;padding-top:.75rem;border-top:.5px solid var(--border);"><label>Meu preço atual (R$) <span style="font-size:.65rem;color:var(--text-hint);font-weight:400;">opcional — para comparar</span></label><input type="number" id="prec-preco-atual" placeholder="quanto você cobra hoje" oninput="calcPrec()"></div>
+        </div>
+      </div>
+      <!-- Coluna direita: resultado -->
       <div id="prec-result" style="position:sticky;top:130px;"></div>
     </div>
   </div>
@@ -3905,42 +3917,72 @@ function calcPrec(){
   var equip=parseFloat(document.getElementById('prec-equip').value)||0;
   var mkt=parseFloat(document.getElementById('prec-mkt').value)||0;
   var outros=parseFloat(document.getElementById('prec-outros').value)||0;
-  var wedMes=parseFloat(document.getElementById('prec-wed-mes').value)||1;
+  var prolabore=parseFloat(document.getElementById('prec-prolabore').value)||0;
+  var wedMes=Math.max(1,parseFloat(document.getElementById('prec-wed-mes').value)||1);
   var horas=parseFloat(document.getElementById('prec-horas').value)||0;
   var margem=parseFloat(document.getElementById('prec-margem').value)||0;
-  var imposto=parseFloat(document.getElementById('prec-imposto').value)||0;
+  var imposto=Math.min(40,Math.max(0,parseFloat(document.getElementById('prec-imposto').value)||0));
   var custoVar=parseFloat(document.getElementById('prec-custo-var').value)||0;
+  var precoAtual=parseFloat(document.getElementById('prec-preco-atual').value)||0;
   var el=document.getElementById('prec-result');
-  var totalFixo=aluguel+soft+equip+mkt+outros;
+  var totalFixo=aluguel+soft+equip+mkt+outros+prolabore;
   var custoFixoPorWed=totalFixo/wedMes;
   var custoTotalPorWed=custoFixoPorWed+custoVar;
-  if(!totalFixo&&!custoVar){el.innerHTML='<div style="padding:1.5rem;font-size:.78rem;color:var(--text-hint);font-style:italic;">Preencha seus custos para calcular o preço mínimo.</div>';return;}
-  var precoMinimo=custoTotalPorWed/(1-(imposto/100));
-  var precoSugerido=precoMinimo/(1-(margem/100));
+  if(!totalFixo&&!custoVar){
+    el.innerHTML='<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:2rem 1.5rem;text-align:center;"><div style="font-size:.78rem;color:var(--text-hint);">Preencha seus custos para ver o cálculo.</div></div>';
+    return;
+  }
+  var divisorImp=1-(imposto/100);
+  if(divisorImp<=0) divisorImp=0.01;
+  var precoMinimo=custoTotalPorWed/divisorImp;
+  var divisorMarg=1-(margem/100);
+  if(divisorMarg<=0) divisorMarg=0.01;
+  var precoSugerido=precoMinimo/divisorMarg;
   var precoIdeal=precoSugerido*1.15;
+  // Semáforo — só aparece se o fotógrafo preencheu o preço atual
+  var semaforo='';
+  if(precoAtual>0){
+    var cor,txt,bg,bord;
+    if(precoAtual<precoMinimo){
+      cor='var(--coral)';bg='var(--coral-light)';bord='var(--coral)';
+      txt='Abaixo do mínimo. Você está pagando para trabalhar.';
+    } else if(precoAtual<precoSugerido){
+      cor='var(--amber)';bg='var(--amber-light)';bord='var(--amber)';
+      txt='Cobre os custos, mas a margem está curta.';
+    } else {
+      cor='var(--teal)';bg='var(--teal-light)';bord='var(--teal)';
+      txt='Preço saudável. Você está no caminho certo.';
+    }
+    semaforo='<div style="background:'+bg+';border:.5px solid '+bord+';border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">'+
+      '<div style="font-size:.68rem;color:'+cor+';text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Meu preço atual — '+$m(precoAtual)+'</div>'+
+      '<div style="font-size:.78rem;color:'+cor+';">'+txt+'</div>'+
+      '</div>';
+  }
   el.innerHTML=
-    '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;">'+
-    '<div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1.25rem;">Breakdown de custos</div>'+
+    semaforo+
+    '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem;">'+
+    '<div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">③ Resultado</div>'+
     '<div class="dre-row"><span style="color:var(--text-muted)">Custos fixos mensais</span><span>'+$m(totalFixo)+'</span></div>'+
+    (prolabore?'<div class="dre-row"><span style="color:var(--text-muted);padding-left:.75rem;font-size:.7rem;">↳ inclui pró-labore</span><span style="font-size:.7rem;">'+$m(prolabore)+'</span></div>':'')+
     '<div class="dre-row"><span style="color:var(--text-muted)">Custo fixo por casamento (÷'+wedMes+')</span><span>'+$m(custoFixoPorWed)+'</span></div>'+
-    '<div class="dre-row"><span style="color:var(--text-muted)">Custo variável por casamento</span><span>'+$m(custoVar)+'</span></div>'+
-    '<div class="dre-row" style="font-weight:500;"><span>Custo total por casamento</span><span>'+$m(custoTotalPorWed)+'</span></div>'+
+    (custoVar?'<div class="dre-row"><span style="color:var(--text-muted)">Custo variável por casamento</span><span>'+$m(custoVar)+'</span></div>':'')+
+    '<div class="dre-row" style="font-weight:500;border-top:.5px solid var(--border);margin-top:.5rem;padding-top:.5rem;"><span>Custo total por casamento</span><span>'+$m(custoTotalPorWed)+'</span></div>'+
     '</div>'+
-    '<div style="background:var(--coral-light);border:.5px solid var(--coral);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
-    '<div style="font-size:.68rem;color:var(--coral);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço mínimo (sem lucro)</div>'+
+    '<div style="background:var(--coral-light);border:.5px solid var(--coral);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
+    '<div style="font-size:.68rem;color:var(--coral);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço mínimo — só cobre o custo</div>'+
     '<div style="font-size:1.6rem;font-weight:500;color:var(--coral);letter-spacing:-.03em;">'+$m(precoMinimo)+'</div>'+
-    '<div style="font-size:.68rem;color:var(--coral);margin-top:2px;">Cobrir custos + impostos ('+imposto+'%)</div>'+
+    (imposto?'<div style="font-size:.68rem;color:var(--coral);margin-top:2px;">Com '+imposto+'% de imposto incluído</div>':'')+
     '</div>'+
-    '<div style="background:var(--amber-light);border:.5px solid var(--amber);border-radius:var(--radius-sm);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
-    '<div style="font-size:.68rem;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço sugerido ('+margem+'% de margem)</div>'+
-    '<div style="font-size:1.6rem;font-weight:500;color:var(--amber);letter-spacing:-.03em;">'+$m(precoSugerido)+'</div>'+
+    '<div style="background:var(--amber-light);border:.5px solid var(--amber);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
+    '<div style="font-size:.68rem;color:var(--amber-deep);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço sugerido — '+margem+'% de margem</div>'+
+    '<div style="font-size:1.6rem;font-weight:500;color:var(--amber-deep);letter-spacing:-.03em;">'+$m(precoSugerido)+'</div>'+
+    (horas?'<div style="font-size:.68rem;color:var(--amber-deep);margin-top:2px;">'+$m(precoSugerido/horas)+'/h trabalhada</div>':'')+
     '</div>'+
-    '<div style="background:var(--teal-light);border:.5px solid var(--teal);border-radius:var(--radius-sm);padding:1rem 1.25rem;">'+
-    '<div style="font-size:.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço ideal (+15% para crescimento)</div>'+
+    '<div style="background:var(--teal-light);border:.5px solid var(--teal);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">'+
+    '<div style="font-size:.68rem;color:var(--teal);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço ideal — +15% para crescimento</div>'+
     '<div style="font-size:1.6rem;font-weight:500;color:var(--teal);letter-spacing:-.03em;">'+$m(precoIdeal)+'</div>'+
     '</div>'+
-    (horas?'<div style="margin-top:.75rem;font-size:.72rem;color:var(--text-hint);">Valor por hora de trabalho: '+$m(precoSugerido/horas)+'/h</div>':'')+
-    '<button class="btn primary" style="width:100%;margin-top:1rem;" onclick="criarPacoteComPreco('+precoSugerido.toFixed(2)+')">Criar pacote com esse preço</button>';
+    '<button class="btn primary" style="width:100%;" onclick="criarPacoteComPreco('+precoSugerido.toFixed(2)+')">Criar pacote com esse preço</button>';
 }
 
 function puxarCustosReais(){
