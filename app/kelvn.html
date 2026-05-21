@@ -3360,10 +3360,10 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
   eventos.forEach(function(e){
     var x=xPos(e.dataObj);
     var col=e.tipo==='entrada'?'var(--teal)':'var(--coral)';
-    var alturaBar=Math.min(50,(e.valor/Math.max(1,Math.max(Math.abs(maxS),Math.abs(minS))))*cH*0.4);
+    var alturaBar=Math.max(10,Math.min(60,(e.valor/Math.max(1,Math.max(Math.abs(maxS),Math.abs(minS))))*cH*0.5));
     var sinal=e.tipo==='entrada'?-1:1;
     var yBar=yZero+(sinal>0?0:-alturaBar);
-    html+='<rect x="'+(x-2)+'" y="'+yBar+'" width="4" height="'+alturaBar+'" fill="'+col+'" opacity="0.55" rx="1"/>';
+    html+='<rect x="'+(x-3)+'" y="'+yBar+'" width="6" height="'+alturaBar+'" fill="'+col+'" opacity="0.75" rx="1"/>';
   });
 
   // Linha do saldo
