@@ -687,6 +687,7 @@ select.aj-input{cursor:pointer;}
         <div id="saude-msg-wrap" style="margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border);min-height:48px;display:flex;align-items:flex-start;gap:.65rem;">
           <div id="saude-msg-loading" style="display:none;flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--text-hint);margin-top:6px;animation:saudePulse 1.2s ease-in-out infinite;"></div>
           <div id="saude-msg-txt" style="font-size:.78rem;line-height:1.65;color:var(--text-muted);flex:1;"></div>
+          <button onclick="resetMensagemCache()" title="Gerar nova mensagem" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:.75rem;padding:2px 4px;margin-top:2px;opacity:.5;transition:opacity .15s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">↺</button>
         </div>
       </div>
 
@@ -2986,6 +2987,11 @@ function rSaude(){
     saldoMes:fatMes-saidasMesVal,
     contratosFuturos:contratosFuturos
   });
+}
+function resetMensagemCache(){
+  _saudeCache=null;
+  s('saude_palavra_cache',{});
+  rSaude();
 }
 async function gerarMensagem(dadosSaude){
   var wrapEl=document.getElementById('saude-msg-wrap');
