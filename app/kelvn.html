@@ -744,15 +744,15 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- PESSOAL -->
   <div id="fp-panel-pes" style="display:none;">
-    <div class="sh">
-      <div class="st">Financeiro — Pessoal</div>
+    <div class="fk" id="fp-kpis"></div>
+    <div class="sh" style="margin-bottom:1.25rem;">
+      <div class="st"></div>
       <div class="sa">
         <select class="fi" id="fp-period" onchange="rFP()"><option value="all">Todo período</option><option value="month">Este mês</option><option value="year">Este ano</option></select>
         <button class="btn" onclick="openFP('saida')">+ Saída</button>
         <button class="btn primary" onclick="openFP('entrada')">+ Entrada</button>
       </div>
     </div>
-    <div class="fk" id="fp-kpis"></div>
     <div class="tw"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fp-tbody"></tbody></table></div></div>
   </div>
   <!-- DRE -->
