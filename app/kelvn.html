@@ -1545,9 +1545,23 @@ function togglePrivacidade(){
   document.getElementById('priv-icon-eye-off').style.display=_privacidade?'':'none';
   document.getElementById('sn-privacidade').style.opacity=_privacidade?'1':'';
   document.body.classList.toggle('kv-hide',_privacidade);
-  // Re-renderiza seção ativa para aplicar máscara nas funções $m e _fmtValor
+  // Re-renderiza seção/sub-aba ativa para aplicar máscara nas funções $m e _fmtValor
+  var _fpRender={emp:rF,fluxo:rFluxo,pes:rFP,dre:rDRE,prec:calcPrec,imp:calcImp,inad:rInad};
   var sec=_curSection;
-  if(sec)({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},pacotes:rPK,analises:function(){rAN();setTimeout(renderFatChart,50);},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu,ajustes:rSD})[sec]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},pacotes:rPK,analises:function(){rAN();setTimeout(renderFatChart,50);},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu,ajustes:rSD})[sec]();
+  var renderMap={
+    resumo:rR,
+    clientes:rC,
+    agenda:function(){rA();rCalAno();},
+    posproducao:function(){rPe();rEdicoes();},
+    financeiro:function(){var fn=_fpRender[_curFP];if(fn)fn();},
+    pacotes:rPK,
+    analises:function(){rAN();setTimeout(renderFatChart,50);},
+    questionarios:function(){rQT();},
+    agendamento:function(){rTR();rSlots();},
+    educacao:rEdu,
+    ajustes:rSD
+  };
+  if(sec&&renderMap[sec])renderMap[sec]();
 }
 function $m(v){if(_privacidade)return '••••';return 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function d2i(s){if(!s)return '';var p=s.split('/');if(p.length!==3)return s;return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
@@ -1607,6 +1621,7 @@ function switchPP(name){
   var ap=document.getElementById('pp-pill-'+name);if(ap)ap.classList.add('active');
   if(name==='pend')rPe();if(name==='edicoes')rED();if(name==='entregas')rENT();
 }
+var _curFP='emp';
 function switchFP(name){
   ['emp','fluxo','pes','dre','prec','imp','inad'].forEach(function(n){
     var pan=document.getElementById('fp-panel-'+n);if(pan)pan.style.display='none';
@@ -1614,6 +1629,7 @@ function switchFP(name){
   });
   var ePan=document.getElementById('fp-panel-'+name);if(ePan)ePan.style.display='';
   var ap=document.getElementById('fp-pill-'+name);if(ap)ap.classList.add('active');
+  _curFP=name;
   if(name==='emp')rF();if(name==='fluxo')rFluxo();if(name==='pes')rFP();if(name==='dre')rDRE();if(name==='prec'){loadPrec();calcPrec();}if(name==='imp')calcImp();if(name==='inad')rInad();
 }
 function switchQP(){}
