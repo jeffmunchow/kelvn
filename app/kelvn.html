@@ -3382,7 +3382,13 @@ function renderFluxoChart(eventos,hoje,limite,horizonte){
 
   // Linha do saldo
   if(pontos.length>1){
-    var path='M'+pontos.map(function(p){return xPos(p.d)+','+yPos(p.saldo);}).join(' L');
+    var pts=pontos.map(function(p){return {x:xPos(p.d),y:yPos(p.saldo)};});
+    var path='M'+pts[0].x+','+pts[0].y;
+    for(var pi=1;pi<pts.length;pi++){
+      var prev=pts[pi-1],cur=pts[pi];
+      var cpx=(prev.x+cur.x)/2;
+      path+=' C'+cpx+','+prev.y+' '+cpx+','+cur.y+' '+cur.x+','+cur.y;
+    }
     html+='<path d="'+path+'" stroke="var(--amber)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
   }
 
