@@ -645,6 +645,17 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- EMPRESA -->
   <div id="fp-panel-emp">
+    <!-- SCORE DE SAÚDE FINANCEIRA -->
+    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 1.75rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:1.25rem;flex-shrink:0;">
+        <div id="saude-score" style="font-family:'Cherry Bomb One',cursive;font-size:2.8rem;line-height:1;letter-spacing:-.04em;">—</div>
+        <div>
+          <div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;">Saúde do negócio</div>
+          <div id="saude-label" style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;">Calculando…</div>
+        </div>
+      </div>
+      <div id="saude-pilares" style="display:flex;gap:1.5rem;flex-wrap:wrap;flex:1;justify-content:flex-end;"></div>
+    </div>
     <div class="sh">
       <div class="st">Financeiro — Empresa</div>
       <div class="sa">
@@ -2786,6 +2797,78 @@ function saveEnt(){
 }
 function delEnt(){if(!confirm('Excluir?'))return;undoBegin();s('entregas',g('entregas').filter(function(e){return e.id!==_entId;}));undoCommit();cov('ov-ent');rENT();notify('Excluído');}
 var _fId=null;
+function rSaude(){
+  var fin=g('fin');
+  var clientes=g('clientes');
+  var now=new Date();
+  var yr=now.getFullYear();
+  var mo=now.getMonth();
+
+  // Pilar 1: Pró-labore do mês
+  var finPes=g('fin_pessoal')||[];
+  var teveProLabore=finPes.some(function(e){
+    if(e.tipo!=='entrada'||e.cat!=='Pró-labore'||!e.data)return false;
+    var d=new Date(e.data);
+    return d.getMonth()===mo&&d.getFullYear()===yr;
+  });
+  var p1=teveProLabore?25:0;
+
+  // Pilar 2: Inadimplência sob controle
+  var inad=calcInadTotal();
+  var fatAno=fin.filter(function(e){return e.tipo==='entrada'&&e.data&&new Date(e.data).getFullYear()===yr;})
+                .reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var inadPct=fatAno>0?(inad/fatAno):0;
+  var p2=inadPct===0?25:inadPct<0.05?22:inadPct<0.10?15:inadPct<0.20?8:0;
+
+  // Pilar 3: Caixa positivo no mês
+  var entradasMes=fin.filter(function(e){
+    if(e.tipo!=='entrada'||!e.data)return false;
+    var d=new Date(e.data);
+    return d.getMonth()===mo&&d.getFullYear()===yr;
+  }).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var saidasMes=fin.filter(function(e){
+    if(e.tipo!=='saida'||!e.data)return false;
+    var d=new Date(e.data);
+    return d.getMonth()===mo&&d.getFullYear()===yr;
+  }).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var saldoMes=entradasMes-saidasMes;
+  var p3=saldoMes>0?25:saldoMes===0?12:0;
+
+  // Pilar 4: Pipeline (contratos futuros com status primário)
+  var hoje=today();
+  var contratosFuturos=clientes.filter(function(c){
+    var d=pd(c.data);
+    return d&&d>=hoje&&_PRIMARY_STATUS.indexOf(c.status)>-1;
+  }).length;
+  var p4=contratosFuturos>=5?25:contratosFuturos>=3?18:contratosFuturos>=1?10:0;
+
+  var total=p1+p2+p3+p4;
+  var cor,label;
+  if(total>=80){cor='var(--teal)';label='Excelente';}
+  else if(total>=60){cor='var(--amber)';label='Bom';}
+  else if(total>=40){cor='var(--amber)';label='Atenção';}
+  else{cor='var(--coral)';label='Crítico';}
+
+  var scoreEl=document.getElementById('saude-score');
+  var labelEl=document.getElementById('saude-label');
+  if(scoreEl){scoreEl.textContent=total;scoreEl.style.color=cor;}
+  if(labelEl){labelEl.textContent=label;labelEl.style.color=cor;}
+
+  var pilaresHTML=[
+    {label:'Pró-labore',val:p1,ok:p1>=25},
+    {label:'Inadimplência',val:p2,ok:p2>=22},
+    {label:'Caixa do mês',val:p3,ok:p3>=25},
+    {label:'Pipeline',val:p4,ok:p4>=18}
+  ].map(function(p){
+    var corP=p.ok?'var(--teal)':p.val===0?'var(--coral)':'var(--amber)';
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;min-width:75px;">'+
+      '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;">'+p.label+'</div>'+
+      '<div style="width:34px;height:34px;border-radius:50%;border:1.5px solid '+corP+';display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:500;color:'+corP+';">'+p.val+'</div>'+
+    '</div>';
+  }).join('');
+  var pilaresEl=document.getElementById('saude-pilares');
+  if(pilaresEl) pilaresEl.innerHTML=pilaresHTML;
+}
 function calcVariacao(tipoFiltro,periodoFiltro){
   var fin=g('fin');
   var now=new Date();
@@ -2813,6 +2896,7 @@ function badgeVariacao(diff){
   return '<span style="font-size:.62rem;color:'+cor+';margin-left:6px;font-weight:500;">'+sinal+' '+Math.abs(diff).toFixed(0)+'%</span>';
 }
 function rF(){
+  rSaude();
   var q=(document.getElementById('fin-search').value||'').toLowerCase(),per=document.getElementById('fin-period').value,tip=document.getElementById('fin-tipo').value,now=new Date();
   var fs=g('fin').filter(function(e){
     var d=e.data?new Date(e.data):null;
@@ -2839,10 +2923,26 @@ function rF(){
     if(!v)return '';
     return '<div style="font-size:.58rem;color:var(--text-hint);margin-top:2px;">'+subPeriodo+': '+$m(v.anterior)+'</div>';
   }
+  // Projeção do ano: faturado + a receber até 31/dez
+  var yrP=now.getFullYear();
+  var fimAno=new Date(yrP,11,31,23,59,59);
+  var hojeP=today();
+  var faturadoAno=g('fin').filter(function(e){return e.tipo==='entrada'&&e.data&&new Date(e.data).getFullYear()===yrP;})
+                          .reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var aReceberAno=0;
+  g('clientes').forEach(function(c){
+    (c.parcelas||[]).forEach(function(p){
+      if(p.pago||!p.data)return;
+      var d=pd(p.data);
+      if(d&&d<=fimAno&&d>=hojeP) aReceberAno+=parseFloat(p.valor||0);
+    });
+  });
+  var projecaoAno=faturadoAno+aReceberAno;
   document.getElementById('fin-kpis').innerHTML=
     '<div class="fki"><div class="fkl">Entradas'+labelSuf+(varEnt?badgeVariacao(varEnt.diff):'')+'</div><div class="fkv ct">'+$m(tin)+'</div>'+subTxt(varEnt)+'</div>'+
     '<div class="fki"><div class="fkl">Saídas'+labelSuf+(varSai?badgeVariacao(varSai.diff):'')+'</div><div class="fkv cc">'+$m(tout)+'</div>'+subTxt(varSai)+'</div>'+
-    '<div class="fki"><div class="fkl">Saldo'+labelSuf+'</div><div class="fkv ca">'+$m(tin-tout)+'</div></div>';
+    '<div class="fki"><div class="fkl">Saldo'+labelSuf+'</div><div class="fkv ca">'+$m(tin-tout)+'</div></div>'+
+    '<div class="fki"><div class="fkl">Projeção '+yrP+'</div><div class="fkv ca">'+$m(projecaoAno)+'</div><div style="font-size:.6rem;color:var(--text-hint);margin-top:2px;">faturado + a receber</div></div>';
   var tb=document.getElementById('fin-tbody');
   if(!fs.length){tb.innerHTML='<tr><td colspan="7" class="empty">Nenhum lançamento</td></tr>';return;}
   tb.innerHTML=fs.map(function(e){
