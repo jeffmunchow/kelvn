@@ -2081,7 +2081,7 @@ function saveC(){
     horario_inicio:document.getElementById('mc-horario-inicio').value.trim(),
     horario_termino:document.getElementById('mc-horario-termino').value.trim(),
     pacote_id:document.getElementById('mc-pacote-id').value,
-    servicos:Array.from(document.querySelectorAll('#mc-servicos-wrap .serv-chip')).filter(function(el){return parseInt(el.dataset.qtd||0)>0;}).map(function(el){return {tipo:el.dataset.tipo,qtd:parseInt(el.dataset.qtd);};})
+    servicos:Array.from(document.querySelectorAll('#mc-servicos-wrap .serv-chip')).filter(function(el){return parseInt(el.dataset.qtd||0)>0;}).map(function(el){return {tipo:el.dataset.tipo,qtd:parseInt(el.dataset.qtd||1)};})
   };
   if(!o.nome){alert('Informe o nome.');return;}
   if(_cId){var i=cs.findIndex(function(c){return c.id===_cId;});if(i>-1)cs[i]=o;}else cs.push(o);
