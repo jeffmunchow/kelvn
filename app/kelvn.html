@@ -1643,7 +1643,7 @@ function fillSel(extras){
   if(mcpsel)mcpsel.innerHTML='<option value="">— nenhum —</option>'+ps.map(function(p){return '<option value="'+p.id+'">'+p.nome+' — '+$m(p.valor)+'</option>';}).join('');
 }
 function _servChipLabel(el){var q=parseInt(el.dataset.qtd||0);el.textContent=el.dataset.tipo+(q>1?' ×'+q:'');el.classList.toggle('ativo',q>0);}
-function incServ(el){var q=parseInt(el.dataset.qtd||0);el.dataset.qtd=q>=3?0:q+1;_servChipLabel(el);}
+function incServ(el){var q=parseInt(el.dataset.qtd||0);var max=el.dataset.tipo==='Álbum'?3:1;el.dataset.qtd=q>=max?0:q+1;_servChipLabel(el);}
 function resetServ(el){el.dataset.qtd=0;_servChipLabel(el);}
 function resetServicos(){document.querySelectorAll('#mc-servicos-wrap .serv-chip').forEach(function(el){el.dataset.qtd=0;_servChipLabel(el);});}
 function toggleContratoFields(){
