@@ -358,6 +358,7 @@ select.aj-input{cursor:pointer;}
 .meta-checkpoint{position:absolute;top:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:rgba(128,128,128,.18);border:1.5px solid var(--bg);transition:background .3s,transform .2s;cursor:pointer;z-index:2;}
 .meta-checkpoint:hover{transform:translate(-50%,-50%) scale(1.6);}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes saudePulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
 </style>
 </head>
 <body>
@@ -681,6 +682,11 @@ select.aj-input{cursor:pointer;}
               <div id="saude-p4" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--amber);">—</div>
             </div>
           </div>
+        </div>
+        <!-- PALAVRA AMIGA -->
+        <div id="saude-palavra-wrap" style="margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border);min-height:48px;display:flex;align-items:flex-start;gap:.65rem;">
+          <div id="saude-palavra-loading" style="display:none;flex-shrink:0;width:6px;height:6px;border-radius:50%;background:var(--text-hint);margin-top:6px;animation:saudePulse 1.2s ease-in-out infinite;"></div>
+          <div id="saude-palavra-txt" style="font-size:.78rem;line-height:1.65;color:var(--text-muted);flex:1;"></div>
         </div>
       </div>
 
@@ -2873,6 +2879,7 @@ function saveEnt(){
 }
 function delEnt(){if(!confirm('Excluir?'))return;undoBegin();s('entregas',g('entregas').filter(function(e){return e.id!==_entId;}));undoCommit();cov('ov-ent');rENT();notify('Excluído');}
 var _fId=null;
+var _saudeCache=null;
 function rSaude(){
   var fin=g('fin');
   var clientes=g('clientes');
@@ -2946,6 +2953,165 @@ function rSaude(){
   var el4=document.getElementById('saude-p4');
   var cor4=p4>=18?'var(--teal)':p4===0?'var(--coral)':'var(--amber)';
   if(el4){el4.textContent=p4;el4.style.color=cor4;}
+
+  // Identifica pilar crítico (menor pontuação)
+  var pilaresMap=[
+    {nome:'pró-labore',val:p1},
+    {nome:'inadimplência',val:p2},
+    {nome:'caixa do mês',val:p3},
+    {nome:'pipeline de casamentos futuros',val:p4}
+  ];
+  var pilarCritico=pilaresMap.reduce(function(min,p){return p.val<min.val?p:min;},pilaresMap[0]).nome;
+
+  // Coleta dados financeiros do mês atual
+  var now2=new Date();
+  var fatMes=g('fin').filter(function(e){
+    if(e.tipo!=='entrada'||!e.data)return false;
+    var d=new Date(e.data);
+    return d.getMonth()===now2.getMonth()&&d.getFullYear()===now2.getFullYear();
+  }).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var saidasMesVal=g('fin').filter(function(e){
+    if(e.tipo!=='saida'||!e.data)return false;
+    var d=new Date(e.data);
+    return d.getMonth()===now2.getMonth()&&d.getFullYear()===now2.getFullYear();
+  }).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+
+  // Chama geração da palavra amiga (async, não bloqueia render)
+  gerarPalavraAmiga({
+    score:total,label:label,
+    p1:p1,p2:p2,p3:p3,p4:p4,
+    pilarCritico:pilarCritico,
+    fatMes:fatMes,
+    inadTotal:inad,
+    saldoMes:fatMes-saidasMesVal,
+    contratosFuturos:contratosFuturos
+  });
+}
+async function gerarPalavraAmiga(dadosSaude){
+  var wrapEl=document.getElementById('saude-palavra-wrap');
+  var txtEl=document.getElementById('saude-palavra-txt');
+  var loadEl=document.getElementById('saude-palavra-loading');
+  if(!wrapEl||!txtEl)return;
+
+  // Carrega cache do Supabase na primeira chamada da sessão
+  if(!_saudeCache){
+    var cached=g('saude_palavra_cache');
+    _saudeCache=(cached&&cached.score!==undefined)?cached:{};
+  }
+
+  // Verifica validade: mesmo score E menos de 3 dias
+  var TRES_DIAS_MS=3*24*60*60*1000;
+  var agora=Date.now();
+  var cacheValido=_saudeCache
+    &&_saudeCache.score===dadosSaude.score
+    &&_saudeCache.msg
+    &&_saudeCache.ts
+    &&(agora-_saudeCache.ts)<TRES_DIAS_MS;
+
+  if(cacheValido){
+    loadEl.style.display='none';
+    txtEl.innerHTML=_saudeCache.msg;
+    return;
+  }
+
+  // Mostra loading
+  txtEl.textContent='';
+  loadEl.style.display='block';
+  wrapEl.style.display='flex';
+
+  var ctx={
+    score:dadosSaude.score,label:dadosSaude.label,
+    pilares:{proLabore:dadosSaude.p1,inadimplencia:dadosSaude.p2,caixaMes:dadosSaude.p3,pipeline:dadosSaude.p4},
+    pilarCritico:dadosSaude.pilarCritico,
+    fatMes:dadosSaude.fatMes,
+    inadTotal:dadosSaude.inadTotal,
+    saldoMes:dadosSaude.saldoMes,
+    contratosFuturos:dadosSaude.contratosFuturos
+  };
+
+  var systemPrompt=[
+    'Você é a voz da Kelvn — um sistema de gestão feito de fotógrafo para fotógrafo.',
+    '',
+    '--- VOZ E TOM ---',
+    '',
+    'A Kelvn tem uma voz específica. Não é um software falando. É aquele amigo que',
+    'entende o negócio e fala sem rodeios. Aqui estão exemplos reais do tom que você',
+    'deve imitar:',
+    '',
+    'Exemplo 1 (nomeando uma dor):',
+    '"O contrato está em algum lugar. Provavelmente."',
+    '',
+    'Exemplo 2 (ironia suave):',
+    '"Quanto você ganhou esse mês? Boa pergunta."',
+    '',
+    'Exemplo 3 (nomeando o sentimento):',
+    '"Aquela sensação no estômago, sabe?"',
+    '',
+    'Exemplo 4 (direto e simples):',
+    '"Entradas, saídas, parcelas, quem está em atraso. Nada de surpresa no extrato."',
+    '',
+    'Exemplo 5 (positivo sem ser animador de torcida):',
+    '"Você sabe exatamente onde está cada casal sem precisar lembrar."',
+    '',
+    'Exemplo 6 (CTA curto e humano):',
+    '"Menos caos, mais foto. Simples assim."',
+    '',
+    '--- PADRÕES OBRIGATÓRIOS ---',
+    '',
+    '- Frases curtas. Ponto. Próxima ideia.',
+    '- Use "você", "a gente", "casal". Nunca "usuário", "cliente", "fotógrafo" na terceira pessoa.',
+    '- Listas simples sem conjunção: "Caixa positivo, pró-labore em dia, agenda cheia."',
+    '- Frases incompletas são permitidas quando criam ritmo: "Tá na linha." "Simples assim."',
+    '- A última frase é sempre ação concreta e direta. Nunca genérica.',
+    '- Se há problema: nomeia sem drama, aponta o que fazer.',
+    '- Se está bem: reconhece sem exagero, sugere o próximo nível.',
+    '',
+    '--- PROIBIDO ---',
+    '',
+    '- Nunca use: solução, ecossistema, robusto, integrado, plataforma, potencializar,',
+    '  alavancar, jornada, onboarding, score, pontuação, pilar.',
+    '- Nunca comece com "Parabéns", "Ótimo", "Excelente trabalho" — soa como sistema.',
+    '- Nunca use exclamação. Nunca use emoji.',
+    '- Nunca repita números exatos dos dados fornecidos.',
+    '- Nunca explique o que é pró-labore ou inadimplência — o fotógrafo já sabe.',
+    '',
+    '--- TAREFA ---',
+    '',
+    'Escreva exatamente 2 a 3 frases sobre a saúde financeira do fotógrafo com base',
+    'nos dados fornecidos. Responda SOMENTE as frases. Sem introdução, sem aspas,',
+    'sem markdown, sem título.'
+  ].join('\n');
+
+  var userPrompt='Dados da saúde financeira deste mês:\n'+JSON.stringify(ctx,null,2);
+
+  try{
+    var response=await fetch('/api/ai-proxy',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:120,
+        system:systemPrompt,
+        messages:[{role:'user',content:userPrompt}]
+      })
+    });
+    var data=await response.json();
+    var msg=data.content&&data.content[0]?data.content[0].text.trim():'';
+    loadEl.style.display='none';
+    if(msg){
+      txtEl.innerHTML=msg;
+      var novoCache={score:dadosSaude.score,msg:msg,ts:Date.now()};
+      _saudeCache=novoCache;
+      s('saude_palavra_cache',novoCache);
+    }else{
+      wrapEl.style.display='none';
+    }
+  }catch(e){
+    loadEl.style.display='none';
+    if(_saudeCache&&_saudeCache.msg){txtEl.innerHTML=_saudeCache.msg;}
+    else{wrapEl.style.display='none';}
+    console.warn('Palavra amiga: erro na chamada IA',e);
+  }
 }
 function calcVariacao(tipoFiltro,periodoFiltro){
   var fin=g('fin');
