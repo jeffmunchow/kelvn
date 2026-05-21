@@ -768,8 +768,12 @@ select.aj-input{cursor:pointer;}
       <div class="tw" style="padding:1.25rem;" id="dre-content"></div>
       <div style="display:flex;flex-direction:column;gap:1rem;">
         <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
-          <div class="col-title" style="margin-bottom:.75rem;">Receita por categoria</div>
+          <div class="col-title" style="margin-bottom:.75rem;">Despesas por categoria</div>
           <div id="dre-chart"></div>
+        </div>
+        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
+          <div class="col-title" style="margin-bottom:.75rem;">Receita mês a mês</div>
+          <div id="dre-mensal"></div>
         </div>
         <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
           <div class="col-title" style="margin-bottom:.75rem;">Serviços contratados</div>
@@ -3470,19 +3474,43 @@ function rDRE(){
   var totRec=receitas.reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
   var totDesp=despesas.reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
   var lucro=totRec-totDesp;
+  // Receitas: contratos (auto) vs outros
+  var recContratos=receitas.filter(function(e){return e.auto;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  var recOutros=receitas.filter(function(e){return !e.auto;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
+  // Despesas por categoria
   function catSum(arr){var m={};arr.forEach(function(e){m[e.cat||'Outro']=(m[e.cat||'Outro']||0)+parseFloat(e.valor||0);});return m;}
-  var rCats=catSum(receitas),dCats=catSum(despesas);
+  var dCats=catSum(despesas);
   var html='';
   html+='<div class="dre-row header"><span>RECEITAS</span><span>'+$m(totRec)+'</span></div>';
-  Object.keys(rCats).forEach(function(k){html+='<div class="dre-row"><span style="padding-left:1rem;color:var(--text-muted)">'+k+'</span><span class="ct">'+$m(rCats[k])+'</span></div>';});
+  if(recContratos>0)html+='<div class="dre-row"><span style="padding-left:1rem;color:var(--text-muted)">Contratos</span><span class="ct">'+$m(recContratos)+'</span></div>';
+  if(recOutros>0)html+='<div class="dre-row"><span style="padding-left:1rem;color:var(--text-muted)">Outros</span><span class="ct">'+$m(recOutros)+'</span></div>';
   html+='<div class="dre-row header" style="margin-top:.75rem"><span>DESPESAS</span><span>'+$m(totDesp)+'</span></div>';
-  Object.keys(dCats).forEach(function(k){html+='<div class="dre-row"><span style="padding-left:1rem;color:var(--text-muted)">'+k+'</span><span class="cc">'+$m(dCats[k])+'</span></div>';});
+  Object.keys(dCats).sort().forEach(function(k){html+='<div class="dre-row"><span style="padding-left:1rem;color:var(--text-muted)">'+k+'</span><span class="cc">'+$m(dCats[k])+'</span></div>';});
   html+='<div class="dre-row total"><span>RESULTADO</span><span class="'+(lucro>=0?'ct':'cc')+'">'+$m(lucro)+'</span></div>';
   document.getElementById('dre-content').innerHTML=html;
-  // Chart
-  var maxV=Math.max.apply(null,Object.values(rCats).concat([1]));
-  var ch=Object.keys(rCats).map(function(k){var pct=Math.round(rCats[k]/maxV*100);return '<div class="bar-row"><div class="bar-label" title="'+k+'">'+k+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(rCats[k])+'</div></div>';}).join('');
-  document.getElementById('dre-chart').innerHTML='<div class="bar-wrap">'+ch+'</div>';
+  // Despesas por categoria — barras
+  var maxD=Math.max.apply(null,Object.values(dCats).concat([1]));
+  var chD=Object.keys(dCats).sort(function(a,b){return dCats[b]-dCats[a];}).map(function(k){var pct=Math.round(dCats[k]/maxD*100);return '<div class="bar-row"><div class="bar-label" title="'+k+'">'+k+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:var(--coral);"></div></div><div class="bar-val">'+$m(dCats[k])+'</div></div>';}).join('');
+  document.getElementById('dre-chart').innerHTML=chD?'<div class="bar-wrap">'+chD+'</div>':'<div style="font-size:.78rem;color:var(--text-hint);">Sem despesas no período.</div>';
+  // Receita mês a mês
+  var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var mensalMap={};
+  g('fin').filter(function(e){return e.tipo==='entrada';}).forEach(function(e){
+    var d=e.data?new Date(e.data):null;if(!d)return;
+    var inPer=false;
+    if(per==='all')inPer=true;
+    else if(per==='month')inPer=d.getMonth()===mo&&d.getFullYear()===yr;
+    else if(per==='quarter')inPer=d>=t3&&d<=now;
+    else if(per==='semester')inPer=d>=t6&&d<=now;
+    else if(per==='year')inPer=d>=t12&&d<=now;
+    if(!inPer)return;
+    var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    mensalMap[key]=(mensalMap[key]||0)+parseFloat(e.valor||0);
+  });
+  var mensalKeys=Object.keys(mensalMap).sort();
+  var maxM=Math.max.apply(null,Object.values(mensalMap).concat([1]));
+  var chM=mensalKeys.map(function(k){var pct=Math.round(mensalMap[k]/maxM*100);var parts=k.split('-');var lbl=meses[parseInt(parts[1])-1]+(per==='year'||per==='all'?' '+parts[0].slice(2):'');return '<div class="bar-row"><div class="bar-label" title="'+lbl+'">'+lbl+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+$m(mensalMap[k])+'</div></div>';}).join('');
+  document.getElementById('dre-mensal').innerHTML=chM?'<div class="bar-wrap">'+chM+'</div>':'<div style="font-size:.78rem;color:var(--text-hint);">Sem receitas no período.</div>';
 
   // Serviços contratados no período
   var _servOrder=['Casamento','Sessão','Religioso','Welcome','After','Álbum'];
