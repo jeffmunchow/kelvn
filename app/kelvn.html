@@ -2919,16 +2919,20 @@ function rSaude(){
 
   // Pró-labore
   var el1=document.getElementById('saude-p1');
-  if(el1){el1.textContent=teveProLabore?'✓ Sim':'✗ Não';el1.style.color=teveProLabore?'var(--teal)':'var(--coral)';}
+  var cor1=p1>=25?'var(--teal)':p1===0?'var(--coral)':'var(--amber)';
+  if(el1){el1.textContent=p1+'/25';el1.style.color=cor1;}
   // Inadimplência
   var el2=document.getElementById('saude-p2');
-  if(el2) el2.textContent=fatAno>0?(inadPct*100).toFixed(1)+'%':'—';
+  var cor2=p2>=22?'var(--teal)':p2===0?'var(--coral)':'var(--amber)';
+  if(el2){el2.textContent=p2+'/25';el2.style.color=cor2;}
   // Caixa do mês
   var el3=document.getElementById('saude-p3');
-  if(el3){el3.textContent=(saldoMes>=0?'+':'')+$m(saldoMes);el3.style.color=saldoMes>=0?'var(--teal)':'var(--coral)';}
+  var cor3=p3>=25?'var(--teal)':p3===0?'var(--coral)':'var(--amber)';
+  if(el3){el3.textContent=p3+'/25';el3.style.color=cor3;}
   // Pipeline
   var el4=document.getElementById('saude-p4');
-  if(el4) el4.textContent=contratosFuturos+' evento'+(contratosFuturos!==1?'s':'');
+  var cor4=p4>=18?'var(--teal)':p4===0?'var(--coral)':'var(--amber)';
+  if(el4){el4.textContent=p4+'/25';el4.style.color=cor4;}
 }
 function calcVariacao(tipoFiltro,periodoFiltro){
   var fin=g('fin');
