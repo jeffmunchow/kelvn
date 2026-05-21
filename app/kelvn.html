@@ -730,13 +730,13 @@ select.aj-input{cursor:pointer;}
       <!-- Esquerda: lista -->
       <div id="fluxo-lista" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
       <!-- Direita: gráfico -->
-      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
-        <div style="display:flex;justify-content:flex-end;gap:1rem;font-size:.65rem;color:var(--text-hint);margin-bottom:1rem;flex-wrap:wrap;">
+      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;">
+        <div style="display:flex;justify-content:flex-end;gap:1rem;font-size:.65rem;color:var(--text-hint);margin-bottom:1rem;flex-wrap:wrap;flex-shrink:0;">
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-right:5px;vertical-align:middle;"></span>Entrada</span>
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);margin-right:5px;vertical-align:middle;"></span>Saída</span>
           <span><span style="display:inline-block;width:18px;height:2px;background:var(--amber);margin-right:5px;vertical-align:middle;"></span>Saldo</span>
         </div>
-        <svg id="fluxo-chart" width="100%" height="300" style="display:block;overflow:visible;"></svg>
+        <svg id="fluxo-chart" width="100%" style="display:block;overflow:visible;flex:1;min-height:200px;"></svg>
       </div>
     </div>
   </div>
@@ -3313,8 +3313,9 @@ function rFluxo(){
 function renderFluxoChart(eventos,hoje,limite,horizonte){
   var svg=document.getElementById('fluxo-chart');
   if(!svg)return;
-  var W=svg.getBoundingClientRect().width||800;
-  var H=300;
+  var rect=svg.getBoundingClientRect();
+  var W=rect.width||800;
+  var H=Math.max(200,rect.height||300);
   var PAD={top:20,right:20,bottom:30,left:55};
   var cW=W-PAD.left-PAD.right;
   var cH=H-PAD.top-PAD.bottom;
