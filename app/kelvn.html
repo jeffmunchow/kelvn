@@ -3517,7 +3517,8 @@ function rDRE(){
   var _servCount={};_servOrder.forEach(function(s){_servCount[s]=0;});
   var _clientes=g('clientes');
   _clientes.forEach(function(c){
-    var d=c.data?new Date(c.data):null;
+    // Usa data do contrato se disponível, senão ignora filtro de período
+    var d=c.contrato?new Date(c.contrato):(c.data?new Date(c.data):null);
     var inPer=false;
     if(per==='all') inPer=true;
     else if(d){
@@ -3525,7 +3526,7 @@ function rDRE(){
       else if(per==='quarter') inPer=d>=t3&&d<=now;
       else if(per==='semester') inPer=d>=t6&&d<=now;
       else if(per==='year') inPer=d>=t12&&d<=now;
-    }
+    } else inPer=true; // sem data de contrato: inclui sempre
     if(inPer&&c.servicos&&c.servicos.length){
       c.servicos.forEach(function(s){var tipo=s.tipo||s;var qtd=s.qtd||1;if(_servCount[tipo]!==undefined)_servCount[tipo]+=qtd;});
     }
