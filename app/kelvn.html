@@ -365,6 +365,7 @@ select.aj-input{cursor:pointer;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes saudePulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
 </style>
+<script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
 </head>
 <body>
 
@@ -915,11 +916,40 @@ select.aj-input{cursor:pointer;}
 
 <!-- PACOTES -->
 <div class="panel" id="p-pacotes">
-  <div class="sh">
+  <div class="sh" style="margin-bottom:1.25rem;">
     <div class="st">Pacotes & Serviços</div>
-    <div class="sa"><button class="btn primary" onclick="openPK()">+ Pacote</button></div>
+    <div class="sa">
+      <button class="btn primary" onclick="abrirGerador()" style="gap:6px;display:flex;align-items:center;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Gerar orçamento
+      </button>
+    </div>
   </div>
-  <div class="three" id="pk-grid"></div>
+  <div class="pills" style="margin-bottom:1.5rem;">
+    <button class="pill active" id="pk-pill-pacotes" onclick="switchPK('pacotes')">Pacotes</button>
+    <button class="pill" id="pk-pill-addons" onclick="switchPK('addons')">Add-ons</button>
+    <button class="pill" id="pk-pill-hist" onclick="switchPK('hist')">Orçamentos</button>
+  </div>
+  <div id="pk-panel-pacotes">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+      <button class="btn" onclick="openPK()">+ Pacote</button>
+    </div>
+    <div class="three" id="pk-grid"></div>
+  </div>
+  <div id="pk-panel-addons" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+      <button class="btn" onclick="openAO()">+ Add-on</button>
+    </div>
+    <div class="three" id="ao-grid"></div>
+  </div>
+  <div id="pk-panel-hist" style="display:none;">
+    <div class="tw"><div class="ts">
+      <table>
+        <thead><tr><th>Data</th><th>Cliente</th><th>Pacotes</th><th>Template</th><th>Validade</th><th></th></tr></thead>
+        <tbody id="orc-hist-tbody"></tbody>
+      </table>
+    </div></div>
+  </div>
 </div>
 
 <!-- EQUIPE -->
@@ -993,6 +1023,7 @@ select.aj-input{cursor:pointer;}
       <button class="aj-cat" id="aj-cat-pagamento" onclick="switchAJ('pagamento')">Pagamento</button>
       <button class="aj-cat" id="aj-cat-contratos" onclick="switchAJ('contratos')">Contratos</button>
       <button class="aj-cat" id="aj-cat-equipe" onclick="switchAJ('equipe')">Equipe</button>
+      <button class="aj-cat" id="aj-cat-orcamento" onclick="switchAJ('orcamento')">Orçamento PDF</button>
     </div>
 
     <!-- Área de conteúdo -->
@@ -1068,6 +1099,30 @@ select.aj-input{cursor:pointer;}
       </div>
 
       <!-- Metas -->
+
+      <!-- Orçamento PDF -->
+      <div id="aj-panel-orcamento" style="display:none;">
+        <div class="aj-section-title">Orçamento em PDF</div>
+        <div class="aj-section-desc">Fotos e textos usados na geração automática do PDF de orçamento. Configure uma vez — serve para todos os orçamentos gerados.</div>
+        <div style="font-size:.7rem;color:var(--text-muted);font-weight:500;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em;">Fotos</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.85rem;margin-bottom:1.75rem;" id="foto-slots-grid"></div>
+        <div style="font-size:.7rem;color:var(--text-muted);font-weight:500;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em;">Textos</div>
+        <div class="field"><label>Citação da capa</label><input type="text" id="sd-orc-citacao" placeholder="ex: Não se pode dizer mais do que se vê." oninput="saveSD()"></div>
+        <div class="field"><label>Carta de boas-vindas</label><textarea id="sd-orc-carta" rows="4" oninput="saveSD()" placeholder="Oi! Feliz que você chegou até aqui..."></textarea></div>
+        <div class="field"><label>Sobre mim</label><textarea id="sd-orc-sobre" rows="4" oninput="saveSD()" placeholder="Fotografei meu primeiro casamento em..."></textarea></div>
+        <div class="field"><label>Filosofia / Crenças (opcional)</label><textarea id="sd-orc-filosofia" rows="3" oninput="saveSD()" placeholder="Acreditamos que..."></textarea></div>
+        <div class="field"><label>Texto de encerramento</label><textarea id="sd-orc-encerramento" rows="3" oninput="saveSD()" placeholder="Com amor, [seu nome]"></textarea></div>
+        <div class="tf" style="grid-template-columns:2fr 1fr;">
+          <div class="field"><label>Depoimento de cliente</label><textarea id="sd-orc-depoimento" rows="3" oninput="saveSD()" placeholder="Não é sempre que consigo sentir a energia das pessoas..."></textarea></div>
+          <div class="field"><label>Autor do depoimento</label><input type="text" id="sd-orc-depoimento-autor" placeholder="Rita + Otávio" oninput="saveSD()"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;margin-top:.5rem;">
+          <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Perguntas frequentes (FAQ)</div>
+          <button class="btn" style="font-size:.65rem;padding:2px 10px;" onclick="addFaqItem()">+ Pergunta</button>
+        </div>
+        <div id="faq-list" style="margin-bottom:.5rem;"></div>
+        <div style="font-size:.72rem;color:var(--text-hint);margin-top:.5rem;">Salvo automaticamente.</div>
+      </div>
 
       <!-- Equipe -->
       <div id="aj-panel-equipe" style="display:none;">
@@ -1351,6 +1406,52 @@ select.aj-input{cursor:pointer;}
     <div style="flex:1"></div>
     <button class="btn" onclick="cov('ov-pk')">Cancelar</button>
     <button class="btn primary" onclick="savePK()">Salvar</button>
+  </div>
+</div></div>
+
+<!-- MODAL ADD-ON -->
+<div class="overlay" id="ov-ao"><div class="modal">
+  <h2 id="mao-t">Novo Add-on</h2>
+  <div class="field"><label>Nome</label><input type="text" id="mao-nome" placeholder="ex: Sessão pré-wedding"></div>
+  <div class="field"><label>Descrição</label><input type="text" id="mao-desc" placeholder="ex: Um passeio ao entardecer"></div>
+  <div class="field"><label>Valor (R$)</label><input type="number" id="mao-valor" placeholder="0"></div>
+  <div class="field"><label>O que inclui (um item por linha)</label>
+    <textarea id="mao-itens" rows="4" placeholder="Galeria online privada&#10;Todas imagens em alta-resolução"></textarea>
+  </div>
+  <div class="ma">
+    <button class="btn" style="color:var(--coral);display:none;" id="mao-del" onclick="delAO()">Excluir</button>
+    <div style="flex:1"></div>
+    <button class="btn" onclick="cov('ov-ao')">Cancelar</button>
+    <button class="btn primary" onclick="saveAO()">Salvar</button>
+  </div>
+</div></div>
+
+<!-- MODAL GERADOR DE ORÇAMENTO -->
+<div class="overlay" id="ov-gerador"><div class="modal wide" style="max-width:680px;">
+  <h2>Gerar orçamento</h2>
+  <div id="ger-step-1">
+    <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Pacotes a incluir</div>
+    <div id="ger-pacotes-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem;"></div>
+    <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Add-ons (opcional)</div>
+    <div id="ger-addons-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem;"></div>
+    <div class="tf" style="grid-template-columns:1fr 1fr;">
+      <div class="field"><label>Nome do casal (opcional)</label><input type="text" id="ger-casal" placeholder="ex: Maria &amp; João"></div>
+      <div class="field"><label>Válido até</label><input type="text" class="sd" maxlength="10" id="ger-validade" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+    </div>
+    <div class="field"><label>Cliente (opcional — para salvar no histórico)</label>
+      <select id="ger-cliente-id"><option value="">— nenhum —</option></select>
+    </div>
+  </div>
+  <div id="ger-step-2" style="display:none;">
+    <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Escolher template</div>
+    <div id="ger-templates-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;"></div>
+  </div>
+  <div class="ma">
+    <button class="btn" onclick="cov('ov-gerador')">Cancelar</button>
+    <div style="flex:1"></div>
+    <button class="btn" id="ger-btn-voltar" onclick="gerStep(1)" style="display:none;">← Voltar</button>
+    <button class="btn primary" id="ger-btn-avancar" onclick="gerStep(2)">Escolher template →</button>
+    <button class="btn primary" id="ger-btn-gerar" onclick="confirmarGerarPDF()" style="display:none;">Gerar PDF</button>
   </div>
 </div></div>
 
@@ -2565,17 +2666,187 @@ function copiarLinkAssinatura(){
 
 // AJUSTES — Studio data
 function switchAJ(name){
-  ['geral','studio','pagamento','contratos','equipe','automacoes'].forEach(function(n){
-    document.getElementById('aj-panel-'+n).style.display='none';
+  ['geral','studio','pagamento','contratos','equipe','automacoes','orcamento'].forEach(function(n){
+    var pn=document.getElementById('aj-panel-'+n);if(pn)pn.style.display='none';
     var b=document.getElementById('aj-cat-'+n);if(b)b.classList.remove('active');
   });
-  document.getElementById('aj-panel-'+name).style.display='';
+  var ap=document.getElementById('aj-panel-'+name);if(ap)ap.style.display='';
   var ab=document.getElementById('aj-cat-'+name);if(ab)ab.classList.add('active');
   if(name==='geral') _syncThemeUI();
   if(name==='equipe'){_loadEqColW();rEQ();}
   if(name==='contratos') _syncTemplateStatus();
   if(name==='automacoes') rAuto();
+  if(name==='orcamento'){rFotoSlots();rFaqList();}
 }
+// ── ORÇAMENTO PDF — FOTOS & CONTEÚDO ────────────────────────────────────────
+var FOTO_SLOTS=[
+  {key:'foto_capa',label:'Capa',hint:'landscape dramático'},
+  {key:'foto_apresentacao',label:'Apresentação',hint:'segunda página'},
+  {key:'foto_carta',label:'Carta',hint:'ao lado da carta'},
+  {key:'foto_sobre',label:'Sobre mim',hint:'ao lado da bio'},
+  {key:'foto_filosofia',label:'Filosofia',hint:'ao lado das crenças'},
+  {key:'foto_encerramento',label:'Encerramento',hint:'ao lado do fechamento'},
+  {key:'foto_final',label:'Página final',hint:'última página'}
+];
+function rFotoSlots(){
+  var el=document.getElementById('foto-slots-grid');if(!el)return;
+  var sd=g('sd')||{};
+  el.innerHTML=FOTO_SLOTS.map(function(slot){
+    var url=sd[slot.key]||'';
+    var preview=url
+      ?'<div style="width:100%;aspect-ratio:16/9;border-radius:6px;overflow:hidden;margin-bottom:.6rem;background:var(--surface2);"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.style.background=\'var(--border-strong)\'"></div>'
+      :'<div style="width:100%;aspect-ratio:16/9;border-radius:6px;background:var(--surface2);border:.5px dashed var(--border-strong);display:flex;align-items:center;justify-content:center;margin-bottom:.6rem;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>';
+    return '<div style="display:flex;flex-direction:column;">'+preview+'<div style="font-size:.68rem;color:var(--text-muted);margin-bottom:2px;">'+slot.label+'</div><div style="font-size:.6rem;color:var(--text-hint);margin-bottom:.5rem;">'+slot.hint+'</div><button class="btn" style="font-size:.68rem;padding:4px 10px;" onclick="uploadFoto(\''+slot.key+'\')">'+(url?'Trocar foto':'Enviar foto')+'</button></div>';
+  }).join('');
+}
+function uploadFoto(slotKey){
+  if(typeof cloudinary==='undefined'){alert('Cloudinary não carregou. Verifique sua conexão e recarregue a página.');return;}
+  cloudinary.openUploadWidget({cloudName:'dptgycx3x',uploadPreset:'kelvn_studio',sources:['local','url','camera'],multiple:false,maxFiles:1,clientAllowedFormats:['jpg','jpeg','png','webp'],maxFileSize:15000000,folder:'studio_photos',cropping:false,showSkipCropButton:true},function(error,result){
+    if(!error&&result&&result.event==='success'){
+      var url=result.info.secure_url;
+      var sd=g('sd')||{};sd[slotKey]=url;s('sd',sd);rFotoSlots();notify('Foto salva.');
+    }
+  });
+}
+function rFaqList(){
+  var el=document.getElementById('faq-list');if(!el)return;
+  var sd=g('sd')||{};var faq=sd.orc_faq||[];
+  if(!faq.length){el.innerHTML='<div style="font-size:.72rem;color:var(--text-hint);padding:.5rem 0;">Nenhuma pergunta ainda.</div>';return;}
+  el.innerHTML=faq.map(function(f,i){
+    return '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:start;margin-bottom:8px;">'+
+      '<input type="text" class="fi" placeholder="Pergunta" value="'+(f.pergunta||'')+'" onchange="_updateFaq('+i+',\'pergunta\',this.value)">'+
+      '<input type="text" class="fi" placeholder="Resposta" value="'+(f.resposta||'')+'" onchange="_updateFaq('+i+',\'resposta\',this.value)">'+
+      '<button class="pdel" onclick="_delFaq('+i+')">✕</button></div>';
+  }).join('');
+}
+function addFaqItem(){var sd=g('sd')||{};var faq=sd.orc_faq||[];faq.push({pergunta:'',resposta:''});sd.orc_faq=faq;s('sd',sd);rFaqList();}
+function _updateFaq(i,campo,val){var sd=g('sd')||{};var faq=sd.orc_faq||[];if(faq[i])faq[i][campo]=val;sd.orc_faq=faq;s('sd',sd);}
+function _delFaq(i){var sd=g('sd')||{};var faq=sd.orc_faq||[];faq.splice(i,1);sd.orc_faq=faq;s('sd',sd);rFaqList();}
+
+// ── GERADOR DE ORÇAMENTO ──────────────────────────────────────────────────────
+function fillSel(){
+  var sel=document.getElementById('ger-cliente-id');if(!sel)return;
+  var cs=g('clientes')||[];
+  sel.innerHTML='<option value="">— nenhum —</option>'+cs.map(function(c){return '<option value="'+c.id+'">'+c.nome+'</option>';}).join('');
+}
+var _gerPacotesSel={},_gerAddonsSel={},_gerTemplateSel='kelvn_classico';
+function abrirGerador(){
+  _gerPacotesSel={};_gerAddonsSel={};_gerTemplateSel='kelvn_classico';
+  fillSel();gerStep(1);
+  document.getElementById('ger-casal').value='';
+  document.getElementById('ger-validade').value='';
+  document.getElementById('ger-cliente-id').value='';
+  var pacotes=g('pacotes')||[];
+  document.getElementById('ger-pacotes-list').innerHTML=pacotes.length
+    ?pacotes.map(function(p){return '<label style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;"><input type="checkbox" id="gerpk-'+p.id+'" onchange="_gerTogglePK(\''+p.id+'\')"> <span style="flex:1;font-size:.82rem;color:var(--text);">'+p.nome+'</span><span style="font-size:.78rem;color:var(--amber);">'+$m(p.valor)+'</span></label>';}).join('')
+    :'<div style="font-size:.75rem;color:var(--text-hint);font-style:italic;">Nenhum pacote cadastrado ainda.</div>';
+  var addons=g('addons')||[];
+  document.getElementById('ger-addons-list').innerHTML=addons.length
+    ?addons.map(function(a){return '<label style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;"><input type="checkbox" id="gerao-'+a.id+'" onchange="_gerToggleAO(\''+a.id+'\')"> <span style="flex:1;font-size:.82rem;color:var(--text);">'+a.nome+'</span><span style="font-size:.78rem;color:var(--text-muted);">'+$m(a.valor)+'</span></label>';}).join('')
+    :'<div style="font-size:.75rem;color:var(--text-hint);">Sem add-ons cadastrados.</div>';
+  _renderTemplates();
+  document.getElementById('ov-gerador').classList.add('open');
+}
+function _renderTemplates(){
+  var TEMPLATES=[{id:'kelvn_classico',nome:'Kelvn Clássico',desc:'Editorial, limpo, atemporal.',free:true}];
+  document.getElementById('ger-templates-grid').innerHTML=TEMPLATES.map(function(t){
+    var ativo=t.id===_gerTemplateSel;
+    return '<div onclick="_gerSelecionarTemplate(\''+t.id+'\')" style="cursor:pointer;border:.5px solid '+(ativo?'var(--amber)':'var(--border-strong)')+';border-radius:var(--radius);padding:1rem;transition:border-color .15s;"><div style="aspect-ratio:3/4;background:var(--surface2);border-radius:4px;margin-bottom:.75rem;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div><div style="font-size:.82rem;color:var(--text);font-weight:500;margin-bottom:2px;">'+t.nome+'</div><div style="font-size:.7rem;color:var(--text-hint);">'+t.desc+'</div><div style="margin-top:.5rem;font-size:.68rem;color:'+(t.free?'var(--teal)':'var(--amber)')+';">'+(t.free?'Incluído':'Premium')+'</div></div>';
+  }).join('');
+}
+function _gerTogglePK(id){_gerPacotesSel[id]=document.getElementById('gerpk-'+id).checked;}
+function _gerToggleAO(id){_gerAddonsSel[id]=document.getElementById('gerao-'+id).checked;}
+function _gerSelecionarTemplate(id){_gerTemplateSel=id;_renderTemplates();}
+function gerStep(n){
+  document.getElementById('ger-step-1').style.display=n===1?'':'none';
+  document.getElementById('ger-step-2').style.display=n===2?'':'none';
+  document.getElementById('ger-btn-voltar').style.display=n===2?'inline-flex':'none';
+  document.getElementById('ger-btn-avancar').style.display=n===1?'inline-flex':'none';
+  document.getElementById('ger-btn-gerar').style.display=n===2?'inline-flex':'none';
+}
+function confirmarGerarPDF(){
+  var pacotesIds=Object.keys(_gerPacotesSel).filter(function(k){return _gerPacotesSel[k];});
+  if(!pacotesIds.length){alert('Selecione ao menos um pacote.');return;}
+  var addonsIds=Object.keys(_gerAddonsSel).filter(function(k){return _gerAddonsSel[k];});
+  var casal=document.getElementById('ger-casal').value.trim();
+  var validade=document.getElementById('ger-validade').value.trim();
+  var clienteId=document.getElementById('ger-cliente-id').value;
+  var hist=g('orcamentos_hist')||[];
+  hist.unshift({id:uid(),nomeCliente:casal||(clienteId?cN(clienteId):'Sem nome'),clienteId:clienteId,pacoteIds:pacotesIds,addonIds:addonsIds,template:_gerTemplateSel,dataGeracao:new Date().toISOString(),validade:validade});
+  s('orcamentos_hist',hist);
+  cov('ov-gerador');
+  gerarPDFOrcamento({pacoteIds:pacotesIds,addonIds:addonsIds,casal:casal,validade:validade,template:_gerTemplateSel});
+  notify('Gerando PDF...');
+}
+
+// ── TEMPLATE KELVN CLÁSSICO ───────────────────────────────────────────────────
+function gerarPDFOrcamento(opts){
+  var sd=g('sd')||{};
+  var pacotes=(g('pacotes')||[]).filter(function(p){return opts.pacoteIds.indexOf(p.id)>-1;});
+  var addons=(g('addons')||[]).filter(function(a){return opts.addonIds.indexOf(a.id)>-1;});
+  var html=_templateKelvnClassico(sd,pacotes,addons,opts);
+  var win=window.open('','_blank');
+  if(!win){alert('Pop-up bloqueado. Permita pop-ups para este site.');return;}
+  win.document.write(html);win.document.close();
+  setTimeout(function(){win.print();},800);
+}
+function _templateKelvnClassico(sd,pacotes,addons,opts){
+  var fmtValor=function(v){return 'R$'+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});};
+  function page(c,ex){return '<div class="page" style="'+(ex||'')+'">'+ c+'</div>';}
+  function imgFull(url,pos){if(!url)return '<div style="width:100%;height:100%;background:#e8e4df;"></div>';return '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;object-position:'+(pos||'center')+'" onerror="this.style.background=\'#e8e4df\'">';}
+  function split(lado,fotoUrl,textoHTML,reverso){var fC='<div style="width:50%;height:100%;overflow:hidden;">'+imgFull(fotoUrl)+'</div>';var tC='<div style="width:50%;padding:10% 8%;display:flex;flex-direction:column;justify-content:center;overflow:hidden;">'+textoHTML+'</div>';return reverso?tC+fC:fC+tC;}
+  var titulo=sd.studio_nome||'Studio',resp=sd.studio_responsavel||'',site=sd.studio_email||'';
+  var citacao=sd.orc_citacao||'',carta=sd.orc_carta||'',sobre=sd.orc_sobre||'';
+  var filos=sd.orc_filosofia||'',depText=sd.orc_depoimento||'',depAutor=sd.orc_depoimento_autor||'';
+  var encerra=sd.orc_encerramento||'',faq=sd.orc_faq||[];
+  var pags=[];
+  // CAPA
+  pags.push(page('<div style="position:relative;width:100%;height:100%;">'+imgFull(sd.foto_capa,'center')+'<div style="position:absolute;inset:0;background:rgba(0,0,0,.15);"></div><div style="position:absolute;top:0;right:0;bottom:0;width:180px;background:#F5F0EB;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10% 0;"><div style="writing-mode:vertical-rl;text-orientation:mixed;font-family:\'Playfair Display\',serif;font-size:11px;letter-spacing:.12em;color:#4A4540;text-transform:uppercase;">'+(resp?resp+' · ':'')+titulo+'</div>'+(citacao?'<div style="writing-mode:vertical-rl;font-family:\'Playfair Display\',serif;font-style:italic;font-size:10px;color:#8A7E75;line-height:1.7;max-height:60%;overflow:hidden;">'+citacao+'</div>':'')+'</div><div style="position:absolute;bottom:8%;left:8%;"><div style="font-family:\'Playfair Display\',serif;font-size:2.8rem;font-weight:700;color:#fff;line-height:1.1;text-shadow:0 1px 3px rgba(0,0,0,.3);">'+titulo.toUpperCase()+'</div></div></div>'));
+  // FOTO APRESENTAÇÃO
+  if(sd.foto_apresentacao)pags.push(page('<div style="display:flex;width:100%;height:100%;"><div style="width:65%;background:#F5F0EB;"></div><div style="width:35%;overflow:hidden;">'+imgFull(sd.foto_apresentacao,'center top')+'</div></div>'));
+  // CARTA
+  if(carta)pags.push(page('<div style="display:flex;width:100%;height:100%;background:#F5F0EB;">'+split('esq',sd.foto_carta,'<div style="font-family:\'Playfair Display\',serif;font-size:.85rem;color:#2A2420;line-height:1.9;max-height:80%;overflow:hidden;">'+(opts.casal?'<div style="margin-bottom:1.5rem;font-style:italic;">Oi, '+opts.casal+'.</div>':'')+carta.replace(/\n/g,'<br>')+'</div>',true)+'</div>'));
+  // SOBRE
+  if(sobre)pags.push(page('<div style="display:flex;width:100%;height:100%;background:#F5F0EB;">'+split('dir',sd.foto_sobre,'<div><div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;font-weight:600;color:#2A2420;margin-bottom:1rem;">Sobre '+resp+'.</div><div style="font-family:Georgia,serif;font-size:.8rem;color:#4A4540;line-height:1.85;max-height:75%;overflow:hidden;">'+sobre.replace(/\n/g,'<br>')+'</div></div>',false)+'</div>'));
+  // FILOSOFIA
+  if(filos)pags.push(page('<div style="display:flex;width:100%;height:100%;background:#F5F0EB;">'+split('esq',sd.foto_filosofia,'<div style="font-family:Georgia,serif;font-size:.78rem;color:#4A4540;line-height:2;max-height:85%;overflow:hidden;">'+filos.replace(/\n/g,'<br>')+'</div>',true)+'</div>'));
+  // PACOTES
+  pacotes.forEach(function(p){
+    var itens=(p.itens||'').split('\n').filter(Boolean);
+    var fotoUrl=p.foto_url||sd['foto_pacote_'+p.id]||'';
+    pags.push(page('<div style="display:flex;width:100%;height:100%;background:#F5F0EB;">'+split('dir',fotoUrl,'<div><div style="font-family:\'Playfair Display\',serif;font-size:1.3rem;font-weight:600;color:#2A2420;margin-bottom:.5rem;">'+p.nome+'.</div>'+(p.desc?'<div style="font-size:.78rem;color:#8A7E75;font-style:italic;margin-bottom:1.25rem;">'+p.desc+'</div>':'')+'<div style="margin-bottom:1.5rem;">'+itens.map(function(it){return '<div style="font-size:.75rem;color:#4A4540;margin-bottom:.35rem;">— '+it+'</div>';}).join('')+'</div><div style="font-family:\'Playfair Display\',serif;font-size:2.2rem;font-weight:400;color:#2A2420;margin-bottom:.5rem;">'+fmtValor(p.valor)+'</div>'+(p.parcelas_info||'— Metade na reserva\n— Metade na semana do casamento').split('\n').filter(Boolean).map(function(l){return '<div style="font-size:.7rem;color:#8A7E75;">'+l+'</div>';}).join('')+'</div>',false)+'</div>'));
+  });
+  // ADD-ONS
+  if(addons.length)pags.push(page('<div style="background:#F5F0EB;width:100%;height:100%;display:flex;align-items:center;"><div style="padding:8% 10%;width:100%;"><div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;font-weight:600;color:#2A2420;margin-bottom:.5rem;">Serviços adicionais.</div><div style="font-size:.75rem;color:#8A7E75;font-style:italic;margin-bottom:2rem;">Personalize ainda mais a sua experiência.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;">'+addons.map(function(a){var itens=(a.itens||'').split('\n').filter(Boolean);return '<div><div style="font-family:\'Playfair Display\',serif;font-size:1rem;font-weight:600;color:#2A2420;margin-bottom:.35rem;">'+a.nome+'</div>'+(a.desc?'<div style="font-size:.72rem;color:#8A7E75;font-style:italic;margin-bottom:.75rem;">'+a.desc+'</div>':'')+itens.map(function(i){return '<div style="font-size:.72rem;color:#4A4540;margin-bottom:.25rem;">— '+i+'</div>';}).join('')+'<div style="font-family:\'Playfair Display\',serif;font-size:1.3rem;color:#2A2420;margin-top:.75rem;">'+fmtValor(a.valor)+'</div></div>';}).join('')+'</div></div></div>'));
+  // FAQ
+  if(faq.length)pags.push(page('<div style="display:flex;width:100%;height:100%;background:#F5F0EB;">'+(sd.foto_encerramento?'<div style="width:40%;overflow:hidden;">'+imgFull(sd.foto_encerramento)+'</div>':'')+'<div style="flex:1;padding:8% 8%;overflow:hidden;"><div style="font-family:\'Playfair Display\',serif;font-size:1.2rem;font-weight:600;color:#2A2420;margin-bottom:1.5rem;">Perguntas frequentes.</div>'+faq.filter(function(f){return f.pergunta;}).map(function(f){return '<div style="margin-bottom:1.25rem;"><div style="font-family:\'Playfair Display\',serif;font-weight:600;font-size:.82rem;color:#2A2420;margin-bottom:.35rem;">'+f.pergunta+'</div><div style="font-size:.75rem;color:#4A4540;line-height:1.7;">'+f.resposta+'</div></div>';}).join('')+'</div></div>'));
+  // DEPOIMENTO
+  if(depText)pags.push(page('<div style="display:flex;width:100%;height:100%;background:#F5F0EB;">'+split('esq',sd.foto_sobre||'','<div style="display:flex;flex-direction:column;justify-content:center;height:100%;"><div style="font-family:\'Playfair Display\',serif;font-style:italic;font-size:.9rem;color:#2A2420;line-height:1.85;margin-bottom:1.5rem;">"'+depText+'"</div><div style="font-family:\'Playfair Display\',serif;font-size:.82rem;color:#8A7E75;text-align:right;">— '+depAutor+'</div></div>',true)+'</div>'));
+  // ENCERRAMENTO
+  if(encerra)pags.push(page('<div style="display:flex;width:100%;height:100%;background:#F5F0EB;">'+split('dir',sd.foto_final||'','<div><div style="font-family:\'Playfair Display\',serif;font-style:italic;font-size:.78rem;color:#4A4540;line-height:1.9;margin-bottom:1.5rem;">'+encerra.replace(/\n/g,'<br>')+'</div></div>',false)+'</div>'));
+  // PÁGINA FINAL
+  pags.push(page('<div style="position:relative;width:100%;height:100%;">'+imgFull(sd.foto_final||sd.foto_capa,'center bottom')+'<div style="position:absolute;inset:0;background:rgba(0,0,0,.25);"></div><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;"><div style="font-family:\'Playfair Display\',serif;font-size:2rem;font-weight:700;color:#fff;letter-spacing:.15em;">'+titulo.toUpperCase()+'</div>'+(site?'<div style="font-size:.75rem;color:rgba(255,255,255,.75);letter-spacing:.1em;margin-top:.5rem;">'+site+'</div>':'')+(opts.validade?'<div style="font-size:.7rem;color:rgba(255,255,255,.6);margin-top:1rem;">Proposta válida até '+opts.validade+'</div>':'')+'</div></div>'));
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Orçamento — '+titulo+'</title><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box;}html,body{width:100%;background:#F5F0EB;}.page{width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;display:flex;background:#F5F0EB;}@media print{@page{size:A4 landscape;margin:0;}html,body{width:100%;}.page{width:100vw;height:100vh;aspect-ratio:unset;page-break-after:always;}}@media screen{.page{max-width:1200px;margin:0 auto;}}</style></head><body>'+pags.join('\n')+'</body></html>';
+}
+
+// ── HISTÓRICO DE ORÇAMENTOS ───────────────────────────────────────────────────
+function rOrcHist(){
+  var tb=document.getElementById('orc-hist-tbody');if(!tb)return;
+  var hist=g('orcamentos_hist')||[];
+  if(!hist.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum orçamento gerado ainda. Clique em "Gerar orçamento" para começar.</td></tr>';return;}
+  tb.innerHTML=hist.map(function(h){
+    var d=h.dataGeracao?new Date(h.dataGeracao):null;
+    var dStr=d?(String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()):'—';
+    var pNomes=(h.pacoteIds||[]).map(function(id){var p=(g('pacotes')||[]).find(function(x){return x.id===id;});return p?p.nome:'—';}).join(', ');
+    return '<tr><td>'+dStr+'</td><td class="tdn">'+(h.nomeCliente||'—')+'</td><td>'+(pNomes||'—')+'</td><td>'+(h.template||'—')+'</td><td>'+(h.validade||'—')+'</td><td><button class="ra" onclick="regerarOrcamento(\''+h.id+'\')">Regerar</button></td></tr>';
+  }).join('');
+}
+function regerarOrcamento(id){
+  var h=(g('orcamentos_hist')||[]).find(function(x){return x.id===id;});if(!h)return;
+  gerarPDFOrcamento({pacoteIds:h.pacoteIds||[],addonIds:h.addonIds||[],casal:h.nomeCliente||'',validade:h.validade||'',template:h.template||'kelvn_classico'});
+  notify('Regerando PDF...');
+}
+
 function _syncThemeUI(){
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var lbl=document.getElementById('aj-theme-label');
@@ -2590,11 +2861,16 @@ function rSD(){
     'sd-studio-endereco':'studio_endereco','sd-studio-telefone':'studio_telefone',
     'sd-studio-email':'studio_email','sd-studio-pix':'studio_pix',
     'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro',
-    'an-meta-fat-mensal':'meta_fat_mensal','an-meta-fat-anual':'meta_fat_anual','an-meta-casamentos-ano':'meta_casamentos_ano'
+    'an-meta-fat-mensal':'meta_fat_mensal','an-meta-fat-anual':'meta_fat_anual','an-meta-casamentos-ano':'meta_casamentos_ano',
+    'sd-orc-citacao':'orc_citacao','sd-orc-carta':'orc_carta','sd-orc-sobre':'orc_sobre',
+    'sd-orc-filosofia':'orc_filosofia','sd-orc-encerramento':'orc_encerramento',
+    'sd-orc-depoimento':'orc_depoimento','sd-orc-depoimento-autor':'orc_depoimento_autor'
   };
   Object.keys(map).forEach(function(elId){
     var el=document.getElementById(elId);if(el)el.value=sd[map[elId]]||'';
   });
+  rFotoSlots();
+  rFaqList();
 }
 function saveSD(){
   var sd=g('sd')||{};
@@ -2604,7 +2880,10 @@ function saveSD(){
     'sd-studio-endereco':'studio_endereco','sd-studio-telefone':'studio_telefone',
     'sd-studio-email':'studio_email','sd-studio-pix':'studio_pix',
     'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro',
-    'an-meta-fat-mensal':'meta_fat_mensal','an-meta-fat-anual':'meta_fat_anual','an-meta-casamentos-ano':'meta_casamentos_ano'
+    'an-meta-fat-mensal':'meta_fat_mensal','an-meta-fat-anual':'meta_fat_anual','an-meta-casamentos-ano':'meta_casamentos_ano',
+    'sd-orc-citacao':'orc_citacao','sd-orc-carta':'orc_carta','sd-orc-sobre':'orc_sobre',
+    'sd-orc-filosofia':'orc_filosofia','sd-orc-encerramento':'orc_encerramento',
+    'sd-orc-depoimento':'orc_depoimento','sd-orc-depoimento-autor':'orc_depoimento_autor'
   };
   Object.keys(map).forEach(function(elId){
     var el=document.getElementById(elId);if(el&&el.value!=='')sd[map[elId]]=el.value;
@@ -3774,14 +4053,33 @@ function pagarParcelaInad(clienteId, idsStr){
   rInad();
 }
 var _pkId=null;
+function pkStats(pkId){
+  var cs=g('clientes').filter(function(c){return c.pacote_id===pkId;});
+  var receita=cs.reduce(function(a,c){return a+parseFloat(c.valor||0);},0);
+  return{contratos:cs.length,receita:receita};
+}
 function rPK(){
   var ps=g('pacotes');
   var el=document.getElementById('pk-grid');
+  if(!el)return;
   if(!ps.length){el.innerHTML='<div style="grid-column:1/-1;padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum pacote cadastrado</div>';return;}
   el.innerHTML=ps.map(function(p){
     var itens=(p.itens||'').split('\n').filter(Boolean).map(function(i){return '<li style="margin-bottom:2px;">'+i+'</li>';}).join('');
-    return '<div class="pkcard" onclick="openPK(\''+p.id+'\')"><div class="pkcard-nome">'+p.nome+'</div><div class="pkcard-valor">'+$m(p.valor)+'</div><div class="pkcard-desc">'+(p.desc||'')+'</div>'+(itens?'<ul style="margin-top:.75rem;padding-left:1rem;font-size:.72rem;color:var(--text-hint);line-height:1.7;">'+itens+'</ul>':'')+' </div>';
+    var stats=pkStats(p.id);
+    var statsHTML=stats.contratos>0?'<div style="margin-top:.85rem;padding-top:.85rem;border-top:.5px solid var(--border);display:flex;gap:1.5rem;"><div><div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Contratos</div><div style="font-size:.88rem;font-weight:500;color:var(--text);">'+stats.contratos+'</div></div><div><div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Receita gerada</div><div style="font-size:.88rem;font-weight:500;color:var(--amber);">'+$m(stats.receita)+'</div></div></div>':'';
+    return '<div class="pkcard" onclick="openPK(\''+p.id+'\')"><div class="pkcard-nome">'+p.nome+'</div><div class="pkcard-valor">'+$m(p.valor)+'</div><div class="pkcard-desc">'+(p.desc||'')+'</div>'+(itens?'<ul style="margin-top:.75rem;padding-left:1rem;font-size:.72rem;color:var(--text-hint);line-height:1.7;">'+itens+'</ul>':'')+statsHTML+'</div>';
   }).join('');
+}
+function switchPK(name){
+  ['pacotes','addons','hist'].forEach(function(n){
+    var pn=document.getElementById('pk-panel-'+n);if(pn)pn.style.display='none';
+    var pill=document.getElementById('pk-pill-'+n);if(pill)pill.classList.remove('active');
+  });
+  var ap=document.getElementById('pk-panel-'+name);if(ap)ap.style.display='';
+  var apill=document.getElementById('pk-pill-'+name);if(apill)apill.classList.add('active');
+  if(name==='pacotes')rPK();
+  if(name==='addons')rAO();
+  if(name==='hist')rOrcHist();
 }
 function openPK(id){
   _pkId=id||null;
@@ -3827,6 +4125,44 @@ function savePK(){
   undoBegin();s('pacotes',ps);undoCommit();cov('ov-pk');rPK();notify('Pacote salvo');
 }
 function delPK(){if(!confirm('Excluir?'))return;undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();notify('Excluído');}
+
+// ── ADD-ONS ──────────────────────────────────────────────────────────────────
+var _aoId=null;
+function rAO(){
+  var aos=g('addons')||[];
+  var el=document.getElementById('ao-grid');if(!el)return;
+  if(!aos.length){el.innerHTML='<div style="grid-column:1/-1;padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum add-on cadastrado ainda. Add-ons são serviços avulsos que complementam os pacotes — sessão de casal, noite anterior, álbum extra, etc.</div>';return;}
+  el.innerHTML=aos.map(function(a){
+    var itens=(a.itens||'').split('\n').filter(Boolean).map(function(i){return '<li style="margin-bottom:2px;">'+i+'</li>';}).join('');
+    return '<div class="pkcard" onclick="openAO(\''+a.id+'\')"><div class="pkcard-nome">'+a.nome+'</div><div class="pkcard-valor">'+$m(a.valor)+'</div><div class="pkcard-desc">'+(a.desc||'')+'</div>'+(itens?'<ul style="margin-top:.75rem;padding-left:1rem;font-size:.72rem;color:var(--text-hint);line-height:1.7;">'+itens+'</ul>':'')+' </div>';
+  }).join('');
+}
+function openAO(id){
+  _aoId=id||null;
+  if(id){
+    var a=(g('addons')||[]).find(function(x){return x.id===id;});if(!a)return;
+    document.getElementById('mao-t').textContent='Editar Add-on';
+    document.getElementById('mao-nome').value=a.nome||'';
+    document.getElementById('mao-desc').value=a.desc||'';
+    document.getElementById('mao-valor').value=a.valor||'';
+    document.getElementById('mao-itens').value=a.itens||'';
+    document.getElementById('mao-del').style.display='inline-flex';
+  }else{
+    document.getElementById('mao-t').textContent='Novo Add-on';
+    ['mao-nome','mao-desc','mao-valor','mao-itens'].forEach(function(i){document.getElementById(i).value='';});
+    document.getElementById('mao-del').style.display='none';
+  }
+  document.getElementById('ov-ao').classList.add('open');
+}
+function saveAO(){
+  var aos=g('addons')||[];
+  var o={id:_aoId||uid(),nome:document.getElementById('mao-nome').value.trim(),desc:document.getElementById('mao-desc').value.trim(),valor:parseFloat(document.getElementById('mao-valor').value)||0,itens:document.getElementById('mao-itens').value.trim()};
+  if(!o.nome){alert('Informe o nome.');return;}
+  if(_aoId){var i=aos.findIndex(function(a){return a.id===_aoId;});if(i>-1)aos[i]=o;}else aos.push(o);
+  s('addons',aos);cov('ov-ao');rAO();notify('Add-on salvo.');
+}
+function delAO(){if(!confirm('Excluir?'))return;s('addons',(g('addons')||[]).filter(function(a){return a.id!==_aoId;}));cov('ov-ao');rAO();notify('Excluído.');}
+
 var _eqId=null;
 var _eqColW=[220,150,230,160];
 function _loadEqColW(){var v=g('eq_col_w');if(Array.isArray(v)&&v.length===4)_eqColW=v;}
@@ -5849,7 +6185,7 @@ function closeAI(){
 
 function askSuggestion(btn){
   document.getElementById('aiInput').value = btn.textContent;
-  document.getElementById('aiSuggestions').style.display = 'none';
+  var _aiSugEl=document.getElementById('aiSuggestions');if(_aiSugEl)_aiSugEl.style.display='none';
   sendAIMessage();
 }
 
@@ -5946,7 +6282,7 @@ async function sendAIMessage(){
   if(!text) return;
 
   // Esconde sugestões após primeira mensagem
-  document.getElementById('aiSuggestions').style.display = 'none';
+  var _aiSugEl=document.getElementById('aiSuggestions');if(_aiSugEl)_aiSugEl.style.display='none';
 
   // Mensagem do usuário
   aiAddMessage('user', text);
