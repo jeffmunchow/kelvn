@@ -948,6 +948,9 @@ select.aj-input{cursor:pointer;}
     </div>
   </div>
 
+  <!-- BARRA FATURAMENTO ANUAL -->
+  <div id="an-fat-anual-bar" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.5rem;margin-bottom:1rem;"></div>
+
   <!-- FATURAMENTO POR PRODUTO + SAZONALIDADE lado a lado -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;" id="an-graficos-wrap">
 
@@ -1494,7 +1497,7 @@ select.aj-input{cursor:pointer;}
       <div id="meta-anual-tooltip" style="display:none;position:absolute;bottom:calc(100% + 8px);background:var(--text);color:var(--bg);font-size:.65rem;padding:4px 10px;border-radius:5px;white-space:nowrap;pointer-events:none;transform:translateX(-50%);z-index:10;"></div>
     </div>
     <div id="meta-anual-empty" style="display:none;font-size:.62rem;color:var(--text-hint);margin-top:.3rem;">
-      <span>Defina sua meta anual em </span><span onclick="goDirecto('ajustes')" style="color:var(--amber);cursor:pointer;text-decoration:underline;text-underline-offset:2px;">Ajustes</span><span> para acompanhar o progresso aqui.</span>
+      <span>Defina sua meta anual em </span><span onclick="goDirecto('analises')" style="color:var(--amber);cursor:pointer;text-decoration:underline;text-underline-offset:2px;">Análises</span><span> para acompanhar o progresso aqui.</span>
     </div>
   </div>
 
@@ -4010,9 +4013,32 @@ function rAnMetasProgress(){
   }
   var cards=[];
   if(metaFatMensal)cards.push(progressCard({label:'Faturamento — '+meses[mo],atual:fatMes,meta:metaFatMensal,tipo:'valor'}));
-  if(metaFatAnual)cards.push(progressCard({label:'Faturamento — '+yr,atual:fatAno,meta:metaFatAnual,tipo:'valor'}));
   if(metaWed)cards.push(progressCard({label:'Casamentos — '+yr,atual:wedAno,meta:metaWed,tipo:'contagem'}));
   el.innerHTML=cards.join('');
+  // Barra faturamento anual
+  var barWrap=document.getElementById('an-fat-anual-bar');
+  if(barWrap){
+    var pctAnual=metaFatAnual>0?Math.min(Math.round(fatAno/metaFatAnual*100),100):0;
+    var corAnual=pctAnual>=100?'var(--teal)':pctAnual>=60?'var(--amber)':'var(--coral)';
+    var faltaAnual=metaFatAnual>fatAno?'Faltam R$ '+(metaFatAnual-fatAno).toLocaleString('pt-BR',{maximumFractionDigits:0}):'✓ Meta atingida';
+    var fatAnoFmt='R$ '+fatAno.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    var metaAnualFmt=metaFatAnual>0?'meta: R$ '+metaFatAnual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+    barWrap.innerHTML=
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.45rem;">'+
+        '<div style="display:flex;align-items:baseline;gap:.75rem;">'+
+          '<span style="font-size:.58rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;">Faturamento anual — '+yr+'</span>'+
+          (metaAnualFmt?'<span style="font-size:.6rem;color:var(--text-hint);">'+metaAnualFmt+'</span>':'')+'</div>'+
+        '<div style="display:flex;align-items:baseline;gap:.5rem;">'+
+          '<span style="font-size:.72rem;font-weight:500;color:'+corAnual+';">'+fatAnoFmt+'</span>'+
+          (metaFatAnual>0?'<span style="font-size:.6rem;color:var(--text-hint);">'+pctAnual+'%</span>':'')+
+        '</div>'+
+      '</div>'+
+      '<div style="position:relative;height:16px;display:flex;align-items:center;">'+
+        '<div style="position:absolute;left:0;right:0;height:2px;background:var(--border-strong);border-radius:2px;"></div>'+
+        (metaFatAnual>0?'<div style="position:absolute;left:0;height:2px;background:'+corAnual+';border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1);width:'+pctAnual+'%;opacity:.8;"></div>':'')+
+      '</div>'+
+      (metaFatAnual>0?'<div style="font-size:.6rem;color:'+(pctAnual>=100?'var(--teal)':'var(--text-hint)')+';">'+faltaAnual+'</div>':
+        '<div style="font-size:.6rem;color:var(--text-hint);">Defina a meta anual no card ao lado para acompanhar o progresso.</div>');
 }
 function rAnKpisEstrategicos(){
   var el=document.getElementById('an-kpis-estrategicos');
