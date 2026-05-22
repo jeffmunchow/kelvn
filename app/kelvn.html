@@ -948,9 +948,6 @@ select.aj-input{cursor:pointer;}
     </div>
   </div>
 
-  <!-- BARRA FATURAMENTO ANUAL -->
-  <div id="an-fat-anual-bar" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.5rem;margin-bottom:1rem;"></div>
-
   <!-- FATURAMENTO POR PRODUTO + SAZONALIDADE lado a lado -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;" id="an-graficos-wrap">
 
@@ -1602,7 +1599,7 @@ function goDirecto(name){
   var btn=document.getElementById('sn-'+name);if(btn)btn.classList.add('active');
   _curSection=name;
   var barra=document.getElementById('meta-anual-wrap');
-  if(barra)barra.style.display=name==='resumo'?'':'none';
+  if(barra)barra.style.display=(name==='resumo'||name==='analises')?'':'none';
   go(name);
 }
 
@@ -4015,31 +4012,7 @@ function rAnMetasProgress(){
   if(metaFatMensal)cards.push(progressCard({label:'Faturamento — '+meses[mo],atual:fatMes,meta:metaFatMensal,tipo:'valor'}));
   if(metaWed)cards.push(progressCard({label:'Casamentos — '+yr,atual:wedAno,meta:metaWed,tipo:'contagem'}));
   el.innerHTML=cards.join('');
-  // Barra faturamento anual
-  var barWrap=document.getElementById('an-fat-anual-bar');
-  if(barWrap){
-    var pctAnual=metaFatAnual>0?Math.min(Math.round(fatAno/metaFatAnual*100),100):0;
-    var corAnual=pctAnual>=100?'var(--teal)':pctAnual>=60?'var(--amber)':'var(--coral)';
-    var faltaAnual=metaFatAnual>fatAno?'Faltam R$ '+(metaFatAnual-fatAno).toLocaleString('pt-BR',{maximumFractionDigits:0}):'✓ Meta atingida';
-    var fatAnoFmt='R$ '+fatAno.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    var metaAnualFmt=metaFatAnual>0?'meta: R$ '+metaFatAnual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
-    barWrap.innerHTML=
-      '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.45rem;">'+
-        '<div style="display:flex;align-items:baseline;gap:.75rem;">'+
-          '<span style="font-size:.58rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;">Faturamento anual — '+yr+'</span>'+
-          (metaAnualFmt?'<span style="font-size:.6rem;color:var(--text-hint);">'+metaAnualFmt+'</span>':'')+'</div>'+
-        '<div style="display:flex;align-items:baseline;gap:.5rem;">'+
-          '<span style="font-size:.72rem;font-weight:500;color:'+corAnual+';">'+fatAnoFmt+'</span>'+
-          (metaFatAnual>0?'<span style="font-size:.6rem;color:var(--text-hint);">'+pctAnual+'%</span>':'')+
-        '</div>'+
-      '</div>'+
-      '<div style="position:relative;height:16px;display:flex;align-items:center;">'+
-        '<div style="position:absolute;left:0;right:0;height:2px;background:var(--border-strong);border-radius:2px;"></div>'+
-        (metaFatAnual>0?'<div style="position:absolute;left:0;height:2px;background:'+corAnual+';border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1);width:'+pctAnual+'%;opacity:.8;"></div>':'')+
-      '</div>'+
-      (metaFatAnual>0?'<div style="font-size:.6rem;color:'+(pctAnual>=100?'var(--teal)':'var(--text-hint)')+';">'+faltaAnual+'</div>':
-        '<div style="font-size:.6rem;color:var(--text-hint);">Defina a meta anual no card ao lado para acompanhar o progresso.</div>');
-  }
+  rMetas();
 }
 function rAnKpisEstrategicos(){
   var el=document.getElementById('an-kpis-estrategicos');
