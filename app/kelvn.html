@@ -927,7 +927,26 @@ select.aj-input{cursor:pointer;}
   <div id="an-kpis-estrategicos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1rem;"></div>
 
   <!-- METAS -->
-  <div id="an-metas" style="margin-bottom:1rem;"></div>
+  <div id="an-metas" style="margin-bottom:1rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:stretch;">
+    <div id="an-metas-progress" style="display:contents;"></div>
+    <div id="an-metas-definir" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">Definir metas</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem;">
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span>
+          <input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;">
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span>
+          <input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;">
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span>
+          <input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetasProgress();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;">
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FATURAMENTO POR PRODUTO + SAZONALIDADE lado a lado -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;" id="an-graficos-wrap">
@@ -3944,6 +3963,23 @@ function rAnMetas(){
   var metaFatMensal=parseFloat(sd.meta_fat_mensal)||0;
   var metaWed=parseInt(sd.meta_casamentos_ano)||0;
   var now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
+  // Popula inputs do card definir (sem re-renderizar)
+  var elMensal=document.getElementById('an-meta-fat-mensal');
+  var elAnual=document.getElementById('an-meta-fat-anual');
+  var elWed=document.getElementById('an-meta-casamentos-ano');
+  if(elMensal&&document.activeElement!==elMensal)elMensal.value=metaFatMensal||'';
+  if(elAnual&&document.activeElement!==elAnual)elAnual.value=metaFatAnual||'';
+  if(elWed&&document.activeElement!==elWed)elWed.value=metaWed||'';
+  rAnMetasProgress();
+}
+function rAnMetasProgress(){
+  var el=document.getElementById('an-metas-progress');
+  if(!el)return;
+  var sd=g('sd')||{};
+  var metaFatAnual=parseFloat(sd.meta_fat_anual)||0;
+  var metaFatMensal=parseFloat(sd.meta_fat_mensal)||0;
+  var metaWed=parseInt(sd.meta_casamentos_ano)||0;
+  var now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
   var meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   var fatMes=g('fin').filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;var d=new Date(e.data);return d.getMonth()===mo&&d.getFullYear()===yr;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
   var fatAno=g('fin').filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;return new Date(e.data).getFullYear()===yr;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
@@ -3972,31 +4008,11 @@ function rAnMetas(){
       '</div>'+
     '</div>';
   }
-  var definirCard='<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">'+
-    '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">Definir metas</div>'+
-    '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
-      '<div style="display:flex;align-items:center;gap:.5rem;">'+
-        '<span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span>'+
-        '<input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'">'+
-      '</div>'+
-      '<div style="display:flex;align-items:center;gap:.5rem;">'+
-        '<span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span>'+
-        '<input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'">'+
-      '</div>'+
-      '<div style="display:flex;align-items:center;gap:.5rem;">'+
-        '<span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span>'+
-        '<input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetas();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'">'+
-      '</div>'+
-    '</div>'+
-  '</div>';
   var cards=[];
   if(metaFatMensal)cards.push(progressCard({label:'Faturamento — '+meses[mo],atual:fatMes,meta:metaFatMensal,tipo:'valor'}));
   if(metaFatAnual)cards.push(progressCard({label:'Faturamento — '+yr,atual:fatAno,meta:metaFatAnual,tipo:'valor'}));
   if(metaWed)cards.push(progressCard({label:'Casamentos — '+yr,atual:wedAno,meta:metaWed,tipo:'contagem'}));
-  // Sempre 3 colunas: cards de progresso + definir
-  var total=cards.length+1;
-  var cols=total===1?'1fr':total===2?'1fr 1fr':'1fr 1fr 1fr';
-  el.innerHTML='<div style="display:grid;grid-template-columns:'+cols+';gap:1rem;">'+cards.join('')+definirCard+'</div>';
+  el.innerHTML=cards.join('');
 }
 function rAnKpisEstrategicos(){
   var el=document.getElementById('an-kpis-estrategicos');
@@ -4145,14 +4161,14 @@ function anMetaMensalChanged(){
   var elAnual=document.getElementById('an-meta-fat-anual');
   if(elAnual&&mensal>0)elAnual.value=Math.round(mensal*12);
   else if(elAnual&&mensal===0)elAnual.value='';
-  saveSD();rAnMetas();rAnSazonalidade();rR();
+  saveSD();rAnMetasProgress();rAnSazonalidade();rR();
 }
 function anMetaAnualChanged(){
   var anual=parseFloat(document.getElementById('an-meta-fat-anual').value)||0;
   var elMensal=document.getElementById('an-meta-fat-mensal');
   if(elMensal&&anual>0)elMensal.value=Math.round(anual/12);
   else if(elMensal&&anual===0)elMensal.value='';
-  saveSD();rAnMetas();rAnSazonalidade();rR();
+  saveSD();rAnMetasProgress();rAnSazonalidade();rR();
 }
 function rAN(){
   rAnMetas();
