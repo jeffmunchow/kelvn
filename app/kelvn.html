@@ -931,15 +931,9 @@ select.aj-input{cursor:pointer;}
     <button class="pill" id="pk-pill-conteudo" onclick="switchPK('conteudo')">Conteúdo do PDF</button>
   </div>
   <div id="pk-panel-pacotes">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
-      <button class="btn" onclick="openPK()">+ Pacote</button>
-    </div>
     <div class="three" id="pk-grid"></div>
   </div>
   <div id="pk-panel-addons" style="display:none;">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
-      <button class="btn" onclick="openAO()">+ Add-on</button>
-    </div>
     <div class="three" id="ao-grid"></div>
   </div>
   <div id="pk-panel-hist" style="display:none;">
@@ -4068,17 +4062,22 @@ function pkStats(pkId){
   var receita=cs.reduce(function(a,c){return a+parseFloat(c.valor||0);},0);
   return{contratos:cs.length,receita:receita};
 }
+var _pkAddCard='<div class="pkcard" onclick="openPK()" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;min-height:120px;opacity:.45;transition:opacity .15s;" onmouseenter="this.style.opacity=\'1\'" onmouseleave="this.style.opacity=\'.45\'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span style="font-size:.72rem;color:var(--text-muted);">Novo pacote</span></div>';
 function rPK(){
   var ps=g('pacotes');
   var el=document.getElementById('pk-grid');
   if(!el)return;
-  if(!ps.length){el.innerHTML='<div style="grid-column:1/-1;padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum pacote cadastrado</div>';return;}
-  el.innerHTML=ps.map(function(p){
+  if(!ps.length){
+    el.innerHTML='<div class="pkcard" onclick="openPK()" style="grid-column:1/-1;border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:3rem;cursor:pointer;opacity:.5;transition:opacity .15s;" onmouseenter="this.style.opacity=\'1\'" onmouseleave="this.style.opacity=\'.5\'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><div style="text-align:center;"><div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">Crie o seu primeiro pacote</div><div style="font-size:.72rem;color:var(--text-hint);">Clique aqui para começar</div></div></div>';
+    return;
+  }
+  var cards=ps.map(function(p){
     var itens=(p.itens||'').split('\n').filter(Boolean).map(function(i){return '<li style="margin-bottom:2px;">'+i+'</li>';}).join('');
     var stats=pkStats(p.id);
     var statsHTML=stats.contratos>0?'<div style="margin-top:.85rem;padding-top:.85rem;border-top:.5px solid var(--border);display:flex;gap:1.5rem;"><div><div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Contratos</div><div style="font-size:.88rem;font-weight:500;color:var(--text);">'+stats.contratos+'</div></div><div><div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">Receita gerada</div><div style="font-size:.88rem;font-weight:500;color:var(--amber);">'+$m(stats.receita)+'</div></div></div>':'';
     return '<div class="pkcard" onclick="openPK(\''+p.id+'\')"><div class="pkcard-nome">'+p.nome+'</div><div class="pkcard-valor">'+$m(p.valor)+'</div><div class="pkcard-desc">'+(p.desc||'')+'</div>'+(itens?'<ul style="margin-top:.75rem;padding-left:1rem;font-size:.72rem;color:var(--text-hint);line-height:1.7;">'+itens+'</ul>':'')+statsHTML+'</div>';
   }).join('');
+  el.innerHTML=cards+_pkAddCard;
 }
 function switchPK(name){
   ['pacotes','addons','hist','conteudo'].forEach(function(n){
@@ -4139,14 +4138,19 @@ function delPK(){if(!confirm('Excluir?'))return;undoBegin();s('pacotes',g('pacot
 
 // ── ADD-ONS ──────────────────────────────────────────────────────────────────
 var _aoId=null;
+var _aoAddCard='<div class="pkcard" onclick="openAO()" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;min-height:120px;opacity:.45;transition:opacity .15s;" onmouseenter="this.style.opacity=\'1\'" onmouseleave="this.style.opacity=\'.45\'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span style="font-size:.72rem;color:var(--text-muted);">Novo add-on</span></div>';
 function rAO(){
   var aos=g('addons')||[];
   var el=document.getElementById('ao-grid');if(!el)return;
-  if(!aos.length){el.innerHTML='<div style="grid-column:1/-1;padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum add-on cadastrado ainda. Add-ons são serviços avulsos que complementam os pacotes — sessão de casal, noite anterior, álbum extra, etc.</div>';return;}
-  el.innerHTML=aos.map(function(a){
+  if(!aos.length){
+    el.innerHTML='<div class="pkcard" onclick="openAO()" style="grid-column:1/-1;border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:3rem;cursor:pointer;opacity:.5;transition:opacity .15s;" onmouseenter="this.style.opacity=\'1\'" onmouseleave="this.style.opacity=\'.5\'"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><div style="text-align:center;"><div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">Crie o seu primeiro add-on</div><div style="font-size:.72rem;color:var(--text-hint);">Serviços avulsos como sessão pré-wedding, álbum extra ou noite anterior</div></div></div>';
+    return;
+  }
+  var cards=aos.map(function(a){
     var itens=(a.itens||'').split('\n').filter(Boolean).map(function(i){return '<li style="margin-bottom:2px;">'+i+'</li>';}).join('');
     return '<div class="pkcard" onclick="openAO(\''+a.id+'\')"><div class="pkcard-nome">'+a.nome+'</div><div class="pkcard-valor">'+$m(a.valor)+'</div><div class="pkcard-desc">'+(a.desc||'')+'</div>'+(itens?'<ul style="margin-top:.75rem;padding-left:1rem;font-size:.72rem;color:var(--text-hint);line-height:1.7;">'+itens+'</ul>':'')+' </div>';
   }).join('');
+  el.innerHTML=cards+_aoAddCard;
 }
 function openAO(id){
   _aoId=id||null;
