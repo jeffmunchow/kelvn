@@ -928,6 +928,7 @@ select.aj-input{cursor:pointer;}
     <button class="pill active" id="pk-pill-pacotes" onclick="switchPK('pacotes')">Pacotes</button>
     <button class="pill" id="pk-pill-addons" onclick="switchPK('addons')">Add-ons</button>
     <button class="pill" id="pk-pill-hist" onclick="switchPK('hist')">Orçamentos</button>
+    <button class="pill" id="pk-pill-conteudo" onclick="switchPK('conteudo')">Conteúdo do PDF</button>
   </div>
   <div id="pk-panel-pacotes">
     <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
@@ -948,6 +949,27 @@ select.aj-input{cursor:pointer;}
         <tbody id="orc-hist-tbody"></tbody>
       </table>
     </div></div>
+  </div>
+  <div id="pk-panel-conteudo" style="display:none;">
+    <div style="font-size:.72rem;color:var(--text-hint);margin-bottom:1.5rem;line-height:1.6;">Fotos e textos usados na geração automática do PDF. Configure uma vez — serve para todos os orçamentos gerados.</div>
+    <div style="font-size:.7rem;color:var(--text-muted);font-weight:500;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em;">Fotos</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.85rem;margin-bottom:1.75rem;" id="foto-slots-grid"></div>
+    <div style="font-size:.7rem;color:var(--text-muted);font-weight:500;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em;">Textos</div>
+    <div class="field"><label>Citação da capa</label><input type="text" id="sd-orc-citacao" placeholder="ex: Não se pode dizer mais do que se vê." oninput="saveSD()"></div>
+    <div class="field"><label>Carta de boas-vindas</label><textarea id="sd-orc-carta" rows="4" oninput="saveSD()" placeholder="Oi! Feliz que você chegou até aqui..."></textarea></div>
+    <div class="field"><label>Sobre mim</label><textarea id="sd-orc-sobre" rows="4" oninput="saveSD()" placeholder="Fotografei meu primeiro casamento em..."></textarea></div>
+    <div class="field"><label>Filosofia / Crenças (opcional)</label><textarea id="sd-orc-filosofia" rows="3" oninput="saveSD()" placeholder="Acreditamos que..."></textarea></div>
+    <div class="field"><label>Texto de encerramento</label><textarea id="sd-orc-encerramento" rows="3" oninput="saveSD()" placeholder="Com amor, [seu nome]"></textarea></div>
+    <div class="tf" style="grid-template-columns:2fr 1fr;">
+      <div class="field"><label>Depoimento de cliente</label><textarea id="sd-orc-depoimento" rows="3" oninput="saveSD()" placeholder="Não é sempre que consigo sentir a energia das pessoas..."></textarea></div>
+      <div class="field"><label>Autor do depoimento</label><input type="text" id="sd-orc-depoimento-autor" placeholder="Rita + Otávio" oninput="saveSD()"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;margin-top:.5rem;">
+      <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Perguntas frequentes (FAQ)</div>
+      <button class="btn" style="font-size:.65rem;padding:2px 10px;" onclick="addFaqItem()">+ Pergunta</button>
+    </div>
+    <div id="faq-list" style="margin-bottom:.5rem;"></div>
+    <div style="font-size:.72rem;color:var(--text-hint);margin-top:.5rem;">Salvo automaticamente.</div>
   </div>
 </div>
 
@@ -1022,7 +1044,6 @@ select.aj-input{cursor:pointer;}
       <button class="aj-cat" id="aj-cat-pagamento" onclick="switchAJ('pagamento')">Pagamento</button>
       <button class="aj-cat" id="aj-cat-contratos" onclick="switchAJ('contratos')">Contratos</button>
       <button class="aj-cat" id="aj-cat-equipe" onclick="switchAJ('equipe')">Equipe</button>
-      <button class="aj-cat" id="aj-cat-orcamento" onclick="switchAJ('orcamento')">Orçamento PDF</button>
     </div>
 
     <!-- Área de conteúdo -->
@@ -1098,30 +1119,6 @@ select.aj-input{cursor:pointer;}
       </div>
 
       <!-- Metas -->
-
-      <!-- Orçamento PDF -->
-      <div id="aj-panel-orcamento" style="display:none;">
-        <div class="aj-section-title">Orçamento em PDF</div>
-        <div class="aj-section-desc">Fotos e textos usados na geração automática do PDF de orçamento. Configure uma vez — serve para todos os orçamentos gerados.</div>
-        <div style="font-size:.7rem;color:var(--text-muted);font-weight:500;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em;">Fotos</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.85rem;margin-bottom:1.75rem;" id="foto-slots-grid"></div>
-        <div style="font-size:.7rem;color:var(--text-muted);font-weight:500;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.05em;">Textos</div>
-        <div class="field"><label>Citação da capa</label><input type="text" id="sd-orc-citacao" placeholder="ex: Não se pode dizer mais do que se vê." oninput="saveSD()"></div>
-        <div class="field"><label>Carta de boas-vindas</label><textarea id="sd-orc-carta" rows="4" oninput="saveSD()" placeholder="Oi! Feliz que você chegou até aqui..."></textarea></div>
-        <div class="field"><label>Sobre mim</label><textarea id="sd-orc-sobre" rows="4" oninput="saveSD()" placeholder="Fotografei meu primeiro casamento em..."></textarea></div>
-        <div class="field"><label>Filosofia / Crenças (opcional)</label><textarea id="sd-orc-filosofia" rows="3" oninput="saveSD()" placeholder="Acreditamos que..."></textarea></div>
-        <div class="field"><label>Texto de encerramento</label><textarea id="sd-orc-encerramento" rows="3" oninput="saveSD()" placeholder="Com amor, [seu nome]"></textarea></div>
-        <div class="tf" style="grid-template-columns:2fr 1fr;">
-          <div class="field"><label>Depoimento de cliente</label><textarea id="sd-orc-depoimento" rows="3" oninput="saveSD()" placeholder="Não é sempre que consigo sentir a energia das pessoas..."></textarea></div>
-          <div class="field"><label>Autor do depoimento</label><input type="text" id="sd-orc-depoimento-autor" placeholder="Rita + Otávio" oninput="saveSD()"></div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;margin-top:.5rem;">
-          <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;">Perguntas frequentes (FAQ)</div>
-          <button class="btn" style="font-size:.65rem;padding:2px 10px;" onclick="addFaqItem()">+ Pergunta</button>
-        </div>
-        <div id="faq-list" style="margin-bottom:.5rem;"></div>
-        <div style="font-size:.72rem;color:var(--text-hint);margin-top:.5rem;">Salvo automaticamente.</div>
-      </div>
 
       <!-- Equipe -->
       <div id="aj-panel-equipe" style="display:none;">
@@ -2665,7 +2662,7 @@ function copiarLinkAssinatura(){
 
 // AJUSTES — Studio data
 function switchAJ(name){
-  ['geral','studio','pagamento','contratos','equipe','automacoes','orcamento'].forEach(function(n){
+  ['geral','studio','pagamento','contratos','equipe','automacoes'].forEach(function(n){
     var pn=document.getElementById('aj-panel-'+n);if(pn)pn.style.display='none';
     var b=document.getElementById('aj-cat-'+n);if(b)b.classList.remove('active');
   });
@@ -2675,7 +2672,6 @@ function switchAJ(name){
   if(name==='equipe'){_loadEqColW();rEQ();}
   if(name==='contratos') _syncTemplateStatus();
   if(name==='automacoes') rAuto();
-  if(name==='orcamento'){rFotoSlots();rFaqList();}
 }
 // ── ORÇAMENTO PDF — FOTOS & CONTEÚDO ────────────────────────────────────────
 var FOTO_SLOTS=[
@@ -4085,7 +4081,7 @@ function rPK(){
   }).join('');
 }
 function switchPK(name){
-  ['pacotes','addons','hist'].forEach(function(n){
+  ['pacotes','addons','hist','conteudo'].forEach(function(n){
     var pn=document.getElementById('pk-panel-'+n);if(pn)pn.style.display='none';
     var pill=document.getElementById('pk-pill-'+n);if(pill)pill.classList.remove('active');
   });
@@ -4094,6 +4090,7 @@ function switchPK(name){
   if(name==='pacotes')rPK();
   if(name==='addons')rAO();
   if(name==='hist')rOrcHist();
+  if(name==='conteudo'){rSD();rFotoSlots();rFaqList();}
 }
 function openPK(id){
   _pkId=id||null;
