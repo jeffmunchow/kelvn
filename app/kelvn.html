@@ -929,23 +929,31 @@ select.aj-input{cursor:pointer;}
   <!-- METAS -->
   <div id="an-metas" style="margin-bottom:1.5rem;"></div>
 
-  <!-- GRÁFICO MENSAL + SAZONALIDADE lado a lado -->
+  <!-- FATURAMENTO POR PRODUTO + SAZONALIDADE lado a lado -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;" id="an-graficos-wrap">
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
-      <div style="margin-bottom:1.25rem;">
-        <div class="col-title" style="margin:0 0 2px;">Faturamento mensal</div>
-        <div style="font-size:.68rem;color:var(--text-hint);">Últimos 12 meses — linha tracejada é a meta</div>
+
+    <!-- Faturamento por produto -->
+    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 0;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;padding:0 1.5rem;">
+        <div>
+          <div class="col-title" style="margin-bottom:2px;">Faturamento por produto</div>
+          <div style="font-size:.68rem;color:var(--text-hint);">Acumulado mensal — <span id="chart-year"></span></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="chart-legend"></div>
       </div>
-      <svg id="an-fat-mensal-chart" width="100%" height="200" style="display:block;overflow:visible;"></svg>
+      <svg id="fat-chart" width="100%" height="280" style="display:block;overflow:visible;"></svg>
     </div>
+
+    <!-- Sazonalidade com seletor de ano -->
     <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
-      <div style="margin-bottom:1.25rem;">
-        <div class="col-title" style="margin:0 0 2px;">Sazonalidade</div>
-        <div style="font-size:.68rem;color:var(--text-hint);">Faturamento médio por mês — todos os períodos</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
+        <div class="col-title" style="margin:0;">Sazonalidade</div>
+        <select class="fi" id="an-sazon-ano" onchange="rAnSazonalidade()" style="width:auto;"></select>
       </div>
       <svg id="an-sazon-chart" width="100%" height="200" style="display:block;overflow:visible;"></svg>
       <div id="an-sazon-insight" style="margin-top:.75rem;font-size:.72rem;color:var(--text-muted);line-height:1.6;"></div>
     </div>
+
   </div>
 
   <!-- ORIGEM DA RECEITA -->
@@ -958,18 +966,6 @@ select.aj-input{cursor:pointer;}
       <div class="col-title" style="margin-bottom:1rem;">Receita por tipo</div>
       <div id="an-cat-tipo"></div>
     </div>
-  </div>
-
-  <!-- Gráfico faturamento por produto (mantido) -->
-  <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 0;margin-bottom:1.5rem;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;padding:0 3rem 0 36px;">
-      <div>
-        <div class="col-title" style="margin-bottom:2px;">Faturamento por produto</div>
-        <div style="font-size:.68rem;color:var(--text-hint);">Acumulado mensal — <span id="chart-year"></span></div>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;" id="chart-legend"></div>
-    </div>
-    <svg id="fat-chart" width="100%" height="365" style="display:block;overflow:visible;"></svg>
   </div>
 
 </div>
@@ -4060,36 +4056,84 @@ function rAnReceita(){
 }
 function rAnSazonalidade(){
   var svg=document.getElementById('an-sazon-chart');if(!svg)return;
+  var sel=document.getElementById('an-sazon-ano');
   var fin=g('fin').filter(function(e){return e.tipo==='entrada'&&e.data;});
-  var somaMes=Array(12).fill(0),anosVistos={};
-  fin.forEach(function(e){var d=new Date(e.data);somaMes[d.getMonth()]+=parseFloat(e.valor||0);anosVistos[d.getFullYear()]=true;});
-  var totalAnos=Math.max(1,Object.keys(anosVistos).length);
-  var mediaMes=somaMes.map(function(v){return v/totalAnos;});
-  var W=svg.getBoundingClientRect().width||800,H=200;
-  var PAD={top:12,right:16,bottom:28,left:48},cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
-  var maxV=Math.max.apply(null,mediaMes.concat([1]));
+
+  // Popula seletor na primeira vez
+  if(sel&&!sel.dataset.populated){
+    var anosDisp={};fin.forEach(function(e){anosDisp[new Date(e.data).getFullYear()]=true;});
+    var anosArr=Object.keys(anosDisp).map(Number).sort(function(a,b){return b-a;});
+    sel.innerHTML='<option value="all">Todos os períodos</option>'+anosArr.map(function(a){return '<option value="'+a+'">'+a+'</option>';}).join('');
+    sel.dataset.populated='1';
+  }
+
+  var anoSel=sel?sel.value:'all';
+  var sd=g('sd')||{};
+  var metaMensal=parseFloat(sd.meta_fat_mensal)||0;
+  var valoresMes,isModo='all';
+
+  if(anoSel==='all'){
+    // Média histórica
+    var somaMes=Array(12).fill(0),anosVistos={};
+    fin.forEach(function(e){var d=new Date(e.data);somaMes[d.getMonth()]+=parseFloat(e.valor||0);anosVistos[d.getFullYear()]=true;});
+    var totalAnos=Math.max(1,Object.keys(anosVistos).length);
+    valoresMes=somaMes.map(function(v){return v/totalAnos;});
+  } else {
+    // Ano específico
+    isModo=parseInt(anoSel);
+    valoresMes=Array(12).fill(0);
+    fin.forEach(function(e){var d=new Date(e.data);if(d.getFullYear()===isModo)valoresMes[d.getMonth()]+=parseFloat(e.valor||0);});
+  }
+
+  var W=svg.getBoundingClientRect().width||600,H=200;
+  var PAD={top:12,right:20,bottom:28,left:48},cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
+  var maxV=Math.max.apply(null,valoresMes.concat([metaMensal,1]));
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var textC=isDark?'#5C5854':'#B0ABA6',gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
   var barW=Math.max(4,(cW/12)-6);
   function xPos(i){return PAD.left+(i/11)*cW;}
   function yPos(v){return PAD.top+cH-(v/maxV)*cH;}
-  var melhorMes=mediaMes.indexOf(Math.max.apply(null,mediaMes));
+  function $kF(v){return v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+Math.round(v);}
+  var melhorMes=valoresMes.indexOf(Math.max.apply(null,valoresMes));
   var html='';
-  [0.5,1].forEach(function(frac){var y=yPos(maxV*frac);html+='<line x1="'+PAD.left+'" y1="'+y+'" x2="'+(W-PAD.right)+'" y2="'+y+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">R$'+Math.round(maxV*frac/1000)+'k</text>';});
-  mediaMes.forEach(function(v,i){var x=xPos(i)-barW/2,yTop=yPos(v),height=cH-(yTop-PAD.top);if(height<=0)return;var isMelhor=(i===melhorMes);html+='<rect x="'+x+'" y="'+yTop+'" width="'+barW+'" height="'+height+'" fill="var(--amber)" opacity="'+(isMelhor?'1':'0.35')+'" rx="2"/>';html+='<text x="'+xPos(i)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="'+(isMelhor?'var(--amber)':textC)+'" font-family="DM Sans,sans-serif">'+MABB[i]+'</text>';});
+
+  // Grid
+  [0.5,1].forEach(function(frac){var y=yPos(maxV*frac);html+='<line x1="'+PAD.left+'" y1="'+y+'" x2="'+(W-PAD.right)+'" y2="'+y+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+$kF(maxV*frac)+'</text>';});
+
+  // Linha de meta (só quando ano específico selecionado)
+  if(isModo!=='all'&&metaMensal>0){var yMeta=yPos(metaMensal);html+='<line x1="'+PAD.left+'" y1="'+yMeta+'" x2="'+(W-PAD.right)+'" y2="'+yMeta+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="5,4" opacity=".5"/>';html+='<text x="'+(W-PAD.right+4)+'" y="'+(yMeta+4)+'" font-size="9" fill="var(--amber)" font-family="DM Sans,sans-serif" opacity=".7">meta</text>';}
+
+  // Barras
+  valoresMes.forEach(function(v,i){
+    var x=xPos(i)-barW/2,yTop=yPos(v),height=cH-(yTop-PAD.top);
+    if(height<=0){html+='<text x="'+xPos(i)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+MABB[i]+'</text>';return;}
+    var isMelhor=(i===melhorMes&&v>0);
+    var fill=isModo!=='all'&&metaMensal>0?(v>=metaMensal?'var(--amber)':'var(--coral)'):'var(--amber)';
+    var opac=isMelhor?'1':'0.4';
+    if(isModo!=='all')opac=v>=metaMensal?'1':'0.6';
+    html+='<rect x="'+x+'" y="'+yTop+'" width="'+barW+'" height="'+height+'" fill="'+fill+'" opacity="'+opac+'" rx="2"/>';
+    html+='<text x="'+xPos(i)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="'+(isMelhor?'var(--amber)':textC)+'" font-family="DM Sans,sans-serif">'+MABB[i]+'</text>';
+  });
+
   svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.innerHTML=html;
+
+  // Insight
   var insightEl=document.getElementById('an-sazon-insight');
-  if(insightEl&&mediaMes[melhorMes]>0){
+  if(insightEl){
     var nomesMeses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    var meses3Fortes=mediaMes.map(function(v,i){return{i:i,v:v};}).sort(function(a,b){return b.v-a.v;}).slice(0,3).map(function(x){return nomesMeses[x.i];});
-    insightEl.textContent='Seus meses mais fortes historicamente: '+meses3Fortes.join(', ')+'. Use esse padrão para planejar marketing nos meses anteriores a esses picos.';
+    if(valoresMes[melhorMes]>0){
+      var meses3=valoresMes.map(function(v,i){return{i:i,v:v};}).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;}).slice(0,3).map(function(x){return nomesMeses[x.i];});
+      insightEl.textContent=anoSel==='all'?'Meses mais fortes historicamente: '+meses3.join(', ')+'. Planeje marketing nos meses anteriores a esses picos.':'Meses mais fortes em '+anoSel+': '+meses3.join(', ')+'.';
+    } else {
+      insightEl.textContent='';
+    }
   }
 }
 function rAN(){
   rAnMetas();
   rAnKpisEstrategicos();
   rAnReceita();
-  setTimeout(function(){rAnFatMensalChart();rAnSazonalidade();renderFatChart();},50);
+  setTimeout(function(){rAnSazonalidade();renderFatChart();},50);
 }
 var _precLoaded=false;
 function loadPrec(){
