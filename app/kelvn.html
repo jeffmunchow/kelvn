@@ -3936,83 +3936,71 @@ function rMetas(){
   document.getElementById('mp-wed-restante').textContent=pctWed>=100?'✓ Meta atingida este ano':restWed+' casamento'+(restWed!==1?'s':'')+' para a meta';
 }
 
+function _buildProgressCard(opts){
+  var pct=opts.meta>0?Math.min(Math.round(opts.atual/opts.meta*100),100):0;
+  var cor=pct>=100?'var(--teal)':pct>=60?'var(--amber)':'var(--coral)';
+  var status=pct>=100?'✓ Meta atingida':(opts.tipo==='valor'?'Faltam R$ '+(opts.meta-opts.atual).toLocaleString('pt-BR',{maximumFractionDigits:0}):(opts.meta-opts.atual)+' para a meta');
+  var atualFmt=opts.tipo==='valor'?'R$ '+opts.atual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):opts.atual+' confirmados';
+  var metaFmt=opts.tipo==='valor'?'meta: R$ '+opts.meta.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'meta: '+opts.meta+' casamentos';
+  return '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;">'+
+    '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;">'+opts.label+'</div>'+
+    '<div style="margin-bottom:.75rem;">'+
+      '<div style="font-size:1.4rem;font-weight:500;letter-spacing:-.02em;line-height:1;color:'+cor+';">'+atualFmt+'</div>'+
+      '<div style="font-size:.68rem;color:var(--text-hint);margin-top:3px;">'+metaFmt+'</div>'+
+    '</div>'+
+    '<div style="margin-top:auto;">'+
+      '<div style="height:3px;background:var(--border-strong);border-radius:3px;overflow:hidden;margin-bottom:.5rem;">'+
+        '<div style="height:100%;border-radius:3px;background:'+cor+';width:'+pct+'%;transition:width .6s cubic-bezier(.4,0,.2,1);"></div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;">'+
+        '<div style="font-size:.68rem;color:'+(pct>=100?'var(--teal)':'var(--text-hint)')+';">'+status+'</div>'+
+        '<div style="font-size:.72rem;color:var(--text-hint);">'+pct+'%</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
 function rAnMetas(){
   var el=document.getElementById('an-metas');
   if(!el)return;
-  // Preserva valores dos inputs antes de re-renderizar
-  var activeId=document.activeElement?document.activeElement.id:'';
-  var vMensal=(document.getElementById('an-meta-fat-mensal')||{}).value;
-  var vAnual=(document.getElementById('an-meta-fat-anual')||{}).value;
-  var vWed=(document.getElementById('an-meta-casamentos-ano')||{}).value;
   var sd=g('sd')||{};
-  var metaFatAnual=parseFloat(sd.meta_fat_anual)||0;
   var metaFatMensal=parseFloat(sd.meta_fat_mensal)||0;
+  var metaFatAnual=parseFloat(sd.meta_fat_anual)||0;
   var metaWed=parseInt(sd.meta_casamentos_ano)||0;
-  // Usa valor atual do input se ele estava em foco (evita sobrescrever enquanto digita)
-  if(activeId==='an-meta-fat-mensal'&&vMensal!==undefined)metaFatMensal=parseFloat(vMensal)||0;
-  if(activeId==='an-meta-fat-anual'&&vAnual!==undefined)metaFatAnual=parseFloat(vAnual)||0;
-  if(activeId==='an-meta-casamentos-ano'&&vWed!==undefined)metaWed=parseInt(vWed)||0;
+  // Monta estrutura do grid na primeira vez
+  if(!document.getElementById('an-metas-definir')){
+    el.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:stretch;margin-bottom:1rem;';
+    var definirCard='<div id="an-metas-definir" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">'+
+      '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">Definir metas</div>'+
+      '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
+        '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span><input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'"></div>'+
+        '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span><input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'"></div>'+
+        '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span><input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetasProgress();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'"></div>'+
+      '</div>'+
+    '</div>';
+    // Slot para os 2 progress cards + card definir
+    el.innerHTML='<div id="an-mp1"></div><div id="an-mp2"></div>'+definirCard;
+  } else {
+    // Só popula inputs se não estão em foco
+    var act=document.activeElement&&document.activeElement.id;
+    if(act!=='an-meta-fat-mensal'){var e=document.getElementById('an-meta-fat-mensal');if(e)e.value=metaFatMensal||'';}
+    if(act!=='an-meta-fat-anual'){var e=document.getElementById('an-meta-fat-anual');if(e)e.value=metaFatAnual||'';}
+    if(act!=='an-meta-casamentos-ano'){var e=document.getElementById('an-meta-casamentos-ano');if(e)e.value=metaWed||'';}
+  }
   rAnMetasProgress();
-  // Atualiza inputs sem re-renderizar o card definir
-  var elM=document.getElementById('an-meta-fat-mensal');
-  var elA=document.getElementById('an-meta-fat-anual');
-  var elW=document.getElementById('an-meta-casamentos-ano');
-  if(elM&&activeId!=='an-meta-fat-mensal')elM.value=metaFatMensal||'';
-  if(elA&&activeId!=='an-meta-fat-anual')elA.value=metaFatAnual||'';
-  if(elW&&activeId!=='an-meta-casamentos-ano')elW.value=metaWed||'';
 }
 function rAnMetasProgress(){
-  var el=document.getElementById('an-metas');
-  if(!el)return;
+  var p1=document.getElementById('an-mp1'),p2=document.getElementById('an-mp2');
+  if(!p1||!p2)return;
   var sd=g('sd')||{};
-  var metaFatAnual=parseFloat(sd.meta_fat_anual)||0;
   var metaFatMensal=parseFloat(sd.meta_fat_mensal)||0;
   var metaWed=parseInt(sd.meta_casamentos_ano)||0;
   var now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
   var meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   var fatMes=g('fin').filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;var d=new Date(e.data);return d.getMonth()===mo&&d.getFullYear()===yr;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
-  var fatAno=g('fin').filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;return new Date(e.data).getFullYear()===yr;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);
   var statusValidos=['Sessão','Religioso','Welcome-party','Casamento','After-party','Pós-produção','Álbum design','Entregue','Finalizado'];
   var wedAno=g('clientes').filter(function(c){if(!c.data)return false;return new Date(c.data).getFullYear()===yr&&statusValidos.indexOf(c.status)>-1;}).length;
-  function progressCard(opts){
-    var pct=opts.meta>0?Math.min(Math.round(opts.atual/opts.meta*100),100):0;
-    var cor=pct>=100?'var(--teal)':pct>=60?'var(--amber)':'var(--coral)';
-    var status=pct>=100?'✓ Meta atingida':(opts.tipo==='valor'?'Faltam R$ '+(opts.meta-opts.atual).toLocaleString('pt-BR',{maximumFractionDigits:0}):(opts.meta-opts.atual)+' para a meta');
-    var atualFmt=opts.tipo==='valor'?'R$ '+opts.atual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):opts.atual+' confirmados';
-    var metaFmt=opts.tipo==='valor'?'meta: R$ '+opts.meta.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'meta: '+opts.meta+' casamentos';
-    return '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;">'+
-      '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;">'+opts.label+'</div>'+
-      '<div style="margin-bottom:.75rem;">'+
-        '<div style="font-size:1.4rem;font-weight:500;letter-spacing:-.02em;line-height:1;color:'+cor+';">'+atualFmt+'</div>'+
-        '<div style="font-size:.68rem;color:var(--text-hint);margin-top:3px;">'+metaFmt+'</div>'+
-      '</div>'+
-      '<div style="margin-top:auto;">'+
-        '<div style="height:3px;background:var(--border-strong);border-radius:3px;overflow:hidden;margin-bottom:.5rem;">'+
-          '<div style="height:100%;border-radius:3px;background:'+cor+';width:'+pct+'%;transition:width .6s cubic-bezier(.4,0,.2,1);"></div>'+
-        '</div>'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;">'+
-          '<div style="font-size:.68rem;color:'+(pct>=100?'var(--teal)':'var(--text-hint)')+';">'+status+'</div>'+
-          '<div style="font-size:.72rem;color:var(--text-hint);">'+pct+'%</div>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-  }
-  var definirCard='<div id="an-metas-definir" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">'+
-    '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">Definir metas</div>'+
-    '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
-      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span><input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'"></div>'+
-      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span><input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'"></div>'+
-      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span><input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetasProgress();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'"></div>'+
-    '</div>'+
-  '</div>';
-  var cards=[];
-  if(metaFatMensal)cards.push(progressCard({label:'Faturamento — '+meses[mo],atual:fatMes,meta:metaFatMensal,tipo:'valor'}));
-  if(metaWed)cards.push(progressCard({label:'Casamentos — '+yr,atual:wedAno,meta:metaWed,tipo:'contagem'}));
-  el.style.display='grid';
-  el.style.gridTemplateColumns='1fr 1fr 1fr';
-  el.style.gap='1rem';
-  el.style.alignItems='stretch';
-  el.innerHTML=cards.join('')+definirCard;
+  p1.innerHTML=metaFatMensal?_buildProgressCard({label:'Faturamento — '+meses[mo],atual:fatMes,meta:metaFatMensal,tipo:'valor'}):'';
+  p2.innerHTML=metaWed?_buildProgressCard({label:'Casamentos — '+yr,atual:wedAno,meta:metaWed,tipo:'contagem'}):'';
 }
 function rAnKpisEstrategicos(){
   var el=document.getElementById('an-kpis-estrategicos');
