@@ -3977,15 +3977,15 @@ function rAnMetas(){
     '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
       '<div style="display:flex;align-items:center;gap:.5rem;">'+
         '<span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span>'+
-        '<input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="saveSD();rAnMetas();rAnSazonalidade();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'">'+
+        '<input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'">'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:.5rem;">'+
         '<span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span>'+
-        '<input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="saveSD();rAnMetas();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'">'+
+        '<input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'">'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:.5rem;">'+
         '<span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span>'+
-        '<input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetas();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'">'+
+        '<input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetas();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'">'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -4139,6 +4139,20 @@ function rAnSazonalidade(){
       insightEl.textContent='';
     }
   }
+}
+function anMetaMensalChanged(){
+  var mensal=parseFloat(document.getElementById('an-meta-fat-mensal').value)||0;
+  var elAnual=document.getElementById('an-meta-fat-anual');
+  if(elAnual&&mensal>0)elAnual.value=Math.round(mensal*12);
+  else if(elAnual&&mensal===0)elAnual.value='';
+  saveSD();rAnMetas();rAnSazonalidade();rR();
+}
+function anMetaAnualChanged(){
+  var anual=parseFloat(document.getElementById('an-meta-fat-anual').value)||0;
+  var elMensal=document.getElementById('an-meta-fat-mensal');
+  if(elMensal&&anual>0)elMensal.value=Math.round(anual/12);
+  else if(elMensal&&anual===0)elMensal.value='';
+  saveSD();rAnMetas();rAnSazonalidade();rR();
 }
 function rAN(){
   rAnMetas();
