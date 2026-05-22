@@ -4037,7 +4037,10 @@ function rAnFatMensalChart(){
   var fatMeses=meses12.map(function(mo){return fin.filter(function(e){if(e.tipo!=='entrada'||!e.data)return false;var d=new Date(e.data);return d.getFullYear()===mo.y&&d.getMonth()===mo.m;}).reduce(function(a,e){return a+parseFloat(e.valor||0);},0);});
   var sd=g('sd')||{};
   var metaMensal=parseFloat(sd.meta_fat_mensal)||0;
-  var maxVal=Math.max.apply(null,fatMeses.concat([metaMensal,1]));
+  var rawMaxVal=Math.max.apply(null,fatMeses.concat([metaMensal,1]));
+  var STEP5f=5000;
+  var maxVal=Math.ceil(rawMaxVal/STEP5f)*STEP5f;
+  if(maxVal<STEP5f)maxVal=STEP5f;
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
   var textC=isDark?'#5C5854':'#B0ABA6';
@@ -4046,7 +4049,8 @@ function rAnFatMensalChart(){
   function yPos(v){return PAD.top+cH-(v/maxVal)*cH;}
   function $kF(v){return v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+Math.round(v);}
   var html='';
-  [0,0.25,0.5,0.75,1].forEach(function(frac){var val=maxVal*frac,y=yPos(val);html+='<line x1="'+PAD.left+'" y1="'+y+'" x2="'+(W-PAD.right)+'" y2="'+y+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+$kF(val)+'</text>';});
+  var nStepsF=Math.round(maxVal/STEP5f);
+  for(var gfi=1;gfi<=nStepsF;gfi++){var gfv=gfi*STEP5f;var gfy=yPos(gfv);html+='<line x1="'+PAD.left+'" y1="'+gfy+'" x2="'+(W-PAD.right)+'" y2="'+gfy+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(gfy+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+$kF(gfv)+'</text>';}
   if(metaMensal>0){var yMeta=yPos(metaMensal);html+='<line x1="'+PAD.left+'" y1="'+yMeta+'" x2="'+(W-PAD.right)+'" y2="'+yMeta+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="5,4" opacity=".5"/>';html+='<text x="'+(W-PAD.right+5)+'" y="'+(yMeta+4)+'" font-size="9" fill="var(--amber)" font-family="DM Sans,sans-serif" opacity=".7">meta</text>';}
   fatMeses.forEach(function(val,i){var x=xPos(i)-barW/2,yTop=yPos(val),height=cH-(yTop-PAD.top);if(height<=0)return;var atingiu=metaMensal>0?val>=metaMensal:true;html+='<rect x="'+x+'" y="'+yTop+'" width="'+barW+'" height="'+height+'" fill="'+(atingiu?'var(--amber)':'var(--coral)')+'" opacity="'+(atingiu?'1':'0.55')+'" rx="2"/>';});
   meses12.forEach(function(mo,i){html+='<text x="'+xPos(i)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+mo.label+'</text>';});
@@ -4102,7 +4106,10 @@ function rAnSazonalidade(){
   var rect=svg.getBoundingClientRect();
   var W=rect.width||600,H=rect.height||300;
   var LABEL_H=22;var PAD={top:12,right:44,bottom:0,left:52},cW=W-PAD.left-PAD.right,cH=H-PAD.top-LABEL_H;
-  var maxV=Math.max.apply(null,valoresMes.concat([1]));
+  var rawMaxV=Math.max.apply(null,valoresMes.concat([1]));
+  var STEP5=5000;
+  var maxV=Math.ceil(rawMaxV/STEP5)*STEP5;
+  if(maxV<STEP5)maxV=STEP5;
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var textC=isDark?'#5C5854':'#B0ABA6',gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
   var barW=Math.max(4,(cW/12)-6);
@@ -4112,8 +4119,9 @@ function rAnSazonalidade(){
   var melhorMes=valoresMes.indexOf(Math.max.apply(null,valoresMes));
   var html='';
 
-  // Grid
-  [0.5,1].forEach(function(frac){var y=yPos(maxV*frac);html+='<line x1="'+PAD.left+'" y1="'+y+'" x2="'+(W-PAD.right)+'" y2="'+y+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+$kF(maxV*frac)+'</text>';});
+  // Grid — linhas de 5 em 5k
+  var nSteps=Math.round(maxV/STEP5);
+  for(var gi=1;gi<=nSteps;gi++){var gv=gi*STEP5;var gy=yPos(gv);html+='<line x1="'+PAD.left+'" y1="'+gy+'" x2="'+(W-PAD.right)+'" y2="'+gy+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+$kF(gv)+'</text>';}
 
   // Linha de meta (sempre visível se meta definida e cabe na escala)
   if(metaMensal>0&&metaMensal<=maxV){var yMeta=yPos(metaMensal);html+='<line x1="'+PAD.left+'" y1="'+yMeta+'" x2="'+(W-PAD.right)+'" y2="'+yMeta+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="5,4" opacity=".5"/>';html+='<text x="'+(W-PAD.right+4)+'" y="'+(yMeta+4)+'" font-size="9" fill="var(--amber)" font-family="DM Sans,sans-serif" opacity=".7">meta</text>';}
