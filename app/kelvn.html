@@ -941,7 +941,7 @@ select.aj-input{cursor:pointer;}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;" id="chart-legend"></div>
       </div>
-      <svg id="fat-chart" width="100%" height="280" style="display:block;overflow:visible;"></svg>
+      <svg id="fat-chart" width="100%" height="360" style="display:block;overflow:visible;"></svg>
     </div>
 
     <!-- Sazonalidade com seletor de ano -->
@@ -950,7 +950,7 @@ select.aj-input{cursor:pointer;}
         <div class="col-title" style="margin:0;">Sazonalidade</div>
         <select class="fi" id="an-sazon-ano" onchange="rAnSazonalidade()" style="width:auto;"></select>
       </div>
-      <svg id="an-sazon-chart" width="100%" height="200" style="display:block;overflow:visible;"></svg>
+      <svg id="an-sazon-chart" width="100%" height="300" style="display:block;overflow:visible;"></svg>
       <div id="an-sazon-insight" style="margin-top:.75rem;font-size:.72rem;color:var(--text-muted);line-height:1.6;"></div>
     </div>
 
@@ -4085,7 +4085,8 @@ function rAnSazonalidade(){
     fin.forEach(function(e){var d=new Date(e.data);if(d.getFullYear()===isModo)valoresMes[d.getMonth()]+=parseFloat(e.valor||0);});
   }
 
-  var W=svg.getBoundingClientRect().width||600,H=200;
+  var rect=svg.getBoundingClientRect();
+  var W=rect.width||600,H=rect.height||300;
   var PAD={top:12,right:20,bottom:28,left:48},cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
   var maxV=Math.max.apply(null,valoresMes.concat([metaMensal,1]));
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
@@ -4849,8 +4850,9 @@ function renderFatChart(){
   var cyEl=document.getElementById('chart-year');if(cyEl)cyEl.textContent=yr;
   var svg=document.getElementById('fat-chart');
   if(!svg) return;
-  var W=svg.getBoundingClientRect().width||600;
-  var H=365;
+  var _r=svg.getBoundingClientRect();
+  var W=_r.width||600;
+  var H=_r.height||360;
   var PAD={top:10,right:8,bottom:32,left:36};
   var cW=W-PAD.left-PAD.right;
   var cH=H-PAD.top-PAD.bottom;
