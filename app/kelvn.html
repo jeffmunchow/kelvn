@@ -5324,6 +5324,22 @@ function rEdu(){
   if(!grid) return;
   grid.innerHTML='';
 
+  var hero=document.createElement('div');
+  hero.style.cssText='grid-column:1/-1;padding:2.5rem 0 2.75rem;border-bottom:.5px solid var(--border-strong);margin-bottom:2.5rem;max-width:560px;';
+  var heroTitle=document.createElement('div');
+  heroTitle.style.cssText='font-family:\'Playfair Display\',serif;font-size:1.6rem;font-weight:600;color:var(--text);line-height:1.25;margin-bottom:.85rem;';
+  heroTitle.textContent='Fotografar bem é o começo.';
+  var heroDesc=document.createElement('div');
+  heroDesc.style.cssText='font-size:.82rem;color:var(--text-muted);line-height:1.75;margin-bottom:.85rem;';
+  heroDesc.innerHTML='A série <em>Sobre o Ofício</em> foi criada para quem quer construir um negócio de verdade por trás das fotos. Cada volume cobre uma parte do caminho — da primeira reunião ao álbum entregue.';
+  var heroMeta=document.createElement('div');
+  heroMeta.style.cssText='font-size:.72rem;color:var(--text-hint);';
+  heroMeta.textContent='6 volumes disponíveis · 4 em breve';
+  hero.appendChild(heroTitle);
+  hero.appendChild(heroDesc);
+  hero.appendChild(heroMeta);
+  grid.appendChild(hero);
+
   var available=EBOOKS.filter(function(e){ return !e.breve; });
 
   var BREVE=[
