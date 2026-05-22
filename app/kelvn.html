@@ -968,6 +968,25 @@ select.aj-input{cursor:pointer;}
     </div>
   </div>
 
+  <!-- DEFINIR METAS -->
+  <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+    <div class="col-title" style="margin-bottom:1rem;">Definir metas</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+      <div>
+        <div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Faturamento mensal</div>
+        <input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="saveSD();rAnMetas();rAnSazonalidade();" style="width:100%;">
+      </div>
+      <div>
+        <div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Faturamento anual</div>
+        <input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="saveSD();rAnMetas();" style="width:100%;">
+      </div>
+      <div>
+        <div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Casamentos no ano</div>
+        <input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetas();" style="width:100%;">
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- EDUCAÇÃO -->
@@ -2596,7 +2615,8 @@ function rSD(){
     'sd-studio-endereco':'studio_endereco','sd-studio-telefone':'studio_telefone',
     'sd-studio-email':'studio_email','sd-studio-pix':'studio_pix',
     'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro',
-    'sd-meta-fat-mensal':'meta_fat_mensal','sd-meta-fat-anual':'meta_fat_anual','sd-meta-casamentos-ano':'meta_casamentos_ano'
+    'sd-meta-fat-mensal':'meta_fat_mensal','sd-meta-fat-anual':'meta_fat_anual','sd-meta-casamentos-ano':'meta_casamentos_ano',
+    'an-meta-fat-mensal':'meta_fat_mensal','an-meta-fat-anual':'meta_fat_anual','an-meta-casamentos-ano':'meta_casamentos_ano'
   };
   Object.keys(map).forEach(function(elId){
     var el=document.getElementById(elId);if(el)el.value=sd[map[elId]]||'';
@@ -2610,10 +2630,11 @@ function saveSD(){
     'sd-studio-endereco':'studio_endereco','sd-studio-telefone':'studio_telefone',
     'sd-studio-email':'studio_email','sd-studio-pix':'studio_pix',
     'sd-studio-banco':'studio_banco','sd-studio-foro':'studio_foro',
-    'sd-meta-fat-mensal':'meta_fat_mensal','sd-meta-fat-anual':'meta_fat_anual','sd-meta-casamentos-ano':'meta_casamentos_ano'
+    'sd-meta-fat-mensal':'meta_fat_mensal','sd-meta-fat-anual':'meta_fat_anual','sd-meta-casamentos-ano':'meta_casamentos_ano',
+    'an-meta-fat-mensal':'meta_fat_mensal','an-meta-fat-anual':'meta_fat_anual','an-meta-casamentos-ano':'meta_casamentos_ano'
   };
   Object.keys(map).forEach(function(elId){
-    var el=document.getElementById(elId);if(el)sd[map[elId]]=el.value;
+    var el=document.getElementById(elId);if(el&&el.value!=='')sd[map[elId]]=el.value;
   });
   undoBegin();s('sd',sd);undoCommit();
 }
