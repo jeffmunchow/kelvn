@@ -4108,8 +4108,9 @@ function rAnSazonalidade(){
 
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var textC=isDark?'#5C5854':'#B0ABA6',gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
-  var barW=Math.max(4,(cW/12)-6);
-  function xPos(i){return PAD.left+(i/11)*cW;}
+  var slotW=cW/12;
+  var barW=Math.max(4,slotW-6);
+  function xPos(i){return PAD.left+(i+0.5)*slotW;}
   function yPos(v){return PAD.top+cH-(v/maxV)*cH;}
   function $kF(v){return v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+Math.round(v);}
 
