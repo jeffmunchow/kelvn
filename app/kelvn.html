@@ -308,8 +308,10 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .auth-screen-reset.visible{display:flex;}
 
 /* ── PAINEL IA (sidebar style) ─────────────────────────────── */
-.ai-spanel{width:min(62vw,760px);flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border);position:fixed;top:0;left:56px;height:calc(100vh / 0.9);z-index:99;display:flex;flex-direction:column;transform:translateX(-110%);transition:transform .22s cubic-bezier(.4,0,.2,1);overflow:hidden;}
-.ai-spanel.open{transform:translateX(0);}
+.ai-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:198;display:none;}
+.ai-backdrop.open{display:block;}
+.ai-spanel{width:min(600px,90vw);background:var(--surface);border:.5px solid var(--border);border-radius:12px;position:fixed;top:50%;left:50%;height:min(680px,85vh);z-index:199;display:flex;flex-direction:column;transform:translate(-50%,-54%);opacity:0;pointer-events:none;transition:transform .22s cubic-bezier(.4,0,.2,1),opacity .2s;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.18);}
+.ai-spanel.open{transform:translate(-50%,-50%);opacity:1;pointer-events:all;}
 .ai-header{padding:1.1rem 1.25rem .9rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
 .ai-header-icon{width:30px;height:30px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .ai-header-title{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;color:var(--text);}
@@ -367,6 +369,7 @@ select.aj-input{cursor:pointer;}
 <body>
 
 <!-- IA PANEL (sidebar style) -->
+<div class="ai-backdrop" id="aiBackdrop" onclick="closeAI()"></div>
 <div class="ai-spanel" id="aiPanel">
   <div class="ai-header">
     <div>
@@ -506,7 +509,7 @@ select.aj-input{cursor:pointer;}
 
 
 <!-- MAIN -->
-<div class="main" id="main-area" onclick="closeAI()">
+<div class="main" id="main-area">
 
   <!-- TOPBAR -->
   <div class="topbar">
@@ -5832,13 +5835,15 @@ function toggleAI(){
 
 function openAI(){
   document.getElementById('aiPanel').classList.add('open');
+  document.getElementById('aiBackdrop').classList.add('open');
   document.querySelectorAll('.snav-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('sn-ia').classList.add('active');
-  setTimeout(function(){ document.getElementById('aiInput').focus(); }, 300);
+  setTimeout(function(){ document.getElementById('aiInput').focus(); }, 250);
 }
 
 function closeAI(){
   document.getElementById('aiPanel').classList.remove('open');
+  document.getElementById('aiBackdrop').classList.remove('open');
   document.getElementById('sn-ia').classList.remove('active');
 }
 
