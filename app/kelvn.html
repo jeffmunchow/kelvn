@@ -3942,7 +3942,7 @@ function _buildProgressCard(opts){
   var status=pct>=100?'✓ Meta atingida':(opts.tipo==='valor'?'Faltam R$ '+(opts.meta-opts.atual).toLocaleString('pt-BR',{maximumFractionDigits:0}):(opts.meta-opts.atual)+' para a meta');
   var atualFmt=opts.tipo==='valor'?'R$ '+opts.atual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):opts.atual+' confirmados';
   var metaFmt=opts.tipo==='valor'?'meta: R$ '+opts.meta.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'meta: '+opts.meta+' casamentos';
-  return '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;">'+
+  return '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;flex:1;">'+
     '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;">'+opts.label+'</div>'+
     '<div style="margin-bottom:.75rem;">'+
       '<div style="font-size:1.4rem;font-weight:500;letter-spacing:-.02em;line-height:1;color:'+cor+';">'+atualFmt+'</div>'+
@@ -3978,7 +3978,7 @@ function rAnMetas(){
       '</div>'+
     '</div>';
     // Slot para os 2 progress cards + card definir
-    el.innerHTML='<div id="an-mp1"></div><div id="an-mp2"></div>'+definirCard;
+    el.innerHTML='<div id="an-mp1" style="display:flex;flex-direction:column;"></div><div id="an-mp2" style="display:flex;flex-direction:column;"></div>'+definirCard;
   } else {
     // Só popula inputs se não estão em foco
     var act=document.activeElement&&document.activeElement.id;
