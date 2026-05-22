@@ -4090,11 +4090,11 @@ function rAnSazonalidade(){
   var valoresMes,isModo='all';
 
   if(anoSel==='all'){
-    // Média histórica
-    var somaMes=Array(12).fill(0),anosVistos={};
-    fin.forEach(function(e){var d=new Date(e.data);somaMes[d.getMonth()]+=parseFloat(e.valor||0);anosVistos[d.getFullYear()]=true;});
-    var totalAnos=Math.max(1,Object.keys(anosVistos).length);
-    valoresMes=somaMes.map(function(v){return v/totalAnos;});
+    // Média histórica — conta anos com dados por mês (não total global)
+    var somaMes=Array(12).fill(0);
+    var anosPorMes=Array(12).fill(0).map(function(){return {};});
+    fin.forEach(function(e){var d=new Date(e.data);var mo=d.getMonth();somaMes[mo]+=parseFloat(e.valor||0);anosPorMes[mo][d.getFullYear()]=true;});
+    valoresMes=somaMes.map(function(v,i){return v/Math.max(1,Object.keys(anosPorMes[i]).length);});
   } else {
     // Ano específico
     isModo=parseInt(anoSel);
