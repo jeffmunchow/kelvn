@@ -4075,62 +4075,70 @@ function rAnSazonalidade(){
   var svg=document.getElementById('an-sazon-chart');if(!svg)return;
   var sel=document.getElementById('an-sazon-ano');
   var fin=g('fin').filter(function(e){return e.tipo==='entrada'&&e.data;});
+  var hoje=new Date(),nowY=hoje.getFullYear(),nowM=hoje.getMonth();
 
-  // Popula seletor na primeira vez
-  if(sel&&!sel.dataset.populated){
-    var anosDisp={};fin.forEach(function(e){anosDisp[new Date(e.data).getFullYear()]=true;});
+  // Popula seletor — ano atual sempre presente, outros anos com dados
+  if(sel){
+    var anosDisp={};anosDisp[nowY]=true;
+    fin.forEach(function(e){anosDisp[new Date(e.data).getFullYear()]=true;});
     var anosArr=Object.keys(anosDisp).map(Number).sort(function(a,b){return b-a;});
-    sel.innerHTML='<option value="all">Todos os períodos</option>'+anosArr.map(function(a){return '<option value="'+a+'">'+a+'</option>';}).join('');
-    sel.dataset.populated='1';
+    var prevVal=sel.value||String(nowY);
+    sel.innerHTML=anosArr.map(function(a){return '<option value="'+a+'">'+a+'</option>';}).join('');
+    sel.value=(anosArr.indexOf(parseInt(prevVal))>-1)?prevVal:String(nowY);
   }
 
-  var anoSel=sel?sel.value:'all';
+  var anoSel=sel?parseInt(sel.value):nowY;
   var sd=g('sd')||{};
   var metaMensal=parseFloat(sd.meta_fat_mensal)||0;
-  var valoresMes,isModo='all';
+  var isAnoAtual=(anoSel===nowY);
 
-  if(anoSel==='all'){
-    // Média histórica — conta anos com dados por mês (não total global)
-    var somaMes=Array(12).fill(0);
-    var anosPorMes=Array(12).fill(0).map(function(){return {};});
-    fin.forEach(function(e){var d=new Date(e.data);var mo=d.getMonth();somaMes[mo]+=parseFloat(e.valor||0);anosPorMes[mo][d.getFullYear()]=true;});
-    valoresMes=somaMes.map(function(v,i){return v/Math.max(1,Object.keys(anosPorMes[i]).length);});
-  } else {
-    // Ano específico
-    isModo=parseInt(anoSel);
-    valoresMes=Array(12).fill(0);
-    fin.forEach(function(e){var d=new Date(e.data);if(d.getFullYear()===isModo)valoresMes[d.getMonth()]+=parseFloat(e.valor||0);});
-  }
+  // Calcula valores por mês — meses futuros do ano atual ficam null
+  var valoresMes=Array(12).fill(0);
+  fin.forEach(function(e){var d=new Date(e.data);if(d.getFullYear()===anoSel)valoresMes[d.getMonth()]+=parseFloat(e.valor||0);});
 
   var rect=svg.getBoundingClientRect();
   var W=rect.width||600,H=rect.height||300;
   var LABEL_H=22;var PAD={top:12,right:44,bottom:0,left:52},cW=W-PAD.left-PAD.right,cH=H-PAD.top-LABEL_H;
-  var rawMaxV=Math.max.apply(null,valoresMes.concat([1]));
+
+  // Escala baseada apenas em meses existentes (passados)
+  var limMes=isAnoAtual?nowM:11;
+  var rawMaxV=Math.max.apply(null,valoresMes.slice(0,limMes+1).concat([1]));
   var STEP5=5000;
   var maxV=(Math.floor(rawMaxV/STEP5)+1)*STEP5;
+
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var textC=isDark?'#5C5854':'#B0ABA6',gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
   var barW=Math.max(4,(cW/12)-6);
   function xPos(i){return PAD.left+(i/11)*cW;}
   function yPos(v){return PAD.top+cH-(v/maxV)*cH;}
   function $kF(v){return v>=1000?'R$'+(v/1000).toFixed(0)+'k':'R$'+Math.round(v);}
-  var melhorMes=valoresMes.indexOf(Math.max.apply(null,valoresMes));
+
+  // melhorMes considera apenas meses existentes
+  var melhorMes=0,melhorV=0;
+  for(var mi=0;mi<=limMes;mi++){if(valoresMes[mi]>melhorV){melhorV=valoresMes[mi];melhorMes=mi;}}
+
   var html='';
 
   // Grid — linhas de 5 em 5k
   var nSteps=Math.round(maxV/STEP5);
   for(var gi=1;gi<=nSteps;gi++){var gv=gi*STEP5;var gy=yPos(gv);html+='<line x1="'+PAD.left+'" y1="'+gy+'" x2="'+(W-PAD.right)+'" y2="'+gy+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(gy+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+$kF(gv)+'</text>';}
 
-  // Linha de meta (sempre visível se meta definida e cabe na escala)
+  // Linha de meta
   if(metaMensal>0&&metaMensal<=maxV){var yMeta=yPos(metaMensal);html+='<line x1="'+PAD.left+'" y1="'+yMeta+'" x2="'+(W-PAD.right)+'" y2="'+yMeta+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="5,4" opacity=".5"/>';html+='<text x="'+(W-PAD.right+4)+'" y="'+(yMeta+4)+'" font-size="9" fill="var(--amber)" font-family="DM Sans,sans-serif" opacity=".7">meta</text>';}
 
   // Barras
   valoresMes.forEach(function(v,i){
-    var x=xPos(i)-barW/2,yTop=yPos(v),height=cH-(yTop-PAD.top);
     var yLabel=PAD.top+cH+13;
+    var isFuturo=isAnoAtual&&i>nowM;
+    if(isFuturo){
+      // Mês futuro — só label apagado, sem barra
+      html+='<text x="'+xPos(i)+'" y="'+yLabel+'" text-anchor="middle" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif" opacity=".3">'+MABB[i]+'</text>';
+      return;
+    }
+    var x=xPos(i)-barW/2,yTop=yPos(v),height=cH-(yTop-PAD.top);
     if(height<=0){html+='<text x="'+xPos(i)+'" y="'+yLabel+'" text-anchor="middle" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+MABB[i]+'</text>';return;}
     var isMelhor=(i===melhorMes&&v>0);
-    var fill=isModo!=='all'&&metaMensal>0?(v>=metaMensal?'var(--amber)':'var(--coral)'):'var(--amber)';
+    var fill=metaMensal>0?(v>=metaMensal?'var(--amber)':'var(--coral)'):'var(--amber)';
     var opac=isMelhor?'1':'0.35';
     html+='<rect x="'+x+'" y="'+yTop+'" width="'+barW+'" height="'+height+'" fill="'+fill+'" opacity="'+opac+'" rx="2"/>';
     html+='<text x="'+xPos(i)+'" y="'+yLabel+'" text-anchor="middle" font-size="10" fill="'+(isMelhor?'var(--amber)':textC)+'" font-family="DM Sans,sans-serif">'+MABB[i]+'</text>';
@@ -4138,16 +4146,12 @@ function rAnSazonalidade(){
 
   svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.innerHTML=html;
 
-  // Insight
+  // Insight — apenas meses existentes
   var insightEl=document.getElementById('an-sazon-insight');
   if(insightEl){insightEl.style.marginLeft=PAD.left+'px';
     var nomesMeses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    if(valoresMes[melhorMes]>0){
-      var meses3=valoresMes.map(function(v,i){return{i:i,v:v};}).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;}).slice(0,3).map(function(x){return nomesMeses[x.i];});
-      insightEl.textContent=anoSel==='all'?'Meses mais fortes historicamente: '+meses3.join(', ')+'. Planeje marketing nos meses anteriores a esses picos.':'Meses mais fortes em '+anoSel+': '+meses3.join(', ')+'.';
-    } else {
-      insightEl.textContent='';
-    }
+    var mesesExist=valoresMes.map(function(v,i){return{i:i,v:v};}).filter(function(x){return x.v>0&&(!isAnoAtual||x.i<=nowM);}).sort(function(a,b){return b.v-a.v;}).slice(0,3).map(function(x){return nomesMeses[x.i];});
+    insightEl.textContent=mesesExist.length?'Meses mais fortes em '+anoSel+': '+mesesExist.join(', ')+'.':'';
   }
 }
 function anMetaMensalChanged(){
