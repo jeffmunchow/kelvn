@@ -951,7 +951,7 @@ select.aj-input{cursor:pointer;}
         <select class="fi" id="an-sazon-ano" onchange="rAnSazonalidade()" style="width:auto;"></select>
       </div>
       <svg id="an-sazon-chart" width="100%" height="300" style="display:block;"></svg>
-      <div id="an-sazon-insight" style="margin-top:.75rem;font-size:.72rem;color:var(--text-muted);line-height:1.6;margin-left:52px;"></div>
+      <div id="an-sazon-insight" style="margin-top:.75rem;font-size:.72rem;color:var(--text-muted);line-height:1.6;"></div>
     </div>
 
   </div>
@@ -4087,7 +4087,7 @@ function rAnSazonalidade(){
 
   var rect=svg.getBoundingClientRect();
   var W=rect.width||600,H=rect.height||300;
-  var PAD={top:12,right:24,bottom:28,left:52},cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
+  var PAD={top:12,right:44,bottom:20,left:52},cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
   var maxV=Math.max.apply(null,valoresMes.concat([metaMensal,1]));
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var textC=isDark?'#5C5854':'#B0ABA6',gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
@@ -4119,7 +4119,7 @@ function rAnSazonalidade(){
 
   // Insight
   var insightEl=document.getElementById('an-sazon-insight');
-  if(insightEl){
+  if(insightEl){insightEl.style.marginLeft=PAD.left+'px';
     var nomesMeses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
     if(valoresMes[melhorMes]>0){
       var meses3=valoresMes.map(function(v,i){return{i:i,v:v};}).filter(function(x){return x.v>0;}).sort(function(a,b){return b.v-a.v;}).slice(0,3).map(function(x){return nomesMeses[x.i];});
