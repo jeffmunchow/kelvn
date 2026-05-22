@@ -6296,12 +6296,30 @@ async function sendAIMessage(){
     var data = await response.json();
     var reply = data.content && data.content[0] ? data.content[0].text : 'Não consegui processar. Tenta de novo?';
 
-    // Atualiza bubble de thinking com resposta real
-    thinkBubble.classList.remove('thinking');
-    thinkBubble.innerHTML = _renderMD(reply);
-
     // Adiciona resposta ao histórico
     _aiHistory.push({role: 'assistant', content: reply});
+
+    // Efeito de digitação palavra a palavra
+    thinkBubble.classList.remove('thinking');
+    thinkBubble.textContent = '';
+    var words = reply.split(' ');
+    var i = 0;
+    var accumulated = '';
+    var msgsEl = document.getElementById('aiMessages');
+    function typeNext(){
+      if(i >= words.length){
+        _aiThinking = false;
+        document.getElementById('aiSendBtn').disabled = false;
+        return;
+      }
+      accumulated += (i > 0 ? ' ' : '') + words[i];
+      thinkBubble.innerHTML = _renderMD(accumulated);
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+      i++;
+      setTimeout(typeNext, 28);
+    }
+    typeNext();
+    return; // sai antes de resetar _aiThinking (typeNext faz isso)
 
   } catch(e) {
     thinkBubble.classList.remove('thinking');
