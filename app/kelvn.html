@@ -917,32 +917,17 @@ select.aj-input{cursor:pointer;}
 <div class="panel" id="p-pacotes">
   <div class="sh" style="margin-bottom:1.25rem;">
     <div class="st">Pacotes & Serviços</div>
-    <div class="sa">
-      <button class="btn primary" onclick="abrirGerador()" style="gap:6px;display:flex;align-items:center;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Gerar orçamento
-      </button>
-    </div>
   </div>
   <div class="pills" style="margin-bottom:1.5rem;background:var(--surface);border-radius:var(--radius);">
     <button class="pill active" id="pk-pill-pacotes" onclick="switchPK('pacotes')">Pacotes</button>
     <button class="pill" id="pk-pill-addons" onclick="switchPK('addons')">Add-ons</button>
-    <button class="pill" id="pk-pill-hist" onclick="switchPK('hist')">Orçamentos</button>
-    <button class="pill" id="pk-pill-conteudo" onclick="switchPK('conteudo')">Conteúdo do PDF</button>
+    <button class="pill" id="pk-pill-conteudo" onclick="switchPK('conteudo')">PDF de Apresentação</button>
   </div>
   <div id="pk-panel-pacotes">
     <div class="three" id="pk-grid"></div>
   </div>
   <div id="pk-panel-addons" style="display:none;">
     <div class="three" id="ao-grid"></div>
-  </div>
-  <div id="pk-panel-hist" style="display:none;">
-    <div class="tw"><div class="ts">
-      <table>
-        <thead><tr><th>Data</th><th>Cliente</th><th>Pacotes</th><th>Template</th><th>Validade</th><th></th></tr></thead>
-        <tbody id="orc-hist-tbody"></tbody>
-      </table>
-    </div></div>
   </div>
   <div id="pk-panel-conteudo" style="display:none;">
     <div style="font-size:.72rem;color:var(--text-hint);margin-bottom:1.5rem;line-height:1.6;">Fotos e textos usados na geração automática do PDF. Configure uma vez — serve para todos os orçamentos gerados.</div>
@@ -964,6 +949,9 @@ select.aj-input{cursor:pointer;}
     </div>
     <div id="faq-list" style="margin-bottom:.5rem;"></div>
     <div style="font-size:.72rem;color:var(--text-hint);margin-top:.5rem;">Salvo automaticamente.</div>
+    <div style="margin-top:1.5rem;">
+      <button class="btn primary" onclick="gerarPDFDireto()">Gerar PDF</button>
+    </div>
   </div>
 </div>
 
@@ -1413,35 +1401,6 @@ select.aj-input{cursor:pointer;}
     <div style="flex:1"></div>
     <button class="btn" onclick="cov('ov-ao')">Cancelar</button>
     <button class="btn primary" onclick="saveAO()">Salvar</button>
-  </div>
-</div></div>
-
-<!-- MODAL GERADOR DE ORÇAMENTO -->
-<div class="overlay" id="ov-gerador"><div class="modal wide" style="max-width:680px;">
-  <h2>Gerar orçamento</h2>
-  <div id="ger-step-1">
-    <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Pacotes a incluir</div>
-    <div id="ger-pacotes-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem;"></div>
-    <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Add-ons (opcional)</div>
-    <div id="ger-addons-list" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem;"></div>
-    <div class="tf" style="grid-template-columns:1fr 1fr;">
-      <div class="field"><label>Nome do casal (opcional)</label><input type="text" id="ger-casal" placeholder="ex: Maria &amp; João"></div>
-      <div class="field"><label>Válido até</label><input type="text" class="sd" maxlength="10" id="ger-validade" placeholder="DD/MM/AAAA" autocomplete="off"></div>
-    </div>
-    <div class="field"><label>Cliente (opcional — para salvar no histórico)</label>
-      <select id="ger-cliente-id"><option value="">— nenhum —</option></select>
-    </div>
-  </div>
-  <div id="ger-step-2" style="display:none;">
-    <div style="font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Escolher template</div>
-    <div id="ger-templates-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem;"></div>
-  </div>
-  <div class="ma">
-    <button class="btn" onclick="cov('ov-gerador')">Cancelar</button>
-    <div style="flex:1"></div>
-    <button class="btn" id="ger-btn-voltar" onclick="gerStep(1)" style="display:none;">← Voltar</button>
-    <button class="btn primary" id="ger-btn-avancar" onclick="gerStep(2)">Escolher template →</button>
-    <button class="btn primary" id="ger-btn-gerar" onclick="confirmarGerarPDF()" style="display:none;">Gerar PDF</button>
   </div>
 </div></div>
 
@@ -2727,60 +2686,12 @@ function addFaqItem(){var sd=g('sd')||{};var faq=sd.orc_faq||[];faq.push({pergun
 function _updateFaq(i,campo,val){var sd=g('sd')||{};var faq=sd.orc_faq||[];if(faq[i])faq[i][campo]=val;sd.orc_faq=faq;s('sd',sd);}
 function _delFaq(i){var sd=g('sd')||{};var faq=sd.orc_faq||[];faq.splice(i,1);sd.orc_faq=faq;s('sd',sd);rFaqList();}
 
-// ── GERADOR DE ORÇAMENTO ──────────────────────────────────────────────────────
-function fillSel(){
-  var sel=document.getElementById('ger-cliente-id');if(!sel)return;
-  var cs=g('clientes')||[];
-  sel.innerHTML='<option value="">— nenhum —</option>'+cs.map(function(c){return '<option value="'+c.id+'">'+c.nome+'</option>';}).join('');
-}
-var _gerPacotesSel={},_gerAddonsSel={},_gerTemplateSel='kelvn_classico';
-function abrirGerador(){
-  _gerPacotesSel={};_gerAddonsSel={};_gerTemplateSel='kelvn_classico';
-  fillSel();gerStep(1);
-  document.getElementById('ger-casal').value='';
-  document.getElementById('ger-validade').value='';
-  document.getElementById('ger-cliente-id').value='';
+// ── PDF DE APRESENTAÇÃO ───────────────────────────────────────────────────────
+function gerarPDFDireto(){
   var pacotes=g('pacotes')||[];
-  document.getElementById('ger-pacotes-list').innerHTML=pacotes.length
-    ?pacotes.map(function(p){return '<label style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;"><input type="checkbox" id="gerpk-'+p.id+'" onchange="_gerTogglePK(\''+p.id+'\')"> <span style="flex:1;font-size:.82rem;color:var(--text);">'+p.nome+'</span><span style="font-size:.78rem;color:var(--amber);">'+$m(p.valor)+'</span></label>';}).join('')
-    :'<div style="font-size:.75rem;color:var(--text-hint);font-style:italic;">Nenhum pacote cadastrado ainda.</div>';
+  if(!pacotes.length){notify('Adicione ao menos um pacote antes de gerar o PDF.');return;}
   var addons=g('addons')||[];
-  document.getElementById('ger-addons-list').innerHTML=addons.length
-    ?addons.map(function(a){return '<label style="display:flex;align-items:center;gap:10px;padding:.6rem .75rem;background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;"><input type="checkbox" id="gerao-'+a.id+'" onchange="_gerToggleAO(\''+a.id+'\')"> <span style="flex:1;font-size:.82rem;color:var(--text);">'+a.nome+'</span><span style="font-size:.78rem;color:var(--text-muted);">'+$m(a.valor)+'</span></label>';}).join('')
-    :'<div style="font-size:.75rem;color:var(--text-hint);">Sem add-ons cadastrados.</div>';
-  _renderTemplates();
-  document.getElementById('ov-gerador').classList.add('open');
-}
-function _renderTemplates(){
-  var TEMPLATES=[{id:'kelvn_classico',nome:'Kelvn Clássico',desc:'Editorial, limpo, atemporal.',free:true}];
-  document.getElementById('ger-templates-grid').innerHTML=TEMPLATES.map(function(t){
-    var ativo=t.id===_gerTemplateSel;
-    return '<div onclick="_gerSelecionarTemplate(\''+t.id+'\')" style="cursor:pointer;border:.5px solid '+(ativo?'var(--amber)':'var(--border-strong)')+';border-radius:var(--radius);padding:1rem;transition:border-color .15s;"><div style="aspect-ratio:3/4;background:var(--surface2);border-radius:4px;margin-bottom:.75rem;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div><div style="font-size:.82rem;color:var(--text);font-weight:500;margin-bottom:2px;">'+t.nome+'</div><div style="font-size:.7rem;color:var(--text-hint);">'+t.desc+'</div><div style="margin-top:.5rem;font-size:.68rem;color:'+(t.free?'var(--teal)':'var(--amber)')+';">'+(t.free?'Incluído':'Premium')+'</div></div>';
-  }).join('');
-}
-function _gerTogglePK(id){_gerPacotesSel[id]=document.getElementById('gerpk-'+id).checked;}
-function _gerToggleAO(id){_gerAddonsSel[id]=document.getElementById('gerao-'+id).checked;}
-function _gerSelecionarTemplate(id){_gerTemplateSel=id;_renderTemplates();}
-function gerStep(n){
-  document.getElementById('ger-step-1').style.display=n===1?'':'none';
-  document.getElementById('ger-step-2').style.display=n===2?'':'none';
-  document.getElementById('ger-btn-voltar').style.display=n===2?'inline-flex':'none';
-  document.getElementById('ger-btn-avancar').style.display=n===1?'inline-flex':'none';
-  document.getElementById('ger-btn-gerar').style.display=n===2?'inline-flex':'none';
-}
-function confirmarGerarPDF(){
-  var pacotesIds=Object.keys(_gerPacotesSel).filter(function(k){return _gerPacotesSel[k];});
-  if(!pacotesIds.length){alert('Selecione ao menos um pacote.');return;}
-  var addonsIds=Object.keys(_gerAddonsSel).filter(function(k){return _gerAddonsSel[k];});
-  var casal=document.getElementById('ger-casal').value.trim();
-  var validade=document.getElementById('ger-validade').value.trim();
-  var clienteId=document.getElementById('ger-cliente-id').value;
-  var hist=g('orcamentos_hist')||[];
-  hist.unshift({id:uid(),nomeCliente:casal||(clienteId?cN(clienteId):'Sem nome'),clienteId:clienteId,pacoteIds:pacotesIds,addonIds:addonsIds,template:_gerTemplateSel,dataGeracao:new Date().toISOString(),validade:validade});
-  s('orcamentos_hist',hist);
-  cov('ov-gerador');
-  gerarPDFOrcamento({pacoteIds:pacotesIds,addonIds:addonsIds,casal:casal,validade:validade,template:_gerTemplateSel});
-  notify('Gerando PDF...');
+  gerarPDFOrcamento({pacoteIds:pacotes.map(function(p){return p.id;}),addonIds:addons.map(function(a){return a.id;}),casal:'',validade:'',template:'kelvn_classico'});
 }
 
 // ── TEMPLATE KELVN CLÁSSICO ───────────────────────────────────────────────────
@@ -2834,23 +2745,6 @@ function _templateKelvnClassico(sd,pacotes,addons,opts){
 }
 
 // ── HISTÓRICO DE ORÇAMENTOS ───────────────────────────────────────────────────
-function rOrcHist(){
-  var tb=document.getElementById('orc-hist-tbody');if(!tb)return;
-  var hist=g('orcamentos_hist')||[];
-  if(!hist.length){tb.innerHTML='<tr><td colspan="6" class="empty">Nenhum orçamento gerado ainda. Clique em "Gerar orçamento" para começar.</td></tr>';return;}
-  tb.innerHTML=hist.map(function(h){
-    var d=h.dataGeracao?new Date(h.dataGeracao):null;
-    var dStr=d?(String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()):'—';
-    var pNomes=(h.pacoteIds||[]).map(function(id){var p=(g('pacotes')||[]).find(function(x){return x.id===id;});return p?p.nome:'—';}).join(', ');
-    return '<tr><td>'+dStr+'</td><td class="tdn">'+(h.nomeCliente||'—')+'</td><td>'+(pNomes||'—')+'</td><td>'+(h.template||'—')+'</td><td>'+(h.validade||'—')+'</td><td><button class="ra" onclick="regerarOrcamento(\''+h.id+'\')">Regerar</button></td></tr>';
-  }).join('');
-}
-function regerarOrcamento(id){
-  var h=(g('orcamentos_hist')||[]).find(function(x){return x.id===id;});if(!h)return;
-  gerarPDFOrcamento({pacoteIds:h.pacoteIds||[],addonIds:h.addonIds||[],casal:h.nomeCliente||'',validade:h.validade||'',template:h.template||'kelvn_classico'});
-  notify('Regerando PDF...');
-}
-
 function _syncThemeUI(){
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var lbl=document.getElementById('aj-theme-label');
@@ -4080,7 +3974,7 @@ function rPK(){
   el.innerHTML=cards+_pkAddCard;
 }
 function switchPK(name){
-  ['pacotes','addons','hist','conteudo'].forEach(function(n){
+  ['pacotes','addons','conteudo'].forEach(function(n){
     var pn=document.getElementById('pk-panel-'+n);if(pn)pn.style.display='none';
     var pill=document.getElementById('pk-pill-'+n);if(pill)pill.classList.remove('active');
   });
@@ -4088,7 +3982,6 @@ function switchPK(name){
   var apill=document.getElementById('pk-pill-'+name);if(apill)apill.classList.add('active');
   if(name==='pacotes')rPK();
   if(name==='addons')rAO();
-  if(name==='hist')rOrcHist();
   if(name==='conteudo'){rSD();rFotoSlots();rFaqList();}
 }
 function openPK(id){
