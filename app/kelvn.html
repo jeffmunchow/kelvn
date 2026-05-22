@@ -4102,7 +4102,7 @@ function rAnSazonalidade(){
   var rect=svg.getBoundingClientRect();
   var W=rect.width||600,H=rect.height||300;
   var LABEL_H=22;var PAD={top:12,right:44,bottom:0,left:52},cW=W-PAD.left-PAD.right,cH=H-PAD.top-LABEL_H;
-  var maxV=Math.max.apply(null,valoresMes.concat([metaMensal,1]));
+  var maxV=Math.max.apply(null,valoresMes.concat([1]));
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var textC=isDark?'#5C5854':'#B0ABA6',gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
   var barW=Math.max(4,(cW/12)-6);
