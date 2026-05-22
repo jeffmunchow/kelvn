@@ -4115,8 +4115,8 @@ function rAnSazonalidade(){
   // Grid
   [0.5,1].forEach(function(frac){var y=yPos(maxV*frac);html+='<line x1="'+PAD.left+'" y1="'+y+'" x2="'+(W-PAD.right)+'" y2="'+y+'" stroke="'+gridC+'" stroke-width="1"/>';html+='<text x="'+(PAD.left-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="'+textC+'" font-family="DM Sans,sans-serif">'+$kF(maxV*frac)+'</text>';});
 
-  // Linha de meta (só quando ano específico selecionado)
-  if(isModo!=='all'&&metaMensal>0){var yMeta=yPos(metaMensal);html+='<line x1="'+PAD.left+'" y1="'+yMeta+'" x2="'+(W-PAD.right)+'" y2="'+yMeta+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="5,4" opacity=".5"/>';html+='<text x="'+(W-PAD.right+4)+'" y="'+(yMeta+4)+'" font-size="9" fill="var(--amber)" font-family="DM Sans,sans-serif" opacity=".7">meta</text>';}
+  // Linha de meta (sempre visível se meta definida e cabe na escala)
+  if(metaMensal>0&&metaMensal<=maxV){var yMeta=yPos(metaMensal);html+='<line x1="'+PAD.left+'" y1="'+yMeta+'" x2="'+(W-PAD.right)+'" y2="'+yMeta+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="5,4" opacity=".5"/>';html+='<text x="'+(W-PAD.right+4)+'" y="'+(yMeta+4)+'" font-size="9" fill="var(--amber)" font-family="DM Sans,sans-serif" opacity=".7">meta</text>';}
 
   // Barras
   valoresMes.forEach(function(v,i){
