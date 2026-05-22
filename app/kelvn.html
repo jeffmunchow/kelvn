@@ -4039,8 +4039,7 @@ function rAnFatMensalChart(){
   var metaMensal=parseFloat(sd.meta_fat_mensal)||0;
   var rawMaxVal=Math.max.apply(null,fatMeses.concat([metaMensal,1]));
   var STEP5f=5000;
-  var maxVal=Math.ceil(rawMaxVal/STEP5f)*STEP5f;
-  if(maxVal<STEP5f)maxVal=STEP5f;
+  var maxVal=(Math.floor(rawMaxVal/STEP5f)+1)*STEP5f;
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
   var textC=isDark?'#5C5854':'#B0ABA6';
@@ -4108,8 +4107,7 @@ function rAnSazonalidade(){
   var LABEL_H=22;var PAD={top:12,right:44,bottom:0,left:52},cW=W-PAD.left-PAD.right,cH=H-PAD.top-LABEL_H;
   var rawMaxV=Math.max.apply(null,valoresMes.concat([1]));
   var STEP5=5000;
-  var maxV=Math.ceil(rawMaxV/STEP5)*STEP5;
-  if(maxV<STEP5)maxV=STEP5;
+  var maxV=(Math.floor(rawMaxV/STEP5)+1)*STEP5;
   var isDark=document.documentElement.getAttribute('data-theme')==='dark';
   var textC=isDark?'#5C5854':'#B0ABA6',gridC=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.04)';
   var barW=Math.max(4,(cW/12)-6);
