@@ -3939,40 +3939,30 @@ function rMetas(){
 function rAnMetas(){
   var el=document.getElementById('an-metas');
   if(!el)return;
+  // Preserva valores dos inputs antes de re-renderizar
+  var activeId=document.activeElement?document.activeElement.id:'';
+  var vMensal=(document.getElementById('an-meta-fat-mensal')||{}).value;
+  var vAnual=(document.getElementById('an-meta-fat-anual')||{}).value;
+  var vWed=(document.getElementById('an-meta-casamentos-ano')||{}).value;
   var sd=g('sd')||{};
   var metaFatAnual=parseFloat(sd.meta_fat_anual)||0;
   var metaFatMensal=parseFloat(sd.meta_fat_mensal)||0;
   var metaWed=parseInt(sd.meta_casamentos_ano)||0;
-  // Se card definir já existe, só popula valores sem re-render
-  var jaExiste=!!document.getElementById('an-metas-definir');
-  if(jaExiste){
-    var elMensal=document.getElementById('an-meta-fat-mensal');
-    var elAnual=document.getElementById('an-meta-fat-anual');
-    var elWed=document.getElementById('an-meta-casamentos-ano');
-    if(elMensal&&document.activeElement!==elMensal)elMensal.value=metaFatMensal||'';
-    if(elAnual&&document.activeElement!==elAnual)elAnual.value=metaFatAnual||'';
-    if(elWed&&document.activeElement!==elWed)elWed.value=metaWed||'';
-    rAnMetasProgress();
-    return;
-  }
-  // Primeira renderização: cria o grid com card definir
-  var definirCard='<div id="an-metas-definir" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">'+
-    '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">Definir metas</div>'+
-    '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
-      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span><input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'"></div>'+
-      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span><input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'"></div>'+
-      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span><input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetasProgress();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'"></div>'+
-    '</div>'+
-  '</div>';
-  el.innerHTML='<div id="an-metas-progress"></div>'+definirCard;
-  el.style.display='grid';
-  el.style.gridTemplateColumns='1fr 1fr 1fr';
-  el.style.gap='1rem';
-  el.style.alignItems='stretch';
+  // Usa valor atual do input se ele estava em foco (evita sobrescrever enquanto digita)
+  if(activeId==='an-meta-fat-mensal'&&vMensal!==undefined)metaFatMensal=parseFloat(vMensal)||0;
+  if(activeId==='an-meta-fat-anual'&&vAnual!==undefined)metaFatAnual=parseFloat(vAnual)||0;
+  if(activeId==='an-meta-casamentos-ano'&&vWed!==undefined)metaWed=parseInt(vWed)||0;
   rAnMetasProgress();
+  // Atualiza inputs sem re-renderizar o card definir
+  var elM=document.getElementById('an-meta-fat-mensal');
+  var elA=document.getElementById('an-meta-fat-anual');
+  var elW=document.getElementById('an-meta-casamentos-ano');
+  if(elM&&activeId!=='an-meta-fat-mensal')elM.value=metaFatMensal||'';
+  if(elA&&activeId!=='an-meta-fat-anual')elA.value=metaFatAnual||'';
+  if(elW&&activeId!=='an-meta-casamentos-ano')elW.value=metaWed||'';
 }
 function rAnMetasProgress(){
-  var el=document.getElementById('an-metas-progress');
+  var el=document.getElementById('an-metas');
   if(!el)return;
   var sd=g('sd')||{};
   var metaFatAnual=parseFloat(sd.meta_fat_anual)||0;
@@ -4007,10 +3997,22 @@ function rAnMetasProgress(){
       '</div>'+
     '</div>';
   }
+  var definirCard='<div id="an-metas-definir" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">'+
+    '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">Definir metas</div>'+
+    '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
+      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span><input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'"></div>'+
+      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span><input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'"></div>'+
+      '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span><input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetasProgress();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'"></div>'+
+    '</div>'+
+  '</div>';
   var cards=[];
   if(metaFatMensal)cards.push(progressCard({label:'Faturamento — '+meses[mo],atual:fatMes,meta:metaFatMensal,tipo:'valor'}));
   if(metaWed)cards.push(progressCard({label:'Casamentos — '+yr,atual:wedAno,meta:metaWed,tipo:'contagem'}));
-  el.innerHTML=cards.join('');
+  el.style.display='grid';
+  el.style.gridTemplateColumns='1fr 1fr 1fr';
+  el.style.gap='1rem';
+  el.style.alignItems='stretch';
+  el.innerHTML=cards.join('')+definirCard;
 }
 function rAnKpisEstrategicos(){
   var el=document.getElementById('an-kpis-estrategicos');
