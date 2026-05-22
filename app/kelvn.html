@@ -915,15 +915,20 @@ select.aj-input{cursor:pointer;}
 
 <!-- PACOTES -->
 <div class="panel" id="p-pacotes">
+  <div class="sh" style="margin-bottom:1.25rem;">
+    <div class="st">Pacotes & Serviços</div>
+    <div class="sa">
+      <button class="btn primary" onclick="abrirGerador()" style="gap:6px;display:flex;align-items:center;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Gerar orçamento
+      </button>
+    </div>
+  </div>
   <div class="pills" style="margin-bottom:1.5rem;background:var(--surface);border-radius:var(--radius);">
     <button class="pill active" id="pk-pill-pacotes" onclick="switchPK('pacotes')">Pacotes</button>
     <button class="pill" id="pk-pill-addons" onclick="switchPK('addons')">Add-ons</button>
     <button class="pill" id="pk-pill-hist" onclick="switchPK('hist')">Orçamentos</button>
     <button class="pill" id="pk-pill-conteudo" onclick="switchPK('conteudo')">Conteúdo do PDF</button>
-    <button class="btn primary" onclick="abrirGerador()" style="margin-left:auto;gap:6px;display:flex;align-items:center;font-size:.75rem;padding:5px 13px;">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Gerar orçamento
-    </button>
   </div>
   <div id="pk-panel-pacotes">
     <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
