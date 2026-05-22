@@ -933,8 +933,8 @@ select.aj-input{cursor:pointer;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;" id="an-graficos-wrap">
 
     <!-- Faturamento por produto -->
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem 0;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;padding:0 1.5rem;">
+    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;">
         <div>
           <div class="col-title" style="margin-bottom:2px;">Faturamento por produto</div>
           <div style="font-size:.68rem;color:var(--text-hint);">Acumulado mensal — <span id="chart-year"></span></div>
@@ -4853,7 +4853,7 @@ function renderFatChart(){
   var _r=svg.getBoundingClientRect();
   var W=_r.width||600;
   var H=_r.height||360;
-  var PAD={top:10,right:8,bottom:32,left:36};
+  var PAD={top:10,right:16,bottom:32,left:48};
   var cW=W-PAD.left-PAD.right;
   var cH=H-PAD.top-PAD.bottom;
 
