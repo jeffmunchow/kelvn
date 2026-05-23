@@ -1682,6 +1682,10 @@ select.aj-input{cursor:pointer;}
 
 <div class="overlay" id="ov-foto" onclick="cov('ov-foto')" style="background:rgba(0,0,0,.82);align-items:center;justify-content:center;">
   <img id="ov-foto-img" src="" style="max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain;display:block;pointer-events:none;">
+  <button id="ov-foto-del" onclick="event.stopPropagation();deletarFotoGal()" title="Excluir foto" style="position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);border:.5px solid rgba(255,255,255,.18);border-radius:8px;padding:7px 16px;cursor:pointer;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif;font-size:.75rem;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    Excluir foto
+  </button>
 </div>
 
 <div class="notif" id="notif"></div>
@@ -5613,10 +5617,28 @@ function entrarGaleria(id){
   _galAtualId=id;
   rGalDetalhe();
 }
-function verFotoGal(url){
+var _fotoAtualKey=null, _fotoAtualIdx=-1;
+function verFotoGal(url,key,idx){
+  _fotoAtualKey=key||null;
+  _fotoAtualIdx=(idx!==undefined)?idx:-1;
   var img=document.getElementById('ov-foto-img');
   if(img) img.src=url;
   document.getElementById('ov-foto').classList.add('open');
+}
+async function deletarFotoGal(){
+  if(_fotoAtualIdx===-1){notify('Foto não identificada.');return;}
+  cov('ov-foto');
+  // Remove do R2 se tiver key
+  if(_fotoAtualKey&&_currentUser){
+    try{
+      var sessionRes=await _sb.auth.getSession();
+      var token=sessionRes.data.session.access_token;
+      await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:_fotoAtualKey})});
+    }catch(e){console.warn('R2 delete error',e);}
+  }
+  // Remove da galeria
+  mgalRemoverFotoDetalhe(_fotoAtualIdx);
+  notify('Foto excluída.');
 }
 function voltarListaGalerias(){
   document.getElementById('gal-view-lista').style.display='';
@@ -5643,7 +5665,7 @@ function rGalDetalhe(){
   if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">Nenhuma foto ainda.</div>';return;}
   grid.innerHTML=fotos.map(function(f,i){
     var isCapa=gal.cover_url===f.url;
-    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:zoom-in;" onclick="verFotoGal(\''+f.url+'\')">'
+    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:zoom-in;" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+i+')">'
       +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy">'
       +(isCapa?'<div style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;">Capa</div>':'')
       +'<button onclick="event.stopPropagation();mgalRemoverFotoDetalhe('+i+')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:#fff;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>'
