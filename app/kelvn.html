@@ -5465,8 +5465,8 @@ function rGal(){
     var statusLabel=isPub?'Publicada':'Rascunho';
     var cover=gal.cover_url?'background-image:url('+gal.cover_url+');background-size:cover;background-position:center;':'background:var(--surface2);';
     var fotos=(gal.fotos||[]).length;
-    return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:10px;overflow:hidden;">'
-      +'<div style="aspect-ratio:4/3;'+cover+'display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="entrarGaleria(\''+gal.id+'\')">'
+    return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:0 0 10px 10px;overflow:hidden;">'
+      +'<div style="aspect-ratio:3/2;'+cover+'display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="entrarGaleria(\''+gal.id+'\')">'
       +(gal.cover_url?'':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
       +'</div>'
       +'<div style="padding:.75rem 1rem;">'
