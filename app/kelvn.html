@@ -1009,6 +1009,16 @@ select.aj-input{cursor:pointer;}
               </button>
             </div>
           </div>
+          <div class="aj-row" style="flex-direction:column;align-items:flex-start;gap:.6rem;opacity:.5;pointer-events:none;">
+            <div style="display:flex;align-items:center;gap:.5rem;width:100%;">
+              <span class="aj-label">Domínio personalizado para galerias</span>
+              <span style="font-size:.6rem;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:20px;background:var(--amber-light);color:var(--amber-deep);text-transform:uppercase;">Pro</span>
+            </div>
+            <div style="width:100%;">
+              <input class="aj-input" type="text" placeholder="ex: galerias.seuestudio.com.br" disabled style="width:100%;max-width:320px;">
+              <div style="font-size:.72rem;color:var(--text-hint);margin-top:.4rem;line-height:1.5;">Suas galerias ficam acessíveis pelo seu próprio domínio. Disponível no plano Pro.</div>
+            </div>
+          </div>
           <div class="aj-row">
             <span class="aj-label">Sessão</span>
             <button onclick="doLogout()" style="background:transparent;border:.5px solid var(--border-strong);border-radius:8px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;">Sair da conta</button>
@@ -1650,8 +1660,15 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div style="margin-top:1rem;padding:1rem;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-muted);">
-      <div style="margin-bottom:.4rem;font-weight:500;color:var(--text);">Link público da galeria</div>
-      <div id="mgal-link-display" style="font-family:monospace;color:var(--amber);word-break:break-all;"></div>
+      <div style="margin-bottom:.6rem;font-weight:500;color:var(--text);">Link público da galeria</div>
+      <div id="mgal-link-display" style="font-family:monospace;color:var(--amber);word-break:break-all;margin-bottom:.4rem;"></div>
+      <div id="mgal-link-custom-wrap" style="display:none;margin-top:.75rem;padding-top:.75rem;border-top:.5px solid var(--border-strong);">
+        <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;">
+          <span style="font-size:.68rem;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:20px;background:var(--amber-light);color:var(--amber-deep);text-transform:uppercase;">Pro</span>
+          <span style="font-weight:500;color:var(--text);">Domínio personalizado</span>
+        </div>
+        <div id="mgal-link-custom" style="font-family:monospace;color:var(--amber);word-break:break-all;opacity:.45;"></div>
+      </div>
     </div>
   </div>
 
@@ -5472,6 +5489,7 @@ function abrirGaleria(id){
   document.getElementById('mgal-downloads').checked=!!gal.downloads_liberados;
   var linkEl=document.getElementById('mgal-link-display');
   if(linkEl) linkEl.textContent=gal.slug?'app.kelvn.com.br/galeria/'+gal.slug:'—';
+  mgalAtualizaLinkCustom(gal.slug);
   var coverEl=document.getElementById('mgal-cover-preview');
   if(coverEl){
     if(gal.cover_url){coverEl.style.backgroundImage='url('+gal.cover_url+')';coverEl.style.display='';}
@@ -5494,6 +5512,20 @@ function mgalAutoSlug(){
   document.getElementById('mgal-slug').value=slug;
   var linkEl=document.getElementById('mgal-link-display');
   if(linkEl) linkEl.textContent=slug?'app.kelvn.com.br/galeria/'+slug:'—';
+  mgalAtualizaLinkCustom(slug);
+}
+function mgalAtualizaLinkCustom(slug){
+  var sd=g('sd')||{};
+  var dominio=sd['studio-dominio-galeria']||'';
+  var wrap=document.getElementById('mgal-link-custom-wrap');
+  var custom=document.getElementById('mgal-link-custom');
+  if(!wrap||!custom) return;
+  if(dominio&&slug){
+    wrap.style.display='';
+    custom.textContent=dominio.replace(/\/$/,'')+'/galeria/'+slug;
+  } else {
+    wrap.style.display='none';
+  }
 }
 function rGalFotos(gal){
   var grid=document.getElementById('mgal-fotos-grid');
