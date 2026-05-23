@@ -5437,6 +5437,10 @@ function makeCover(eb,size){
 
 // ── GALERIAS ────────────────────────────────────────────────────────────────
 function rGal(){
+  var lista=document.getElementById('gal-view-lista');
+  var detalhe=document.getElementById('gal-view-detalhe');
+  if(lista) lista.style.display='';
+  if(detalhe) detalhe.style.display='none';
   var el=document.getElementById('gal-grid');
   if(!el) return;
   var gals=g('galerias')||[];
