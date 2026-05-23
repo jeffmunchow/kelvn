@@ -962,11 +962,41 @@ select.aj-input{cursor:pointer;}
 
 <!-- GALERIAS -->
 <div class="panel" id="p-galerias">
-  <div class="sh">
-    <div class="st">Galerias</div>
-    <button class="btn" onclick="abrirNovaGaleria()">+ Nova galeria</button>
+  <!-- Vista: lista -->
+  <div id="gal-view-lista">
+    <div class="sh">
+      <div class="st">Galerias</div>
+      <button class="btn" onclick="abrirNovaGaleria()">+ Nova galeria</button>
+    </div>
+    <div id="gal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
   </div>
-  <div id="gal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
+  <!-- Vista: detalhe -->
+  <div id="gal-view-detalhe" style="display:none;">
+    <div class="sh" style="margin-bottom:1.5rem;">
+      <button onclick="voltarListaGalerias()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Galerias
+      </button>
+      <div class="st" id="gal-det-titulo" style="flex:1;"></div>
+      <div style="display:flex;gap:.5rem;align-items:center;">
+        <button class="btn" onclick="abrirGaleria(_galAtualId)">Editar</button>
+        <button id="gal-det-btn-pub" class="btn primary" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Publicar galeria</button>
+      </div>
+    </div>
+    <!-- Config row -->
+    <div id="gal-det-config" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;padding:.75rem 1rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;">
+        <input type="checkbox" id="gal-det-downloads" style="width:14px;height:14px;" onchange="mgalSalvarConfigDetalhe()">
+        Permitir download
+      </label>
+      <div style="width:.5px;height:16px;background:var(--border-strong);"></div>
+      <button class="btn" style="font-size:.75rem;" onclick="mgalEscolherCapaDetalhe()">Definir foto de capa</button>
+      <div style="flex:1;"></div>
+      <span id="gal-det-status-label" style="font-size:.72rem;font-weight:500;color:var(--text-hint);"></span>
+    </div>
+    <!-- Grid de fotos -->
+    <div id="gal-det-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;"></div>
+  </div>
 </div>
 
 <!-- EDUCAÇÃO -->
@@ -1625,9 +1655,9 @@ select.aj-input{cursor:pointer;}
         <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
       </div>
 
-      <!-- Barra de progresso + Grid de fotos -->
+      <!-- Barra de progresso (só durante upload) -->
       <div style="grid-column:1/-1;">
-        <div id="mgal-progress-wrap" style="display:none;margin-bottom:1rem;">
+        <div id="mgal-progress-wrap" style="display:none;">
           <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;">
             <span id="mgal-progress-label">Enviando...</span>
             <span id="mgal-progress-pct">0%</span>
@@ -1636,7 +1666,6 @@ select.aj-input{cursor:pointer;}
             <div id="mgal-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s;"></div>
           </div>
         </div>
-        <div id="mgal-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;"></div>
       </div>
 
     </div>
@@ -5475,10 +5504,7 @@ function abrirGaleria(id){
     if(gal.cover_url){coverEl.style.backgroundImage='url('+gal.cover_url+')';coverEl.style.display='';}
     else coverEl.style.display='none';
   }
-  rGalFotos(gal);
-  // Mostra/oculta área de upload conforme existência de fotos
-  var uploadArea=document.getElementById('mgal-upload-area');
-  if(uploadArea) uploadArea.style.display=(gal.fotos&&gal.fotos.length)?'none':'';
+  // sempre mostra área de upload no modal
   switchGalTab('info');
   document.getElementById('ov-gal').classList.add('open');
 }
@@ -5574,6 +5600,73 @@ function delGal(){
   cov('ov-gal');
   rGal();
   notify('Galeria excluída.');
+}
+function voltarListaGalerias(){
+  document.getElementById('gal-view-lista').style.display='';
+  document.getElementById('gal-view-detalhe').style.display='none';
+  rGal();
+}
+function rGalDetalhe(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  document.getElementById('gal-view-lista').style.display='none';
+  document.getElementById('gal-view-detalhe').style.display='';
+  var tEl=document.getElementById('gal-det-titulo');
+  if(tEl) tEl.textContent=gal.nomeCliente||'Galeria';
+  var dlEl=document.getElementById('gal-det-downloads');
+  if(dlEl) dlEl.checked=!!gal.downloads_liberados;
+  var stEl=document.getElementById('gal-det-status-label');
+  if(stEl){stEl.textContent=gal.status==='publicado'?'Publicada':'Rascunho';stEl.style.color=gal.status==='publicado'?'var(--teal)':'var(--text-hint)';}
+  var btnPub=document.getElementById('gal-det-btn-pub');
+  if(btnPub){btnPub.textContent=gal.status==='publicado'?'Despublicar':'Publicar galeria';btnPub.style.background=gal.status==='publicado'?'transparent':'';}
+  var fotos=gal.fotos||[];
+  var grid=document.getElementById('gal-det-grid');
+  if(!grid) return;
+  if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">Nenhuma foto ainda.</div>';return;}
+  grid.innerHTML=fotos.map(function(f,i){
+    var isCapa=gal.cover_url===f.url;
+    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--surface2);">'
+      +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">'
+      +(isCapa?'<div style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;">Capa</div>':'')
+      +'<button onclick="mgalRemoverFotoDetalhe('+i+')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:#fff;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>'
+      +'</div>';
+  }).join('');
+}
+function mgalSalvarConfigDetalhe(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  var dlEl=document.getElementById('gal-det-downloads');
+  if(dlEl) gal.downloads_liberados=dlEl.checked;
+  s('galerias',gals);
+}
+function mgalEscolherCapaDetalhe(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal||!gal.fotos||!gal.fotos.length){notify('Nenhuma foto disponível.');return;}
+  // Cicla pelas fotos como capa
+  var idx=gal.fotos.findIndex(function(f){return f.url===gal.cover_url;});
+  idx=(idx+1)%gal.fotos.length;
+  gal.cover_url=gal.fotos[idx].url;
+  s('galerias',gals);
+  rGalDetalhe();
+  rGal();
+  notify('Capa atualizada.');
+}
+function mgalRemoverFotoDetalhe(idx){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  gal.fotos=gal.fotos||[];
+  gal.fotos.splice(idx,1);
+  gal.total_fotos=gal.fotos.length;
+  if(gal.cover_url&&!gal.fotos.find(function(f){return f.url===gal.cover_url;})){
+    gal.cover_url=gal.fotos.length?gal.fotos[0].url:'';
+  }
+  s('galerias',gals);
+  rGalDetalhe();
+  rGal();
 }
 function mgalToggleDownload(id){
   var gals=g('galerias')||[];
@@ -5684,11 +5777,10 @@ async function mgalIniciarUpload(files){
   if(!erros) notify(total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
   else notify(erros+' foto'+(erros>1?'s':'')+' não foram enviadas.');
 
-  // Esconde área de upload e rola para o grid de fotos
-  var uploadArea=document.getElementById('mgal-upload-area');
-  if(uploadArea) uploadArea.style.display='none';
-  var grid=document.getElementById('mgal-fotos-grid');
-  if(grid) setTimeout(function(){grid.scrollIntoView({behavior:'smooth',block:'nearest'});},200);
+  // Fecha modal e abre vista de detalhe
+  cov('ov-gal');
+  goDirecto('galerias');
+  rGalDetalhe();
 }
 
 function rEdu(){
