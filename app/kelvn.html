@@ -1587,53 +1587,51 @@ select.aj-input{cursor:pointer;}
 <!-- MODAL GALERIA -->
 <div class="overlay" id="ov-gal"><div class="modal wide" style="max-width:700px;max-height:88vh;display:flex;flex-direction:column;">
   <h2 id="mgal-titulo">Nova Galeria</h2>
-  <!-- Pills de navegação interna -->
+  <!-- Pills -->
   <div class="pills" style="margin-bottom:1.25rem;">
     <button class="pill active" id="gpill-info" onclick="switchGalTab('info')">Informações</button>
     <button class="pill" id="gpill-fotos" onclick="switchGalTab('fotos')">Fotos</button>
-    <button class="pill" id="gpill-config" onclick="switchGalTab('config')">Configurações</button>
   </div>
 
-  <!-- ABA: Informações -->
+  <!-- ABA: Informações + Configurações -->
   <div id="gtab-info" style="flex:1;overflow-y:auto;">
     <div class="tf" style="grid-template-columns:1fr 1fr;">
       <div class="field" style="grid-column:1/-1"><label>Nome do cliente / casal</label><input type="text" id="mgal-nome" placeholder="ex: Beatriz & Rafael" oninput="mgalAutoSlug()"></div>
-      <div class="field"><label>Data do evento</label><input type="text" id="mgal-data" placeholder="dd/mm/aaaa" class="sd"></div>
-      <div class="field"><label>Total de fotos</label><input type="number" id="mgal-total" placeholder="ex: 400"></div>
+      <div class="field" style="grid-column:1/-1"><label>Data do evento</label><input type="text" id="mgal-data" placeholder="dd/mm/aaaa" class="sd" style="max-width:180px;"></div>
+
+      <!-- Link da galeria -->
       <div class="field" style="grid-column:1/-1">
-        <label>Link da galeria (slug)</label>
-        <div style="display:flex;align-items:center;gap:.5rem;">
-          <span style="font-size:.78rem;color:var(--text-hint);white-space:nowrap;">app.kelvn.com.br/galeria/</span>
-          <input type="text" id="mgal-slug" placeholder="beatriz-e-rafael" style="flex:1;">
+        <label>Link da galeria</label>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:.5rem;flex:1;min-width:0;">
+            <span style="font-size:.78rem;color:var(--text-hint);white-space:nowrap;">app.kelvn.com.br/galeria/</span>
+            <input type="text" id="mgal-slug" placeholder="beatriz-e-rafael" style="flex:1;min-width:0;">
+          </div>
+          <div id="mgal-pro-hint" style="display:flex;align-items:center;gap:.35rem;white-space:nowrap;opacity:.55;cursor:default;" title="Disponível no plano Pro — configure em Ajustes > Geral">
+            <span style="font-size:.63rem;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:20px;background:var(--amber-light);color:var(--amber-deep);text-transform:uppercase;">Pro</span>
+            <span style="font-size:.72rem;color:var(--text-hint);">Domínio próprio · Ajustes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão de upload -->
+      <div class="field" style="grid-column:1/-1;">
+        <div style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;cursor:pointer;" onclick="switchGalTab('fotos');document.getElementById('mgal-file-input').click();" ondragover="event.preventDefault()" ondrop="switchGalTab('fotos');mgalOnDrop(event)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div>
+            <div style="font-size:.82rem;color:var(--text-muted);">Adicionar fotos</div>
+            <div id="mgal-fotos-count" style="font-size:.72rem;color:var(--text-hint);margin-top:.1rem;">Nenhuma foto ainda</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ABA: Fotos -->
-  <div id="gtab-fotos" style="flex:1;overflow-y:auto;display:none;">
-    <div id="mgal-upload-area" style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;margin-bottom:1rem;" onclick="document.getElementById('mgal-file-input').click()" ondragover="event.preventDefault()" ondrop="mgalOnDrop(event)">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .75rem;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <div style="font-size:.83rem;color:var(--text-muted);">Clique ou arraste as fotos aqui</div>
-      <div style="font-size:.73rem;color:var(--text-hint);margin-top:.3rem;">JPG, PNG, WEBP — múltiplos arquivos</div>
+    <!-- Separador Configurações -->
+    <div style="margin:1.5rem 0 1rem;display:flex;align-items:center;gap:.75rem;">
+      <span style="font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-hint);">Configurações</span>
+      <div style="flex:1;height:.5px;background:var(--border-strong);"></div>
     </div>
-    <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
-    <!-- Barra de progresso (oculta por padrão) -->
-    <div id="mgal-progress-wrap" style="display:none;margin-bottom:1rem;">
-      <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;">
-        <span id="mgal-progress-label">Enviando...</span>
-        <span id="mgal-progress-pct">0%</span>
-      </div>
-      <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
-        <div id="mgal-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s;"></div>
-      </div>
-    </div>
-    <!-- Grid de fotos -->
-    <div id="mgal-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;"></div>
-  </div>
 
-  <!-- ABA: Configurações -->
-  <div id="gtab-config" style="flex:1;overflow-y:auto;display:none;">
     <div class="tf" style="grid-template-columns:1fr 1fr;">
       <div class="field">
         <label>Status</label>
@@ -1645,7 +1643,7 @@ select.aj-input{cursor:pointer;}
       </div>
       <div class="field">
         <label>Senha de acesso</label>
-        <input type="text" id="mgal-senha" placeholder="Deixe em branco para acesso livre">
+        <input type="text" id="mgal-senha" placeholder="Sem senha — acesso livre">
       </div>
       <div class="field" style="grid-column:1/-1;">
         <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
@@ -1659,18 +1657,26 @@ select.aj-input{cursor:pointer;}
         <button class="btn" onclick="mgalEscolherCapa()" style="font-size:.75rem;">Escolher entre as fotos enviadas</button>
       </div>
     </div>
-    <div style="margin-top:1rem;padding:1rem;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-muted);">
-      <div style="margin-bottom:.6rem;font-weight:500;color:var(--text);">Link público da galeria</div>
-      <div id="mgal-link-display" style="font-family:monospace;color:var(--amber);word-break:break-all;margin-bottom:.4rem;"></div>
-      <div id="mgal-link-custom-wrap" style="margin-top:.75rem;padding-top:.75rem;border-top:.5px solid var(--border-strong);opacity:.45;pointer-events:none;">
-        <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;">
-          <span style="font-size:.68rem;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:20px;background:var(--amber-light);color:var(--amber-deep);text-transform:uppercase;">Pro</span>
-          <span style="font-weight:500;color:var(--text);">Domínio personalizado</span>
-        </div>
-        <div id="mgal-link-custom" style="font-family:monospace;color:var(--amber);word-break:break-all;"></div>
-        <div style="font-size:.71rem;color:var(--text-hint);margin-top:.35rem;">Configure seu domínio em Ajustes > Geral para ativar.</div>
+  </div>
+
+  <!-- ABA: Fotos -->
+  <div id="gtab-fotos" style="flex:1;overflow-y:auto;display:none;">
+    <div id="mgal-upload-area" style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;margin-bottom:1rem;" onclick="document.getElementById('mgal-file-input').click()" ondragover="event.preventDefault()" ondrop="mgalOnDrop(event)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .75rem;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div style="font-size:.83rem;color:var(--text-muted);">Clique ou arraste as fotos aqui</div>
+      <div style="font-size:.73rem;color:var(--text-hint);margin-top:.3rem;">JPG, PNG, WEBP — múltiplos arquivos</div>
+    </div>
+    <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
+    <div id="mgal-progress-wrap" style="display:none;margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;">
+        <span id="mgal-progress-label">Enviando...</span>
+        <span id="mgal-progress-pct">0%</span>
+      </div>
+      <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+        <div id="mgal-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s;"></div>
       </div>
     </div>
+    <div id="mgal-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;"></div>
   </div>
 
   <div class="ma" style="margin-top:1.25rem;padding-top:1rem;border-top:.5px solid var(--border-strong);">
@@ -5483,14 +5489,15 @@ function abrirGaleria(id){
   document.getElementById('mgal-titulo').textContent=gal.nomeCliente||'Nova Galeria';
   document.getElementById('mgal-nome').value=gal.nomeCliente||'';
   document.getElementById('mgal-data').value=gal.dataEvento||'';
-  document.getElementById('mgal-total').value=gal.total_fotos||'';
   document.getElementById('mgal-slug').value=gal.slug||'';
   document.getElementById('mgal-status').value=gal.status||'rascunho';
   document.getElementById('mgal-senha').value=gal.senha||'';
   document.getElementById('mgal-downloads').checked=!!gal.downloads_liberados;
-  var linkEl=document.getElementById('mgal-link-display');
-  if(linkEl) linkEl.textContent=gal.slug?'app.kelvn.com.br/galeria/'+gal.slug:'—';
-  mgalAtualizaLinkCustom(gal.slug);
+  var sd=g('sd')||{};
+  var hint=document.getElementById('mgal-pro-hint');
+  if(hint) hint.style.display=sd['studio-dominio-galeria']?'none':'flex';
+  var countEl=document.getElementById('mgal-fotos-count');
+  if(countEl){var n=(gal.fotos||[]).length;countEl.textContent=n?n+' foto'+(n!==1?'s':''):'Nenhuma foto ainda';}
   var coverEl=document.getElementById('mgal-cover-preview');
   if(coverEl){
     if(gal.cover_url){coverEl.style.backgroundImage='url('+gal.cover_url+')';coverEl.style.display='';}
@@ -5501,7 +5508,7 @@ function abrirGaleria(id){
   document.getElementById('ov-gal').classList.add('open');
 }
 function switchGalTab(name){
-  ['info','fotos','config'].forEach(function(n){
+  ['info','fotos'].forEach(function(n){
     document.getElementById('gtab-'+n).style.display=n===name?'':'none';
     var pill=document.getElementById('gpill-'+n);
     if(pill){pill.classList.toggle('active',n===name);}
@@ -5526,6 +5533,8 @@ function rGalFotos(gal){
   var grid=document.getElementById('mgal-fotos-grid');
   if(!grid) return;
   var fotos=(gal&&gal.fotos)||[];
+  var countEl=document.getElementById('mgal-fotos-count');
+  if(countEl){var n=fotos.length;countEl.textContent=n?n+' foto'+(n!==1?'s':''):'Nenhuma foto ainda';}
   if(!fotos.length){grid.innerHTML='';return;}
   grid.innerHTML=fotos.map(function(f,i){
     return '<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--surface2);">'
@@ -5564,7 +5573,7 @@ function saveGal(){
   var gal=gals[idx];
   gal.nomeCliente=document.getElementById('mgal-nome').value.trim();
   gal.dataEvento=document.getElementById('mgal-data').value.trim();
-  gal.total_fotos=parseInt(document.getElementById('mgal-total').value)||( gal.fotos?gal.fotos.length:0);
+  gal.total_fotos=(gal.fotos||[]).length;
   gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
   gal.status=document.getElementById('mgal-status').value;
   gal.senha=document.getElementById('mgal-senha').value.trim();
