@@ -1588,13 +1588,6 @@ select.aj-input{cursor:pointer;}
 <div class="overlay" id="ov-gal"><div class="modal wide" style="max-width:700px;max-height:88vh;display:flex;flex-direction:column;">
   <h2 id="mgal-titulo">Nova Galeria</h2>
 
-  <!-- Seletor de status -->
-  <div class="pills" style="margin-bottom:1.25rem;">
-    <button class="pill active" id="gst-rascunho" onclick="mgalSetStatus('rascunho')">Rascunho</button>
-    <button class="pill" id="gst-publicado" onclick="mgalSetStatus('publicado')">Publicada</button>
-    <button class="pill" id="gst-arquivado" onclick="mgalSetStatus('arquivado')">Arquivada</button>
-  </div>
-
   <!-- Conteúdo único -->
   <div style="flex:1;overflow-y:auto;">
     <div class="tf" style="grid-template-columns:1fr 1fr;">
@@ -1647,32 +1640,13 @@ select.aj-input{cursor:pointer;}
 
     </div>
 
-    <!-- Separador Configurações -->
-    <div style="margin:1.5rem 0 1rem;display:flex;align-items:center;gap:.75rem;">
-      <span style="font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-hint);">Configurações</span>
-      <div style="flex:1;height:.5px;background:var(--border-strong);"></div>
-    </div>
-
-    <div class="tf" style="grid-template-columns:1fr 1fr;">
-      <div class="field" style="grid-column:1/-1;">
-        <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
-          <input type="checkbox" id="mgal-downloads" style="width:15px;height:15px;">
-          Permitir download das fotos
-        </label>
-      </div>
-      <div class="field" style="grid-column:1/-1;">
-        <label>Foto de capa</label>
-        <div id="mgal-cover-preview" style="display:none;width:100%;height:140px;border-radius:8px;background-size:cover;background-position:center;margin-bottom:.5rem;border:.5px solid var(--border-strong);"></div>
-        <button class="btn" onclick="mgalEscolherCapa()" style="font-size:.75rem;">Escolher entre as fotos enviadas</button>
-      </div>
-    </div>
-
   </div>
 
   <div class="ma" style="margin-top:1.25rem;padding-top:1rem;border-top:.5px solid var(--border-strong);">
     <button class="btn" style="color:var(--coral);" id="mgal-del" onclick="delGal()">Excluir</button>
     <div style="flex:1"></div>
     <button class="btn" onclick="cov('ov-gal')">Fechar</button>
+    <button class="btn" id="mgal-btn-publicar" onclick="mgalPublicar()" style="display:none;">Publicar galeria</button>
     <button class="btn primary" onclick="saveGal()">Salvar</button>
   </div>
 </div></div>
@@ -5442,18 +5416,29 @@ function rGal(){
     return;
   }
   el.innerHTML=gals.map(function(gal){
-    var statusColor=gal.status==='publicado'?'var(--teal)':gal.status==='rascunho'?'var(--text-hint)':'var(--amber)';
-    var statusLabel=gal.status==='publicado'?'Publicada':gal.status==='rascunho'?'Rascunho':'Aguardando';
+    var isPub=gal.status==='publicado';
+    var statusColor=isPub?'var(--teal)':'var(--text-hint)';
+    var statusLabel=isPub?'Publicada':'Rascunho';
     var cover=gal.cover_url?'background-image:url('+gal.cover_url+');background-size:cover;background-position:center;':'background:var(--surface2);';
     var fotos=(gal.fotos||[]).length;
-    return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="abrirGaleria(\''+gal.id+'\')">'
-      +'<div style="height:160px;'+cover+'display:flex;align-items:flex-end;padding:.6rem;">'
-      +(gal.cover_url?'':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="margin:auto;display:block;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
+    var dlIcon=gal.downloads_liberados
+      ?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      :'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:10px;overflow:hidden;">'
+      +'<div style="height:160px;'+cover+'display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="abrirGaleria(\''+gal.id+'\')">'
+      +(gal.cover_url?'':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
       +'</div>'
-      +'<div style="padding:.875rem 1rem;">'
-      +'<div style="font-size:.88rem;font-weight:500;margin-bottom:.2rem;">'+gal.nomeCliente+'</div>'
+      +'<div style="padding:.75rem 1rem;">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">'
+      +'<div style="cursor:pointer;" onclick="abrirGaleria(\''+gal.id+'\')">'
+      +'<div style="font-size:.88rem;font-weight:500;margin-bottom:.2rem;">'+( gal.nomeCliente||'—')+'</div>'
       +'<div style="font-size:.75rem;color:var(--text-hint);">'+fd(gal.dataEvento)+(fotos?' · '+fotos+' foto'+(fotos!==1?'s':''):'')+'</div>'
-      +'<div style="margin-top:.6rem;font-size:.68rem;font-weight:500;color:'+statusColor+';">'+statusLabel+'</div>'
+      +'<div style="margin-top:.5rem;font-size:.68rem;font-weight:500;color:'+statusColor+';">'+statusLabel+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:.35rem;align-items:center;flex-shrink:0;margin-top:.1rem;">'
+      +'<button title="'+(gal.downloads_liberados?'Downloads liberados — clique para bloquear':'Liberar download')+'" onclick="mgalToggleDownload(\''+gal.id+'\')" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 6px;cursor:pointer;">'+dlIcon+'</button>'
+      +'</div>'
+      +'</div>'
       +'</div>'
       +'</div>';
   }).join('');
@@ -5480,9 +5465,11 @@ function abrirGaleria(id){
   document.getElementById('mgal-nome').value=gal.nomeCliente||'';
   document.getElementById('mgal-data').value=gal.dataEvento||'';
   document.getElementById('mgal-slug').value=gal.slug||'';
-  mgalSetStatus(gal.status||'rascunho',true);
+  _galStatus=gal.status||'rascunho';
+  var btnPub=document.getElementById('mgal-btn-publicar');
+  if(btnPub) btnPub.style.display=_galStatus==='rascunho'?'':'none';
   document.getElementById('mgal-senha').value=gal.senha||'';
-  document.getElementById('mgal-downloads').checked=!!gal.downloads_liberados;
+  // downloads e capa gerenciados via card após criação
   var sd=g('sd')||{};
   var hint=document.getElementById('mgal-pro-hint');
   if(hint) hint.style.display=sd['studio-dominio-galeria']?'none':'flex';
@@ -5498,14 +5485,26 @@ function abrirGaleria(id){
   document.getElementById('ov-gal').classList.add('open');
 }
 var _galStatus='rascunho';
-function mgalSetStatus(val,silent){
-  _galStatus=val;
-  ['rascunho','publicado','arquivado'].forEach(function(s){
-    var b=document.getElementById('gst-'+s);
-    if(b) b.classList.toggle('active',s===val);
-  });
-}
+function mgalSetStatus(val){_galStatus=val;}
 function switchGalTab(name){} // abas removidas — mantido para compatibilidade
+function mgalPublicar(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  // Salva primeiro com dados atuais
+  gal.nomeCliente=document.getElementById('mgal-nome').value.trim();
+  gal.dataEvento=document.getElementById('mgal-data').value.trim();
+  gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
+  gal.senha=document.getElementById('mgal-senha').value.trim();
+  gal.total_fotos=(gal.fotos||[]).length;
+  gal.status='publicado';
+  _galStatus='publicado';
+  s('galerias',gals);
+  var btnPub=document.getElementById('mgal-btn-publicar');
+  if(btnPub) btnPub.style.display='none';
+  rGal();
+  notify('Galeria publicada.');
+}
 function mgalAutoSlug(){
   var nome=document.getElementById('mgal-nome').value;
   var slug=gerarSlug(nome);
@@ -5569,7 +5568,7 @@ function saveGal(){
   gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
   gal.status=_galStatus;
   gal.senha=document.getElementById('mgal-senha').value.trim();
-  gal.downloads_liberados=document.getElementById('mgal-downloads').checked;
+  // downloads_liberados mantido mas não editado aqui — gerenciado via card
   s('galerias',gals);
   document.getElementById('mgal-titulo').textContent=gal.nomeCliente||'Nova Galeria';
   rGal();
@@ -5583,6 +5582,15 @@ function delGal(){
   cov('ov-gal');
   rGal();
   notify('Galeria excluída.');
+}
+function mgalToggleDownload(id){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===id;});
+  if(!gal) return;
+  gal.downloads_liberados=!gal.downloads_liberados;
+  s('galerias',gals);
+  rGal();
+  notify(gal.downloads_liberados?'Download liberado.':'Download bloqueado.');
 }
 // Upload handlers — Etapa 4
 function mgalOnDrop(e){
