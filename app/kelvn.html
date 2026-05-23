@@ -983,17 +983,6 @@ select.aj-input{cursor:pointer;}
         <button id="gal-det-btn-pub" class="btn primary" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Publicar galeria</button>
       </div>
     </div>
-    <!-- Config row -->
-    <div id="gal-det-config" style="display:flex;gap:1rem;align-items:center;margin-bottom:1.5rem;padding:.75rem 1rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;flex-wrap:wrap;">
-      <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;">
-        <input type="checkbox" id="gal-det-downloads" style="width:14px;height:14px;" onchange="mgalSalvarConfigDetalhe()">
-        Permitir download
-      </label>
-      <div style="width:.5px;height:16px;background:var(--border-strong);"></div>
-      <button class="btn" style="font-size:.75rem;" onclick="mgalEscolherCapaDetalhe()">Definir foto de capa</button>
-      <div style="flex:1;"></div>
-      <span id="gal-det-status-label" style="font-size:.72rem;font-weight:500;color:var(--text-hint);"></span>
-    </div>
     <!-- Grid de fotos -->
     <div id="gal-det-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;"></div>
   </div>
@@ -1653,6 +1642,14 @@ select.aj-input{cursor:pointer;}
           <div id="mgal-fotos-count" style="font-size:.73rem;color:var(--text-hint);margin-top:.3rem;">JPG, PNG, WEBP — múltiplos arquivos</div>
         </div>
         <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
+      </div>
+
+      <!-- Permitir download (só na edição) -->
+      <div id="mgal-downloads-row" style="grid-column:1/-1;display:none;">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;">
+          <input type="checkbox" id="mgal-downloads" style="width:14px;height:14px;">
+          Permitir download
+        </label>
       </div>
 
       <!-- Barra de progresso (só durante upload) -->
@@ -5494,13 +5491,13 @@ function abrirNovaGaleria(){
   gals.unshift(nova);
   s('galerias',gals);
   rGal();
-  abrirGaleria(id);
+  abrirGaleria(id, true);
 }
 function gerarSlug(nome){
   return nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,60);
 }
 var _galAtualId=null;
-function abrirGaleria(id){
+function abrirGaleria(id, isNova){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===id;});
   if(!gal) return;
@@ -5511,7 +5508,10 @@ function abrirGaleria(id){
   document.getElementById('mgal-slug').value=gal.slug||'';
   _galStatus=gal.status||'rascunho';
   document.getElementById('mgal-senha').value=gal.senha||'';
-  // downloads e capa gerenciados via card após criação
+  var dlRow=document.getElementById('mgal-downloads-row');
+  var dlChk=document.getElementById('mgal-downloads');
+  if(dlRow) dlRow.style.display=isNova?'none':'';
+  if(dlChk) dlChk.checked=!!gal.downloads_liberados;
   var sd=g('sd')||{};
   var hint=document.getElementById('mgal-pro-hint');
   if(hint) hint.style.display=sd['studio-dominio-galeria']?'none':'flex';
@@ -5605,6 +5605,8 @@ function saveGal(){
   gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
   gal.status=_galStatus;
   gal.senha=document.getElementById('mgal-senha').value.trim();
+  var dlChk=document.getElementById('mgal-downloads');
+  if(dlChk) gal.downloads_liberados=dlChk.checked;
   s('galerias',gals);
   rGal();
   rGalDetalhe();
@@ -5671,10 +5673,6 @@ function rGalDetalhe(){
   document.getElementById('gal-view-detalhe').style.display='';
   var tEl=document.getElementById('gal-det-titulo');
   if(tEl) tEl.textContent=gal.nomeCliente||'Galeria';
-  var dlEl=document.getElementById('gal-det-downloads');
-  if(dlEl) dlEl.checked=!!gal.downloads_liberados;
-  var stEl=document.getElementById('gal-det-status-label');
-  if(stEl){stEl.textContent=gal.status==='publicado'?'Publicada':'Rascunho';stEl.style.color=gal.status==='publicado'?'var(--teal)':'var(--text-hint)';}
   var btnPub=document.getElementById('gal-det-btn-pub');
   if(btnPub){btnPub.textContent=gal.status==='publicado'?'Despublicar':'Publicar galeria';btnPub.style.background=gal.status==='publicado'?'transparent':'';}
   var fotos=gal.fotos||[];
