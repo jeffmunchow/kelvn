@@ -5476,6 +5476,9 @@ function abrirGaleria(id){
     else coverEl.style.display='none';
   }
   rGalFotos(gal);
+  // Mostra/oculta área de upload conforme existência de fotos
+  var uploadArea=document.getElementById('mgal-upload-area');
+  if(uploadArea) uploadArea.style.display=(gal.fotos&&gal.fotos.length)?'none':'';
   switchGalTab('info');
   document.getElementById('ov-gal').classList.add('open');
 }
@@ -5518,7 +5521,10 @@ function rGalFotos(gal){
       +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">'
       +'<button onclick="mgalRemoverFoto('+i+')" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;line-height:1;">×</button>'
       +'</div>';
-  }).join('');
+  }).join('')
+  +'<div style="aspect-ratio:1;border-radius:6px;border:1.5px dashed var(--border-strong);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="document.getElementById(\'mgal-file-input\').click()" title="Adicionar mais fotos">'
+  +'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+  +'</div>';
 }
 function mgalRemoverFoto(idx){
   var gals=g('galerias')||[];
@@ -5677,6 +5683,12 @@ async function mgalIniciarUpload(files){
   rGal();
   if(!erros) notify(total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
   else notify(erros+' foto'+(erros>1?'s':'')+' não foram enviadas.');
+
+  // Esconde área de upload e rola para o grid de fotos
+  var uploadArea=document.getElementById('mgal-upload-area');
+  if(uploadArea) uploadArea.style.display='none';
+  var grid=document.getElementById('mgal-fotos-grid');
+  if(grid) setTimeout(function(){grid.scrollIntoView({behavior:'smooth',block:'nearest'});},200);
 }
 
 function rEdu(){
