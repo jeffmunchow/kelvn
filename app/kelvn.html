@@ -486,6 +486,10 @@ select.aj-input{cursor:pointer;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
   </button>
 
+  <button class="snav-btn" id="sn-galerias" onclick="goDirecto('galerias')" title="Galerias">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+  </button>
+
   <button class="snav-btn" id="sn-ia" onclick="toggleAI()" title="Assistente IA">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
   </button>
@@ -958,6 +962,15 @@ select.aj-input{cursor:pointer;}
   </div>
 
 
+</div>
+
+<!-- GALERIAS -->
+<div class="panel" id="p-galerias">
+  <div class="sh">
+    <div class="st">Galerias</div>
+    <button class="btn" onclick="abrirNovaGaleria()">+ Nova galeria</button>
+  </div>
+  <div id="gal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
 </div>
 
 <!-- EDUCAÇÃO -->
@@ -1591,6 +1604,7 @@ function togglePrivacidade(){
     analises:function(){rAN();},
     questionarios:function(){rQT();},
     agendamento:function(){rTR();rSlots();},
+    galerias:rGal,
     educacao:rEdu,
     ajustes:rSD
   };
@@ -1644,7 +1658,7 @@ function go(name){
   _curTab=name;
   if(name==='equipe'){goDirecto('ajustes');switchAJ('equipe');return;}
   if(name==='pacotes'){goDirecto('ajustes');switchAJ('servicos');return;}
-  ({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu,ajustes:rSD})[name]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},educacao:rEdu,ajustes:rSD})[name]();
+  ({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,educacao:rEdu,ajustes:rSD})[name]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,educacao:rEdu,ajustes:rSD})[name]();
 }
 function switchPP(name){
   ['pend','edicoes','entregas'].forEach(function(n){
@@ -5319,6 +5333,52 @@ function makeCover(eb,size){
   '</div>';
 }
 
+// ── GALERIAS ────────────────────────────────────────────────────────────────
+function rGal(){
+  var el=document.getElementById('gal-grid');
+  if(!el) return;
+  var gals=g('galerias')||[];
+  if(!gals.length){
+    el.innerHTML='<div style="grid-column:1/-1;padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.85rem;">Nenhuma galeria ainda. Crie a primeira para começar.</div>';
+    return;
+  }
+  el.innerHTML=gals.map(function(gal){
+    var statusColor=gal.status==='publicado'?'var(--teal)':gal.status==='rascunho'?'var(--text-hint)':'var(--amber)';
+    var statusLabel=gal.status==='publicado'?'Publicada':gal.status==='rascunho'?'Rascunho':'Aguardando';
+    var cover=gal.cover_url?'background-image:url('+gal.cover_url+');background-size:cover;background-position:center;':'background:var(--surface2);';
+    var fotos=(gal.fotos||[]).length;
+    return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="abrirGaleria(\''+gal.id+'\')">'
+      +'<div style="height:160px;'+cover+'display:flex;align-items:flex-end;padding:.6rem;">'
+      +(gal.cover_url?'':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="margin:auto;display:block;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
+      +'</div>'
+      +'<div style="padding:.875rem 1rem;">'
+      +'<div style="font-size:.88rem;font-weight:500;margin-bottom:.2rem;">'+gal.nomeCliente+'</div>'
+      +'<div style="font-size:.75rem;color:var(--text-hint);">'+fd(gal.dataEvento)+(fotos?' · '+fotos+' foto'+(fotos!==1?'s':''):'')+'</div>'
+      +'<div style="margin-top:.6rem;font-size:.68rem;font-weight:500;color:'+statusColor+';">'+statusLabel+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+function abrirNovaGaleria(){
+  var id='gal_'+Date.now();
+  var nova={id:id,nomeCliente:'',dataEvento:'',slug:'',senha:'',status:'rascunho',fotos:[],cover_url:'',total_fotos:0,downloads_liberados:false,created_at:new Date().toISOString()};
+  var gals=g('galerias')||[];
+  gals.unshift(nova);
+  s('galerias',gals);
+  rGal();
+  abrirGaleria(id);
+}
+function gerarSlug(nome){
+  return nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,60);
+}
+function abrirGaleria(id){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(g){return g.id===id;});
+  if(!gal) return;
+  // Etapa 3 — modal de gestão da galeria (a implementar)
+  notify('Galeria: '+( gal.nomeCliente||'Nova galeria'));
+}
+
 function rEdu(){
   var grid=document.getElementById('edu-grid');
   if(!grid) return;
@@ -5652,7 +5712,8 @@ var _KEY_MAP = {
   'contrato_template': {table:'configuracoes', col:'contrato_template'},
   'q_templates':  {table:'questionarios',      col:'templates'},
   'q_respostas':  {table:'questionarios',      col:'respostas'},
-  'automacoes':   {table:'configuracoes',      col:'automacoes'}
+  'automacoes':   {table:'configuracoes',      col:'automacoes'},
+  'galerias':     {table:'galerias',           col:'data'}
 };
 var _cache = {};
 var _syncTimers = {};
