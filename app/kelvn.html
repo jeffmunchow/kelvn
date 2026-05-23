@@ -5589,8 +5589,94 @@ function mgalOnFileSelect(e){
   if(files.length) mgalIniciarUpload(files);
   e.target.value='';
 }
-function mgalIniciarUpload(files){
-  notify('Upload disponível na Etapa 4.');
+async function mgalIniciarUpload(files){
+  if(!_galAtualId||!_currentUser){notify('Salve a galeria antes de enviar fotos.');return;}
+  if(!files||!files.length) return;
+
+  // Busca token de autenticação
+  var sessionRes=await _sb.auth.getSession();
+  var token=sessionRes&&sessionRes.data&&sessionRes.data.session?sessionRes.data.session.access_token:null;
+  if(!token){notify('Sessão expirada. Faça login novamente.');return;}
+
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal){notify('Galeria não encontrada.');return;}
+  gal.fotos=gal.fotos||[];
+
+  var total=files.length;
+  var concluidos=0;
+  var erros=0;
+
+  // Mostra barra de progresso
+  var wrap=document.getElementById('mgal-progress-wrap');
+  var bar=document.getElementById('mgal-progress-bar');
+  var label=document.getElementById('mgal-progress-label');
+  var pct=document.getElementById('mgal-progress-pct');
+  if(wrap) wrap.style.display='';
+
+  function atualizaProgresso(){
+    var p=Math.round((concluidos/total)*100);
+    if(bar) bar.style.width=p+'%';
+    if(pct) pct.textContent=p+'%';
+    if(label) label.textContent='Enviando '+concluidos+' de '+total+(erros?' ('+erros+' erro'+(erros>1?'s':'')+')'  :'')+'…';
+  }
+  atualizaProgresso();
+
+  // Upload sequencial para não sobrecarregar
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    try{
+      // 1. Pede presigned URL
+      var resp=await fetch('/api/gallery-upload',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({
+          filename:file.name,
+          contentType:file.type,
+          galeriaId:_galAtualId,
+          userId:_currentUser.id
+        })
+      });
+      if(!resp.ok) throw new Error('Erro ao gerar URL de upload');
+      var data=await resp.json();
+
+      // 2. PUT direto para o R2
+      var putResp=await fetch(data.signedUrl,{
+        method:'PUT',
+        headers:{'Content-Type':file.type},
+        body:file
+      });
+      if(!putResp.ok) throw new Error('Erro ao enviar para o R2');
+
+      // 3. Adiciona foto ao array
+      gal.fotos.push({url:data.publicUrl,key:data.key,nome:file.name});
+      gal.total_fotos=gal.fotos.length;
+
+      // Define capa automaticamente com a primeira foto
+      if(!gal.cover_url) gal.cover_url=data.publicUrl;
+
+      s('galerias',gals);
+      concluidos++;
+      atualizaProgresso();
+      rGalFotos(gal);
+
+    }catch(err){
+      console.error('Upload erro:',err);
+      erros++;
+      concluidos++;
+      atualizaProgresso();
+    }
+  }
+
+  // Finaliza
+  if(label) label.textContent=erros?'Concluído com '+erros+' erro'+(erros>1?'s':'')+'.':'Envio concluído.';
+  if(pct) pct.textContent='100%';
+  if(bar) bar.style.width='100%';
+  setTimeout(function(){if(wrap) wrap.style.display='none';},3000);
+
+  rGal();
+  if(!erros) notify(total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
+  else notify(erros+' foto'+(erros>1?'s':'')+' não foram enviadas.');
 }
 
 function rEdu(){
