@@ -1646,7 +1646,6 @@ select.aj-input{cursor:pointer;}
     <button class="btn" style="color:var(--coral);" id="mgal-del" onclick="delGal()">Excluir</button>
     <div style="flex:1"></div>
     <button class="btn" onclick="cov('ov-gal')">Fechar</button>
-    <button class="btn" id="mgal-btn-publicar" onclick="mgalPublicar()" style="display:none;">Publicar galeria</button>
     <button class="btn primary" onclick="saveGal()">Salvar</button>
   </div>
 </div></div>
@@ -5437,6 +5436,7 @@ function rGal(){
       +'</div>'
       +'<div style="display:flex;gap:.35rem;align-items:center;flex-shrink:0;margin-top:.1rem;">'
       +'<button title="'+(gal.downloads_liberados?'Downloads liberados — clique para bloquear':'Liberar download')+'" onclick="mgalToggleDownload(\''+gal.id+'\')" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 6px;cursor:pointer;">'+dlIcon+'</button>'
+      +'<button onclick="mgalPublicar(\''+gal.id+'\')" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.68rem;color:'+(isPub?'var(--text-muted)':'var(--teal)')+';">'+(isPub?'Despublicar':'Publicar')+'</button>'
       +'</div>'
       +'</div>'
       +'</div>'
@@ -5466,8 +5466,6 @@ function abrirGaleria(id){
   document.getElementById('mgal-data').value=gal.dataEvento||'';
   document.getElementById('mgal-slug').value=gal.slug||'';
   _galStatus=gal.status||'rascunho';
-  var btnPub=document.getElementById('mgal-btn-publicar');
-  if(btnPub) btnPub.style.display=_galStatus==='rascunho'?'':'none';
   document.getElementById('mgal-senha').value=gal.senha||'';
   // downloads e capa gerenciados via card após criação
   var sd=g('sd')||{};
@@ -5487,23 +5485,14 @@ function abrirGaleria(id){
 var _galStatus='rascunho';
 function mgalSetStatus(val){_galStatus=val;}
 function switchGalTab(name){} // abas removidas — mantido para compatibilidade
-function mgalPublicar(){
+function mgalPublicar(id){
   var gals=g('galerias')||[];
-  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  var gal=gals.find(function(x){return x.id===(id||_galAtualId);});
   if(!gal) return;
-  // Salva primeiro com dados atuais
-  gal.nomeCliente=document.getElementById('mgal-nome').value.trim();
-  gal.dataEvento=document.getElementById('mgal-data').value.trim();
-  gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
-  gal.senha=document.getElementById('mgal-senha').value.trim();
-  gal.total_fotos=(gal.fotos||[]).length;
-  gal.status='publicado';
-  _galStatus='publicado';
+  gal.status=gal.status==='publicado'?'rascunho':'publicado';
   s('galerias',gals);
-  var btnPub=document.getElementById('mgal-btn-publicar');
-  if(btnPub) btnPub.style.display='none';
   rGal();
-  notify('Galeria publicada.');
+  notify(gal.status==='publicado'?'Galeria publicada.':'Galeria despublicada.');
 }
 function mgalAutoSlug(){
   var nome=document.getElementById('mgal-nome').value;
