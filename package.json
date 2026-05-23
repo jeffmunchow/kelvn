@@ -1,8 +1,13 @@
 {
   "name": "kelvn",
-  "version": "1.4.256",
+  "version": "1.4.257",
   "private": true,
   "engines": {
     "node": "22.x"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/s3-request-presigner": "^3.600.0",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

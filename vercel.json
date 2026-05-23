@@ -5,6 +5,11 @@
       "dest": "/api/$1"
     },
     {
+      "src": "/galeria/(.*)",
+      "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
+      "dest": "/app/galeria.html"
+    },
+    {
       "src": "/",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
       "dest": "/app/kelvn.html"
