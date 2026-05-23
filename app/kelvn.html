@@ -5589,7 +5589,9 @@ function saveGal(){
   // downloads_liberados mantido mas não editado aqui — gerenciado via card
   s('galerias',gals);
   document.getElementById('mgal-titulo').textContent=gal.nomeCliente||'Nova Galeria';
+  cov('ov-gal');
   rGal();
+  rGalDetalhe();
   notify('Galeria salva.');
 }
 function delGal(){
