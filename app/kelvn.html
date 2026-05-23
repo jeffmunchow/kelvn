@@ -1574,6 +1574,95 @@ select.aj-input{cursor:pointer;}
   <button class="checkout-btn" onclick="cov('ov-compra-ok')">Fechar</button>
 </div></div>
 
+<!-- MODAL GALERIA -->
+<div class="overlay" id="ov-gal"><div class="modal wide" style="max-width:700px;max-height:88vh;display:flex;flex-direction:column;">
+  <h2 id="mgal-titulo">Nova Galeria</h2>
+  <!-- Pills de navegação interna -->
+  <div class="pills" style="margin-bottom:1.25rem;">
+    <button class="pill active" id="gpill-info" onclick="switchGalTab('info')">Informações</button>
+    <button class="pill" id="gpill-fotos" onclick="switchGalTab('fotos')">Fotos</button>
+    <button class="pill" id="gpill-config" onclick="switchGalTab('config')">Configurações</button>
+  </div>
+
+  <!-- ABA: Informações -->
+  <div id="gtab-info" style="flex:1;overflow-y:auto;">
+    <div class="tf" style="grid-template-columns:1fr 1fr;">
+      <div class="field" style="grid-column:1/-1"><label>Nome do cliente / casal</label><input type="text" id="mgal-nome" placeholder="ex: Beatriz & Rafael" oninput="mgalAutoSlug()"></div>
+      <div class="field"><label>Data do evento</label><input type="text" id="mgal-data" placeholder="dd/mm/aaaa" class="sd"></div>
+      <div class="field"><label>Total de fotos</label><input type="number" id="mgal-total" placeholder="ex: 400"></div>
+      <div class="field" style="grid-column:1/-1">
+        <label>Link da galeria (slug)</label>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span style="font-size:.78rem;color:var(--text-hint);white-space:nowrap;">app.kelvn.com.br/galeria/</span>
+          <input type="text" id="mgal-slug" placeholder="beatriz-e-rafael" style="flex:1;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: Fotos -->
+  <div id="gtab-fotos" style="flex:1;overflow-y:auto;display:none;">
+    <div id="mgal-upload-area" style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;margin-bottom:1rem;" onclick="document.getElementById('mgal-file-input').click()" ondragover="event.preventDefault()" ondrop="mgalOnDrop(event)">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .75rem;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div style="font-size:.83rem;color:var(--text-muted);">Clique ou arraste as fotos aqui</div>
+      <div style="font-size:.73rem;color:var(--text-hint);margin-top:.3rem;">JPG, PNG, WEBP — múltiplos arquivos</div>
+    </div>
+    <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
+    <!-- Barra de progresso (oculta por padrão) -->
+    <div id="mgal-progress-wrap" style="display:none;margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;">
+        <span id="mgal-progress-label">Enviando...</span>
+        <span id="mgal-progress-pct">0%</span>
+      </div>
+      <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+        <div id="mgal-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s;"></div>
+      </div>
+    </div>
+    <!-- Grid de fotos -->
+    <div id="mgal-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;"></div>
+  </div>
+
+  <!-- ABA: Configurações -->
+  <div id="gtab-config" style="flex:1;overflow-y:auto;display:none;">
+    <div class="tf" style="grid-template-columns:1fr 1fr;">
+      <div class="field">
+        <label>Status</label>
+        <select id="mgal-status">
+          <option value="rascunho">Rascunho</option>
+          <option value="publicado">Publicada</option>
+          <option value="arquivado">Arquivada</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Senha de acesso</label>
+        <input type="text" id="mgal-senha" placeholder="Deixe em branco para acesso livre">
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
+          <input type="checkbox" id="mgal-downloads" style="width:15px;height:15px;">
+          Permitir download das fotos
+        </label>
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>Foto de capa</label>
+        <div id="mgal-cover-preview" style="display:none;width:100%;height:140px;border-radius:8px;background-size:cover;background-position:center;margin-bottom:.5rem;border:.5px solid var(--border-strong);"></div>
+        <button class="btn" onclick="mgalEscolherCapa()" style="font-size:.75rem;">Escolher entre as fotos enviadas</button>
+      </div>
+    </div>
+    <div style="margin-top:1rem;padding:1rem;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-muted);">
+      <div style="margin-bottom:.4rem;font-weight:500;color:var(--text);">Link público da galeria</div>
+      <div id="mgal-link-display" style="font-family:monospace;color:var(--amber);word-break:break-all;"></div>
+    </div>
+  </div>
+
+  <div class="ma" style="margin-top:1.25rem;padding-top:1rem;border-top:.5px solid var(--border-strong);">
+    <button class="btn" style="color:var(--coral);" id="mgal-del" onclick="delGal()">Excluir</button>
+    <div style="flex:1"></div>
+    <button class="btn" onclick="cov('ov-gal')">Fechar</button>
+    <button class="btn primary" onclick="saveGal()">Salvar</button>
+  </div>
+</div></div>
+
 <div class="notif" id="notif"></div>
 
 <script>
@@ -5367,12 +5456,119 @@ function abrirNovaGaleria(){
 function gerarSlug(nome){
   return nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,60);
 }
+var _galAtualId=null;
 function abrirGaleria(id){
   var gals=g('galerias')||[];
-  var gal=gals.find(function(g){return g.id===id;});
+  var gal=gals.find(function(x){return x.id===id;});
   if(!gal) return;
-  // Etapa 3 — modal de gestão da galeria (a implementar)
-  notify('Galeria: '+( gal.nomeCliente||'Nova galeria'));
+  _galAtualId=id;
+  document.getElementById('mgal-titulo').textContent=gal.nomeCliente||'Nova Galeria';
+  document.getElementById('mgal-nome').value=gal.nomeCliente||'';
+  document.getElementById('mgal-data').value=gal.dataEvento||'';
+  document.getElementById('mgal-total').value=gal.total_fotos||'';
+  document.getElementById('mgal-slug').value=gal.slug||'';
+  document.getElementById('mgal-status').value=gal.status||'rascunho';
+  document.getElementById('mgal-senha').value=gal.senha||'';
+  document.getElementById('mgal-downloads').checked=!!gal.downloads_liberados;
+  var linkEl=document.getElementById('mgal-link-display');
+  if(linkEl) linkEl.textContent=gal.slug?'app.kelvn.com.br/galeria/'+gal.slug:'—';
+  var coverEl=document.getElementById('mgal-cover-preview');
+  if(coverEl){
+    if(gal.cover_url){coverEl.style.backgroundImage='url('+gal.cover_url+')';coverEl.style.display='';}
+    else coverEl.style.display='none';
+  }
+  rGalFotos(gal);
+  switchGalTab('info');
+  document.getElementById('ov-gal').classList.add('open');
+}
+function switchGalTab(name){
+  ['info','fotos','config'].forEach(function(n){
+    document.getElementById('gtab-'+n).style.display=n===name?'':'none';
+    var pill=document.getElementById('gpill-'+n);
+    if(pill){pill.classList.toggle('active',n===name);}
+  });
+}
+function mgalAutoSlug(){
+  var nome=document.getElementById('mgal-nome').value;
+  var slug=gerarSlug(nome);
+  document.getElementById('mgal-slug').value=slug;
+  var linkEl=document.getElementById('mgal-link-display');
+  if(linkEl) linkEl.textContent=slug?'app.kelvn.com.br/galeria/'+slug:'—';
+}
+function rGalFotos(gal){
+  var grid=document.getElementById('mgal-fotos-grid');
+  if(!grid) return;
+  var fotos=(gal&&gal.fotos)||[];
+  if(!fotos.length){grid.innerHTML='';return;}
+  grid.innerHTML=fotos.map(function(f,i){
+    return '<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--surface2);">'
+      +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">'
+      +'<button onclick="mgalRemoverFoto('+i+')" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;line-height:1;">×</button>'
+      +'</div>';
+  }).join('');
+}
+function mgalRemoverFoto(idx){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  gal.fotos=gal.fotos||[];
+  gal.fotos.splice(idx,1);
+  gal.total_fotos=gal.fotos.length;
+  s('galerias',gals);
+  rGalFotos(gal);
+  rGal();
+}
+function mgalEscolherCapa(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal||!gal.fotos||!gal.fotos.length){notify('Envie fotos primeiro.');return;}
+  // Abre mini-picker inline — usa a primeira foto como capa por padrão, ou deixa escolher via prompt simples
+  var url=gal.fotos[0].url;
+  gal.cover_url=url;
+  s('galerias',gals);
+  var coverEl=document.getElementById('mgal-cover-preview');
+  if(coverEl){coverEl.style.backgroundImage='url('+url+')';coverEl.style.display='';}
+  notify('Capa definida.');
+}
+function saveGal(){
+  var gals=g('galerias')||[];
+  var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
+  if(idx===-1) return;
+  var gal=gals[idx];
+  gal.nomeCliente=document.getElementById('mgal-nome').value.trim();
+  gal.dataEvento=document.getElementById('mgal-data').value.trim();
+  gal.total_fotos=parseInt(document.getElementById('mgal-total').value)||( gal.fotos?gal.fotos.length:0);
+  gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
+  gal.status=document.getElementById('mgal-status').value;
+  gal.senha=document.getElementById('mgal-senha').value.trim();
+  gal.downloads_liberados=document.getElementById('mgal-downloads').checked;
+  s('galerias',gals);
+  document.getElementById('mgal-titulo').textContent=gal.nomeCliente||'Nova Galeria';
+  rGal();
+  notify('Galeria salva.');
+}
+function delGal(){
+  if(!confirm('Excluir esta galeria? As fotos no R2 não serão removidas automaticamente.')) return;
+  var gals=g('galerias')||[];
+  gals=gals.filter(function(x){return x.id!==_galAtualId;});
+  s('galerias',gals);
+  cov('ov-gal');
+  rGal();
+  notify('Galeria excluída.');
+}
+// Upload handlers — Etapa 4
+function mgalOnDrop(e){
+  e.preventDefault();
+  var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type.startsWith('image/');});
+  if(files.length) mgalIniciarUpload(files);
+}
+function mgalOnFileSelect(e){
+  var files=Array.from(e.target.files);
+  if(files.length) mgalIniciarUpload(files);
+  e.target.value='';
+}
+function mgalIniciarUpload(files){
+  notify('Upload disponível na Etapa 4.');
 }
 
 function rEdu(){
