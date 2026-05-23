@@ -1680,6 +1680,10 @@ select.aj-input{cursor:pointer;}
   </div>
 </div></div>
 
+<div class="overlay" id="ov-foto" onclick="cov('ov-foto')" style="background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;">
+  <img id="ov-foto-img" src="" style="max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain;display:block;pointer-events:none;">
+</div>
+
 <div class="notif" id="notif"></div>
 
 <script>
@@ -5609,6 +5613,11 @@ function entrarGaleria(id){
   _galAtualId=id;
   rGalDetalhe();
 }
+function verFotoGal(url){
+  var img=document.getElementById('ov-foto-img');
+  if(img) img.src=url;
+  document.getElementById('ov-foto').classList.add('open');
+}
 function voltarListaGalerias(){
   document.getElementById('gal-view-lista').style.display='';
   document.getElementById('gal-view-detalhe').style.display='none';
@@ -5634,10 +5643,10 @@ function rGalDetalhe(){
   if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">Nenhuma foto ainda.</div>';return;}
   grid.innerHTML=fotos.map(function(f,i){
     var isCapa=gal.cover_url===f.url;
-    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);">'
+    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:zoom-in;" onclick="verFotoGal(\''+f.url+'\')">'
       +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy">'
       +(isCapa?'<div style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;">Capa</div>':'')
-      +'<button onclick="mgalRemoverFotoDetalhe('+i+')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:#fff;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>'
+      +'<button onclick="event.stopPropagation();mgalRemoverFotoDetalhe('+i+')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:#fff;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>'
       +'</div>';
   }).join('');
 }
