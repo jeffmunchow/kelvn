@@ -1596,21 +1596,22 @@ select.aj-input{cursor:pointer;}
       <div class="field"><label>Nome do cliente / casal</label><input type="text" id="mgal-nome" placeholder="ex: Beatriz & Rafael" oninput="mgalAutoSlug()"></div>
       <div class="field"><label>Data do evento</label><input type="text" id="mgal-data" placeholder="dd/mm/aaaa" class="sd"></div>
 
-      <!-- Senha -->
-      <div class="field" style="grid-column:1/-1"><label>Senha de acesso</label><input type="text" id="mgal-senha" placeholder="Sem senha — acesso livre"></div>
-
-      <!-- Link da galeria -->
-      <div class="field" style="grid-column:1/-1">
-        <label>Link da galeria</label>
-        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:.5rem;flex:1;min-width:0;">
-            <span style="font-size:.78rem;color:var(--text-hint);white-space:nowrap;">app.kelvn.com.br/galeria/</span>
+      <!-- Link da galeria 2/3 + Senha 1/3 -->
+      <div class="field" style="grid-column:1/-1;display:grid;grid-template-columns:2fr 1fr;gap:1rem;">
+        <div>
+          <label>Link da galeria</label>
+          <div style="display:flex;align-items:center;gap:.4rem;">
+            <span style="font-size:.78rem;color:var(--text-hint);white-space:nowrap;">kelvn.com.br/galeria/</span>
             <input type="text" id="mgal-slug" placeholder="beatriz-e-rafael" style="flex:1;min-width:0;">
           </div>
-          <div id="mgal-pro-hint" style="display:flex;align-items:center;gap:.35rem;white-space:nowrap;opacity:.55;cursor:default;" title="Disponível no plano Pro — configure em Ajustes > Geral">
+          <div id="mgal-pro-hint" style="display:flex;align-items:center;gap:.35rem;margin-top:.4rem;opacity:.55;cursor:default;" title="Disponível no plano Pro — configure em Ajustes > Geral">
             <span style="font-size:.63rem;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:20px;background:var(--amber-light);color:var(--amber-deep);text-transform:uppercase;">Pro</span>
-            <span style="font-size:.72rem;color:var(--text-hint);">Domínio próprio · Ajustes</span>
+            <span style="font-size:.72rem;color:var(--text-hint);">Domínio próprio · configure em Ajustes > Geral</span>
           </div>
+        </div>
+        <div>
+          <label>Senha de acesso</label>
+          <input type="text" id="mgal-senha" placeholder="Sem senha">
         </div>
       </div>
 
