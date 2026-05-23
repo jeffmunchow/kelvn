@@ -1587,17 +1587,24 @@ select.aj-input{cursor:pointer;}
 <!-- MODAL GALERIA -->
 <div class="overlay" id="ov-gal"><div class="modal wide" style="max-width:700px;max-height:88vh;display:flex;flex-direction:column;">
   <h2 id="mgal-titulo">Nova Galeria</h2>
-  <!-- Pills -->
+
+  <!-- Seletor de status -->
   <div class="pills" style="margin-bottom:1.25rem;">
-    <button class="pill active" id="gpill-info" onclick="switchGalTab('info')">Informações</button>
-    <button class="pill" id="gpill-fotos" onclick="switchGalTab('fotos')">Fotos</button>
+    <button class="pill active" id="gst-rascunho" onclick="mgalSetStatus('rascunho')">Rascunho</button>
+    <button class="pill" id="gst-publicado" onclick="mgalSetStatus('publicado')">Publicada</button>
+    <button class="pill" id="gst-arquivado" onclick="mgalSetStatus('arquivado')">Arquivada</button>
   </div>
 
-  <!-- ABA: Informações + Configurações -->
-  <div id="gtab-info" style="flex:1;overflow-y:auto;">
+  <!-- Conteúdo único -->
+  <div style="flex:1;overflow-y:auto;">
     <div class="tf" style="grid-template-columns:1fr 1fr;">
-      <div class="field" style="grid-column:1/-1"><label>Nome do cliente / casal</label><input type="text" id="mgal-nome" placeholder="ex: Beatriz & Rafael" oninput="mgalAutoSlug()"></div>
-      <div class="field" style="grid-column:1/-1"><label>Data do evento</label><input type="text" id="mgal-data" placeholder="dd/mm/aaaa" class="sd" style="max-width:180px;"></div>
+
+      <!-- Nome + Data na mesma linha -->
+      <div class="field"><label>Nome do cliente / casal</label><input type="text" id="mgal-nome" placeholder="ex: Beatriz & Rafael" oninput="mgalAutoSlug()"></div>
+      <div class="field"><label>Data do evento</label><input type="text" id="mgal-data" placeholder="dd/mm/aaaa" class="sd"></div>
+
+      <!-- Senha -->
+      <div class="field" style="grid-column:1/-1"><label>Senha de acesso</label><input type="text" id="mgal-senha" placeholder="Sem senha — acesso livre"></div>
 
       <!-- Link da galeria -->
       <div class="field" style="grid-column:1/-1">
@@ -1614,16 +1621,30 @@ select.aj-input{cursor:pointer;}
         </div>
       </div>
 
-      <!-- Botão de upload -->
+      <!-- Upload -->
       <div class="field" style="grid-column:1/-1;">
-        <div style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;cursor:pointer;" onclick="switchGalTab('fotos');document.getElementById('mgal-file-input').click();" ondragover="event.preventDefault()" ondrop="switchGalTab('fotos');mgalOnDrop(event)">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div>
-            <div style="font-size:.82rem;color:var(--text-muted);">Adicionar fotos</div>
-            <div id="mgal-fotos-count" style="font-size:.72rem;color:var(--text-hint);margin-top:.1rem;">Nenhuma foto ainda</div>
+        <div id="mgal-upload-area" style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;" onclick="document.getElementById('mgal-file-input').click()" ondragover="event.preventDefault()" ondrop="mgalOnDrop(event)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .6rem;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div style="font-size:.83rem;color:var(--text-muted);">Adicione as fotos aqui</div>
+          <div id="mgal-fotos-count" style="font-size:.73rem;color:var(--text-hint);margin-top:.3rem;">JPG, PNG, WEBP — múltiplos arquivos</div>
+        </div>
+        <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
+      </div>
+
+      <!-- Barra de progresso + Grid de fotos -->
+      <div style="grid-column:1/-1;">
+        <div id="mgal-progress-wrap" style="display:none;margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;">
+            <span id="mgal-progress-label">Enviando...</span>
+            <span id="mgal-progress-pct">0%</span>
+          </div>
+          <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+            <div id="mgal-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s;"></div>
           </div>
         </div>
+        <div id="mgal-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;"></div>
       </div>
+
     </div>
 
     <!-- Separador Configurações -->
@@ -1633,18 +1654,6 @@ select.aj-input{cursor:pointer;}
     </div>
 
     <div class="tf" style="grid-template-columns:1fr 1fr;">
-      <div class="field">
-        <label>Status</label>
-        <select id="mgal-status">
-          <option value="rascunho">Rascunho</option>
-          <option value="publicado">Publicada</option>
-          <option value="arquivado">Arquivada</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Senha de acesso</label>
-        <input type="text" id="mgal-senha" placeholder="Sem senha — acesso livre">
-      </div>
       <div class="field" style="grid-column:1/-1;">
         <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
           <input type="checkbox" id="mgal-downloads" style="width:15px;height:15px;">
@@ -1657,26 +1666,7 @@ select.aj-input{cursor:pointer;}
         <button class="btn" onclick="mgalEscolherCapa()" style="font-size:.75rem;">Escolher entre as fotos enviadas</button>
       </div>
     </div>
-  </div>
 
-  <!-- ABA: Fotos -->
-  <div id="gtab-fotos" style="flex:1;overflow-y:auto;display:none;">
-    <div id="mgal-upload-area" style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;margin-bottom:1rem;" onclick="document.getElementById('mgal-file-input').click()" ondragover="event.preventDefault()" ondrop="mgalOnDrop(event)">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .75rem;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <div style="font-size:.83rem;color:var(--text-muted);">Clique ou arraste as fotos aqui</div>
-      <div style="font-size:.73rem;color:var(--text-hint);margin-top:.3rem;">JPG, PNG, WEBP — múltiplos arquivos</div>
-    </div>
-    <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
-    <div id="mgal-progress-wrap" style="display:none;margin-bottom:1rem;">
-      <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;">
-        <span id="mgal-progress-label">Enviando...</span>
-        <span id="mgal-progress-pct">0%</span>
-      </div>
-      <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
-        <div id="mgal-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s;"></div>
-      </div>
-    </div>
-    <div id="mgal-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.5rem;"></div>
   </div>
 
   <div class="ma" style="margin-top:1.25rem;padding-top:1rem;border-top:.5px solid var(--border-strong);">
@@ -5490,7 +5480,7 @@ function abrirGaleria(id){
   document.getElementById('mgal-nome').value=gal.nomeCliente||'';
   document.getElementById('mgal-data').value=gal.dataEvento||'';
   document.getElementById('mgal-slug').value=gal.slug||'';
-  document.getElementById('mgal-status').value=gal.status||'rascunho';
+  mgalSetStatus(gal.status||'rascunho',true);
   document.getElementById('mgal-senha').value=gal.senha||'';
   document.getElementById('mgal-downloads').checked=!!gal.downloads_liberados;
   var sd=g('sd')||{};
@@ -5507,13 +5497,15 @@ function abrirGaleria(id){
   switchGalTab('info');
   document.getElementById('ov-gal').classList.add('open');
 }
-function switchGalTab(name){
-  ['info','fotos'].forEach(function(n){
-    document.getElementById('gtab-'+n).style.display=n===name?'':'none';
-    var pill=document.getElementById('gpill-'+n);
-    if(pill){pill.classList.toggle('active',n===name);}
+var _galStatus='rascunho';
+function mgalSetStatus(val,silent){
+  _galStatus=val;
+  ['rascunho','publicado','arquivado'].forEach(function(s){
+    var b=document.getElementById('gst-'+s);
+    if(b) b.classList.toggle('active',s===val);
   });
 }
+function switchGalTab(name){} // abas removidas — mantido para compatibilidade
 function mgalAutoSlug(){
   var nome=document.getElementById('mgal-nome').value;
   var slug=gerarSlug(nome);
@@ -5575,7 +5567,7 @@ function saveGal(){
   gal.dataEvento=document.getElementById('mgal-data').value.trim();
   gal.total_fotos=(gal.fotos||[]).length;
   gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
-  gal.status=document.getElementById('mgal-status').value;
+  gal.status=_galStatus;
   gal.senha=document.getElementById('mgal-senha').value.trim();
   gal.downloads_liberados=document.getElementById('mgal-downloads').checked;
   s('galerias',gals);
