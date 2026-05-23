@@ -1662,12 +1662,13 @@ select.aj-input{cursor:pointer;}
     <div style="margin-top:1rem;padding:1rem;background:var(--surface2);border-radius:8px;font-size:.78rem;color:var(--text-muted);">
       <div style="margin-bottom:.6rem;font-weight:500;color:var(--text);">Link público da galeria</div>
       <div id="mgal-link-display" style="font-family:monospace;color:var(--amber);word-break:break-all;margin-bottom:.4rem;"></div>
-      <div id="mgal-link-custom-wrap" style="display:none;margin-top:.75rem;padding-top:.75rem;border-top:.5px solid var(--border-strong);">
+      <div id="mgal-link-custom-wrap" style="margin-top:.75rem;padding-top:.75rem;border-top:.5px solid var(--border-strong);opacity:.45;pointer-events:none;">
         <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;">
           <span style="font-size:.68rem;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:20px;background:var(--amber-light);color:var(--amber-deep);text-transform:uppercase;">Pro</span>
           <span style="font-weight:500;color:var(--text);">Domínio personalizado</span>
         </div>
-        <div id="mgal-link-custom" style="font-family:monospace;color:var(--amber);word-break:break-all;opacity:.45;"></div>
+        <div id="mgal-link-custom" style="font-family:monospace;color:var(--amber);word-break:break-all;"></div>
+        <div style="font-size:.71rem;color:var(--text-hint);margin-top:.35rem;">Configure seu domínio em Ajustes > Geral para ativar.</div>
       </div>
     </div>
   </div>
@@ -5515,17 +5516,11 @@ function mgalAutoSlug(){
   mgalAtualizaLinkCustom(slug);
 }
 function mgalAtualizaLinkCustom(slug){
+  var custom=document.getElementById('mgal-link-custom');
+  if(!custom) return;
   var sd=g('sd')||{};
   var dominio=sd['studio-dominio-galeria']||'';
-  var wrap=document.getElementById('mgal-link-custom-wrap');
-  var custom=document.getElementById('mgal-link-custom');
-  if(!wrap||!custom) return;
-  if(dominio&&slug){
-    wrap.style.display='';
-    custom.textContent=dominio.replace(/\/$/,'')+'/galeria/'+slug;
-  } else {
-    wrap.style.display='none';
-  }
+  custom.textContent=dominio&&slug?dominio.replace(/\/$/,'')+'/galeria/'+slug:slug?'seuestudio.com/galeria/'+slug:'—';
 }
 function rGalFotos(gal){
   var grid=document.getElementById('mgal-fotos-grid');
