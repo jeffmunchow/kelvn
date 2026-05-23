@@ -5543,8 +5543,8 @@ function rGalFotos(gal){
   if(countEl){var n=fotos.length;countEl.textContent=n?n+' foto'+(n!==1?'s':''):'Nenhuma foto ainda';}
   if(!fotos.length){grid.innerHTML='';return;}
   grid.innerHTML=fotos.map(function(f,i){
-    return '<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--surface2);">'
-      +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">'
+    return '<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:#1a1a1a;">'
+      +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy">'
       +'<button onclick="mgalRemoverFoto('+i+')" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;line-height:1;">×</button>'
       +'</div>';
   }).join('')
@@ -5630,8 +5630,8 @@ function rGalDetalhe(){
   if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">Nenhuma foto ainda.</div>';return;}
   grid.innerHTML=fotos.map(function(f,i){
     var isCapa=gal.cover_url===f.url;
-    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--surface2);">'
-      +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">'
+    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#1a1a1a;">'
+      +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy">'
       +(isCapa?'<div style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;">Capa</div>':'')
       +'<button onclick="mgalRemoverFotoDetalhe('+i+')" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:#fff;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">×</button>'
       +'</div>';
