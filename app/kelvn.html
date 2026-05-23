@@ -1681,10 +1681,12 @@ select.aj-input{cursor:pointer;}
 </div></div>
 
 <div class="overlay" id="ov-foto" onclick="cov('ov-foto')" style="background:rgba(0,0,0,.82);align-items:center;justify-content:center;">
-  <img id="ov-foto-img" src="" style="max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain;display:block;pointer-events:none;">
-  <button id="ov-foto-del" onclick="event.stopPropagation();deletarFotoGal()" title="Excluir foto" style="position:fixed;bottom:1.25rem;right:1.5rem;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:46px;height:46px;cursor:pointer;color:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-  </button>
+  <div style="position:relative;display:inline-flex;" onclick="event.stopPropagation()">
+    <img id="ov-foto-img" src="" style="max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain;display:block;" onclick="cov('ov-foto')">
+    <button id="ov-foto-del" onclick="deletarFotoGal()" title="Excluir foto" style="position:absolute;bottom:.75rem;right:.75rem;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:46px;height:46px;cursor:pointer;color:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </button>
+  </div>
 </div>
 
 <div class="notif" id="notif"></div>
