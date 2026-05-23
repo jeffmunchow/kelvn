@@ -5576,9 +5576,10 @@ function mgalEscolherCapa(){
   notify('Capa definida.');
 }
 function saveGal(){
+  cov('ov-gal');
   var gals=g('galerias')||[];
   var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
-  if(idx===-1) return;
+  if(idx===-1){notify('Galeria salva.');return;}
   var gal=gals[idx];
   gal.nomeCliente=document.getElementById('mgal-nome').value.trim();
   gal.dataEvento=document.getElementById('mgal-data').value.trim();
@@ -5586,10 +5587,7 @@ function saveGal(){
   gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
   gal.status=_galStatus;
   gal.senha=document.getElementById('mgal-senha').value.trim();
-  // downloads_liberados mantido mas não editado aqui — gerenciado via card
   s('galerias',gals);
-  document.getElementById('mgal-titulo').textContent=gal.nomeCliente||'Nova Galeria';
-  cov('ov-gal');
   rGal();
   rGalDetalhe();
   notify('Galeria salva.');
