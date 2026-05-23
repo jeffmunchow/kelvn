@@ -5473,7 +5473,7 @@ function rGal(){
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">'
       +'<div style="cursor:pointer;" onclick="entrarGaleria(\''+gal.id+'\')">'
       +'<div style="font-size:.88rem;font-weight:500;margin-bottom:.2rem;">'+( gal.nomeCliente||'—')+'</div>'
-      +'<div style="font-size:.75rem;color:var(--text-hint);">'+fd(gal.dataEvento)+(fotos?' · '+fotos+' foto'+(fotos!==1?'s':''):'')+'</div>'
+      +'<div style="font-size:.67rem;color:var(--text-hint);margin-top:2px;">'+fd(gal.dataEvento)+(fotos?' · '+fotos+' foto'+(fotos!==1?'s':''):'')+'</div>'
       +'</div>'
       +'<div style="display:flex;gap:.35rem;align-items:center;flex-shrink:0;margin-top:.1rem;">'
       +'<button onclick="event.stopPropagation();mgalPublicar(\''+gal.id+'\')" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.68rem;color:'+(isPub?'var(--text)':'var(--text-muted)')+';">'+(isPub?'Publicado':'Publicar')+'</button>'
