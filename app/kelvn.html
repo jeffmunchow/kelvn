@@ -5511,12 +5511,14 @@ function rGal(manter){
   var q=busca.trim().toLowerCase();
   var gals=(g('galerias')||[]).filter(function(x){return !q||(x.nomeCliente||'').toLowerCase().includes(q);});
   gals=gals.slice().sort(function(a,b){
-    if(_galSort==='created_asc') return (a.created_at||'').localeCompare(b.created_at||'');
-    if(_galSort==='evento_desc') return (b.dataEvento||'').localeCompare(a.dataEvento||'');
-    if(_galSort==='evento_asc')  return (a.dataEvento||'').localeCompare(b.dataEvento||'');
-    if(_galSort==='nome_asc')    return (a.nomeCliente||'').localeCompare(b.nomeCliente||'','pt');
-    if(_galSort==='nome_desc')   return (b.nomeCliente||'').localeCompare(a.nomeCliente||'','pt');
-    return (b.created_at||'').localeCompare(a.created_at||''); // created_desc default
+    var ca=new Date(a.created_at||0).getTime(), cb=new Date(b.created_at||0).getTime();
+    var ea=(pd(a.dataEvento)||new Date(0)).getTime(), eb=(pd(b.dataEvento)||new Date(0)).getTime();
+    if(_galSort==='created_asc')  return ca-cb;
+    if(_galSort==='evento_desc')  return eb-ea;
+    if(_galSort==='evento_asc')   return ea-eb;
+    if(_galSort==='nome_asc')     return (a.nomeCliente||'').localeCompare(b.nomeCliente||'','pt');
+    if(_galSort==='nome_desc')    return (b.nomeCliente||'').localeCompare(a.nomeCliente||'','pt');
+    return cb-ca; // created_desc default
   });
   if(!gals.length){
     var msg=q?'Nenhuma galeria encontrada para "'+busca+'".':"Nenhuma galeria ainda. Crie a primeira para começar.";
