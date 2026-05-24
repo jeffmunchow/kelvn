@@ -1015,14 +1015,14 @@ select.aj-input{cursor:pointer;}
     <!-- KPIs -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem;">
 
-      <!-- 1: Nome + data -->
+      <!-- 1: Casal + data -->
       <div class="kpi">
         <div class="kpi-l">Casal</div>
-        <div class="kpi-v" id="gal-kpi-casal" style="font-size:.95rem;font-family:'Playfair Display',serif;">—</div>
+        <div class="kpi-v" id="gal-kpi-casal">—</div>
         <div class="kpi-s" id="gal-kpi-data">—</div>
       </div>
 
-      <!-- 2: Fotos + sub-galerias -->
+      <!-- 2: Fotos + seções -->
       <div class="kpi">
         <div class="kpi-l">Fotos</div>
         <div class="kpi-v" id="gal-kpi-fotos">0</div>
@@ -1030,32 +1030,30 @@ select.aj-input{cursor:pointer;}
       </div>
 
       <!-- 3: Status + senha + link -->
-      <div class="kpi" style="gap:.5rem;display:flex;flex-direction:column;justify-content:space-between;">
-        <div>
-          <div class="kpi-l">Status</div>
-          <div class="kpi-v" id="gal-kpi-status" style="font-size:.88rem;margin-bottom:.5rem;">—</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:.4rem;">
-          <div style="display:flex;align-items:center;gap:.4rem;">
-            <span style="font-size:.62rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;">Senha</span>
-            <input id="gal-kpi-senha" type="text" placeholder="sem senha" onblur="galSalvarSenhaInline()" style="flex:1;min-width:0;font-size:.72rem;padding:2px 6px;border:.5px solid var(--border-strong);border-radius:4px;background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;">
+      <div class="kpi">
+        <div class="kpi-l">Status</div>
+        <div class="kpi-v" id="gal-kpi-status">—</div>
+        <div class="kpi-s" style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="color:var(--text-hint);">Senha:</span>
+            <input id="gal-kpi-senha" type="text" placeholder="sem senha" onblur="galSalvarSenhaInline()" style="flex:1;min-width:0;font-size:.62rem;background:transparent;border:none;border-bottom:.5px solid var(--border-strong);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;padding:1px 0;">
           </div>
-          <div id="gal-kpi-link-wrap" style="display:none;align-items:center;gap:.4rem;">
-            <span style="font-size:.62rem;color:var(--text-hint);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;" id="gal-kpi-link-txt"></span>
-            <button onclick="copiarLinkGaleria()" title="Copiar link" style="background:none;border:none;cursor:pointer;color:var(--text-hint);padding:2px;display:flex;align-items:center;flex-shrink:0;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <div id="gal-kpi-link-wrap" style="display:none;align-items:center;gap:4px;">
+            <span id="gal-kpi-link-txt" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+            <button onclick="copiarLinkGaleria()" title="Copiar link" style="background:none;border:none;cursor:pointer;color:var(--text-hint);padding:0;display:flex;align-items:center;flex-shrink:0;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>
           </div>
         </div>
       </div>
 
       <!-- 4: Upload -->
-      <div class="kpi" id="gal-kpi-upload" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border-style:dashed;gap:.5rem;"
+      <div class="kpi" id="gal-kpi-upload" style="cursor:pointer;border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;"
         onclick="document.getElementById('gal-det-file-input').click()"
         ondragover="event.preventDefault();galDetDragOver(this)" ondragleave="galDetDragLeave(this)" ondrop="galDetDrop(event,this)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <div style="font-size:.78rem;color:var(--text-muted);">Adicionar fotos</div>
-        <select id="gal-det-subgal-sel" onclick="event.stopPropagation()" style="padding:3px 8px;border-radius:4px;border:.5px solid var(--border-strong);background:var(--surface2);color:var(--text-muted);font-size:.65rem;cursor:pointer;font-family:'DM Sans',sans-serif;max-width:130px;">
+        <div class="kpi-l" style="text-transform:none;letter-spacing:0;margin-bottom:0;">Adicionar fotos</div>
+        <select id="gal-det-subgal-sel" onclick="event.stopPropagation()" style="padding:2px 6px;border-radius:4px;border:.5px solid var(--border-strong);background:var(--surface2);color:var(--text-muted);font-size:.62rem;cursor:pointer;font-family:'DM Sans',sans-serif;max-width:140px;">
           <option value="">Todas as fotos</option>
         </select>
       </div>
