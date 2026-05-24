@@ -1052,9 +1052,7 @@ select.aj-input{cursor:pointer;}
         ondragover="event.preventDefault();galDetDragOver(this)" ondragleave="galDetDragLeave(this)" ondrop="galDetDrop(event,this)">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <div class="kpi-l" style="text-transform:none;letter-spacing:0;margin-bottom:0;">Adicionar fotos</div>
-        <select id="gal-det-subgal-sel" onclick="event.stopPropagation()" style="padding:2px 6px;border-radius:4px;border:.5px solid var(--border-strong);background:var(--surface2);color:var(--text-muted);font-size:.62rem;cursor:pointer;font-family:'DM Sans',sans-serif;max-width:140px;">
-          <option value="">Todas as fotos</option>
-        </select>
+        <input type="hidden" id="gal-det-subgal-sel" value="">
       </div>
 
     </div>
