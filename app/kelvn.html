@@ -966,7 +966,13 @@ select.aj-input{cursor:pointer;}
   <div id="gal-view-lista">
     <div class="sh">
       <div class="st">Galerias</div>
-      <button class="btn" onclick="abrirNovaGaleria()">+ Nova galeria</button>
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <div style="position:relative;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="gal-busca" placeholder="Buscar galeria…" oninput="rGalFiltro()" style="padding:5px 10px 5px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;border:.5px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--text);outline:none;width:200px;">
+        </div>
+        <button class="btn" onclick="abrirNovaGaleria()">+ Nova galeria</button>
+      </div>
     </div>
     <div id="gal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
   </div>
@@ -5447,16 +5453,22 @@ function makeCover(eb,size){
 }
 
 // ── GALERIAS ────────────────────────────────────────────────────────────────
-function rGal(){
-  var lista=document.getElementById('gal-view-lista');
-  var detalhe=document.getElementById('gal-view-detalhe');
-  if(lista) lista.style.display='';
-  if(detalhe) detalhe.style.display='none';
+function rGalFiltro(){rGal(true);}
+function rGal(manter){
+  if(!manter){
+    var lista=document.getElementById('gal-view-lista');
+    var detalhe=document.getElementById('gal-view-detalhe');
+    if(lista) lista.style.display='';
+    if(detalhe) detalhe.style.display='none';
+  }
   var el=document.getElementById('gal-grid');
   if(!el) return;
-  var gals=g('galerias')||[];
+  var busca=(document.getElementById('gal-busca')||{}).value||'';
+  var q=busca.trim().toLowerCase();
+  var gals=(g('galerias')||[]).filter(function(g){return !q||(g.nomeCliente||'').toLowerCase().includes(q);});
   if(!gals.length){
-    el.innerHTML='<div style="grid-column:1/-1;padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.85rem;">Nenhuma galeria ainda. Crie a primeira para começar.</div>';
+    var msg=q?'Nenhuma galeria encontrada para "'+busca+'".':"Nenhuma galeria ainda. Crie a primeira para começar.";
+    el.innerHTML='<div style="grid-column:1/-1;padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.85rem;">'+msg+'</div>';
     return;
   }
   el.innerHTML=gals.map(function(gal){
