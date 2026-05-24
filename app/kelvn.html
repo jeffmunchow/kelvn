@@ -1033,17 +1033,15 @@ select.aj-input{cursor:pointer;}
         <div class="kpi-l">Status</div>
         <div class="kpi-v" id="gal-kpi-status">—</div>
         <div class="kpi-s" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-          <!-- Link + copiar (esquerda) -->
+          <!-- Link clicável (esquerda) -->
           <div id="gal-kpi-link-wrap" style="display:none;align-items:center;gap:4px;flex:1;min-width:0;">
-            <span id="gal-kpi-link-txt" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;"></span>
-            <button onclick="copiarLinkGaleria()" title="Copiar link" style="background:none;border:none;cursor:pointer;color:var(--text-hint);padding:0;display:flex;align-items:center;flex-shrink:0;">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            </button>
+            <span id="gal-kpi-link-txt" onclick="copiarLinkGaleria()" title="Clique para copiar" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
+            <svg onclick="copiarLinkGaleria()" style="cursor:pointer;flex-shrink:0;color:var(--text-hint);" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           </div>
-          <!-- Senha (direita) -->
-          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <!-- Senha clicável (direita) -->
+          <div id="gal-kpi-senha-wrap" style="display:none;align-items:center;gap:4px;flex-shrink:0;">
             <span style="color:var(--text-hint);">Senha:</span>
-            <input id="gal-kpi-senha" type="text" placeholder="—" onblur="galSalvarSenhaInline()" style="width:70px;font-size:.62rem;background:transparent;border:none;border-bottom:.5px solid var(--border-strong);color:var(--text);font-family:'DM Sans',sans-serif;outline:none;padding:1px 0;">
+            <span id="gal-kpi-senha" onclick="copiarSenhaGaleria()" title="Clique para copiar" style="cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
           </div>
         </div>
       </div>
@@ -5591,14 +5589,11 @@ function visualizarGaleriaPublica(){
   if(gal.status!=='publicado'){notify('Publique a galeria primeiro para visualizá-la.');return;}
   window.open('https://app.kelvn.com.br/galeria/'+gal.slug,'_blank');
 }
-function galSalvarSenhaInline(){
-  var inp=document.getElementById('gal-kpi-senha');
-  if(!inp||!_galAtualId) return;
+function copiarSenhaGaleria(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
-  if(!gal) return;
-  gal.senha=inp.value.trim();
-  s('galerias',gals);
+  if(!gal||!gal.senha) return;
+  navigator.clipboard.writeText(gal.senha).then(function(){notify('Senha copiada.');}).catch(function(){notify('Não foi possível copiar.');});
 }
 function copiarLinkGaleria(){
   var gals=g('galerias')||[];
@@ -5950,12 +5945,14 @@ function rGalDetalhe(){
   // KPI 3 — Status + senha + link
   var kStatus=document.getElementById('gal-kpi-status');
   if(kStatus){kStatus.textContent=isPub?'Publicada':'Rascunho';kStatus.style.color=isPub?'var(--teal)':'var(--text-hint)';}
-  var kSenha=document.getElementById('gal-kpi-senha');
-  if(kSenha) kSenha.value=gal.senha||'';
   var kLinkWrap=document.getElementById('gal-kpi-link-wrap');
   var kLinkTxt=document.getElementById('gal-kpi-link-txt');
   if(kLinkWrap) kLinkWrap.style.display=isPub&&gal.slug?'flex':'none';
   if(kLinkTxt&&gal.slug) kLinkTxt.textContent='kelvn.com.br/galeria/'+gal.slug;
+  var kSenhaWrap=document.getElementById('gal-kpi-senha-wrap');
+  var kSenha=document.getElementById('gal-kpi-senha');
+  if(kSenhaWrap) kSenhaWrap.style.display=gal.senha?'flex':'none';
+  if(kSenha) kSenha.textContent=gal.senha||'';
 
   // Sub-galerias nav
   rSubgalNav();
