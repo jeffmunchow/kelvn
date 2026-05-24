@@ -976,14 +976,13 @@ select.aj-input{cursor:pointer;}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
             Ordenar
           </button>
-          <div id="gal-sort-menu" style="display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:50;min-width:280px;padding:.35rem 0;">
-            <div style="font-size:.65rem;color:var(--text-hint);padding:.4rem 1rem .2rem;letter-spacing:.05em;text-transform:uppercase;">Ordenar painel por</div>
-            <button onclick="galSetSort('created_desc')" class="gal-sort-opt">Criadas: Mais recentes → Mais antigas</button>
-            <button onclick="galSetSort('created_asc')" class="gal-sort-opt">Criadas: Mais antigas → Mais recentes</button>
-            <button onclick="galSetSort('evento_desc')" class="gal-sort-opt">Data do evento: Mais recentes → Mais antigas</button>
-            <button onclick="galSetSort('evento_asc')" class="gal-sort-opt">Data do evento: Mais antigas → Mais recentes</button>
+          <div id="gal-sort-menu" style="display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:50;min-width:240px;padding:.35rem 0;">
             <button onclick="galSetSort('nome_asc')" class="gal-sort-opt">Nome: A-Z</button>
             <button onclick="galSetSort('nome_desc')" class="gal-sort-opt">Nome: Z-A</button>
+            <button onclick="galSetSort('evento_desc')" class="gal-sort-opt">Data: Recentes → Antigas</button>
+            <button onclick="galSetSort('evento_asc')" class="gal-sort-opt">Data: Antigas → Recentes</button>
+            <button onclick="galSetSort('created_desc')" class="gal-sort-opt">Criadas: Recentes → Antigas</button>
+            <button onclick="galSetSort('created_asc')" class="gal-sort-opt">Criadas: Antigas → Recentes</button>
           </div>
         </div>
         <!-- Busca -->
