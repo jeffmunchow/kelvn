@@ -5950,8 +5950,8 @@ function rGalDetalhe(){
   if(kLinkTxt&&gal.slug) kLinkTxt.textContent='kelvn.com.br/galeria/'+gal.slug;
   var kSenhaWrap=document.getElementById('gal-kpi-senha-wrap');
   var kSenha=document.getElementById('gal-kpi-senha');
-  if(kSenhaWrap) kSenhaWrap.style.display=gal.senha?'flex':'none';
-  if(kSenha) kSenha.textContent=gal.senha||'';
+  if(kSenhaWrap) kSenhaWrap.style.display='flex';
+  if(kSenha) kSenha.textContent=gal.senha||'—';
 
   // Sub-galerias nav
   rSubgalNav();
