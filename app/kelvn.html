@@ -1009,7 +1009,7 @@ select.aj-input{cursor:pointer;}
         <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;">Visualizar</button>
         <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
         <button class="btn" onclick="abrirGaleria(_galAtualId)">Configurar</button>
-        <button id="gal-det-btn-pub" class="btn primary" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Offline</button>
+        <button id="gal-det-btn-pub" class="btn" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Offline</button>
       </div>
     </div>
 
@@ -5922,7 +5922,7 @@ function rGalDetalhe(){
   // Botão publicar
   var isPub=gal.status==='publicado';
   var btnPub=document.getElementById('gal-det-btn-pub');
-  if(btnPub){btnPub.textContent=isPub?'Online':'Offline';btnPub.style.background=isPub?'var(--teal)':'';btnPub.style.borderColor=isPub?'var(--teal)':'';}
+  if(btnPub){btnPub.textContent=isPub?'Online':'Offline';btnPub.style.color=isPub?'var(--teal)':'';btnPub.style.background='';btnPub.style.borderColor='';}
 
   // Botão visualizar
   var btnVis=document.getElementById('gal-det-btn-vis');
