@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Galeria</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#0e0e0e;color:#e0dbd4;font-family:'DM Sans',sans-serif;min-height:100vh;}
+#app-root{min-height:100vh;}
+
+/* Header */
+.gal-header{padding:2.5rem 2rem 1.5rem;text-align:center;border-bottom:.5px solid rgba(255,255,255,.06);}
+.gal-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:600;margin-bottom:.35rem;letter-spacing:.01em;}
+.gal-meta{font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:.06em;text-transform:uppercase;}
+
+/* Sub-galeria pills */
+.gal-subgal-nav{padding:.85rem 2rem;border-bottom:.5px solid rgba(255,255,255,.06);display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.gal-subgal-pill{font-size:.72rem;padding:6px 14px;border-radius:20px;border:.5px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.gal-subgal-pill:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);}
+.gal-subgal-pill.active{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3);}
+
+/* Grid */
+.gal-grid{columns:3 280px;gap:.75rem;padding:1.5rem 1.5rem 3rem;}
+@media(max-width:600px){.gal-grid{columns:2 150px;padding:1rem .75rem;}}
+.gal-foto-wrap{break-inside:avoid;margin-bottom:.75rem;position:relative;cursor:pointer;overflow:hidden;border-radius:4px;}
+.gal-foto-wrap img{display:block;width:100%;transition:transform .3s;}
+.gal-foto-wrap:hover img{transform:scale(1.02);}
+.gal-foto-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .2s;display:flex;align-items:flex-end;justify-content:flex-end;padding:.5rem;}
+.gal-foto-wrap:hover .gal-foto-overlay{background:rgba(0,0,0,.2);}
+.btn-dl-foto{display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:rgba(0,0,0,.55);border-radius:50%;color:#fff;font-size:1rem;text-decoration:none;opacity:0;transition:opacity .2s;}
+.gal-foto-wrap:hover .btn-dl-foto{opacity:1;}
+
+/* Lightbox */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;display:none;align-items:center;justify-content:center;}
+.lb.open{display:flex;}
+.lb-img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:4px;}
+.lb-close{position:fixed;top:1.25rem;right:1.5rem;background:none;border:none;color:rgba(255,255,255,.5);font-size:1.5rem;cursor:pointer;line-height:1;padding:.25rem;}
+.lb-close:hover{color:#fff;}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
+.lb-nav:hover{background:rgba(255,255,255,.16);color:#fff;}
+.lb-prev{left:1rem;}
+.lb-next{right:1rem;}
+.lb-dl{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 20px;color:rgba(255,255,255,.7);font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;}
+.lb-dl:hover{background:rgba(255,255,255,.18);color:#fff;}
+
+/* Senha gate */
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;}
+.gate-box{background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.1);border-radius:12px;padding:2.5rem;max-width:360px;width:100%;text-align:center;}
+.gate-title{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:.5rem;}
+.gate-sub{font-size:.78rem;color:rgba(255,255,255,.4);margin-bottom:1.5rem;}
+.gate-input{width:100%;padding:10px 14px;background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:.85rem;font-family:'DM Sans',sans-serif;margin-bottom:.75rem;outline:none;}
+.gate-input:focus{border-color:rgba(255,255,255,.35);}
+.gate-btn{width:100%;padding:10px;background:rgba(255,255,255,.12);border:.5px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;font-size:.82rem;font-family:'DM Sans',sans-serif;cursor:pointer;}
+.gate-btn:hover{background:rgba(255,255,255,.2);}
+.gate-error{font-size:.75rem;color:#e07070;margin-top:.5rem;}
+
+/* Footer */
+.gal-footer{text-align:center;padding:2rem;font-size:.62rem;color:rgba(255,255,255,.12);letter-spacing:.1em;text-transform:uppercase;}
+
+/* Empty */
+.gal-empty{text-align:center;padding:4rem 2rem;color:rgba(255,255,255,.25);font-size:.82rem;}
+</style>
+</head>
+<body>
+<div id="app-root"></div>
+
+<!-- Lightbox -->
+<div class="lb" id="lb" onclick="lbClickOutside(event)">
+  <img class="lb-img" id="lb-img" src="" alt="">
+  <button class="lb-close" onclick="closeLb()">×</button>
+  <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
+  <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
+  <a class="lb-dl" id="lb-dl" style="display:none;" download>↓ Download</a>
+</div>
+
+<script>
+var _galData = null;
+var _todasFotos = [];
+var _fotosVisiveis = [];
+var _subgalPublicaAtiva = null;
+var _lbIdx = 0;
+var _downloads = false;
+
+// Pega slug da URL
+var _slug = location.pathname.replace('/galeria/','').replace(/\//g,'');
+
+init();
+
+async function init(){
+  if(!_slug){ showErro('Galeria não encontrada.'); return; }
+  try{
+    var r = await fetch('/api/gallery-public?slug='+encodeURIComponent(_slug));
+    var data = await r.json();
+    if(!data || !data.galeria){ showErro('Galeria não encontrada.'); return; }
+    _galData = data.galeria;
+    document.title = (_galData.nomeCliente || 'Galeria') + ' — Kelvn';
+    if(_galData.senha && !data.fotos){
+      showGate();
+    } else {
+      _todasFotos = data.fotos || [];
+      _downloads = !!_galData.downloads_liberados;
+      renderizarGaleria();
+    }
+  } catch(e){ showErro('Não foi possível carregar a galeria.'); }
+}
+
+function showGate(){
+  document.getElementById('app-root').innerHTML =
+    '<div class="gate"><div class="gate-box">'
+    +'<div class="gate-title">'+((_galData&&_galData.nomeCliente)||'Galeria')+'</div>'
+    +'<div class="gate-sub">Esta galeria está protegida por senha.</div>'
+    +'<input class="gate-input" type="password" id="gate-pw" placeholder="Senha" onkeydown="if(event.key===\'Enter\')verificarSenha()">'
+    +'<button class="gate-btn" onclick="verificarSenha()">Acessar</button>'
+    +'<div class="gate-error" id="gate-err" style="display:none;">Senha incorreta.</div>'
+    +'</div></div>';
+}
+
+async function verificarSenha(){
+  var pw = document.getElementById('gate-pw').value;
+  if(!pw) return;
+  try{
+    var r = await fetch('/api/gallery-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:_slug,senha:pw})});
+    var data = await r.json();
+    if(data && data.fotos){
+      _todasFotos = data.fotos;
+      _downloads = !!data.downloads_liberados;
+      if(data.subgalerias) _galData.subgalerias = data.subgalerias;
+      renderizarGaleria();
+    } else {
+      document.getElementById('gate-err').style.display='';
+    }
+  } catch(e){ document.getElementById('gate-err').style.display=''; }
+}
+
+function renderizarGaleria(){
+  if(!_galData) return;
+  _fotosVisiveis = _todasFotos.slice();
+  var subs = _galData.subgalerias || [];
+
+  var html = '<div class="gal-header">'
+    +'<div class="gal-title">'+(_galData.nomeCliente||'Galeria')+'</div>'
+    +'<div class="gal-meta">'+(_galData.dataEvento||'')
+      +(_todasFotos.length?' &nbsp;·&nbsp; '+_todasFotos.length+' foto'+(_todasFotos.length===1?'':'s'):'')+'</div>'
+    +'</div>';
+
+  if(subs.length > 0){
+    html += '<div class="gal-subgal-nav" id="subgal-nav">'
+      +'<button class="gal-subgal-pill active" onclick="filtrarSubgalPublica(null)">Todas</button>';
+    subs.forEach(function(sub){
+      var count = _todasFotos.filter(function(f){ return f.subgaleriaId === sub.id; }).length;
+      html += '<button class="gal-subgal-pill" onclick="filtrarSubgalPublica(\''+sub.id+'\')">'
+        +sub.nome+' <span style="opacity:.5;">('+count+')</span></button>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div class="gal-grid" id="gal-grid">'+renderGridFotos()+'</div>';
+  html += '<div class="gal-footer">Galeria entregue com carinho · Kelvn</div>';
+
+  document.getElementById('app-root').innerHTML = html;
+}
+
+function renderGridFotos(){
+  if(!_fotosVisiveis.length){
+    return '<div class="gal-empty">Nenhuma foto nesta seção.</div>';
+  }
+  return _fotosVisiveis.map(function(foto, i){
+    return '<div class="gal-foto-wrap" onclick="openLb('+i+')">'
+      +'<img src="'+foto.url+'" loading="lazy" alt="Foto '+(i+1)+'">'
+      +'<div class="gal-foto-overlay">'
+      +(_downloads?'<a class="btn-dl-foto" href="'+foto.url+'" download="foto-'+(i+1)+'.jpg" onclick="event.stopPropagation()">↓</a>':'')
+      +'</div></div>';
+  }).join('');
+}
+
+function filtrarSubgalPublica(subgalId){
+  _subgalPublicaAtiva = subgalId;
+  document.querySelectorAll('.gal-subgal-pill').forEach(function(b){ b.classList.remove('active'); });
+  var pills = document.querySelectorAll('.gal-subgal-pill');
+  if(subgalId === null){
+    if(pills[0]) pills[0].classList.add('active');
+    _fotosVisiveis = _todasFotos.slice();
+  } else {
+    var subs = _galData.subgalerias || [];
+    var sub = subs.find(function(s){ return s.id === subgalId; });
+    if(sub){
+      Array.from(pills).forEach(function(b){
+        if(b.textContent.trim().startsWith(sub.nome)) b.classList.add('active');
+      });
+    }
+    _fotosVisiveis = _todasFotos.filter(function(f){ return f.subgaleriaId === subgalId; });
+  }
+  var grid = document.getElementById('gal-grid');
+  if(grid) grid.innerHTML = renderGridFotos();
+}
+
+// Lightbox
+function openLb(i){
+  _lbIdx = i;
+  atualizarLb();
+  document.getElementById('lb').classList.add('open');
+}
+function closeLb(){
+  document.getElementById('lb').classList.remove('open');
+}
+function lbClickOutside(e){
+  if(e.target === document.getElementById('lb')) closeLb();
+}
+function lbNav(dir){
+  _lbIdx = (_lbIdx + dir + _fotosVisiveis.length) % _fotosVisiveis.length;
+  atualizarLb();
+}
+function atualizarLb(){
+  var foto = _fotosVisiveis[_lbIdx];
+  if(!foto) return;
+  document.getElementById('lb-img').src = foto.url;
+  var dlEl = document.getElementById('lb-dl');
+  if(_downloads){
+    dlEl.href = foto.url;
+    dlEl.download = 'foto-'+(_lbIdx+1)+'.jpg';
+    dlEl.style.display = '';
+  } else {
+    dlEl.style.display = 'none';
+  }
+}
+document.addEventListener('keydown', function(e){
+  if(!document.getElementById('lb').classList.contains('open')) return;
+  if(e.key==='ArrowLeft') lbNav(-1);
+  if(e.key==='ArrowRight') lbNav(1);
+  if(e.key==='Escape') closeLb();
+});
+
+function showErro(msg){
+  document.getElementById('app-root').innerHTML =
+    '<div class="gate"><div class="gate-box" style="opacity:.6;">'
+    +'<div class="gate-title">Galeria</div>'
+    +'<div class="gate-sub">'+msg+'</div>'
+    +'</div></div>';
+}
+</script>
+</body>
+</html>

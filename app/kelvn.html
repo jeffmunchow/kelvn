@@ -1002,12 +1002,37 @@ select.aj-input{cursor:pointer;}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         Galerias
       </button>
-      <div class="st" id="gal-det-titulo" style="flex:1;"></div>
+      <div style="display:flex;align-items:center;gap:10px;flex:1;">
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;" id="gal-det-titulo"></div>
+        <span id="gal-det-status-badge" style="font-size:.65rem;padding:3px 10px;border-radius:12px;font-weight:500;letter-spacing:.03em;"></span>
+      </div>
       <div style="display:flex;gap:.5rem;align-items:center;">
-        <button class="btn" onclick="abrirGaleria(_galAtualId)">Editar</button>
-        <button id="gal-det-btn-pub" class="btn primary" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Publicar galeria</button>
+        <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;gap:6px;align-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Visualizar
+        </button>
+        <button class="btn" onclick="abrirGaleria(_galAtualId)" style="gap:6px;align-items:center;">Configurar</button>
+        <button id="gal-det-btn-pub" class="btn primary" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Publicar</button>
       </div>
     </div>
+    <!-- Metadados -->
+    <div id="gal-det-meta" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;font-size:.75rem;color:var(--text-muted);margin-bottom:1.25rem;"></div>
+    <!-- Sub-galerias (pills de navegação) -->
+    <div id="gal-subgal-nav" style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;"></div>
+    <!-- Upload zone -->
+    <div id="gal-det-upload" style="border:1.5px dashed var(--border-strong);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.5rem;background:var(--surface2);transition:all .2s;cursor:pointer;"
+      onclick="document.getElementById('gal-det-file-input').click()"
+      ondragover="event.preventDefault();galDetDragOver()" ondragleave="galDetDragLeave()" ondrop="galDetDrop(event)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .5rem;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <div style="font-size:.8rem;color:var(--text-muted);">Adicionar fotos</div>
+      <div id="gal-det-upload-target" style="margin-top:.5rem;font-size:.72rem;color:var(--text-hint);">
+        <span>Adicionar em:</span>
+        <select id="gal-det-subgal-sel" onclick="event.stopPropagation()" style="margin-left:.4rem;padding:3px 8px;border-radius:4px;border:.5px solid var(--border-strong);background:var(--surface);color:var(--text);font-size:.72rem;cursor:pointer;">
+          <option value="">Todas as fotos</option>
+        </select>
+      </div>
+    </div>
+    <input type="file" id="gal-det-file-input" multiple accept="image/*" style="display:none" onchange="galDetFileSelect(event)">
     <!-- Grid de fotos -->
     <div id="gal-det-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;"></div>
   </div>
@@ -5473,6 +5498,125 @@ function makeCover(eb,size){
 
 // ── GALERIAS ────────────────────────────────────────────────────────────────
 var _galSort='created_desc';
+var _subgalAtiva=null;
+
+function rSubgalNav(){
+  var el=document.getElementById('gal-subgal-nav');
+  if(!el||!_galAtualId) return;
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  var subs=gal.subgalerias||[];
+  var html='';
+  html+='<button onclick="filtrarSubgal(null)" class="pill'+((_subgalAtiva===null)?' active':'')+'">Todas</button>';
+  subs.forEach(function(sub){
+    var ativo=_subgalAtiva===sub.id;
+    var count=(gal.fotos||[]).filter(function(f){return f.subgaleriaId===sub.id;}).length;
+    html+='<button onclick="filtrarSubgal(\''+sub.id+'\')" class="pill'+(ativo?' active':'')+'" style="display:flex;align-items:center;gap:5px;">'
+      +'<span>'+sub.nome+'</span>'
+      +'<span style="opacity:.5;font-size:.85em;">('+count+')</span>'
+      +'<span onclick="event.stopPropagation();deletarSubgal(\''+sub.id+'\')" style="margin-left:4px;color:var(--text-hint);cursor:pointer;line-height:1;font-size:.85rem;" title="Remover seção">✕</span>'
+      +'</button>';
+  });
+  html+='<button onclick="criarSubgal()" class="pill" style="border-style:dashed;">+ Nova seção</button>';
+  el.innerHTML=html;
+}
+function filtrarSubgal(subgalId){
+  _subgalAtiva=subgalId;
+  rSubgalNav();
+  rDetGrid();
+}
+function criarSubgal(){
+  var nome=prompt('Nome da seção:','Nova seção');
+  if(!nome||!nome.trim()) return;
+  var gals=g('galerias')||[];
+  var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
+  if(idx<0) return;
+  if(!gals[idx].subgalerias) gals[idx].subgalerias=[];
+  gals[idx].subgalerias.push({id:'subgal_'+uid(),nome:nome.trim(),ordem:gals[idx].subgalerias.length});
+  s('galerias',gals);
+  rSubgalNav();
+  // Atualiza dropdown de upload
+  var sel=document.getElementById('gal-det-subgal-sel');
+  if(sel){var subs=gals[idx].subgalerias;sel.innerHTML='<option value="">Todas as fotos</option>'+subs.map(function(s){return '<option value="'+s.id+'">'+s.nome+'</option>';}).join('');}
+  notify('Seção criada.');
+}
+function deletarSubgal(id){
+  if(!confirm('Remover esta seção? As fotos dentro dela NÃO serão excluídas — ficarão em "Todas as fotos".')) return;
+  var gals=g('galerias')||[];
+  var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
+  if(idx<0) return;
+  gals[idx].subgalerias=(gals[idx].subgalerias||[]).filter(function(s){return s.id!==id;});
+  (gals[idx].fotos||[]).forEach(function(f){if(f.subgaleriaId===id) f.subgaleriaId=null;});
+  s('galerias',gals);
+  _subgalAtiva=null;
+  rSubgalNav();
+  rDetGrid();
+  notify('Seção removida.');
+}
+function visualizarGaleriaPublica(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  if(gal.status!=='publicado'){notify('Publique a galeria primeiro para visualizá-la.');return;}
+  window.open('https://app.kelvn.com.br/galeria/'+gal.slug,'_blank');
+}
+function copiarLinkGaleria(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal||!gal.slug) return;
+  navigator.clipboard.writeText('https://kelvn.com.br/galeria/'+gal.slug).then(function(){notify('Link copiado.');}).catch(function(){notify('Não foi possível copiar.');});
+}
+function galDetDragOver(){
+  var z=document.getElementById('gal-det-upload');
+  if(z){z.style.background='var(--amber-light)';z.style.borderColor='var(--amber)';z.style.borderStyle='solid';}
+}
+function galDetDragLeave(){
+  var z=document.getElementById('gal-det-upload');
+  if(z){z.style.background='var(--surface2)';z.style.borderColor='var(--border-strong)';z.style.borderStyle='dashed';}
+}
+function galDetDrop(e){
+  e.preventDefault();
+  galDetDragLeave();
+  var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type.startsWith('image/');});
+  if(files.length) galDetIniciarUpload(files);
+}
+function galDetFileSelect(e){
+  var files=Array.from(e.target.files);
+  if(files.length) galDetIniciarUpload(files);
+  e.target.value='';
+}
+async function galDetIniciarUpload(files){
+  if(!_galAtualId||!_currentUser){notify('Galeria não encontrada.');return;}
+  var sessionRes=await _sb.auth.getSession();
+  var token=sessionRes&&sessionRes.data&&sessionRes.data.session?sessionRes.data.session.access_token:null;
+  if(!token){notify('Sessão expirada.');return;}
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal){notify('Galeria não encontrada.');return;}
+  gal.fotos=gal.fotos||[];
+  var subgalTarget=document.getElementById('gal-det-subgal-sel');
+  var subgalId=subgalTarget?subgalTarget.value||null:null;
+  var total=files.length,concluidos=0,erros=0;
+  for(var i=0;i<files.length;i++){
+    var file=files[i];
+    try{
+      var resp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:file.name,contentType:file.type,galeriaId:_galAtualId,userId:_currentUser.id})});
+      if(!resp.ok) throw new Error('Erro URL');
+      var data=await resp.json();
+      var putResp=await fetch(data.signedUrl,{method:'PUT',headers:{'Content-Type':file.type},body:file});
+      if(!putResp.ok) throw new Error('Erro PUT');
+      gal.fotos.push({url:data.publicUrl,key:data.key,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()});
+      gal.total_fotos=gal.fotos.length;
+      if(!gal.cover_url) gal.cover_url=data.publicUrl;
+      s('galerias',gals);
+      concluidos++;
+      rDetGrid();
+    }catch(err){console.error(err);erros++;concluidos++;}
+  }
+  rGalDetalhe();
+  notify(erros?concluidos+' enviadas, '+erros+' erro(s).':total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
+}
 function galToggleSort(){
   var m=document.getElementById('gal-sort-menu');
   if(!m) return;
@@ -5687,6 +5831,7 @@ function delGal(){
 }
 function entrarGaleria(id){
   _galAtualId=id;
+  _subgalAtiva=null;
   rGalDetalhe();
 }
 var _fotoAtualKey=null, _fotoAtualIdx=-1;
@@ -5735,17 +5880,68 @@ function rGalDetalhe(){
   if(!gal) return;
   document.getElementById('gal-view-lista').style.display='none';
   document.getElementById('gal-view-detalhe').style.display='';
+
+  // Título
   var tEl=document.getElementById('gal-det-titulo');
   if(tEl) tEl.textContent=gal.nomeCliente||'Galeria';
+
+  // Badge de status
+  var badge=document.getElementById('gal-det-status-badge');
+  if(badge){
+    if(gal.status==='publicado'){badge.textContent='Publicada';badge.style.background='var(--teal-light)';badge.style.color='var(--teal)';}
+    else{badge.textContent='Rascunho';badge.style.background='var(--surface2)';badge.style.color='var(--text-hint)';}
+  }
+
+  // Botão publicar
   var btnPub=document.getElementById('gal-det-btn-pub');
-  if(btnPub){btnPub.textContent=gal.status==='publicado'?'Publicada':'Publicar galeria';btnPub.style.background=gal.status==='publicado'?'var(--teal)':'';btnPub.style.borderColor=gal.status==='publicado'?'var(--teal)':'';}
+  if(btnPub){btnPub.textContent=gal.status==='publicado'?'Publicada':'Publicar';btnPub.style.background=gal.status==='publicado'?'var(--teal)':'';btnPub.style.borderColor=gal.status==='publicado'?'var(--teal)':'';}
+
+  // Botão visualizar
+  var btnVis=document.getElementById('gal-det-btn-vis');
+  if(btnVis) btnVis.style.display=gal.status==='publicado'?'inline-flex':'none';
+
+  // Metadados
+  var metaEl=document.getElementById('gal-det-meta');
+  if(metaEl){
+    var total=gal.fotos?gal.fotos.length:0;
+    var parts=['<span>'+total+' foto'+(total===1?'':'s')+'</span>'];
+    if(gal.dataEvento){parts.push('<span style="color:var(--border-strong);">·</span><span>'+fd(gal.dataEvento)+'</span>');}
+    if(gal.senha){parts.push('<span style="color:var(--border-strong);">·</span><span>🔒 protegida</span>');}
+    if(gal.downloads_liberados){parts.push('<span style="color:var(--border-strong);">·</span><span>↓ downloads liberados</span>');}
+    if(gal.status==='publicado'&&gal.slug){
+      parts.push('<span style="color:var(--border-strong);">·</span><span style="display:flex;align-items:center;gap:6px;"><code style="background:var(--surface2);padding:2px 8px;border-radius:4px;font-size:.7rem;">kelvn.com.br/galeria/'+gal.slug+'</code><button onclick="copiarLinkGaleria()" style="font-size:.68rem;padding:2px 10px;border-radius:4px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;font-family:\'DM Sans\',sans-serif;">Copiar</button></span>');
+    }
+    metaEl.innerHTML=parts.join(' ');
+  }
+
+  // Sub-galerias nav
+  rSubgalNav();
+
+  // Dropdown de destino do upload
+  var sel=document.getElementById('gal-det-subgal-sel');
+  if(sel){
+    var subs=gal.subgalerias||[];
+    sel.innerHTML='<option value="">Todas as fotos</option>'+subs.map(function(s){return '<option value="'+s.id+'">'+s.nome+'</option>';}).join('');
+  }
+
+  // Grid de fotos
+  rDetGrid();
+}
+function rDetGrid(){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
   var fotos=gal.fotos||[];
+  // Filtro por sub-galeria ativa
+  if(_subgalAtiva!==null) fotos=fotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;});
   var grid=document.getElementById('gal-det-grid');
   if(!grid) return;
-  if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">Nenhuma foto ainda.</div>';return;}
+  if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'+(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';return;}
   grid.innerHTML=fotos.map(function(f,i){
     var isCapa=gal.cover_url===f.url;
-    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:zoom-in;" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+i+')">'
+    // índice real no array completo para lightbox/delete
+    var realIdx=(gal.fotos||[]).indexOf(f);
+    return '<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:zoom-in;" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')">'
       +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy">'
       +(isCapa?'<div style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;">Capa</div>':'')
       +'</div>';
@@ -5783,8 +5979,8 @@ function mgalRemoverFotoDetalhe(idx){
     gal.cover_url=gal.fotos.length?gal.fotos[0].url:'';
   }
   s('galerias',gals);
-  rGalDetalhe();
-  rGal();
+  rDetGrid();
+  rSubgalNav();
 }
 function mgalToggleDownload(id){
   var gals=g('galerias')||[];

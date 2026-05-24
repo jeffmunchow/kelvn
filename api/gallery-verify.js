@@ -38,7 +38,8 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       fotos:               galeria.fotos || [],
-      downloads_liberados: galeria.downloads_liberados
+      downloads_liberados: galeria.downloads_liberados,
+      subgalerias:         galeria.subgalerias || []
     });
   } catch (err) {
     console.error('gallery-verify error:', err);

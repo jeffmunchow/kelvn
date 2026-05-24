@@ -47,8 +47,9 @@ module.exports = async function handler(req, res) {
       cover_url:           galeria.cover_url,
       total_fotos:         galeria.total_fotos,
       downloads_liberados: galeria.downloads_liberados,
+      subgalerias:         galeria.subgalerias || [],
       temSenha,
-      fotos: temSenha ? [] : (galeria.fotos || [])
+      fotos: temSenha ? undefined : (galeria.fotos || [])
     };
 
     return res.status(200).json({ galeria: resposta });
