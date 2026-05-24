@@ -5922,7 +5922,7 @@ function rGalDetalhe(){
   // Botão publicar
   var isPub=gal.status==='publicado';
   var btnPub=document.getElementById('gal-det-btn-pub');
-  if(btnPub){btnPub.textContent=isPub?'Online':'Offline';btnPub.style.color=isPub?'var(--teal)':'';btnPub.style.background='';btnPub.style.borderColor='';}
+  if(btnPub){btnPub.textContent=isPub?'Online':'Offline';btnPub.style.color=isPub?'var(--text)':'';btnPub.style.background='';btnPub.style.borderColor='';}
 
   // Botão visualizar
   var btnVis=document.getElementById('gal-det-btn-vis');
@@ -5944,7 +5944,7 @@ function rGalDetalhe(){
 
   // KPI 3 — Status + senha + link
   var kStatus=document.getElementById('gal-kpi-status');
-  if(kStatus){kStatus.textContent=isPub?'Publicada':'Rascunho';kStatus.style.color=isPub?'var(--teal)':'var(--text-hint)';}
+  if(kStatus){kStatus.textContent=isPub?'Publicada':'Rascunho';kStatus.style.color=isPub?'var(--text)':'var(--text-hint)';}
   var kLinkWrap=document.getElementById('gal-kpi-link-wrap');
   var kLinkTxt=document.getElementById('gal-kpi-link-txt');
   if(kLinkWrap) kLinkWrap.style.visibility=isPub&&gal.slug?'visible':'hidden';
