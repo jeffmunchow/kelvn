@@ -6057,7 +6057,7 @@ function rDetGrid(){
   if(_subgalAtiva!==null) fotos=fotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;});
   var grid=document.getElementById('gal-det-grid');
   if(!grid) return;
-  if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'+(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';return;}
+  if(!fotos.length){grid.innerHTML='<div id="gal-empty-state" style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'+(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';return;}
   grid.innerHTML=fotos.map(function(f){
     var realIdx=(gal.fotos||[]).indexOf(f);
     return _rFotoCell(f,realIdx,gal.cover_url===f.url);
@@ -6067,8 +6067,8 @@ function rDetGridAppend(f,realIdx,isCapa){
   var grid=document.getElementById('gal-det-grid');
   if(!grid) return;
   // Remove o estado vazio se existir
-  var empty=grid.querySelector('div[style*="Nenhuma"]');
-  if(empty) grid.innerHTML='';
+  var empty=document.getElementById('gal-empty-state');
+  if(empty) empty.remove();
   var tmp=document.createElement('div');
   tmp.innerHTML=_rFotoCell(f,realIdx,isCapa);
   grid.appendChild(tmp.firstChild);
