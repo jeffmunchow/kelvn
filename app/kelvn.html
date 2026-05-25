@@ -5649,11 +5649,11 @@ async function galLoteAcao(acao){
     var fotos=gal.fotos||[];
     if(_subgalAtiva!==null) fotos=fotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;});
     _fotosSelecionadas=fotos.map(function(f){return (gal.fotos||[]).indexOf(f);});
-    rDetGrid(); return;
+    _atualizarSelecaoVisual(); return;
   }
   if(acao==='desselecionar'){
     _fotosSelecionadas=[];
-    rDetGrid(); return;
+    _atualizarSelecaoVisual(); return;
   }
 
   var idxs=_fotosSelecionadas.slice();
@@ -6020,6 +6020,15 @@ function entrarGaleria(id){
 var _fotoAtualKey=null, _fotoAtualIdx=-1;
 var _fotosSelecionadas=[];
 
+function _atualizarSelecaoVisual(){
+  var grid=document.getElementById('gal-det-grid');
+  if(!grid) return;
+  Array.from(grid.children).forEach(function(el){
+    if(!el.id||!el.id.startsWith('gf-')) return;
+    var idx=parseInt(el.id.replace('gf-',''),10);
+    el.style.outline=(_fotosSelecionadas.indexOf(idx)!==-1)?'2px solid var(--amber)':'2px solid transparent';
+  });
+}
 function galFotoHover(el,on){
   el.querySelectorAll('.gf-ico').forEach(function(b){b.style.opacity=on?'1':'0';});
 }
@@ -6029,7 +6038,7 @@ function galFotoClick(e,url,key,idx){
   if(pos===-1) _fotosSelecionadas.push(idx);
   else _fotosSelecionadas.splice(pos,1);
   var el=document.getElementById('gf-'+idx);
-  if(el) el.style.outline=(_fotosSelecionadas.indexOf(idx)!==-1)?'2px solid var(--text)':'2px solid transparent';
+  if(el) el.style.outline=(_fotosSelecionadas.indexOf(idx)!==-1)?'2px solid var(--amber)':'2px solid transparent';
 }
 function galDefinirCapa(idx){
   var gals=g('galerias')||[];
@@ -6148,7 +6157,7 @@ function rGalDetalhe(){
 function _rFotoCell(f,realIdx,isCapa,lazyLoad){
   var sel=_fotosSelecionadas.indexOf(realIdx)!==-1;
   var iconBtn='position:absolute;background:rgba(0,0,0,.52);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;color:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;';
-  return '<div id="gf-'+realIdx+'" style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:pointer;outline:'+(sel?'2px solid var(--text)':'2px solid transparent')+';outline-offset:-2px;" onclick="galFotoClick(event,\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" onmouseenter="galFotoHover(this,true)" onmouseleave="galFotoHover(this,false)">'
+  return '<div id="gf-'+realIdx+'" style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:pointer;outline:'+(sel?'2px solid var(--amber)':'2px solid transparent')+';outline-offset:-2px;" onclick="galFotoClick(event,\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" onmouseenter="galFotoHover(this,true)" onmouseleave="galFotoHover(this,false)">'
     +'<img src="'+(f.thumbUrl||f.url)+'" style="width:100%;height:100%;object-fit:contain;" loading="'+(lazyLoad===false?'eager':'lazy')+'" decoding="async">'
     +'<button class="gf-ico" onclick="event.stopPropagation();galDefinirCapa('+realIdx+')" title="Definir como capa" style="'+iconBtn+'top:7px;left:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>'
     +'<button class="gf-ico" onclick="event.stopPropagation();verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Ver foto" style="'+iconBtn+'top:7px;right:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>'
