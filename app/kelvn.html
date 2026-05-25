@@ -5682,7 +5682,7 @@ async function galLoteAcao(acao){
     _atualizarSelecaoVisual(); return;
   }
   if(acao==='desselecionar'){
-    _fotosSelecionadas=[];
+    _fotosSelecionadas=[];_selAncora=-1;
     _atualizarSelecaoVisual(); return;
   }
 
@@ -5697,7 +5697,7 @@ async function galLoteAcao(acao){
     if(!sub){ notify('Seção não encontrada.'); return; }
     idxs.forEach(function(i){ if(gal.fotos[i]) gal.fotos[i].subgaleriaId=sub.id; });
     s('galerias',gals);
-    _fotosSelecionadas=[];
+    _fotosSelecionadas=[];_selAncora=-1;
     _subgalAtiva=null;
     rSubgalNav(); rDetGrid();
     notify(idxs.length+' foto'+(idxs.length>1?'s':'')+' movida'+(idxs.length>1?'s':'')+' para "'+sub.nome+'".');
@@ -5725,7 +5725,7 @@ async function galLoteAcao(acao){
       gal.cover_url=gal.fotos.length?gal.fotos[0].url:'';
     }
     s('galerias',gals);
-    _fotosSelecionadas=[];
+    _fotosSelecionadas=[];_selAncora=-1;
     rDetGrid(); rSubgalNav(); rGal(true);
     notify(idxs.length+' foto'+(idxs.length>1?'s':'')+' excluída'+(idxs.length>1?'s':'')+'.');
   }
@@ -6042,11 +6042,12 @@ function delGal(){
 function entrarGaleria(id){
   _galAtualId=id;
   _subgalAtiva=null;
-  _fotosSelecionadas=[];
+  _fotosSelecionadas=[];_selAncora=-1;
   rGalDetalhe();
 }
 var _fotoAtualKey=null, _fotoAtualIdx=-1;
 var _fotosSelecionadas=[];
+var _selAncora=-1; // âncora para shift-click range selection
 
 function _atualizarSelecaoVisual(){
   var grid=document.getElementById('gal-det-grid');
@@ -6061,12 +6062,30 @@ function galFotoHover(el,on){
   el.querySelectorAll('.gf-ico').forEach(function(b){b.style.opacity=on?'1':'0';});
 }
 function galFotoClick(e,url,key,idx){
-  // toggle seleção
-  var pos=_fotosSelecionadas.indexOf(idx);
-  if(pos===-1) _fotosSelecionadas.push(idx);
-  else _fotosSelecionadas.splice(pos,1);
-  var el=document.getElementById('gf-'+idx);
-  if(el) el.style.outline=(_fotosSelecionadas.indexOf(idx)!==-1)?'1px solid var(--text)':'2px solid transparent';
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+  var todasFotos=gal.fotos||[];
+  var fotosFiltradas=(_subgalAtiva!==null)?todasFotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;}):todasFotos;
+  var realIdxsFiltrados=fotosFiltradas.map(function(f){return todasFotos.indexOf(f);});
+
+  if(e.shiftKey && _selAncora!==-1 && realIdxsFiltrados.indexOf(_selAncora)!==-1){
+    // range selection: seleciona tudo entre âncora e idx dentro da vista atual
+    var ai=realIdxsFiltrados.indexOf(_selAncora);
+    var bi=realIdxsFiltrados.indexOf(idx);
+    if(bi===-1) bi=realIdxsFiltrados.length-1;
+    var from=Math.min(ai,bi), to=Math.max(ai,bi);
+    var range=realIdxsFiltrados.slice(from,to+1);
+    range.forEach(function(ri){
+      if(_fotosSelecionadas.indexOf(ri)===-1) _fotosSelecionadas.push(ri);
+    });
+  } else {
+    // toggle simples
+    var pos=_fotosSelecionadas.indexOf(idx);
+    if(pos===-1){ _fotosSelecionadas.push(idx); _selAncora=idx; }
+    else{ _fotosSelecionadas.splice(pos,1); _selAncora=(_fotosSelecionadas.length?_fotosSelecionadas[_fotosSelecionadas.length-1]:-1); }
+  }
+  _atualizarSelecaoVisual();
 }
 function galDefinirCapa(idx){
   var gals=g('galerias')||[];
