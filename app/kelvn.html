@@ -5531,7 +5531,7 @@ function rSubgalNav(){
     html+='<button onclick="filtrarSubgal(\''+sub.id+'\')" '+subgalSt(ativo,'display:flex;align-items:center;gap:5px;')+'>'
       +'<span>'+sub.nome+'</span>'
       +'<span style="opacity:.5;font-size:.85em;">('+count+')</span>'
-      +'<span onclick="event.stopPropagation();deletarSubgal(\''+sub.id+'\')" style="margin-left:3px;color:var(--text-hint);opacity:.4;cursor:pointer;line-height:1;font-size:.65rem;" title="Remover seção">✕</span>'
+      +'<span onclick="event.stopPropagation();deletarSubgal(\''+sub.id+'\')" style="margin-left:3px;color:var(--text-hint);opacity:.4;cursor:pointer;font-size:.65rem;display:flex;align-items:center;" title="Remover seção">✕</span>'
       +'</button>';
   });
   // botão "Adicionar seção" movido para a barra superior
