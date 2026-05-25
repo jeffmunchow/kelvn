@@ -1019,12 +1019,12 @@ select.aj-input{cursor:pointer;}
 
       <!-- 1: Nome + data + link + senha | fotos (direita) -->
       <div class="kpi" style="display:flex;flex-direction:column;justify-content:center;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
           <div style="min-width:0;flex:1;">
             <div class="kpi-v" id="gal-kpi-casal">—</div>
             <div class="kpi-s" id="gal-kpi-data" style="margin-top:5px;">—</div>
             <div class="kpi-s" style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
-              <div id="gal-kpi-link-wrap" style="display:flex;align-items:center;gap:4px;min-width:0;visibility:hidden;">
+              <div id="gal-kpi-link-wrap" style="display:none;align-items:center;gap:4px;min-width:0;">
                 <span id="gal-kpi-link-txt" onclick="copiarLinkGaleria()" title="Clique para copiar" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
               </div>
               <div id="gal-kpi-senha-wrap" style="display:none;align-items:center;gap:4px;flex-shrink:0;">
@@ -5931,7 +5931,7 @@ function rGalDetalhe(){
   if(kStatus){kStatus.textContent=isPub?'Publicada':'Rascunho';kStatus.style.color=isPub?'var(--text)':'var(--text-hint)';}
   var kLinkWrap=document.getElementById('gal-kpi-link-wrap');
   var kLinkTxt=document.getElementById('gal-kpi-link-txt');
-  if(kLinkWrap) kLinkWrap.style.visibility=isPub&&gal.slug?'visible':'hidden';
+  if(kLinkWrap) kLinkWrap.style.display=isPub&&gal.slug?'flex':'none';
   if(kLinkTxt&&gal.slug) kLinkTxt.textContent='kelvn.com.br/galeria/'+gal.slug;
   var kSenhaWrap=document.getElementById('gal-kpi-senha-wrap');
   var kSenha=document.getElementById('gal-kpi-senha');
