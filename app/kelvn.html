@@ -5637,7 +5637,37 @@ function abrirLoteMenu(e,refIdx){
 function fecharLoteMenu(){
   var menu=document.getElementById('gal-lote-menu');
   if(menu) menu.style.display='none';
+  var sub=document.getElementById('gal-lote-submenu');
+  if(sub) sub.style.display='none';
   _loteMenuAberto=false;
+}
+function abrirSubmenuSubs(el){
+  var sub=document.getElementById('gal-lote-submenu');
+  if(!sub) return;
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  var subs=(gal&&gal.subgalerias)||[];
+  if(!subs.length){sub.style.display='none';return;}
+  sub.innerHTML=subs.map(function(sg){
+    return '<div class="gal-lote-opt" onclick="galLoteAcao(\'mover:'+sg.id+'\')">'+sg.nome+'</div>';
+  }).join('');
+  var r=el.getBoundingClientRect();
+  var menuEl=document.getElementById('gal-lote-menu');
+  var mw=menuEl?menuEl.offsetWidth:200;
+  var left=r.left+mw-4;
+  var top=r.top;
+  // keep on screen
+  if(left+sub.offsetWidth>window.innerWidth) left=r.left-sub.offsetWidth+4;
+  sub.style.left=left+'px';
+  sub.style.top=top+'px';
+  sub.style.display='block';
+}
+function fecharSubmenuSubs(e){
+  var sub=document.getElementById('gal-lote-submenu');
+  var opt=document.getElementById('gal-lote-opt-mover');
+  var rt=e.relatedTarget;
+  if(rt&&(sub&&sub.contains(rt)||(opt&&opt.contains(rt)))) return;
+  if(sub) sub.style.display='none';
 }
 async function galLoteAcao(acao){
   fecharLoteMenu();
@@ -5659,19 +5689,17 @@ async function galLoteAcao(acao){
   var idxs=_fotosSelecionadas.slice();
   if(!idxs.length){ notify('Nenhuma foto selecionada.'); return; }
 
-  if(acao==='mover'){
-    var subs=gal.subgalerias||[];
-    if(!subs.length){ notify('Crie pelo menos uma seção primeiro.'); return; }
-    // Menu de seleção de seção
-    var opcoes=subs.map(function(s,i){ return '<option value="'+s.id+'">'+s.nome+'</option>'; }).join('');
-    var subId=prompt('Para qual seção mover '+idxs.length+' foto'+(idxs.length>1?'s':'')+'?\n\n'+subs.map(function(s){return '• '+s.nome;}).join('\n')+'\n\nDigite o nome exato:');
-    if(!subId) return;
-    var sub=subs.find(function(s){return s.nome.toLowerCase()===subId.trim().toLowerCase();});
+  if(acao==='mover'){ return; } // handled by hover submenu
+
+  if(acao.startsWith('mover:')){
+    var subId=acao.split(':')[1];
+    var sub=(gal.subgalerias||[]).find(function(sg){return sg.id===subId;});
     if(!sub){ notify('Seção não encontrada.'); return; }
     idxs.forEach(function(i){ if(gal.fotos[i]) gal.fotos[i].subgaleriaId=sub.id; });
     s('galerias',gals);
     _fotosSelecionadas=[];
-    rDetGrid(); rSubgalNav();
+    _subgalAtiva=null;
+    rSubgalNav(); rDetGrid();
     notify(idxs.length+' foto'+(idxs.length>1?'s':'')+' movida'+(idxs.length>1?'s':'')+' para "'+sub.nome+'".');
     return;
   }
@@ -7384,7 +7412,8 @@ async function sendAIMessage(){
   <div onclick="galLoteAcao('selecionar-todas')" class="gal-lote-opt">Selecionar todas</div>
   <div onclick="galLoteAcao('desselecionar')" class="gal-lote-opt">Desselecionar todas</div>
   <div style="height:.5px;background:var(--border);margin:4px 0;"></div>
-  <div onclick="galLoteAcao('mover')" class="gal-lote-opt" id="gal-lote-opt-mover">Mover selecionadas para seção</div>
+  <div class="gal-lote-opt" id="gal-lote-opt-mover" style="display:flex;align-items:center;justify-content:space-between;" onmouseenter="abrirSubmenuSubs(this)" onmouseleave="fecharSubmenuSubs(event)"><span>Mover selecionadas para…</span><span style="font-size:.65rem;opacity:.5;">›</span></div>
+  <div id="gal-lote-submenu" style="display:none;position:fixed;z-index:601;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:180px;padding:4px 0;font-family:'DM Sans',sans-serif;font-size:.78rem;" onmouseleave="fecharSubmenuSubs(event)"></div>
   <div style="height:.5px;background:var(--border);margin:4px 0;"></div>
   <div onclick="galLoteAcao('excluir')" class="gal-lote-opt" style="color:var(--coral);">Excluir selecionadas</div>
 </div>
