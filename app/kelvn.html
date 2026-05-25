@@ -6070,7 +6070,7 @@ function rDetGrid(){
   if(!fotos.length){grid.innerHTML='<div id="gal-empty-state" style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'+(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';return;}
   grid.innerHTML=fotos.map(function(f,i){
     var realIdx=(gal.fotos||[]).indexOf(f);
-    return _rFotoCell(f,realIdx,gal.cover_url===f.url,i>=20);
+    return _rFotoCell(f,realIdx,gal.cover_url===f.url,i>=100);
   }).join('');
 }
 function rDetGridAppend(f,realIdx,isCapa){
