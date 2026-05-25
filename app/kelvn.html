@@ -5609,6 +5609,25 @@ function galDetFileSelect(e){
   if(files.length) galDetIniciarUpload(files);
   e.target.value='';
 }
+function _gerarThumb(file){
+  return new Promise(function(resolve){
+    var img=new Image();
+    var blobUrl=URL.createObjectURL(file);
+    img.onload=function(){
+      var MAX=700;
+      var w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      var c=document.createElement('canvas');
+      c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(blobUrl);
+      c.toBlob(function(blob){resolve(blob);},'image/jpeg',0.82);
+    };
+    img.onerror=function(){URL.revokeObjectURL(blobUrl);resolve(null);};
+    img.src=blobUrl;
+  });
+}
+
 async function galDetIniciarUpload(files){
   if(!_galAtualId||!_currentUser){notify('Galeria não encontrada.');return;}
   var sessionRes=await _sb.auth.getSession();
@@ -5624,12 +5643,29 @@ async function galDetIniciarUpload(files){
   for(var i=0;i<files.length;i++){
     var file=files[i];
     try{
+      // 1. Upload original
       var resp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:file.name,contentType:file.type,galeriaId:_galAtualId,userId:_currentUser.id})});
       if(!resp.ok) throw new Error('Erro URL');
       var data=await resp.json();
       var putResp=await fetch(data.signedUrl,{method:'PUT',headers:{'Content-Type':file.type},body:file});
       if(!putResp.ok) throw new Error('Erro PUT');
-      gal.fotos.push({url:data.publicUrl,key:data.key,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()});
+
+      // 2. Gerar e fazer upload do thumbnail
+      var thumbUrl=null,thumbKey=null;
+      try{
+        var thumbBlob=await _gerarThumb(file);
+        if(thumbBlob){
+          var thumbName='thumb_'+file.name;
+          var tResp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:thumbName,contentType:'image/jpeg',galeriaId:_galAtualId,userId:_currentUser.id})});
+          if(tResp.ok){
+            var tData=await tResp.json();
+            var tPut=await fetch(tData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:thumbBlob});
+            if(tPut.ok){thumbUrl=tData.publicUrl;thumbKey=tData.key;}
+          }
+        }
+      }catch(te){console.warn('Thumb error',te);}
+
+      gal.fotos.push({url:data.publicUrl,key:data.key,thumbUrl:thumbUrl,thumbKey:thumbKey,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()});
       gal.total_fotos=gal.fotos.length;
       if(!gal.cover_url) gal.cover_url=data.publicUrl;
       s('galerias',gals);
@@ -5903,12 +5939,16 @@ function definirCapaGal(){
 async function deletarFotoGal(){
   if(_fotoAtualIdx===-1){notify('Foto não identificada.');return;}
   cov('ov-foto');
-  // Remove do R2 se tiver key
-  if(_fotoAtualKey&&_currentUser){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  var foto=gal&&gal.fotos?gal.fotos[_fotoAtualIdx]:null;
+  // Remove original e thumb do R2
+  if(_currentUser){
     try{
       var sessionRes=await _sb.auth.getSession();
       var token=sessionRes.data.session.access_token;
-      await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:_fotoAtualKey})});
+      if(_fotoAtualKey) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:_fotoAtualKey})});
+      if(foto&&foto.thumbKey) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:foto.thumbKey})});
     }catch(e){console.warn('R2 delete error',e);}
   }
   // Remove da galeria
@@ -5992,7 +6032,7 @@ function rDetGrid(){
     var sel=_fotosSelecionadas.indexOf(realIdx)!==-1;
     var iconBtn='position:absolute;background:rgba(0,0,0,.52);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;color:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;';
     return '<div id="gf-'+realIdx+'" style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:pointer;outline:'+(sel?'2px solid var(--text)':'2px solid transparent')+';outline-offset:-2px;" onclick="galFotoClick(event,\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" onmouseenter="galFotoHover(this,true)" onmouseleave="galFotoHover(this,false)">'
-      +'<img src="'+f.url+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy">'
+      +'<img src="'+(f.thumbUrl||f.url)+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy" decoding="async">'
       // topo-esquerdo: capa
       +'<button class="gf-ico" onclick="event.stopPropagation();galDefinirCapa('+realIdx+')" title="Definir como capa" style="'+iconBtn+'top:7px;left:7px;">'
         +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
