@@ -1014,22 +1014,23 @@ select.aj-input{cursor:pointer;}
     </div>
 
     <!-- KPIs -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem;">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.25rem;">
 
-      <!-- 1: Nome + data -->
+      <!-- 1: Nome + data + fotos (direita) -->
       <div class="kpi" style="display:flex;flex-direction:column;justify-content:center;">
-        <div class="kpi-v" id="gal-kpi-casal">—</div>
-        <div class="kpi-s" id="gal-kpi-data" style="margin-top:5px;">—</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+          <div>
+            <div class="kpi-v" id="gal-kpi-casal">—</div>
+            <div class="kpi-s" id="gal-kpi-data" style="margin-top:5px;">—</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div class="kpi-v" id="gal-kpi-fotos">0</div>
+            <div class="kpi-s" style="margin-top:5px;">fotos</div>
+          </div>
+        </div>
       </div>
 
-      <!-- 2: Fotos + seções -->
-      <div class="kpi">
-        <div class="kpi-l">Fotos</div>
-        <div class="kpi-v" id="gal-kpi-fotos">0</div>
-        <div class="kpi-s" id="gal-kpi-subs">sem seções</div>
-      </div>
-
-      <!-- 3: Status + senha + link -->
+      <!-- 2: Status + senha + link -->
       <div class="kpi">
         <div class="kpi-l">Status</div>
         <div class="kpi-v" id="gal-kpi-status">—</div>
@@ -5929,11 +5930,8 @@ function rGalDetalhe(){
 
   // KPI 2 — Fotos + sub-galerias
   var total=(gal.fotos||[]).length;
-  var nsubs=(gal.subgalerias||[]).length;
   var kFotos=document.getElementById('gal-kpi-fotos');
-  var kSubs=document.getElementById('gal-kpi-subs');
   if(kFotos) kFotos.textContent=total;
-  if(kSubs) kSubs.textContent=nsubs===0?'sem seções':nsubs===1?'1 seção':nsubs+' seções';
 
   // KPI 3 — Status + senha + link
   var kStatus=document.getElementById('gal-kpi-status');
