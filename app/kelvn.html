@@ -72,6 +72,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* BUTTONS */
 .btn{font-family:'DM Sans',sans-serif;font-size:.78rem;padding:6px 15px;border-radius:var(--radius);border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;}
 .gf-ico{pointer-events:auto;}
+.gal-lote-opt{padding:7px 14px;cursor:pointer;color:var(--text-muted);}
+.gal-lote-opt:hover{background:var(--surface2);color:var(--text);}
 .btn:hover{background:var(--surface2);color:var(--text);}
 .gal-sort-opt{display:block;width:100%;text-align:left;background:none;border:none;padding:.45rem 1rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;}
 .gal-sort-opt:hover{background:var(--surface2);color:var(--text);}
@@ -5610,6 +5612,96 @@ function galDetFileSelect(e){
   e.target.value='';
 }
 var _uploadCancelado=false;
+var _loteMenuAberto=false;
+
+function abrirLoteMenu(e,refIdx){
+  var menu=document.getElementById('gal-lote-menu');
+  if(!menu) return;
+  // Header com contagem de selecionadas
+  var sel=_fotosSelecionadas.length;
+  var header=document.getElementById('gal-lote-header');
+  if(header) header.textContent=sel>0?sel+' foto'+(sel>1?'s':'')+' selecionada'+(sel>1?'s':''):'Ações em lote';
+  // Posição junto ao botão
+  var rect=e.target.closest('button').getBoundingClientRect();
+  menu.style.display='block';
+  var mw=menu.offsetWidth||210, mh=menu.offsetHeight||160;
+  var top=rect.top-mh-6;
+  var left=rect.left;
+  if(top<8) top=rect.bottom+6;
+  if(left+mw>window.innerWidth-8) left=window.innerWidth-mw-8;
+  menu.style.top=top+'px';
+  menu.style.left=left+'px';
+  _loteMenuAberto=true;
+  setTimeout(function(){ document.addEventListener('click',fecharLoteMenu,{once:true}); },0);
+}
+function fecharLoteMenu(){
+  var menu=document.getElementById('gal-lote-menu');
+  if(menu) menu.style.display='none';
+  _loteMenuAberto=false;
+}
+async function galLoteAcao(acao){
+  fecharLoteMenu();
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal) return;
+
+  if(acao==='selecionar-todas'){
+    var fotos=gal.fotos||[];
+    if(_subgalAtiva!==null) fotos=fotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;});
+    _fotosSelecionadas=fotos.map(function(f){return (gal.fotos||[]).indexOf(f);});
+    rDetGrid(); return;
+  }
+  if(acao==='desselecionar'){
+    _fotosSelecionadas=[];
+    rDetGrid(); return;
+  }
+
+  var idxs=_fotosSelecionadas.slice();
+  if(!idxs.length){ notify('Nenhuma foto selecionada.'); return; }
+
+  if(acao==='mover'){
+    var subs=gal.subgalerias||[];
+    if(!subs.length){ notify('Crie pelo menos uma seção primeiro.'); return; }
+    // Menu de seleção de seção
+    var opcoes=subs.map(function(s,i){ return '<option value="'+s.id+'">'+s.nome+'</option>'; }).join('');
+    var subId=prompt('Para qual seção mover '+idxs.length+' foto'+(idxs.length>1?'s':'')+'?\n\n'+subs.map(function(s){return '• '+s.nome;}).join('\n')+'\n\nDigite o nome exato:');
+    if(!subId) return;
+    var sub=subs.find(function(s){return s.nome.toLowerCase()===subId.trim().toLowerCase();});
+    if(!sub){ notify('Seção não encontrada.'); return; }
+    idxs.forEach(function(i){ if(gal.fotos[i]) gal.fotos[i].subgaleriaId=sub.id; });
+    s('galerias',gals);
+    _fotosSelecionadas=[];
+    rDetGrid(); rSubgalNav();
+    notify(idxs.length+' foto'+(idxs.length>1?'s':'')+' movida'+(idxs.length>1?'s':'')+' para "'+sub.nome+'".');
+    return;
+  }
+
+  if(acao==='excluir'){
+    if(!confirm('Excluir '+idxs.length+' foto'+(idxs.length>1?'s':'')+' selecionada'+(idxs.length>1?'s':'')+' permanentemente?')) return;
+    var sessionRes=await _sb.auth.getSession();
+    var token=sessionRes&&sessionRes.data&&sessionRes.data.session?sessionRes.data.session.access_token:null;
+    // Excluir do R2 em paralelo
+    if(token){
+      await Promise.all(idxs.map(async function(i){
+        var f=gal.fotos[i]; if(!f) return;
+        try{
+          if(f.key) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:f.key})});
+          if(f.thumbKey) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:f.thumbKey})});
+        }catch(e){}
+      }));
+    }
+    // Remover do array (do maior para o menor índice para não deslocar)
+    idxs.sort(function(a,b){return b-a;}).forEach(function(i){ gal.fotos.splice(i,1); });
+    gal.total_fotos=gal.fotos.length;
+    if(gal.cover_url&&!gal.fotos.find(function(f){return f.url===gal.cover_url;})){
+      gal.cover_url=gal.fotos.length?gal.fotos[0].url:'';
+    }
+    s('galerias',gals);
+    _fotosSelecionadas=[];
+    rDetGrid(); rSubgalNav(); rGal(true);
+    notify(idxs.length+' foto'+(idxs.length>1?'s':'')+' excluída'+(idxs.length>1?'s':'')+'.');
+  }
+}
 function cancelarUpload(){
   _uploadCancelado=true;
   var pwrap=document.getElementById('upload-progress-wrap');
@@ -6061,6 +6153,7 @@ function _rFotoCell(f,realIdx,isCapa,lazyLoad){
     +'<button class="gf-ico" onclick="event.stopPropagation();galDefinirCapa('+realIdx+')" title="Definir como capa" style="'+iconBtn+'top:7px;left:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>'
     +'<button class="gf-ico" onclick="event.stopPropagation();verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Ver foto" style="'+iconBtn+'top:7px;right:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>'
     +'<button class="gf-ico" onclick="event.stopPropagation();galExcluirFoto(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Excluir foto" style="'+iconBtn+'bottom:7px;right:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+    +'<button class="gf-ico" onclick="event.stopPropagation();abrirLoteMenu(event,'+realIdx+')" title="Ações em lote" style="'+iconBtn+'bottom:7px;left:7px;flex-direction:column;gap:2.5px;"><span style="width:3px;height:3px;border-radius:50%;background:currentColor;display:block;"></span><span style="width:3px;height:3px;border-radius:50%;background:currentColor;display:block;"></span><span style="width:3px;height:3px;border-radius:50%;background:currentColor;display:block;"></span></button>'
     +(isCapa?'<div style="position:absolute;bottom:7px;left:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;pointer-events:none;">Capa</div>':'')
     +'</div>';
 }
@@ -7275,6 +7368,17 @@ async function sendAIMessage(){
 }
 
 </script>
+
+<!-- Menu de lote de fotos -->
+<div id="gal-lote-menu" style="display:none;position:fixed;z-index:600;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius);box-shadow:0 4px 20px rgba(0,0,0,.15);min-width:200px;padding:4px 0;font-family:'DM Sans',sans-serif;font-size:.78rem;">
+  <div id="gal-lote-header" style="padding:6px 14px 4px;font-size:.65rem;color:var(--text-hint);letter-spacing:.04em;text-transform:uppercase;border-bottom:.5px solid var(--border);margin-bottom:2px;"></div>
+  <div onclick="galLoteAcao('selecionar-todas')" class="gal-lote-opt">Selecionar todas</div>
+  <div onclick="galLoteAcao('desselecionar')" class="gal-lote-opt">Desselecionar todas</div>
+  <div style="height:.5px;background:var(--border);margin:4px 0;"></div>
+  <div onclick="galLoteAcao('mover')" class="gal-lote-opt" id="gal-lote-opt-mover">Mover selecionadas para seção</div>
+  <div style="height:.5px;background:var(--border);margin:4px 0;"></div>
+  <div onclick="galLoteAcao('excluir')" class="gal-lote-opt" style="color:var(--coral);">Excluir selecionadas</div>
+</div>
 
 <!-- Upload progress bar -->
 <div id="upload-progress-wrap" style="display:none;position:fixed;bottom:1.5rem;right:1.75rem;z-index:500;background:var(--surface);border:.5px solid var(--border-strong);border-radius:10px;padding:.75rem 1rem;min-width:210px;max-width:250px;box-shadow:0 4px 20px rgba(0,0,0,.12);">
