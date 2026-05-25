@@ -5523,7 +5523,7 @@ function rSubgalNav(){
   if(!gal) return;
   var subs=gal.subgalerias||[];
   var html='';
-  function subgalSt(ativo,extra){return 'class="btn" style="font-size:.72rem;padding:5px 14px;'+(ativo?'background:var(--text);color:var(--bg);border-color:var(--text);':'')+(extra||'')+'"';}
+  function subgalSt(ativo,extra){return 'class="btn" style="font-size:.72rem;padding:5px 14px;color:'+(ativo?'var(--text)':'')+';'+(extra||'')+'"';}
   html+='<button onclick="filtrarSubgal(null)" '+subgalSt(_subgalAtiva===null)+'>Todas</button>';
   subs.forEach(function(sub){
     var ativo=_subgalAtiva===sub.id;
