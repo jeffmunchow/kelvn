@@ -1017,12 +1017,21 @@ select.aj-input{cursor:pointer;}
     <!-- KPIs -->
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.25rem;">
 
-      <!-- 1: Nome + data + fotos (direita) -->
+      <!-- 1: Nome + data + link + senha | fotos (direita) -->
       <div class="kpi" style="display:flex;flex-direction:column;justify-content:center;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
-          <div>
+          <div style="min-width:0;flex:1;">
             <div class="kpi-v" id="gal-kpi-casal">—</div>
             <div class="kpi-s" id="gal-kpi-data" style="margin-top:5px;">—</div>
+            <div class="kpi-s" style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
+              <div id="gal-kpi-link-wrap" style="display:flex;align-items:center;gap:4px;min-width:0;visibility:hidden;">
+                <span id="gal-kpi-link-txt" onclick="copiarLinkGaleria()" title="Clique para copiar" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
+              </div>
+              <div id="gal-kpi-senha-wrap" style="display:none;align-items:center;gap:4px;flex-shrink:0;">
+                <span style="color:var(--text-hint);">Senha:</span>
+                <span id="gal-kpi-senha" onclick="copiarSenhaGaleria()" title="Clique para copiar" style="cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
+              </div>
+            </div>
           </div>
           <div style="text-align:right;flex-shrink:0;">
             <div class="kpi-v" id="gal-kpi-fotos">0</div>
@@ -1031,21 +1040,10 @@ select.aj-input{cursor:pointer;}
         </div>
       </div>
 
-      <!-- 2: Status + senha + link -->
+      <!-- 2: Status -->
       <div class="kpi">
         <div class="kpi-l">Status</div>
         <div class="kpi-v" id="gal-kpi-status">—</div>
-        <div class="kpi-s" style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-          <!-- Link clicável (esquerda) -->
-          <div id="gal-kpi-link-wrap" style="display:flex;align-items:center;gap:4px;flex:1;min-width:0;visibility:hidden;">
-            <span id="gal-kpi-link-txt" onclick="copiarLinkGaleria()" title="Clique para copiar" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
-          </div>
-          <!-- Senha clicável (direita) -->
-          <div id="gal-kpi-senha-wrap" style="display:none;align-items:center;gap:4px;flex-shrink:0;">
-            <span style="color:var(--text-hint);">Senha:</span>
-            <span id="gal-kpi-senha" onclick="copiarSenhaGaleria()" title="Clique para copiar" style="cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
-          </div>
-        </div>
       </div>
 
       <input type="hidden" id="gal-det-subgal-sel" value="">
