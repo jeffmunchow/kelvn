@@ -5640,6 +5640,19 @@ async function galDetIniciarUpload(files){
   var subgalTarget=document.getElementById('gal-det-subgal-sel');
   var subgalId=subgalTarget?subgalTarget.value||null:null;
   var total=files.length,concluidos=0,erros=0;
+  // Mostra barra de progresso
+  var pwrap=document.getElementById('upload-progress-wrap');
+  var pbar=document.getElementById('upload-progress-bar');
+  var ppct=document.getElementById('upload-progress-pct');
+  var plbl=document.getElementById('upload-progress-label');
+  function _upProgress(done,tot){
+    var pct=tot?Math.round(done/tot*100):0;
+    if(pbar) pbar.style.width=pct+'%';
+    if(ppct) ppct.textContent=pct+'%';
+    if(plbl) plbl.textContent=done+' de '+tot;
+  }
+  if(pwrap){pwrap.style.display='block';_upProgress(0,total);}
+
   for(var i=0;i<files.length;i++){
     var file=files[i];
     try{
@@ -5670,9 +5683,12 @@ async function galDetIniciarUpload(files){
       if(!gal.cover_url) gal.cover_url=data.publicUrl;
       s('galerias',gals);
       concluidos++;
+      _upProgress(concluidos,total);
       rDetGrid();
-    }catch(err){console.error(err);erros++;concluidos++;}
+    }catch(err){console.error(err);erros++;concluidos++;_upProgress(concluidos,total);}
   }
+  // Esconde barra após 1.5s
+  setTimeout(function(){if(pwrap)pwrap.style.display='none';},1500);
   rGalDetalhe();
   notify(erros?concluidos+' enviadas, '+erros+' erro(s).':total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
 }
@@ -7220,5 +7236,18 @@ async function sendAIMessage(){
 }
 
 </script>
+
+<!-- Upload progress bar -->
+<div id="upload-progress-wrap" style="display:none;position:fixed;bottom:1.5rem;right:1.75rem;z-index:500;background:var(--surface);border:.5px solid var(--border-strong);border-radius:10px;padding:.75rem 1rem;min-width:200px;max-width:240px;box-shadow:0 4px 20px rgba(0,0,0,.12);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+    <span style="font-size:.72rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;">Enviando fotos</span>
+    <span id="upload-progress-pct" style="font-size:.72rem;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:500;">0%</span>
+  </div>
+  <div style="height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;">
+    <div id="upload-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .25s ease;border-radius:2px;"></div>
+  </div>
+  <div id="upload-progress-label" style="font-size:.65rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-top:.4rem;">0 de 0</div>
+</div>
+
 </body>
 </html>
