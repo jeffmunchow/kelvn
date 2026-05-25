@@ -5731,7 +5731,9 @@ function rGal(manter){
     var isPub=gal.status==='publicado';
     var statusColor=isPub?'var(--teal)':'var(--text-hint)';
     var statusLabel=isPub?'Publicada':'Rascunho';
-    var cover=gal.cover_url?'background-image:url('+gal.cover_url+');background-size:cover;background-position:center;':'background:var(--surface2);';
+    var capaFoto=(gal.fotos||[]).find(function(f){return f.url===gal.cover_url;});
+    var capaImg=capaFoto&&capaFoto.thumbUrl?capaFoto.thumbUrl:gal.cover_url;
+    var cover=capaImg?'background-image:url('+capaImg+');background-size:cover;background-position:center;':'background:var(--surface2);';
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:0;overflow:hidden;">'
       +'<div style="aspect-ratio:3/2;'+cover+'display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="entrarGaleria(\''+gal.id+'\')">'
