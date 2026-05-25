@@ -5762,12 +5762,11 @@ function rGal(manter){
     var statusColor=isPub?'var(--teal)':'var(--text-hint)';
     var statusLabel=isPub?'Publicada':'Rascunho';
     var capaFoto=(gal.fotos||[]).find(function(f){return f.url===gal.cover_url;});
-    var capaImg=capaFoto&&capaFoto.thumbUrl?capaFoto.thumbUrl:gal.cover_url;
-    var cover=capaImg?'background-image:url('+capaImg+');background-size:cover;background-position:center;':'background:var(--surface2);';
+    var capaImg=capaFoto?(capaFoto.thumbUrl||capaFoto.url):(gal.cover_url||'');
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:0;overflow:hidden;">'
-      +'<div style="aspect-ratio:3/2;'+cover+'display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="entrarGaleria(\''+gal.id+'\')">'
-      +(gal.cover_url?'':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
+      +'<div style="aspect-ratio:3/2;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;" onclick="entrarGaleria(\''+gal.id+'\')">'
+      +(capaImg?'<img src="'+capaImg+'" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display=\'none\'">':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
       +'</div>'
       +'<div style="padding:.75rem 1rem;">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">'
