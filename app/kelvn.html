@@ -6594,11 +6594,14 @@ function _applySupabaseData(m){
     _cache.q_templates=m.questionarios.templates||[];
     _cache.q_respostas=m.questionarios.respostas||[];
   }
+  if(m.galerias){
+    _cache.galerias=m.galerias.data||[];
+  }
 }
 
 async function _loadFromSupabase(){
   if(!_currentUser) return;
-  var tables=['clientes','eventos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
+  var tables=['clientes','eventos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios','galerias'];
   try{
     var results=await Promise.all(tables.map(t=>_sb.from(t).select('*').eq('user_id',_currentUser.id).maybeSingle()));
     var m={};
@@ -6633,7 +6636,7 @@ function _setupRealtime(){
   if(!_currentUser) return;
   if(_realtimeChannel) _sb.removeChannel(_realtimeChannel);
   _realtimeChannel=_sb.channel('kelvn-realtime-'+_currentUser.id);
-  var tables=['clientes','eventos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios'];
+  var tables=['clientes','eventos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios','galerias'];
   tables.forEach(function(table){
     _realtimeChannel.on('postgres_changes',
       {event:'UPDATE',schema:'public',table:table,filter:'user_id=eq.'+_currentUser.id},
@@ -6646,6 +6649,7 @@ function _setupRealtime(){
         if(table==='posproducao')        { if(!_syncPending['edicoes'])  _cache.edicoes =r.edicoes ||[]; if(!_syncPending['entregas']) _cache.entregas=r.entregas||[]; if(!_syncPending['pends']) _cache.pends=r.pends||[]; if(!_syncPending['todos']) _cache.todos=r.todos||[]; }
         if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; _cache.automacoes=r.automacoes||[]; }
         if(table==='questionarios')      { _cache.q_templates=r.templates||[]; _cache.q_respostas=r.respostas||[]; }
+        if(table==='galerias')           { _cache.galerias=r.data||[]; }
         rR();
       }
     );
