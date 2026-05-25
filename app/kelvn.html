@@ -5523,14 +5523,15 @@ function rSubgalNav(){
   if(!gal) return;
   var subs=gal.subgalerias||[];
   var html='';
-  html+='<button onclick="filtrarSubgal(null)" class="pill'+((_subgalAtiva===null)?' active':'')+'">Todas</button>';
+  function subgalSt(ativo,extra){return 'class="btn" style="font-size:.72rem;padding:5px 14px;'+(ativo?'background:var(--text);color:var(--bg);border-color:var(--text);':'')+(extra||'')+'"';}
+  html+='<button onclick="filtrarSubgal(null)" '+subgalSt(_subgalAtiva===null)+'>Todas</button>';
   subs.forEach(function(sub){
     var ativo=_subgalAtiva===sub.id;
     var count=(gal.fotos||[]).filter(function(f){return f.subgaleriaId===sub.id;}).length;
-    html+='<button onclick="filtrarSubgal(\''+sub.id+'\')" class="pill'+(ativo?' active':'')+'" style="display:flex;align-items:center;gap:5px;">'
+    html+='<button onclick="filtrarSubgal(\''+sub.id+'\')" '+subgalSt(ativo,'display:flex;align-items:center;gap:5px;')+'>'
       +'<span>'+sub.nome+'</span>'
       +'<span style="opacity:.5;font-size:.85em;">('+count+')</span>'
-      +'<span onclick="event.stopPropagation();deletarSubgal(\''+sub.id+'\')" style="margin-left:4px;color:var(--text-hint);cursor:pointer;line-height:1;font-size:.85rem;" title="Remover seção">✕</span>'
+      +'<span onclick="event.stopPropagation();deletarSubgal(\''+sub.id+'\')" style="margin-left:4px;color:'+(ativo?'var(--bg)':'var(--text-hint)')+';cursor:pointer;line-height:1;font-size:.85rem;" title="Remover seção">✕</span>'
       +'</button>';
   });
   // botão "Adicionar seção" movido para a barra superior
