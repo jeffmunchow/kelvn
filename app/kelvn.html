@@ -5678,13 +5678,17 @@ async function galDetIniciarUpload(files){
         }
       }catch(te){console.warn('Thumb error',te);}
 
-      gal.fotos.push({url:data.publicUrl,key:data.key,thumbUrl:thumbUrl,thumbKey:thumbKey,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()});
+      var novaFoto={url:data.publicUrl,key:data.key,thumbUrl:thumbUrl,thumbKey:thumbKey,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()};
+      gal.fotos.push(novaFoto);
       gal.total_fotos=gal.fotos.length;
       if(!gal.cover_url) gal.cover_url=data.publicUrl;
       s('galerias',gals);
       concluidos++;
       _upProgress(concluidos,total);
-      rDetGrid();
+      // Adiciona só a nova foto ao grid, sem recriar as existentes
+      var realIdx=gal.fotos.length-1;
+      var filtraOk=(_subgalAtiva===null||novaFoto.subgaleriaId===_subgalAtiva);
+      if(filtraOk) rDetGridAppend(novaFoto,realIdx,gal.cover_url===novaFoto.url);
     }catch(err){console.error(err);erros++;concluidos++;_upProgress(concluidos,total);}
   }
   // Esconde barra após 1.5s
@@ -6034,38 +6038,40 @@ function rGalDetalhe(){
   // Grid de fotos
   rDetGrid();
 }
+function _rFotoCell(f,realIdx,isCapa){
+  var sel=_fotosSelecionadas.indexOf(realIdx)!==-1;
+  var iconBtn='position:absolute;background:rgba(0,0,0,.52);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;color:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;';
+  return '<div id="gf-'+realIdx+'" style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:pointer;outline:'+(sel?'2px solid var(--text)':'2px solid transparent')+';outline-offset:-2px;" onclick="galFotoClick(event,\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" onmouseenter="galFotoHover(this,true)" onmouseleave="galFotoHover(this,false)">'
+    +'<img src="'+(f.thumbUrl||f.url)+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy" decoding="async">'
+    +'<button class="gf-ico" onclick="event.stopPropagation();galDefinirCapa('+realIdx+')" title="Definir como capa" style="'+iconBtn+'top:7px;left:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>'
+    +'<button class="gf-ico" onclick="event.stopPropagation();verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Ver foto" style="'+iconBtn+'top:7px;right:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>'
+    +'<button class="gf-ico" onclick="event.stopPropagation();galExcluirFoto(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Excluir foto" style="'+iconBtn+'bottom:7px;right:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+    +(isCapa?'<div style="position:absolute;bottom:7px;left:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;pointer-events:none;">Capa</div>':'')
+    +'</div>';
+}
 function rDetGrid(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
   var fotos=gal.fotos||[];
-  // Filtro por sub-galeria ativa
   if(_subgalAtiva!==null) fotos=fotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;});
   var grid=document.getElementById('gal-det-grid');
   if(!grid) return;
   if(!fotos.length){grid.innerHTML='<div style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'+(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';return;}
-  grid.innerHTML=fotos.map(function(f,i){
-    var isCapa=gal.cover_url===f.url;
+  grid.innerHTML=fotos.map(function(f){
     var realIdx=(gal.fotos||[]).indexOf(f);
-    var sel=_fotosSelecionadas.indexOf(realIdx)!==-1;
-    var iconBtn='position:absolute;background:rgba(0,0,0,.52);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;color:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;';
-    return '<div id="gf-'+realIdx+'" style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--bg);cursor:pointer;outline:'+(sel?'2px solid var(--text)':'2px solid transparent')+';outline-offset:-2px;" onclick="galFotoClick(event,\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" onmouseenter="galFotoHover(this,true)" onmouseleave="galFotoHover(this,false)">'
-      +'<img src="'+(f.thumbUrl||f.url)+'" style="width:100%;height:100%;object-fit:contain;" loading="lazy" decoding="async">'
-      // topo-esquerdo: capa
-      +'<button class="gf-ico" onclick="event.stopPropagation();galDefinirCapa('+realIdx+')" title="Definir como capa" style="'+iconBtn+'top:7px;left:7px;">'
-        +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
-      +'</button>'
-      // topo-direito: zoom
-      +'<button class="gf-ico" onclick="event.stopPropagation();verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Ver foto" style="'+iconBtn+'top:7px;right:7px;">'
-        +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>'
-      +'</button>'
-      // baixo-direito: excluir
-      +'<button class="gf-ico" onclick="event.stopPropagation();galExcluirFoto(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Excluir foto" style="'+iconBtn+'bottom:7px;right:7px;">'
-        +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>'
-      +'</button>'
-      +(isCapa?'<div style="position:absolute;bottom:7px;left:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;pointer-events:none;">Capa</div>':'')
-      +'</div>';
+    return _rFotoCell(f,realIdx,gal.cover_url===f.url);
   }).join('');
+}
+function rDetGridAppend(f,realIdx,isCapa){
+  var grid=document.getElementById('gal-det-grid');
+  if(!grid) return;
+  // Remove o estado vazio se existir
+  var empty=grid.querySelector('div[style*="Nenhuma"]');
+  if(empty) grid.innerHTML='';
+  var tmp=document.createElement('div');
+  tmp.innerHTML=_rFotoCell(f,realIdx,isCapa);
+  grid.appendChild(tmp.firstChild);
 }
 function mgalSalvarConfigDetalhe(){
   var gals=g('galerias')||[];
