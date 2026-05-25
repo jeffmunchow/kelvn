@@ -5766,7 +5766,7 @@ function rGal(manter){
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:0;overflow:hidden;">'
       +'<div style="aspect-ratio:3/2;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;" onclick="entrarGaleria(\''+gal.id+'\')">'
-      +(capaImg?'<img src="'+capaImg+'" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display=\'none\'">':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
+      +(capaImg?'<img src="'+capaImg+'" data-orig="'+(gal.cover_url||capaImg)+'" loading="eager" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="if(this.src!==this.dataset.orig){this.src=this.dataset.orig;}else{this.style.display=\'none\';}">':'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>')
       +'</div>'
       +'<div style="padding:.75rem 1rem;">'
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">'
@@ -5940,8 +5940,14 @@ function galFotoClick(e,url,key,idx){
   if(el) el.style.outline=(_fotosSelecionadas.indexOf(idx)!==-1)?'2px solid var(--text)':'2px solid transparent';
 }
 function galDefinirCapa(idx){
-  _fotoAtualIdx=idx;
-  definirCapaGal();
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal||!gal.fotos[idx]) return;
+  gal.cover_url=gal.fotos[idx].url;
+  s('galerias',gals);
+  rGalDetalhe();
+  rGal(true);
+  notify('Foto de capa definida.');
 }
 async function galExcluirFoto(url,key,idx){
   _fotoAtualKey=key||null;
