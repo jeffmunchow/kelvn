@@ -6351,6 +6351,19 @@ function rGalDetalhe(){
   if(!gal) return;
   document.getElementById('gal-view-lista').style.display='none';
   document.getElementById('gal-view-detalhe').style.display='';
+  // Garante modo grid (caso venha de design mode)
+  var backG=document.getElementById('gal-nav-back-galerias');
+  var backD=document.getElementById('gal-nav-back-detalhe');
+  var gridB=document.getElementById('gal-nav-grid-btns');
+  var dInfo=document.getElementById('gal-nav-design-info');
+  var body =document.getElementById('gal-det-body');
+  var dBody=document.getElementById('gal-det-design-body');
+  if(backG) backG.style.display='flex';
+  if(backD) backD.style.display='none';
+  if(gridB) gridB.style.display='flex';
+  if(dInfo) dInfo.style.display='none';
+  if(body)  body.style.display='';
+  if(dBody) dBody.style.display='none';
 
   // Título
   var tEl=document.getElementById('gal-det-titulo');
