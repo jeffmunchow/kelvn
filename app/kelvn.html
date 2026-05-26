@@ -611,9 +611,9 @@ select.aj-input{cursor:pointer;}
     <div class="ag-col-list">
       <div class="sh">
         <div class="st">Edições</div>
-        <div class="sa" style="visibility:hidden;">
-          <select class="fi"><option>—</option></select>
-          <button class="btn primary">—</button>
+        <div style="visibility:hidden;display:flex;align-items:center;gap:.6rem;">
+          <select style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;"><option>—</option></select>
+          <button class="btn" style="color:var(--text);">—</button>
         </div>
       </div>
       <div class="tw" id="ed-list"></div>
@@ -623,9 +623,9 @@ select.aj-input{cursor:pointer;}
     <div class="ag-col-list">
       <div class="sh">
         <div class="st">Pós-produção</div>
-        <div class="sa">
-          <select class="fi" id="pend-filter" onchange="rPe()"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
-          <button class="btn primary" onclick="openPend()">+ Tarefa</button>
+        <div style="display:flex;align-items:center;gap:.6rem;">
+          <select id="pend-filter" onchange="rPe()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;"><option value="open">Em aberto</option><option value="all">Todas</option><option value="done">Concluídas</option></select>
+          <button class="btn" style="color:var(--text);" onclick="openPend()">+ Tarefa</button>
         </div>
       </div>
       <div class="tw" id="pend-list"></div>
