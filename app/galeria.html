@@ -154,6 +154,18 @@ async function verificarSenha(){
   } catch(e){ document.getElementById('gate-err').style.display=''; }
 }
 
+function formatarData(str){
+  // Aceita dd/mm/aaaa ou aaaa-mm-dd
+  var meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var d, m, a;
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(str)){
+    var p = str.split('/'); d=p[0]; m=parseInt(p[1],10); a=p[2];
+  } else if(/^\d{4}-\d{2}-\d{2}/.test(str)){
+    var p = str.split('-'); d=p[2].slice(0,2); m=parseInt(p[1],10); a=p[0];
+  } else { return str; }
+  return d + ' de ' + (meses[m-1]||m) + ' de ' + a;
+}
+
 function renderizarGaleria(){
   if(!_galData) return;
   _fotosVisiveis = _todasFotos.slice();
@@ -161,7 +173,7 @@ function renderizarGaleria(){
 
   var html = '<div class="gal-header">'
     +'<div class="gal-title">'+(_galData.nomeCliente||'Galeria')+'</div>'
-    +'<div class="gal-meta">'+(_galData.dataEvento||'')
+    +'<div class="gal-meta">'+(_galData.dataEvento ? formatarData(_galData.dataEvento) : '')
       +(_todasFotos.length?' &nbsp;·&nbsp; '+_todasFotos.length+' foto'+(_todasFotos.length===1?'':'s'):'')+'</div>'
     +'</div>';
 
