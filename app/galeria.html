@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Galeria</title>
+<meta name="description" content="Galeria de fotos">
+<meta property="og:title" content="Galeria">
+<meta property="og:description" content="Galeria de fotos">
+<meta property="og:image" content="">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Galeria">
+<meta name="twitter:image" content="">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -124,6 +132,11 @@ var _downloads = false;
 
 var _slug = location.pathname.replace('/galeria/','').replace(/\//g,'');
 
+function _setMeta(prop, val){
+  var el = document.querySelector('meta[property="'+prop+'"]');
+  if(el) el.setAttribute('content', val);
+}
+
 init();
 
 async function init(){
@@ -133,7 +146,19 @@ async function init(){
     var data = await r.json();
     if(!data || !data.galeria){ showErro('Galeria não encontrada.'); return; }
     _galData = data.galeria;
-    document.title = (_galData.nomeCliente || 'Galeria') + ' — Kelvn';
+    var studio = _galData.nomeEstudio || 'Kelvn';
+    var titulo = (_galData.nomeCliente || 'Galeria') + ' — ' + studio;
+    var descricao = _galData.dataEvento
+      ? 'Galeria de fotos · ' + formatarData(_galData.dataEvento)
+      : 'Galeria de fotos';
+    var ogImage = _galData.cover_url || '';
+    document.title = titulo;
+    _setMeta('og:title', titulo);
+    _setMeta('og:description', descricao);
+    _setMeta('og:image', ogImage);
+    _setMeta('twitter:title', titulo);
+    _setMeta('twitter:image', ogImage);
+    document.querySelector('meta[name="description"]').setAttribute('content', descricao);
     if(_galData.temSenha && !data.fotos){
       showGate();
     } else {
