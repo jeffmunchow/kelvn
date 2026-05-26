@@ -6055,6 +6055,7 @@ function entrarGaleria(id){
 var _fotoAtualKey=null, _fotoAtualIdx=-1;
 var _fotosSelecionadas=[];
 var _selAncora=-1; // âncora para shift-click range selection
+var _galHoverIdx=-1; // foto sob o cursor no grid
 
 function _atualizarSelecaoVisual(){
   var grid=document.getElementById('gal-det-grid');
@@ -6067,6 +6068,8 @@ function _atualizarSelecaoVisual(){
 }
 function galFotoHover(el,on){
   el.querySelectorAll('.gf-ico').forEach(function(b){b.style.opacity=on?'1':'0';});
+  if(on&&el.id&&el.id.startsWith('gf-')) _galHoverIdx=parseInt(el.id.replace('gf-',''),10);
+  else if(!on) _galHoverIdx=-1;
 }
 function galFotoClick(e,url,key,idx){
   var gals=g('galerias')||[];
@@ -6802,10 +6805,29 @@ function undoLast(){
   notify('Desfeito ↩');
 }
 document.addEventListener('keydown',function(ev){
+  var tag=document.activeElement&&document.activeElement.tagName;
+  var editing=tag==='INPUT'||tag==='TEXTAREA'||(document.activeElement&&document.activeElement.isContentEditable);
+
+  // Cmd/Ctrl+Z — undo
   if((ev.metaKey||ev.ctrlKey)&&ev.key==='z'&&!ev.shiftKey){
-    var tag=document.activeElement&&document.activeElement.tagName;
-    if(tag==='INPUT'||tag==='TEXTAREA'||(document.activeElement&&document.activeElement.isContentEditable))return;
+    if(editing) return;
     ev.preventDefault();undoLast();
+  }
+
+  // Espaço — abre lightbox da última foto selecionada (no grid de galerias)
+  if(ev.key===' '&&!editing&&!ev.metaKey&&!ev.ctrlKey){
+    var ovAberto=document.getElementById('ov-foto')&&document.getElementById('ov-foto').classList.contains('open');
+    if(ovAberto){ ev.preventDefault(); cov('ov-foto'); return; }
+    if(!_galAtualId) return;
+    // última foto selecionada, ou a que está com hover (_galHoverIdx)
+    var alvo=_galHoverIdx!==-1?_galHoverIdx:(_fotosSelecionadas.length?_fotosSelecionadas[_fotosSelecionadas.length-1]:-1);
+    if(alvo===-1) return;
+    var gals=g('galerias')||[];
+    var gal=gals.find(function(x){return x.id===_galAtualId;});
+    if(!gal||!gal.fotos[alvo]) return;
+    ev.preventDefault();
+    var f=gal.fotos[alvo];
+    verFotoGal(f.url,f.key||'',alvo);
   }
 });
 // ────────────────────────────────────────────────────────────────────────────
