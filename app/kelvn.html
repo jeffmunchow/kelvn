@@ -1041,7 +1041,7 @@ select.aj-input{cursor:pointer;}
       </div>
 
       <!-- Info do modo design -->
-      <span id="gal-nav-design-info" style="display:none;font-size:.7rem;color:var(--text-hint);">Alterações salvas automaticamente</span>
+      <div id="gal-nav-design-info" style="display:none;height:28px;align-items:center;"><span style="font-size:.7rem;color:var(--text-hint);">Alterações salvas automaticamente</span></div>
 
     </div>
 
@@ -7729,7 +7729,7 @@ function abrirDesignGaleria(){
   document.getElementById('gal-nav-back-galerias').style.display   = 'none';
   document.getElementById('gal-nav-back-detalhe').style.display    = 'flex';
   document.getElementById('gal-nav-grid-btns').style.display       = 'none';
-  document.getElementById('gal-nav-design-info').style.display     = '';
+  document.getElementById('gal-nav-design-info').style.display     = 'flex';
   document.getElementById('gal-det-body').style.display            = 'none';
   document.getElementById('gal-det-design-body').style.display     = '';
 
