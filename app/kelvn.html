@@ -5666,10 +5666,10 @@ function abrirSubmenuSubs(el){
   var zoom=parseFloat(document.body.style.zoom)||0.9;
   var optOffsetYcss=optOffsetY/zoom;
   sub.style.display='block';
-  var left=menuLeft+menuW+2;
+  var left=menuLeft+menuW-1;
   var top=menuTop+optOffsetYcss;
   // se não couber à direita (em CSS space), abre à esquerda
-  if((left+sub.offsetWidth)*zoom>window.innerWidth) left=menuLeft-sub.offsetWidth-2;
+  if((left+sub.offsetWidth)*zoom>window.innerWidth) left=menuLeft-sub.offsetWidth+1;
   sub.style.left=left+'px';
   sub.style.top=top+'px';
 }
