@@ -1083,15 +1083,10 @@ select.aj-input{cursor:pointer;}
     <div id="gal-det-design-body" style="display:none;">
 
       <!-- Duas colunas -->
-      <div style="display:grid;grid-template-columns:1fr 320px;gap:2.5rem;align-items:start;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;">
 
         <!-- Esquerda: controles -->
         <div>
-          <div style="margin-bottom:2.5rem;">
-            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:1rem;">Templates</div>
-            <div id="dz-templates" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
-          </div>
-          <div style="border-top:.5px solid var(--border);margin-bottom:2rem;"></div>
           <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tema</div>
             <div id="dz-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
@@ -7747,7 +7742,6 @@ function abrirDesignGaleria(){
   document.getElementById('gal-det-design-body').style.display     = '';
 
   // Renderiza controles
-  rDzTemplates();
   rDzTemas();
   rDzCores();
   rDzCapas();
@@ -7871,7 +7865,6 @@ function aplicarTemplate(id){
   _designAtual.capa_layout = tpl.capa_layout;
   _designAtual.grade       = tpl.grade;
   salvarDesign();
-  rDzTemplates();
   rDzTemas();
   rDzCores();
   rDzCapas();
