@@ -708,12 +708,15 @@ select.aj-input{cursor:pointer;}
     <!-- LINHA DE CONTROLES -->
     <div class="sh">
       <div class="st"></div>
-      <div class="sa">
-        <input class="fi" type="text" id="fin-search" placeholder="Buscar..." oninput="rF()" style="width:120px;">
-        <select class="fi" id="fin-period" onchange="rF()"><option value="all">Todo período</option><option value="month">Este mês</option><option value="year">Este ano</option></select>
-        <select class="fi" id="fin-tipo" onchange="rF()"><option value="">Todos</option><option value="entrada">Entradas</option><option value="saida">Saídas</option></select>
-        <button class="btn primary" onclick="openF('saida')">↓ Saída</button>
-        <button class="btn primary" onclick="openF('entrada')">↑ Entrada</button>
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <div style="position:relative;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="fin-search" placeholder="Buscar…" oninput="rF()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:160px;">
+        </div>
+        <select id="fin-period" onchange="rF()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;"><option value="all">Todo período</option><option value="month">Este mês</option><option value="year">Este ano</option></select>
+        <select id="fin-tipo" onchange="rF()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;"><option value="">Todos</option><option value="entrada">Entradas</option><option value="saida">Saídas</option></select>
+        <button class="btn" style="color:var(--text);" onclick="openF('saida')">↓ Saída</button>
+        <button class="btn" style="color:var(--text);" onclick="openF('entrada')">↑ Entrada</button>
       </div>
     </div>
 
@@ -753,10 +756,10 @@ select.aj-input{cursor:pointer;}
     <div class="fk" id="fp-kpis"></div>
     <div class="sh" style="margin-bottom:1.25rem;">
       <div class="st"></div>
-      <div class="sa">
-        <select class="fi" id="fp-period" onchange="rFP()"><option value="all">Todo período</option><option value="month">Este mês</option><option value="year">Este ano</option></select>
-        <button class="btn primary" onclick="openFP('saida')">↓ Saída</button>
-        <button class="btn primary" onclick="openFP('entrada')">↑ Entrada</button>
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <select id="fp-period" onchange="rFP()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;"><option value="all">Todo período</option><option value="month">Este mês</option><option value="year">Este ano</option></select>
+        <button class="btn" style="color:var(--text);" onclick="openFP('saida')">↓ Saída</button>
+        <button class="btn" style="color:var(--text);" onclick="openFP('entrada')">↑ Entrada</button>
       </div>
     </div>
     <div class="tw"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fp-tbody"></tbody></table></div></div>
