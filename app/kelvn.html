@@ -1702,15 +1702,6 @@ select.aj-input{cursor:pointer;}
         </div>
       </div>
 
-      <!-- Upload -->
-      <div class="field" style="grid-column:1/-1;">
-        <div id="mgal-upload-area" style="border:1.5px dashed var(--border-strong);border-radius:10px;padding:2.5rem;text-align:center;cursor:pointer;" onclick="document.getElementById('mgal-file-input').click()" ondragover="event.preventDefault()" ondrop="mgalOnDrop(event)">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .6rem;display:block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div style="font-size:.83rem;color:var(--text-muted);">Adicione as fotos aqui</div>
-          <div id="mgal-fotos-count" style="font-size:.73rem;color:var(--text-hint);margin-top:.3rem;">JPG, PNG, WEBP — múltiplos arquivos</div>
-        </div>
-        <input type="file" id="mgal-file-input" multiple accept="image/*" style="display:none" onchange="mgalOnFileSelect(event)">
-      </div>
 
       <!-- Permitir download (só na edição) -->
       <div id="mgal-downloads-row" style="grid-column:1/-1;display:none;">
