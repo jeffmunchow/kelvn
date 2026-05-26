@@ -1737,8 +1737,11 @@ select.aj-input{cursor:pointer;}
 </div></div>
 
 <div class="overlay" id="ov-foto" onclick="cov('ov-foto')" style="background:rgba(0,0,0,.82);align-items:center;justify-content:center;">
+  <!-- nav prev -->
+  <button id="ov-foto-prev" onclick="event.stopPropagation();ovFotoNav(-1)" style="display:none;position:fixed;left:1.5rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:50%;width:40px;height:40px;cursor:pointer;color:rgba(255,255,255,.7);font-size:1.1rem;align-items:center;justify-content:center;">‹</button>
   <div style="position:relative;display:inline-flex;" onclick="event.stopPropagation()">
     <img id="ov-foto-img" src="" style="max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain;display:block;" onclick="cov('ov-foto')">
+    <div id="ov-foto-counter" style="display:none;position:absolute;top:-.75rem;left:50%;transform:translate(-50%,-100%);font-size:.68rem;color:rgba(255,255,255,.4);font-family:'DM Sans',sans-serif;white-space:nowrap;"></div>
     <div style="position:absolute;bottom:-.75rem;right:-.75rem;transform:translateY(100%);display:flex;gap:.5rem;">
       <button id="ov-foto-capa" onclick="definirCapaGal()" title="Definir como capa" style="background:rgba(0,0,0,.55);border:none;border-radius:50%;width:46px;height:46px;cursor:pointer;color:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -1748,6 +1751,8 @@ select.aj-input{cursor:pointer;}
       </button>
     </div>
   </div>
+  <!-- nav next -->
+  <button id="ov-foto-next" onclick="event.stopPropagation();ovFotoNav(1)" style="display:none;position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.12);border-radius:50%;width:40px;height:40px;cursor:pointer;color:rgba(255,255,255,.7);font-size:1.1rem;align-items:center;justify-content:center;">›</button>
 </div>
 
 <div class="notif" id="notif"></div>
@@ -6140,6 +6145,32 @@ function verFotoGal(url,key,idx){
   var img=document.getElementById('ov-foto-img');
   if(img) img.src=url;
   document.getElementById('ov-foto').classList.add('open');
+  // Nav entre selecionadas (só se houver mais de 1)
+  var temNav=_fotosSelecionadas.length>1&&_fotosSelecionadas.indexOf(_fotoAtualIdx)!==-1;
+  var prevEl=document.getElementById('ov-foto-prev');
+  var nextEl=document.getElementById('ov-foto-next');
+  var ctrEl=document.getElementById('ov-foto-counter');
+  if(prevEl) prevEl.style.display=temNav?'flex':'none';
+  if(nextEl) nextEl.style.display=temNav?'flex':'none';
+  if(ctrEl){
+    if(temNav){
+      var pos=_fotosSelecionadas.indexOf(_fotoAtualIdx);
+      ctrEl.textContent=(pos+1)+' de '+_fotosSelecionadas.length;
+      ctrEl.style.display='';
+    } else { ctrEl.style.display='none'; }
+  }
+}
+function ovFotoNav(dir){
+  if(!_fotosSelecionadas.length) return;
+  var pos=_fotosSelecionadas.indexOf(_fotoAtualIdx);
+  if(pos===-1) pos=0;
+  var novoPos=(pos+dir+_fotosSelecionadas.length)%_fotosSelecionadas.length;
+  var novoIdx=_fotosSelecionadas[novoPos];
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===_galAtualId;});
+  if(!gal||!gal.fotos[novoIdx]) return;
+  var f=gal.fotos[novoIdx];
+  verFotoGal(f.webUrl||f.url,f.key||'',novoIdx);
 }
 function definirCapaGal(){
   var img=document.getElementById('ov-foto-img');
@@ -6814,12 +6845,11 @@ document.addEventListener('keydown',function(ev){
     ev.preventDefault();undoLast();
   }
 
-  // Espaço — abre lightbox da última foto selecionada (no grid de galerias)
+  // Espaço — abre/fecha lightbox
   if(ev.key===' '&&!editing&&!ev.metaKey&&!ev.ctrlKey){
     var ovAberto=document.getElementById('ov-foto')&&document.getElementById('ov-foto').classList.contains('open');
     if(ovAberto){ ev.preventDefault(); cov('ov-foto'); return; }
     if(!_galAtualId) return;
-    // última foto selecionada, ou a que está com hover (_galHoverIdx)
     var alvo=_galHoverIdx!==-1?_galHoverIdx:(_fotosSelecionadas.length?_fotosSelecionadas[_fotosSelecionadas.length-1]:-1);
     if(alvo===-1) return;
     var gals=g('galerias')||[];
@@ -6828,6 +6858,11 @@ document.addEventListener('keydown',function(ev){
     ev.preventDefault();
     var f=gal.fotos[alvo];
     verFotoGal(f.webUrl||f.url,f.key||'',alvo);
+  }
+  // Setas — navega entre selecionadas no lightbox
+  if((ev.key==='ArrowLeft'||ev.key==='ArrowRight')&&!editing&&!ev.metaKey&&!ev.ctrlKey){
+    var ovAb=document.getElementById('ov-foto')&&document.getElementById('ov-foto').classList.contains('open');
+    if(ovAb&&_fotosSelecionadas.length>1){ ev.preventDefault(); ovFotoNav(ev.key==='ArrowRight'?1:-1); }
   }
 });
 // ────────────────────────────────────────────────────────────────────────────
