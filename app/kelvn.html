@@ -7729,8 +7729,7 @@ function abrirDesignGaleria(){
   document.getElementById('gal-view-design').style.display = '';
 
   // Sobe ao topo
-  var panel = document.getElementById('p-galerias');
-  if(panel) panel.scrollTop = 0;
+  window.scrollTo(0, 0);
 
   // Renderiza controles
   rDzTemplates();
