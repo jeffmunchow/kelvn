@@ -8097,14 +8097,15 @@ function atualizarPreview(){
     '</div>';
   } else if(d.capa_layout === 'retrato'){
     var nomeR = gal.nomeCliente || 'Galeria';
-    // container = 300px (simula 100% da capa), foto = 120px (40% de 300px)
+    // Texto no topo (25% do container = 75px), foto centralizada com margin-top
+    var fszPx = Math.min(Math.max(+(276/(nomeR.length*0.82)).toFixed(1),10),54);
     html += '<div style="position:relative;height:300px;display:flex;align-items:center;justify-content:center;overflow:hidden;">' +
-      '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;font-family:'+d.tema_obj.fonte_titulo+';font-weight:300;font-size:'+Math.min(Math.max(+(276/(nomeR.length*0.82)).toFixed(1),10),54)+'px;letter-spacing:.18em;text-transform:uppercase;color:'+d.paleta.text+';opacity:.16;pointer-events:none;user-select:none;">' + nomeR + '</div>' +
+      '<div style="position:absolute;top:25%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;font-family:'+d.tema_obj.fonte_titulo+';font-weight:300;font-size:'+fszPx+'px;letter-spacing:.18em;text-transform:uppercase;color:'+d.paleta.text+';opacity:.16;pointer-events:none;user-select:none;">' + nomeR + '</div>' +
       (coverUrl ?
-        '<div style="height:120px;width:auto;aspect-ratio:2/3;overflow:hidden;position:relative;z-index:2;border-radius:2px;box-shadow:0 4px 16px rgba(0,0,0,.12);">' +
+        '<div style="height:120px;width:auto;aspect-ratio:2/3;overflow:hidden;position:relative;z-index:2;margin-top:24px;border-radius:2px;box-shadow:0 4px 16px rgba(0,0,0,.12);">' +
           '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;">' +
         '</div>'
-        : '<div style="height:120px;aspect-ratio:2/3;background:'+d.paleta.text+';opacity:.12;border-radius:2px;position:relative;z-index:2;"></div>') +
+        : '<div style="height:120px;aspect-ratio:2/3;background:'+d.paleta.text+';opacity:.12;border-radius:2px;position:relative;z-index:2;margin-top:24px;"></div>') +
     '</div>';
   } else {
     html += '<div style="padding:2.5rem 1.5rem 1.5rem;text-align:center;">' +
