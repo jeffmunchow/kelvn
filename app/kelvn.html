@@ -1067,6 +1067,81 @@ select.aj-input{cursor:pointer;}
     <!-- Grid de fotos -->
     <div id="gal-det-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;"></div>
   </div>
+
+  <!-- Vista: design -->
+  <div id="gal-view-design" style="display:none;">
+
+    <!-- Nav -->
+    <div class="sh" style="margin-bottom:2rem;">
+      <button onclick="voltarDetalheGaleria()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="gal-design-back-nome">Galeria</span>
+      </button>
+      <div style="flex:1;"></div>
+      <span style="font-size:.7rem;color:var(--text-hint);">Alterações salvas automaticamente</span>
+    </div>
+
+    <!-- Duas colunas -->
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:2.5rem;align-items:start;">
+
+      <!-- Esquerda: controles -->
+      <div>
+
+        <!-- TEMPLATES -->
+        <div style="margin-bottom:2.5rem;">
+          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:1rem;">Templates</div>
+          <div id="dz-templates" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
+        </div>
+
+        <div style="border-top:.5px solid var(--border);margin-bottom:2rem;"></div>
+
+        <!-- TEMA -->
+        <div style="margin-bottom:2rem;">
+          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tema</div>
+          <div id="dz-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
+        </div>
+
+        <!-- COR -->
+        <div style="margin-bottom:2rem;">
+          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Paleta de cores</div>
+          <div id="dz-cores" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;"></div>
+        </div>
+
+        <!-- CAPA -->
+        <div style="margin-bottom:2rem;">
+          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Layout da capa</div>
+          <div id="dz-capas" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;"></div>
+        </div>
+
+        <!-- PONTO FOCAL -->
+        <div id="dz-focal-wrap" style="margin-bottom:2rem;">
+          <button class="btn" onclick="abrirPontoFocal()" style="font-size:.72rem;display:flex;align-items:center;gap:6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+            Definir ponto focal da capa
+          </button>
+        </div>
+
+        <!-- GRADE -->
+        <div style="margin-bottom:2rem;">
+          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Grade de fotos</div>
+          <div id="dz-grades" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
+        </div>
+
+        <button class="btn" onclick="resetarParaTema()" style="font-size:.7rem;color:var(--text-muted);">Voltar para os ajustes do tema</button>
+
+      </div>
+
+      <!-- Direita: preview -->
+      <div style="position:sticky;top:1rem;">
+        <div style="font-size:.65rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;text-align:center;">Preview ao vivo</div>
+        <div style="border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface2);">
+          <div id="dz-preview"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- EDUCAÇÃO -->
@@ -7645,17 +7720,147 @@ function abrirDesignGaleria(){
   _designAtual = JSON.parse(JSON.stringify(gal.design || { tema: 'editorial' }));
   _designOriginal = JSON.parse(JSON.stringify(_designAtual));
 
-  // Funções de render são adicionadas na Etapa 2 — apenas chama se existirem
-  if(typeof rDzTemas === 'function')  rDzTemas();
-  if(typeof rDzCores === 'function')  rDzCores();
-  if(typeof rDzCapas === 'function')  rDzCapas();
-  if(typeof rDzGrades === 'function') rDzGrades();
-  if(typeof atualizarPreview === 'function') atualizarPreview();
+  // Atualiza botão de voltar com o nome da galeria
+  var backNome = document.getElementById('gal-design-back-nome');
+  if(backNome) backNome.textContent = gal.nomeCliente || 'Galeria';
 
-  document.getElementById('ov-design').classList.add('open');
+  // Troca de vista: detalhe → design
+  document.getElementById('gal-view-detalhe').style.display = 'none';
+  document.getElementById('gal-view-design').style.display = '';
+
+  // Sobe ao topo
+  var panel = document.getElementById('p-galerias');
+  if(panel) panel.scrollTop = 0;
+
+  // Renderiza controles
+  rDzTemplates();
+  rDzTemas();
+  rDzCores();
+  rDzCapas();
+  rDzGrades();
+  atualizarPreview();
+}
+
+function voltarDetalheGaleria(){
+  document.getElementById('gal-view-design').style.display = 'none';
+  document.getElementById('gal-view-detalhe').style.display = '';
 }
 
 // ---- ETAPA 2: Renderização dos controles ----
+
+// Templates pré-definidos
+var TEMPLATES_GALERIA = [
+  { id:'atemporal',    nome:'Atemporal',       desc:'Editorial em preto e branco',   tema:'editorial', cor:'preto',     capa_layout:'full',     grade:'masonry'  },
+  { id:'luz_tarde',    nome:'Luz de Tarde',    desc:'Linho, tons de creme quente',   tema:'linho',     cor:'creme',     capa_layout:'split',    grade:'uniforme' },
+  { id:'noir',         nome:'Noir',            desc:'Cinema, escuro e dramático',    tema:'cinema',    cor:'preto_puro',capa_layout:'sem',      grade:'editorial'},
+  { id:'galeria_branca',nome:'Galeria Branca', desc:'Clássico, branco e limpo',      tema:'classico',  cor:'branco',    capa_layout:'classico', grade:'uniforme' },
+  { id:'contemporaneo',nome:'Contemporâneo',   desc:'Moderno, off-white sutil',      tema:'moderno',   cor:'offwhite',  capa_layout:'full',     grade:'masonry'  },
+  { id:'vintage',      nome:'Vintage',         desc:'Sépia, nostálgico e quente',    tema:'memorial',  cor:'sepia',     capa_layout:'classico', grade:'uniforme' }
+];
+
+function rDzTemplates(){
+  var el = document.getElementById('dz-templates');
+  if(!el) return;
+  el.innerHTML = TEMPLATES_GALERIA.map(function(tpl){
+    var paleta  = PALETAS_COR[tpl.cor]  || PALETAS_COR.preto;
+    var temaObj = TEMAS_GALERIA[tpl.tema] || TEMAS_GALERIA.editorial;
+    var dAtual  = _designAtual || {};
+    var temaCur = dAtual.tema || 'editorial';
+    var corCur  = dAtual.cor  || (TEMAS_GALERIA[temaCur]||TEMAS_GALERIA.editorial).cor_padrao;
+    var capaCur = dAtual.capa_layout || (TEMAS_GALERIA[temaCur]||TEMAS_GALERIA.editorial).capa_padrao;
+    var gradeCur= dAtual.grade || (TEMAS_GALERIA[temaCur]||TEMAS_GALERIA.editorial).grade_padrao;
+    var ativo   = (temaCur===tpl.tema && corCur===tpl.cor && capaCur===tpl.capa_layout && gradeCur===tpl.grade);
+
+    var miniPrev = buildTemplateMiniPreview(paleta, temaObj, tpl);
+
+    return '<button onclick="aplicarTemplate(\''+tpl.id+'\')" style="' +
+      'padding:0;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-align:left;width:100%;' +
+      'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
+      'background:var(--surface);transition:border-color .2s,box-shadow .2s;position:relative;' +
+      'box-shadow:'+(ativo?'0 0 0 3px rgba(196,120,10,.15)':'none')+'">' +
+      miniPrev +
+      '<div style="padding:8px 10px 10px;">' +
+        '<div style="font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:2px;">'+tpl.nome+'</div>' +
+        '<div style="font-size:.67rem;color:var(--text-hint);line-height:1.4;">'+tpl.desc+'</div>' +
+      '</div>' +
+      (ativo?'<div style="position:absolute;top:6px;right:6px;background:var(--amber);color:#fff;border-radius:20px;font-size:.6rem;padding:2px 7px;font-weight:600;letter-spacing:.03em;">Ativo</div>':'') +
+    '</button>';
+  }).join('');
+}
+
+function buildTemplateMiniPreview(p, t, tpl){
+  // Bloco de capa
+  var cover = '';
+  if(tpl.capa_layout === 'full'){
+    cover = '<div style="position:relative;height:50px;background:'+p.bg+';overflow:hidden;">' +
+      '<div style="position:absolute;inset:0;background:'+p.text+';opacity:.55;"></div>' +
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+        '<div style="font-family:'+t.fonte_titulo+';font-size:.72rem;font-weight:'+t.peso_titulo+';color:'+p.bg+';text-shadow:0 1px 4px rgba(0,0,0,.3);">Casal &amp; Casal</div>' +
+      '</div>' +
+    '</div>';
+  } else if(tpl.capa_layout === 'split'){
+    cover = '<div style="display:flex;height:50px;background:'+p.bg+';">' +
+      '<div style="width:55%;background:'+p.text+';opacity:.45;"></div>' +
+      '<div style="width:45%;display:flex;align-items:center;padding:0 8px;">' +
+        '<div style="font-family:'+t.fonte_titulo+';font-size:.6rem;font-weight:'+t.peso_titulo+';color:'+p.text+';opacity:.8;line-height:1.3;">Casal<br>&amp; Casal</div>' +
+      '</div>' +
+    '</div>';
+  } else if(tpl.capa_layout === 'classico'){
+    cover = '<div style="background:'+p.bg+';padding:6px;text-align:center;">' +
+      '<div style="height:22px;background:'+p.text+';opacity:.35;width:72%;margin:0 auto 4px;border-radius:1px;"></div>' +
+      '<div style="font-family:'+t.fonte_titulo+';font-size:.62rem;font-weight:'+t.peso_titulo+';color:'+p.text+';opacity:.75;">Casal &amp; Casal</div>' +
+    '</div>';
+  } else {
+    cover = '<div style="background:'+p.bg+';padding:10px 8px 4px;text-align:center;">' +
+      '<div style="font-family:'+t.fonte_titulo+';font-size:.72rem;font-weight:'+t.peso_titulo+';color:'+p.text+';opacity:.75;">Casal &amp; Casal</div>' +
+    '</div>';
+  }
+  // Mini grid
+  var grid = '';
+  if(tpl.grade === 'masonry'){
+    var hh = [1.4,0.9,1.1,0.8,1.3,1.0];
+    var cols = [[0,3],[1,4],[2,5]];
+    var colHtml = cols.map(function(idxs){
+      return '<div style="flex:1;display:flex;flex-direction:column;gap:2px;">'+
+        idxs.map(function(i){
+          return '<div style="height:'+(hh[i]*10)+'px;background:'+p.text+';opacity:'+(0.13+i*0.04)+';border-radius:1px;"></div>';
+        }).join('')+
+      '</div>';
+    }).join('');
+    grid = '<div style="background:'+p.bg+';display:flex;gap:2px;padding:3px 4px 4px;">'+colHtml+'</div>';
+  } else if(tpl.grade === 'editorial'){
+    grid = '<div style="background:'+p.bg+';display:grid;grid-template-columns:2fr 1fr;gap:2px;padding:3px 4px 4px;">' +
+      '<div style="aspect-ratio:3/2;background:'+p.text+';opacity:.2;border-radius:1px;"></div>' +
+      '<div style="display:grid;grid-template-rows:1fr 1fr;gap:2px;">' +
+        '<div style="background:'+p.text+';opacity:.14;border-radius:1px;"></div>' +
+        '<div style="background:'+p.text+';opacity:.11;border-radius:1px;"></div>' +
+      '</div>' +
+    '</div>';
+  } else {
+    var blocks = [0,1,2,3,4,5].map(function(i){
+      return '<div style="aspect-ratio:1;background:'+p.text+';opacity:'+(0.12+(i%3)*0.05)+';border-radius:1px;"></div>';
+    }).join('');
+    grid = '<div style="background:'+p.bg+';display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:3px 4px 4px;">'+blocks+'</div>';
+  }
+  return cover + grid;
+}
+
+function aplicarTemplate(id){
+  var tpl = TEMPLATES_GALERIA.find(function(t){ return t.id === id; });
+  if(!tpl) return;
+  _designAtual.tema        = tpl.tema;
+  _designAtual.cor         = tpl.cor;
+  _designAtual.capa_layout = tpl.capa_layout;
+  _designAtual.grade       = tpl.grade;
+  salvarDesign();
+  rDzTemplates();
+  rDzTemas();
+  rDzCores();
+  rDzCapas();
+  rDzGrades();
+  atualizarPreview();
+  notify('Template "'+tpl.nome+'" aplicado.');
+}
 
 function rDzTemas(){
   var el = document.getElementById('dz-temas');
@@ -8008,57 +8213,6 @@ function salvarPontoFocal(){
 </div>
 
 <!-- MODAL DESIGN DA GALERIA -->
-<div class="overlay" id="ov-design">
-  <div class="modal" style="max-width:1100px;width:95vw;height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
-    <!-- HEADER -->
-    <div style="padding:1.25rem 1.5rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div>
-        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;">Design da galeria</div>
-        <div style="font-size:.72rem;color:var(--text-hint);margin-top:2px;">Como o cliente vai ver — escolha um tema e ajuste se quiser</div>
-      </div>
-      <button onclick="cov('ov-design')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.2rem;padding:4px 8px;">✕</button>
-    </div>
-    <!-- BODY: duas colunas -->
-    <div style="flex:1;display:flex;overflow:hidden;">
-      <!-- COLUNA ESQUERDA: controles -->
-      <div style="width:380px;border-right:.5px solid var(--border);overflow-y:auto;padding:1.5rem;flex-shrink:0;">
-        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Tema</div>
-        <div id="dz-temas" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.75rem;"></div>
-
-        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Cor</div>
-        <div id="dz-cores" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.75rem;"></div>
-
-        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Layout da capa</div>
-        <div id="dz-capas" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;"></div>
-
-        <div id="dz-focal-wrap" style="margin-bottom:1.75rem;">
-          <button class="btn" onclick="abrirPontoFocal()" style="width:100%;font-size:.72rem;justify-content:center;display:flex;align-items:center;gap:6px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="10"/></svg>
-            Definir ponto focal da capa
-          </button>
-        </div>
-
-        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Estilo do grid</div>
-        <div id="dz-grades" style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.5rem;"></div>
-
-        <button class="btn" onclick="resetarParaTema()" style="width:100%;font-size:.7rem;color:var(--text-muted);justify-content:center;">
-          Voltar para os ajustes do tema
-        </button>
-      </div>
-      <!-- COLUNA DIREITA: preview -->
-      <div style="flex:1;background:var(--surface2);padding:1.5rem;overflow-y:auto;display:flex;flex-direction:column;">
-        <div style="font-size:.65rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;text-align:center;">Preview ao vivo</div>
-        <div id="dz-preview" style="flex:1;border-radius:8px;overflow:hidden;border:.5px solid var(--border);min-height:400px;"></div>
-      </div>
-    </div>
-    <!-- FOOTER -->
-    <div style="padding:1rem 1.5rem;border-top:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-size:.7rem;color:var(--text-hint);">Alterações são salvas automaticamente</div>
-      <button class="btn primary" onclick="cov('ov-design')">Concluído</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL PONTO FOCAL -->
 <div class="overlay" id="ov-focal">
   <div class="modal" style="max-width:720px;padding:1.5rem;">
