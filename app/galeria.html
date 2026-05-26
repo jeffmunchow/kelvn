@@ -73,6 +73,14 @@ html,body{background:#0e0e0e;color:#e0dbd4;font-family:'DM Sans',sans-serif;min-
 
 /* Empty */
 .gal-empty{text-align:center;padding:4rem 2rem;color:rgba(255,255,255,.25);font-size:.82rem;}
+
+/* Skeleton */
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+.gal-skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%);background-size:600px 100%;animation:shimmer 1.6s infinite linear;border-radius:4px;break-inside:avoid;margin-bottom:.75rem;}
+
+/* Fade-in nas fotos */
+.gal-foto-wrap{opacity:0;transition:opacity .4s ease;}
+.gal-foto-wrap.loaded{opacity:1;}
 </style>
 </head>
 <body>
@@ -188,10 +196,22 @@ function renderizarGaleria(){
     html += '</div>';
   }
 
-  html += '<div class="gal-grid" id="gal-grid">'+renderGridFotos()+'</div>';
+  html += '<div class="gal-grid" id="gal-grid">'+renderSkeletons(_fotosVisiveis.length||12)+'</div>';
   html += '<div class="gal-footer">Galeria entregue com carinho · Kelvn</div>';
 
   document.getElementById('app-root').innerHTML = html;
+
+  // Renderiza fotos após DOM pronto, com fade-in por imagem
+  setTimeout(function(){
+    var grid = document.getElementById('gal-grid');
+    if(grid) grid.innerHTML = renderGridFotos();
+    // Aciona fade-in conforme cada imagem carrega
+    document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
+      var wrap = img.closest('.gal-foto-wrap');
+      if(img.complete){ wrap.classList.add('loaded'); }
+      else { img.addEventListener('load', function(){ wrap.classList.add('loaded'); }); }
+    });
+  }, 0);
 
   // fecha menus ao clicar fora
   document.addEventListener('click', function(e){
@@ -199,6 +219,17 @@ function renderizarGaleria(){
       document.querySelectorAll('.dl-menu.open').forEach(function(m){ m.classList.remove('open'); });
     }
   });
+}
+
+// Alturas variadas simulam o masonry real
+var _skHeights = [56,70,45,80,60,50,75,55,65,48,72,58];
+function renderSkeletons(n){
+  var html = '';
+  for(var i=0;i<n;i++){
+    var h = _skHeights[i % _skHeights.length];
+    html += '<div class="gal-skeleton" style="padding-bottom:'+h+'%;"></div>';
+  }
+  return html;
 }
 
 function renderGridFotos(){
@@ -276,7 +307,14 @@ function filtrarSubgalPublica(subgalId){
     _fotosVisiveis = _todasFotos.filter(function(f){ return f.subgaleriaId === subgalId; });
   }
   var grid = document.getElementById('gal-grid');
-  if(grid) grid.innerHTML = renderGridFotos();
+  if(grid){
+    grid.innerHTML = renderGridFotos();
+    document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
+      var wrap = img.closest('.gal-foto-wrap');
+      if(img.complete){ wrap.classList.add('loaded'); }
+      else { img.addEventListener('load', function(){ wrap.classList.add('loaded'); }); }
+    });
+  }
 }
 
 // Lightbox
