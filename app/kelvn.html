@@ -6094,6 +6094,27 @@ function galFotoClick(e,url,key,idx){
   }
   _atualizarSelecaoVisual();
 }
+function _atualizarBadgesCapa(coverUrl, fotos){
+  // Remove badges existentes e adiciona na foto certa — sem recriar células
+  var grid=document.getElementById('gal-det-grid');
+  if(!grid) return;
+  Array.from(grid.children).forEach(function(el){
+    if(!el.id||!el.id.startsWith('gf-')) return;
+    var ri=parseInt(el.id.replace('gf-',''),10);
+    var foto=fotos&&fotos[ri];
+    var badge=el.querySelector('.gf-capa-badge');
+    var isCapa=foto&&foto.url===coverUrl;
+    if(isCapa&&!badge){
+      var d=document.createElement('div');
+      d.className='gf-capa-badge';
+      d.style.cssText='position:absolute;bottom:7px;left:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;pointer-events:none;';
+      d.textContent='Capa';
+      el.appendChild(d);
+    } else if(!isCapa&&badge){
+      badge.remove();
+    }
+  });
+}
 function galDefinirCapa(idx){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
@@ -6102,6 +6123,7 @@ function galDefinirCapa(idx){
   s('galerias',gals);
   rGalDetalhe();
   rGal(true);
+  _atualizarBadgesCapa(gal.cover_url, gal.fotos);
   notify('Foto de capa definida.');
 }
 async function galExcluirFoto(url,key,idx){
@@ -6217,7 +6239,7 @@ function _rFotoCell(f,realIdx,isCapa,lazyLoad){
     +'<button class="gf-ico" onclick="event.stopPropagation();verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Ver foto" style="'+iconBtn+'top:7px;right:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>'
     +'<button class="gf-ico" onclick="event.stopPropagation();galExcluirFoto(\''+f.url+'\',\''+(f.key||'')+'\','+realIdx+')" title="Excluir foto" style="'+iconBtn+'bottom:7px;right:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
     +'<button class="gf-ico" onclick="event.stopPropagation();abrirLoteMenu(event,'+realIdx+')" title="Ações em lote" style="'+iconBtn+'bottom:7px;left:7px;flex-direction:column;gap:2.5px;"><span style="width:3px;height:3px;border-radius:50%;background:currentColor;display:block;"></span><span style="width:3px;height:3px;border-radius:50%;background:currentColor;display:block;"></span><span style="width:3px;height:3px;border-radius:50%;background:currentColor;display:block;"></span></button>'
-    +(isCapa?'<div style="position:absolute;bottom:7px;left:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;pointer-events:none;">Capa</div>':'')
+    +(isCapa?'<div class="gf-capa-badge" style="position:absolute;bottom:7px;left:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;pointer-events:none;">Capa</div>':'')
     +'</div>';
 }
 function rDetGrid(){
