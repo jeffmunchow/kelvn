@@ -5653,14 +5653,15 @@ function abrirSubmenuSubs(el){
   }).join('');
   var r=el.getBoundingClientRect();
   var menuEl=document.getElementById('gal-lote-menu');
-  var mw=menuEl?menuEl.offsetWidth:200;
-  var left=r.left+mw-4;
+  var mr=menuEl?menuEl.getBoundingClientRect():{right:r.right,left:r.left};
+  // posiciona à direita do menu principal, alinhado ao topo da opção
+  sub.style.display='block';
+  var left=mr.right+2;
   var top=r.top;
-  // keep on screen
-  if(left+sub.offsetWidth>window.innerWidth) left=r.left-sub.offsetWidth+4;
+  // se não couber à direita, abre à esquerda
+  if(left+sub.offsetWidth>window.innerWidth) left=mr.left-sub.offsetWidth-2;
   sub.style.left=left+'px';
   sub.style.top=top+'px';
-  sub.style.display='block';
 }
 function fecharSubmenuSubs(e){
   var sub=document.getElementById('gal-lote-submenu');
