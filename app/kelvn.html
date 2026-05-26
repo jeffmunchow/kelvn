@@ -771,8 +771,8 @@ select.aj-input{cursor:pointer;}
   <!-- DRE -->
   <div id="fp-panel-dre" style="display:none;">
     <div class="sh"><div class="st">Balanço do período</div>
-      <div class="sa">
-        <select class="fi" id="dre-period" onchange="rDRE()"><option value="month">Este mês</option><option value="quarter">Últimos 3 meses</option><option value="semester">Últimos 6 meses</option><option value="year">Últimos 12 meses</option><option value="all">Total</option></select>
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <select id="dre-period" onchange="rDRE()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;"><option value="month">Este mês</option><option value="quarter">Últimos 3 meses</option><option value="semester">Últimos 6 meses</option><option value="year">Últimos 12 meses</option><option value="all">Total</option></select>
         <button class="btn" onclick="exportarBalanco('csv')" title="Baixar CSV para o contador">Baixar CSV</button>
         <button class="btn" onclick="exportarBalanco('pdf')" title="Imprimir como PDF">Imprimir</button>
       </div>
