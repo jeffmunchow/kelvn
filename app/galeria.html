@@ -82,26 +82,26 @@ html,body{
 /* Capa RETRATO */
 .capa-retrato{
   position:relative;
-  padding:5vh 0 6vh;
+  width:100%;height:100vh;
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
 .capa-retrato-watermark{
-  position:absolute;top:8%;left:50%;transform:translateX(-50%);
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
   white-space:nowrap;pointer-events:none;user-select:none;
   font-family:var(--gal-font-title);font-weight:300;
   font-size:clamp(4rem,13vw,14rem);letter-spacing:.14em;
   text-transform:uppercase;color:var(--gal-text);opacity:.13;
 }
 .capa-retrato-foto{
-  height:52vh;min-height:260px;max-height:520px;
-  width:auto;aspect-ratio:2/3;
+  height:40vh;width:auto;aspect-ratio:2/3;
   overflow:hidden;position:relative;z-index:2;
   border-radius:2px;box-shadow:0 12px 52px rgba(0,0,0,.13);
 }
 .capa-retrato-foto img{width:100%;height:100%;object-fit:cover;display:block;}
 @media(max-width:768px){
-  .capa-retrato-foto{height:44vh;}
+  .capa-retrato-foto{height:40vh;}
   .capa-retrato-watermark{font-size:clamp(3rem,13vw,6rem);}
 }
 
