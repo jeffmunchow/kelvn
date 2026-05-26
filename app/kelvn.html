@@ -12,7 +12,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Kelvn — Studio</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -1024,6 +1024,16 @@ select.aj-input{cursor:pointer;}
         <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;">Visualizar</button>
         <button class="btn" onclick="criarSubgal()">Adicionar seção</button>
         <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
+        <button class="btn" onclick="abrirDesignGaleria()" style="display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="13.5" cy="6.5" r="2.5"/>
+            <circle cx="17.5" cy="10.5" r="2.5"/>
+            <circle cx="8.5" cy="7.5" r="2.5"/>
+            <circle cx="6.5" cy="12.5" r="2.5"/>
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.648-1.688h1.943c3.13 0 5.636-2.508 5.636-5.688C22 6.5 17.5 2 12 2z"/>
+          </svg>
+          Design
+        </button>
         <button class="btn" onclick="abrirGaleria(_galAtualId)">Configurar</button>
         <button id="gal-det-btn-pub" class="btn" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Offline</button>
       </div>
@@ -7582,6 +7592,403 @@ async function sendAIMessage(){
   document.getElementById('aiMessages').scrollTop = document.getElementById('aiMessages').scrollHeight;
 }
 
+// ========================================================
+// SISTEMA DE DESIGN DE GALERIAS
+// ========================================================
+
+var TEMAS_GALERIA = {
+  editorial: { nome:'Editorial', desc:'Fundo escuro, serifa elegante, capa dramática', cor_padrao:'preto', capa_padrao:'full', grade_padrao:'masonry', fonte_titulo:"'Playfair Display', serif", fonte_corpo:"'DM Sans', sans-serif", peso_titulo:600 },
+  linho:     { nome:'Linho', desc:'Bege quente, tipografia delicada, grid orgânico', cor_padrao:'creme', capa_padrao:'split', grade_padrao:'masonry', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:500 },
+  cinema:    { nome:'Cinema', desc:'Preto absoluto, tipografia moderna, capa cinematográfica', cor_padrao:'preto_puro', capa_padrao:'full', grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:600 },
+  memorial:  { nome:'Memorial', desc:'Branco museu, muito respiro, grid minimalista', cor_padrao:'branco', capa_padrao:'classico', grade_padrao:'uniforme', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:400 },
+  classico:  { nome:'Clássico', desc:'Creme, serifa tradicional, capa centralizada', cor_padrao:'sepia', capa_padrao:'classico', grade_padrao:'masonry', fonte_titulo:"'Playfair Display', serif", fonte_corpo:"'DM Sans', sans-serif", peso_titulo:700 },
+  moderno:   { nome:'Moderno', desc:'Off-white, sans-serif limpa, grid uniforme', cor_padrao:'offwhite', capa_padrao:'split', grade_padrao:'uniforme', fonte_titulo:"'Inter', sans-serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:500 }
+};
+
+var PALETAS_COR = {
+  preto:      { nome:'Preto',     bg:'#0C0C0C', text:'#EDE9E3', accent:'rgba(255,255,255,.45)' },
+  preto_puro: { nome:'Cinema',    bg:'#000000', text:'#FFFFFF', accent:'rgba(255,255,255,.55)' },
+  creme:      { nome:'Linho',     bg:'#F5F0EB', text:'#2A2420', accent:'rgba(42,36,32,.55)'   },
+  sepia:      { nome:'Sépia',     bg:'#EFE9DD', text:'#3A2E20', accent:'rgba(58,46,32,.55)'   },
+  branco:     { nome:'Museu',     bg:'#FAFAF8', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   },
+  offwhite:   { nome:'Off-white', bg:'#F4F4F2', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   }
+};
+
+var CAPA_LAYOUTS = {
+  full:     { nome:'Cheia',    desc:'Foto ocupa toda a tela com título sobreposto' },
+  split:    { nome:'Dividida', desc:'Foto à esquerda, título à direita' },
+  classico: { nome:'Clássica', desc:'Foto centralizada com título abaixo' },
+  sem:      { nome:'Sem capa', desc:'Apenas título grande, sem foto de destaque' }
+};
+
+var GRADES = {
+  uniforme:  { nome:'Uniforme',  desc:'Todas as fotos em quadrados iguais' },
+  masonry:   { nome:'Orgânica',  desc:'Cada foto preserva sua proporção natural' },
+  editorial: { nome:'Editorial', desc:'Fotos variadas com algumas em destaque' }
+};
+
+function resolverDesign(design){
+  var d = design || { tema: 'editorial' };
+  var tema = TEMAS_GALERIA[d.tema] || TEMAS_GALERIA.editorial;
+  var corKey = d.cor || tema.cor_padrao;
+  var paleta = PALETAS_COR[corKey] || PALETAS_COR.preto;
+  return {
+    tema:         d.tema || 'editorial',
+    tema_obj:     tema,
+    cor_key:      corKey,
+    paleta:       paleta,
+    capa_layout:  d.capa_layout || tema.capa_padrao,
+    grade:        d.grade || tema.grade_padrao,
+    ponto_focal:  d.ponto_focal || { x: 50, y: 50 }
+  };
+}
+
+var _designAtual = null;
+var _designOriginal = null;
+
+function abrirDesignGaleria(){
+  var galerias = g('galerias') || [];
+  var gal = galerias.find(function(g2){ return g2.id === _galAtualId; });
+  if(!gal){ notify && notify('Galeria não encontrada.'); return; }
+
+  _designAtual = JSON.parse(JSON.stringify(gal.design || { tema: 'editorial' }));
+  _designOriginal = JSON.parse(JSON.stringify(_designAtual));
+
+  // Funções de render são adicionadas na Etapa 2 — apenas chama se existirem
+  if(typeof rDzTemas === 'function')  rDzTemas();
+  if(typeof rDzCores === 'function')  rDzCores();
+  if(typeof rDzCapas === 'function')  rDzCapas();
+  if(typeof rDzGrades === 'function') rDzGrades();
+  if(typeof atualizarPreview === 'function') atualizarPreview();
+
+  document.getElementById('ov-design').classList.add('open');
+}
+
+// ---- ETAPA 2: Renderização dos controles ----
+
+function rDzTemas(){
+  var el = document.getElementById('dz-temas');
+  if(!el) return;
+  el.innerHTML = Object.keys(TEMAS_GALERIA).map(function(key){
+    var t = TEMAS_GALERIA[key];
+    var ativo = _designAtual.tema === key;
+    var paleta = PALETAS_COR[t.cor_padrao];
+    return '<button onclick="selecionarTema(\''+key+'\')" style="' +
+      'padding:0;border-radius:var(--radius);overflow:hidden;cursor:pointer;' +
+      'border:'+(ativo?'1.5px solid var(--amber)':'1px solid var(--border-strong)')+';' +
+      'background:transparent;text-align:left;transition:border-color .15s;">' +
+      '<div style="height:48px;background:'+paleta.bg+';display:flex;align-items:center;padding:8px 10px;">' +
+        '<div style="font-family:'+t.fonte_titulo+';font-size:.85rem;font-weight:'+t.peso_titulo+';color:'+paleta.text+';">Aa</div>' +
+      '</div>' +
+      '<div style="padding:6px 10px 8px;">' +
+        '<div style="font-size:.78rem;font-weight:500;color:var(--text);">'+t.nome+'</div>' +
+      '</div>' +
+    '</button>';
+  }).join('');
+}
+
+function selecionarTema(key){
+  _designAtual.tema = key;
+  _designAtual.cor = null;
+  _designAtual.capa_layout = null;
+  _designAtual.grade = null;
+  salvarDesign();
+  rDzTemas();
+  rDzCores();
+  rDzCapas();
+  rDzGrades();
+  atualizarPreview();
+}
+
+function rDzCores(){
+  var el = document.getElementById('dz-cores');
+  if(!el) return;
+  var tema = TEMAS_GALERIA[_designAtual.tema] || TEMAS_GALERIA.editorial;
+  var corAtual = _designAtual.cor || tema.cor_padrao;
+  el.innerHTML = Object.keys(PALETAS_COR).map(function(key){
+    var p = PALETAS_COR[key];
+    var ativo = corAtual === key;
+    return '<button onclick="selecionarCor(\''+key+'\')" title="'+p.nome+'" style="' +
+      'aspect-ratio:1;border-radius:50%;cursor:pointer;background:'+p.bg+';' +
+      'border:'+(ativo?'2px solid var(--amber)':'.5px solid var(--border-strong)')+';' +
+      'position:relative;outline:none;transition:transform .15s;">' +
+      (ativo ? '<svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" ' +
+        'width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+p.text+'" ' +
+        'stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') +
+    '</button>';
+  }).join('');
+}
+
+function selecionarCor(key){
+  var tema = TEMAS_GALERIA[_designAtual.tema];
+  _designAtual.cor = (key === tema.cor_padrao) ? null : key;
+  salvarDesign();
+  rDzCores();
+  atualizarPreview();
+}
+
+function rDzCapas(){
+  var el = document.getElementById('dz-capas');
+  if(!el) return;
+  var tema = TEMAS_GALERIA[_designAtual.tema];
+  var capaAtual = _designAtual.capa_layout || tema.capa_padrao;
+
+  var SVGS = {
+    full:     '<rect x="2" y="2" width="56" height="32" fill="currentColor" opacity=".6"/><rect x="14" y="14" width="32" height="2" fill="white" opacity=".9"/>',
+    split:    '<rect x="2" y="2" width="28" height="32" fill="currentColor" opacity=".6"/><rect x="34" y="14" width="18" height="2" fill="currentColor" opacity=".5"/><rect x="34" y="18" width="12" height="1.5" fill="currentColor" opacity=".3"/>',
+    classico: '<rect x="14" y="4" width="32" height="20" fill="currentColor" opacity=".6"/><rect x="18" y="28" width="24" height="2" fill="currentColor" opacity=".5"/>',
+    sem:      '<rect x="6" y="14" width="48" height="3" fill="currentColor" opacity=".5"/><rect x="14" y="20" width="32" height="2" fill="currentColor" opacity=".3"/>'
+  };
+
+  el.innerHTML = Object.keys(CAPA_LAYOUTS).map(function(key){
+    var c = CAPA_LAYOUTS[key];
+    var ativo = capaAtual === key;
+    return '<button onclick="selecionarCapaLayout(\''+key+'\')" style="' +
+      'padding:8px;border-radius:var(--radius);cursor:pointer;text-align:left;' +
+      'border:'+(ativo?'1.5px solid var(--amber)':'1px solid var(--border-strong)')+';' +
+      'background:transparent;transition:border-color .15s;">' +
+      '<svg viewBox="0 0 60 36" style="width:100%;height:auto;color:var(--text-muted);background:var(--surface2);border-radius:3px;display:block;margin-bottom:6px;">' +
+        SVGS[key] +
+      '</svg>' +
+      '<div style="font-size:.72rem;font-weight:500;color:var(--text);">'+c.nome+'</div>' +
+    '</button>';
+  }).join('');
+
+  var focalWrap = document.getElementById('dz-focal-wrap');
+  if(focalWrap) focalWrap.style.display = capaAtual === 'sem' ? 'none' : '';
+}
+
+function selecionarCapaLayout(key){
+  var tema = TEMAS_GALERIA[_designAtual.tema];
+  _designAtual.capa_layout = (key === tema.capa_padrao) ? null : key;
+  salvarDesign();
+  rDzCapas();
+  atualizarPreview();
+}
+
+function rDzGrades(){
+  var el = document.getElementById('dz-grades');
+  if(!el) return;
+  var tema = TEMAS_GALERIA[_designAtual.tema];
+  var gradeAtual = _designAtual.grade || tema.grade_padrao;
+  el.innerHTML = Object.keys(GRADES).map(function(key){
+    var gr = GRADES[key];
+    var ativo = gradeAtual === key;
+    return '<button onclick="selecionarGrade(\''+key+'\')" style="' +
+      'padding:10px 12px;border-radius:var(--radius);cursor:pointer;text-align:left;' +
+      'border:'+(ativo?'1.5px solid var(--amber)':'1px solid var(--border-strong)')+';' +
+      'background:transparent;transition:border-color .15s;">' +
+      '<div style="font-size:.78rem;font-weight:500;color:var(--text);margin-bottom:2px;">'+gr.nome+'</div>' +
+      '<div style="font-size:.66rem;color:var(--text-hint);line-height:1.4;">'+gr.desc+'</div>' +
+    '</button>';
+  }).join('');
+}
+
+function selecionarGrade(key){
+  var tema = TEMAS_GALERIA[_designAtual.tema];
+  _designAtual.grade = (key === tema.grade_padrao) ? null : key;
+  salvarDesign();
+  rDzGrades();
+  atualizarPreview();
+}
+
+function resetarParaTema(){
+  _designAtual.cor = null;
+  _designAtual.capa_layout = null;
+  _designAtual.grade = null;
+  salvarDesign();
+  rDzCores();
+  rDzCapas();
+  rDzGrades();
+  atualizarPreview();
+  notify('Voltou para os ajustes do tema.');
+}
+
+function salvarDesign(){
+  var galerias = g('galerias') || [];
+  var idx = galerias.findIndex(function(g2){ return g2.id === _galAtualId; });
+  if(idx < 0) return;
+  galerias[idx].design = _designAtual;
+  s('galerias', galerias);
+}
+
+// ---- ETAPA 3: Preview ao vivo ----
+
+function fdMini(iso){
+  if(!iso) return '';
+  // Aceita dd/mm/aaaa ou aaaa-mm-dd
+  var meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  var d, m, a;
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(iso)){
+    var p = iso.split('/'); d=parseInt(p[0],10); m=parseInt(p[1],10); a=p[2];
+  } else if(/^\d{4}-\d{2}-\d{2}/.test(iso)){
+    var p = iso.split('-'); d=parseInt(p[2].slice(0,2),10); m=parseInt(p[1],10); a=p[0];
+  } else { return iso; }
+  return d + ' ' + (meses[m-1]||m) + ' ' + a;
+}
+
+function atualizarPreview(){
+  var el = document.getElementById('dz-preview');
+  if(!el) return;
+  var galerias = g('galerias') || [];
+  var gal = galerias.find(function(g2){ return g2.id === _galAtualId; });
+  if(!gal) return;
+
+  var d = resolverDesign(_designAtual);
+  var fotos = (gal.fotos || []).slice(0, 9);
+  var coverUrl = gal.cover_url || (fotos[0] && (fotos[0].webUrl || fotos[0].url)) || '';
+
+  var html = '<div style="background:'+d.paleta.bg+';color:'+d.paleta.text+';font-family:'+d.tema_obj.fonte_corpo+';min-height:100%;overflow:hidden;">';
+
+  // ---- CAPA ----
+  if(d.capa_layout === 'full' && coverUrl){
+    html += '<div style="position:relative;aspect-ratio:16/9;overflow:hidden;">' +
+      '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;">' +
+      '<div style="position:absolute;inset:0;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;">' +
+        '<div style="text-align:center;color:#fff;">' +
+          '<div style="font-family:'+d.tema_obj.fonte_titulo+';font-weight:'+d.tema_obj.peso_titulo+';font-size:2rem;text-shadow:0 2px 8px rgba(0,0,0,.3);">' + (gal.nomeCliente||'Galeria') + '</div>' +
+          (gal.dataEvento ? '<div style="font-size:.72rem;opacity:.85;margin-top:6px;letter-spacing:.05em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  } else if(d.capa_layout === 'split' && coverUrl){
+    html += '<div style="display:flex;aspect-ratio:16/8;">' +
+      '<div style="width:55%;overflow:hidden;">' +
+        '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;">' +
+      '</div>' +
+      '<div style="width:45%;display:flex;flex-direction:column;justify-content:center;padding:1.5rem;">' +
+        '<div style="font-family:'+d.tema_obj.fonte_titulo+';font-weight:'+d.tema_obj.peso_titulo+';font-size:1.5rem;line-height:1.2;">' + (gal.nomeCliente||'Galeria') + '</div>' +
+        (gal.dataEvento ? '<div style="font-size:.7rem;color:'+d.paleta.accent+';margin-top:8px;letter-spacing:.05em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
+      '</div>' +
+    '</div>';
+  } else if(d.capa_layout === 'classico' && coverUrl){
+    html += '<div style="padding:1.5rem;text-align:center;">' +
+      '<div style="max-width:75%;margin:0 auto 1rem;overflow:hidden;border-radius:2px;">' +
+        '<img src="'+coverUrl+'" style="width:100%;display:block;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;aspect-ratio:3/2;">' +
+      '</div>' +
+      '<div style="font-family:'+d.tema_obj.fonte_titulo+';font-weight:'+d.tema_obj.peso_titulo+';font-size:1.4rem;">' + (gal.nomeCliente||'Galeria') + '</div>' +
+      (gal.dataEvento ? '<div style="font-size:.68rem;color:'+d.paleta.accent+';margin-top:4px;letter-spacing:.05em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
+    '</div>';
+  } else {
+    html += '<div style="padding:2.5rem 1.5rem 1.5rem;text-align:center;">' +
+      '<div style="font-family:'+d.tema_obj.fonte_titulo+';font-weight:'+d.tema_obj.peso_titulo+';font-size:1.8rem;">' + (gal.nomeCliente||'Galeria') + '</div>' +
+      (gal.dataEvento ? '<div style="font-size:.7rem;color:'+d.paleta.accent+';margin-top:6px;letter-spacing:.05em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
+    '</div>';
+  }
+
+  // ---- GRID ----
+  if(fotos.length){
+    var imgSrc = function(f){ return f.thumbUrl || f.webUrl || f.url; };
+    if(d.grade === 'uniforme'){
+      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px;">';
+      fotos.forEach(function(f){
+        html += '<div style="aspect-ratio:1;overflow:hidden;"><img src="'+imgSrc(f)+'" style="width:100%;height:100%;object-fit:cover;display:block;"></div>';
+      });
+      html += '</div>';
+    } else if(d.grade === 'editorial'){
+      html += '<div style="padding:6px;display:grid;grid-template-columns:2fr 1fr;gap:4px;">';
+      if(fotos[0]) html += '<div style="aspect-ratio:3/2;overflow:hidden;"><img src="'+imgSrc(fotos[0])+'" style="width:100%;height:100%;object-fit:cover;"></div>';
+      html += '<div style="display:grid;grid-template-rows:1fr 1fr;gap:4px;">';
+      if(fotos[1]) html += '<div style="overflow:hidden;"><img src="'+imgSrc(fotos[1])+'" style="width:100%;height:100%;object-fit:cover;"></div>';
+      if(fotos[2]) html += '<div style="overflow:hidden;"><img src="'+imgSrc(fotos[2])+'" style="width:100%;height:100%;object-fit:cover;"></div>';
+      html += '</div></div>';
+      html += '<div style="padding:0 6px 6px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">';
+      fotos.slice(3, 6).forEach(function(f){
+        html += '<div style="aspect-ratio:1;overflow:hidden;"><img src="'+imgSrc(f)+'" style="width:100%;height:100%;object-fit:cover;display:block;"></div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div style="columns:3;column-gap:4px;padding:6px;">';
+      fotos.forEach(function(f){
+        html += '<div style="break-inside:avoid;margin-bottom:4px;"><img src="'+imgSrc(f)+'" style="width:100%;display:block;"></div>';
+      });
+      html += '</div>';
+    }
+  } else {
+    html += '<div style="padding:3rem;text-align:center;font-size:.72rem;color:'+d.paleta.accent+';">Suba fotos para ver o preview completo.</div>';
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ---- ETAPA 4: Ponto focal ----
+
+var _focalHandlers = null;
+
+function abrirPontoFocal(){
+  var galerias = g('galerias') || [];
+  var gal = galerias.find(function(g2){ return g2.id === _galAtualId; });
+  if(!gal) return;
+  var coverUrl = gal.cover_url || (gal.fotos && gal.fotos[0] && (gal.fotos[0].webUrl || gal.fotos[0].url));
+  if(!coverUrl){
+    notify('Defina uma capa primeiro.');
+    return;
+  }
+
+  var canvas = document.getElementById('focal-canvas');
+  var pf = _designAtual.ponto_focal || { x: 50, y: 50 };
+
+  canvas.innerHTML =
+    '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none;" draggable="false">' +
+    '<div id="focal-ponto" style="position:absolute;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.95);border:2.5px solid var(--amber);box-shadow:0 0 0 4px rgba(0,0,0,.25),0 4px 12px rgba(0,0,0,.3);left:'+pf.x+'%;top:'+pf.y+'%;transform:translate(-50%,-50%);cursor:grab;z-index:2;"></div>';
+
+  var ponto = document.getElementById('focal-ponto');
+  var arrastando = false;
+
+  function moverPonto(clientX, clientY){
+    var rect = canvas.getBoundingClientRect();
+    var x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width)  * 100));
+    var y = Math.max(0, Math.min(100, ((clientY - rect.top)  / rect.height) * 100));
+    ponto.style.left = x + '%';
+    ponto.style.top  = y + '%';
+    _designAtual.ponto_focal = { x: x, y: y };
+  }
+
+  // Limpa handlers anteriores se existirem
+  if(_focalHandlers){
+    document.removeEventListener('mousemove', _focalHandlers.move);
+    document.removeEventListener('mouseup',   _focalHandlers.up);
+    document.removeEventListener('touchmove', _focalHandlers.tmove);
+    document.removeEventListener('touchend',  _focalHandlers.tend);
+  }
+
+  var onMouseMove = function(e){ if(arrastando) moverPonto(e.clientX, e.clientY); };
+  var onMouseUp   = function(){ arrastando = false; if(ponto) ponto.style.cursor = 'grab'; };
+  var onTouchMove = function(e){ if(arrastando){ var t = e.touches[0]; moverPonto(t.clientX, t.clientY); } };
+  var onTouchEnd  = function(){ arrastando = false; };
+
+  ponto.addEventListener('mousedown', function(e){
+    arrastando = true;
+    ponto.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  canvas.addEventListener('click', function(e){
+    if(e.target.id === 'focal-ponto') return;
+    moverPonto(e.clientX, e.clientY);
+  });
+  ponto.addEventListener('touchstart', function(e){
+    arrastando = true;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup',   onMouseUp);
+  document.addEventListener('touchmove', onTouchMove);
+  document.addEventListener('touchend',  onTouchEnd);
+
+  _focalHandlers = { move: onMouseMove, up: onMouseUp, tmove: onTouchMove, tend: onTouchEnd };
+
+  document.getElementById('ov-focal').classList.add('open');
+}
+
+function salvarPontoFocal(){
+  salvarDesign();
+  atualizarPreview();
+  cov('ov-focal');
+  notify('Ponto focal salvo.');
+}
+
 </script>
 
 <!-- Menu de lote de fotos -->
@@ -7607,6 +8014,71 @@ async function sendAIMessage(){
     <div id="upload-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .25s ease;border-radius:2px;"></div>
   </div>
   <div id="upload-progress-label" style="font-size:.65rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-top:.4rem;">0 de 0</div>
+</div>
+
+<!-- MODAL DESIGN DA GALERIA -->
+<div class="overlay" id="ov-design">
+  <div class="modal" style="max-width:1100px;width:95vw;height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden;">
+    <!-- HEADER -->
+    <div style="padding:1.25rem 1.5rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;">Design da galeria</div>
+        <div style="font-size:.72rem;color:var(--text-hint);margin-top:2px;">Como o cliente vai ver — escolha um tema e ajuste se quiser</div>
+      </div>
+      <button onclick="cov('ov-design')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:1.2rem;padding:4px 8px;">✕</button>
+    </div>
+    <!-- BODY: duas colunas -->
+    <div style="flex:1;display:flex;overflow:hidden;">
+      <!-- COLUNA ESQUERDA: controles -->
+      <div style="width:380px;border-right:.5px solid var(--border);overflow-y:auto;padding:1.5rem;flex-shrink:0;">
+        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Tema</div>
+        <div id="dz-temas" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.75rem;"></div>
+
+        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Cor</div>
+        <div id="dz-cores" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.75rem;"></div>
+
+        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Layout da capa</div>
+        <div id="dz-capas" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;"></div>
+
+        <div id="dz-focal-wrap" style="margin-bottom:1.75rem;">
+          <button class="btn" onclick="abrirPontoFocal()" style="width:100%;font-size:.72rem;justify-content:center;display:flex;align-items:center;gap:6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+            Definir ponto focal da capa
+          </button>
+        </div>
+
+        <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">Estilo do grid</div>
+        <div id="dz-grades" style="display:flex;flex-direction:column;gap:6px;margin-bottom:1.5rem;"></div>
+
+        <button class="btn" onclick="resetarParaTema()" style="width:100%;font-size:.7rem;color:var(--text-muted);justify-content:center;">
+          Voltar para os ajustes do tema
+        </button>
+      </div>
+      <!-- COLUNA DIREITA: preview -->
+      <div style="flex:1;background:var(--surface2);padding:1.5rem;overflow-y:auto;display:flex;flex-direction:column;">
+        <div style="font-size:.65rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;text-align:center;">Preview ao vivo</div>
+        <div id="dz-preview" style="flex:1;border-radius:8px;overflow:hidden;border:.5px solid var(--border);min-height:400px;"></div>
+      </div>
+    </div>
+    <!-- FOOTER -->
+    <div style="padding:1rem 1.5rem;border-top:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:.7rem;color:var(--text-hint);">Alterações são salvas automaticamente</div>
+      <button class="btn primary" onclick="cov('ov-design')">Concluído</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PONTO FOCAL -->
+<div class="overlay" id="ov-focal">
+  <div class="modal" style="max-width:720px;padding:1.5rem;">
+    <h2 style="margin-bottom:.5rem;">Definir ponto focal</h2>
+    <div style="font-size:.72rem;color:var(--text-hint);margin-bottom:1.25rem;">Arraste o círculo para o ponto da foto que deve ficar sempre visível, independente do tamanho da tela.</div>
+    <div id="focal-canvas" style="position:relative;width:100%;aspect-ratio:16/9;background:var(--surface2);border-radius:var(--radius);overflow:hidden;cursor:crosshair;user-select:none;"></div>
+    <div class="ma" style="margin-top:1.25rem;display:flex;gap:.5rem;justify-content:flex-end;">
+      <button class="btn" onclick="cov('ov-focal')">Cancelar</button>
+      <button class="btn primary" onclick="salvarPontoFocal()">Salvar ponto focal</button>
+    </div>
+  </div>
 </div>
 
 </body>

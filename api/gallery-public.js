@@ -58,6 +58,7 @@ module.exports = async function handler(req, res) {
       total_fotos:         galeria.total_fotos,
       downloads_liberados: galeria.downloads_liberados,
       subgalerias:         galeria.subgalerias || [],
+      design:              galeria.design || null,
       nomeEstudio,
       temSenha,
       fotos: temSenha ? undefined : (galeria.fotos || [])
