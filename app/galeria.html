@@ -112,8 +112,10 @@ async function init(){
   if(!_slug){ showErro('Galeria não encontrada.'); return; }
   try{
     var r = await fetch('/api/gallery-public?slug='+encodeURIComponent(_slug));
-    var data = await r.json();
-    if(!data || !data.galeria){ showErro('Galeria não encontrada.'); return; }
+    var text = await r.text();
+    var data;
+    try { data = JSON.parse(text); } catch(pe){ showErro('Resposta inválida ('+r.status+'): '+text.slice(0,200)); return; }
+    if(!data || !data.galeria){ showErro((data&&data.error)||'Galeria não encontrada. ('+r.status+')'); return; }
     _galData = data.galeria;
     document.title = (_galData.nomeCliente || 'Galeria') + ' — Kelvn';
     if(_galData.temSenha && !data.fotos){
@@ -123,7 +125,7 @@ async function init(){
       _downloads = !!_galData.downloads_liberados;
       renderizarGaleria();
     }
-  } catch(e){ showErro('Não foi possível carregar a galeria.'); }
+  } catch(e){ showErro('Erro: ' + (e && e.message ? e.message : String(e))); }
 }
 
 function showGate(){
