@@ -91,7 +91,7 @@ html,body{
   transform:translate(-50%,-50%);
   white-space:nowrap;pointer-events:none;user-select:none;
   font-family:var(--gal-font-title);font-weight:300;
-  font-size:clamp(1.8rem,3.2vw,5rem);letter-spacing:.22em;
+  letter-spacing:.2em;
   text-transform:uppercase;color:var(--gal-text);opacity:.18;
 }
 .capa-retrato-foto{
@@ -102,7 +102,7 @@ html,body{
 .capa-retrato-foto img{width:100%;height:100%;object-fit:cover;display:block;}
 @media(max-width:768px){
   .capa-retrato-foto{height:40vh;}
-  .capa-retrato-watermark{font-size:clamp(1.5rem,4.5vw,4rem);}
+  .capa-retrato-watermark{letter-spacing:.12em;}
 }
 
 /* Capa SEM */
@@ -495,8 +495,11 @@ function renderCapa(d, coverUrl){
     +'</div>';
   }
   if(d.capa_layout === 'retrato'){
+    // font-size dinâmico: nome curto = maior, nome longo = menor, sempre dentro de 80vw
+    var nChars = titulo.replace(/\s/g,'').length + Math.floor(titulo.split(' ').length * 0.5);
+    var vwSize = Math.min(Math.max(Math.round(80 / (titulo.length * 0.58)), 4), 16);
     return '<div class="capa capa-retrato">'
-      +'<div class="capa-retrato-watermark">'+titulo+'</div>'
+      +'<div class="capa-retrato-watermark" style="font-size:'+vwSize+'vw;">'+titulo+'</div>'
       +(coverUrl?'<div class="capa-retrato-foto"><img src="'+coverUrl+'" style="'+pfStyle+'" alt="'+titulo+'"></div>':'')
     +'</div>';
   }

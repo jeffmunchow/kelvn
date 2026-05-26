@@ -5688,11 +5688,21 @@ function deletarSubgal(id){
   rDetGrid();
   notify('Seção removida.');
 }
-function visualizarGaleriaPublica(){
+async function visualizarGaleriaPublica(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
   if(gal.status!=='publicado'){notify('Publique a galeria primeiro para visualizá-la.');return;}
+  // Garante sync do design antes de abrir: cancela debounce pendente e força upsert imediato
+  if(_currentUser && _KEY_MAP['galerias']){
+    clearTimeout(_syncTimers['galerias']);
+    try{
+      var map=_KEY_MAP['galerias'];
+      var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
+      row[map.col]=gals;
+      await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+    }catch(e){}
+  }
   window.open('https://app.kelvn.com.br/galeria/'+gal.slug,'_blank');
 }
 function copiarSenhaGaleria(){
