@@ -5651,15 +5651,25 @@ function abrirSubmenuSubs(el){
   sub.innerHTML=subs.map(function(sg){
     return '<div class="gal-lote-opt" onclick="galLoteAcao(\'mover:'+sg.id+'\')">'+sg.nome+'</div>';
   }).join('');
-  var r=el.getBoundingClientRect();
   var menuEl=document.getElementById('gal-lote-menu');
-  var mr=menuEl?menuEl.getBoundingClientRect():{right:r.right,left:r.left};
-  // posiciona à direita do menu principal, alinhado ao topo da opção
+  if(!menuEl) return;
+  // usa coordenadas CSS do menu (pré-zoom) para evitar desalinhamento com body{zoom:0.9}
+  var menuLeft=parseFloat(menuEl.style.left)||0;
+  var menuTop=parseFloat(menuEl.style.top)||0;
+  var menuW=menuEl.offsetWidth;
+  var menuH=menuEl.offsetHeight;
+  // alinha verticalmente com a opção dentro do menu
+  var optR=el.getBoundingClientRect();
+  var menuR=menuEl.getBoundingClientRect();
+  var optOffsetY=optR.top-menuR.top; // distância relativa da opção dentro do menu (visual)
+  // converte para CSS space dividindo pelo zoom do body
+  var zoom=parseFloat(document.body.style.zoom)||0.9;
+  var optOffsetYcss=optOffsetY/zoom;
   sub.style.display='block';
-  var left=mr.right+2;
-  var top=r.top;
-  // se não couber à direita, abre à esquerda
-  if(left+sub.offsetWidth>window.innerWidth) left=mr.left-sub.offsetWidth-2;
+  var left=menuLeft+menuW+2;
+  var top=menuTop+optOffsetYcss;
+  // se não couber à direita (em CSS space), abre à esquerda
+  if((left+sub.offsetWidth)*zoom>window.innerWidth) left=menuLeft-sub.offsetWidth-2;
   sub.style.left=left+'px';
   sub.style.top=top+'px';
 }
