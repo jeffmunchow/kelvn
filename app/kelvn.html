@@ -583,11 +583,11 @@ select.aj-input{cursor:pointer;}
     <div class="ag-col-list">
       <div class="sh">
         <div class="st">Agenda</div>
-        <div class="sa">
-          <select class="fi" id="ag-filter" onchange="rA()">
+        <div style="display:flex;align-items:center;gap:.6rem;">
+          <select id="ag-filter" onchange="rA()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
             <option value="upcoming">Próximos</option><option value="all">Todos</option><option value="past">Passados</option>
           </select>
-          <button class="btn primary" onclick="openE()">+ Evento</button>
+          <button class="btn" style="color:var(--text);" onclick="openE()">+ Evento</button>
         </div>
       </div>
       <div class="tw" id="ag-list"></div>
