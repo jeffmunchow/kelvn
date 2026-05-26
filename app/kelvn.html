@@ -1010,17 +1010,28 @@ select.aj-input{cursor:pointer;}
     </div>
     <div id="gal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
   </div>
-  <!-- Vista: detalhe -->
+  <!-- Vista: detalhe + design (mesmo container, mesma sh) -->
   <div id="gal-view-detalhe" style="display:none;">
 
-    <!-- Linha de navegação -->
+    <!-- Linha de navegação única para ambos os modos -->
     <div class="sh" style="margin-bottom:1.25rem;">
-      <button onclick="voltarListaGalerias()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;">
+
+      <!-- Modo grid: ← Galerias -->
+      <button id="gal-nav-back-galerias" onclick="voltarListaGalerias()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         Galerias
       </button>
+
+      <!-- Modo design: ← [Nome da galeria] (oculto inicialmente) -->
+      <button id="gal-nav-back-detalhe" onclick="voltarDetalheGaleria()" style="display:none;background:none;border:none;cursor:pointer;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="gal-design-back-nome">Galeria</span>
+      </button>
+
       <div style="flex:1;"></div>
-      <div style="display:flex;gap:.5rem;align-items:center;">
+
+      <!-- Botões do modo grid -->
+      <div id="gal-nav-grid-btns" style="display:flex;gap:.5rem;align-items:center;">
         <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;">Visualizar</button>
         <button class="btn" onclick="criarSubgal()">Adicionar seção</button>
         <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
@@ -1028,118 +1039,95 @@ select.aj-input{cursor:pointer;}
         <button class="btn" onclick="abrirGaleria(_galAtualId)">Configurar</button>
         <button id="gal-det-btn-pub" class="btn" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Offline</button>
       </div>
+
+      <!-- Info do modo design -->
+      <span id="gal-nav-design-info" style="display:none;font-size:.7rem;color:var(--text-hint);">Alterações salvas automaticamente</span>
+
     </div>
 
-    <!-- KPIs -->
-    <div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.25rem;">
+    <!-- Conteúdo modo grid -->
+    <div id="gal-det-body">
 
-      <!-- 1: Nome + data + link + senha | fotos (direita) -->
-      <div class="kpi" style="display:flex;flex-direction:column;justify-content:center;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-          <div style="min-width:0;flex:1;">
-            <div class="kpi-v" id="gal-kpi-casal">—</div>
-            <div class="kpi-s" id="gal-kpi-data" style="margin-top:5px;">—</div>
-            <div class="kpi-s" style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
-              <div id="gal-kpi-link-wrap" style="display:none;align-items:center;gap:4px;min-width:0;">
-                <span id="gal-kpi-link-txt" onclick="copiarLinkGaleria()" title="Clique para copiar" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
-              </div>
-              <div id="gal-kpi-senha-wrap" style="display:none;align-items:center;gap:4px;flex-shrink:0;">
-                <span style="color:var(--text-hint);">Senha:</span>
-                <span id="gal-kpi-senha" onclick="copiarSenhaGaleria()" title="Clique para copiar" style="cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
+      <!-- KPIs -->
+      <div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.25rem;">
+        <div class="kpi" style="display:flex;flex-direction:column;justify-content:center;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+            <div style="min-width:0;flex:1;">
+              <div class="kpi-v" id="gal-kpi-casal">—</div>
+              <div class="kpi-s" id="gal-kpi-data" style="margin-top:5px;">—</div>
+              <div class="kpi-s" style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
+                <div id="gal-kpi-link-wrap" style="display:none;align-items:center;gap:4px;min-width:0;">
+                  <span id="gal-kpi-link-txt" onclick="copiarLinkGaleria()" title="Clique para copiar" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
+                </div>
+                <div id="gal-kpi-senha-wrap" style="display:none;align-items:center;gap:4px;flex-shrink:0;">
+                  <span style="color:var(--text-hint);">Senha:</span>
+                  <span id="gal-kpi-senha" onclick="copiarSenhaGaleria()" title="Clique para copiar" style="cursor:pointer;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color=''"></span>
+                </div>
               </div>
             </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div class="kpi-v" id="gal-kpi-fotos">0</div>
+              <div class="kpi-s" style="margin-top:5px;">fotos</div>
+            </div>
           </div>
-          <div style="text-align:right;flex-shrink:0;">
-            <div class="kpi-v" id="gal-kpi-fotos">0</div>
-            <div class="kpi-s" style="margin-top:5px;">fotos</div>
+        </div>
+        <input type="hidden" id="gal-det-subgal-sel" value="">
+      </div>
+      <input type="file" id="gal-det-file-input" multiple accept="image/*" style="display:none" onchange="galDetFileSelect(event)">
+      <div id="gal-subgal-nav" style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;"></div>
+      <div id="gal-det-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;"></div>
+
+    </div>
+
+    <!-- Conteúdo modo design (oculto inicialmente) -->
+    <div id="gal-det-design-body" style="display:none;">
+
+      <!-- Duas colunas -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:2.5rem;align-items:start;">
+
+        <!-- Esquerda: controles -->
+        <div>
+          <div style="margin-bottom:2.5rem;">
+            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:1rem;">Templates</div>
+            <div id="dz-templates" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
+          </div>
+          <div style="border-top:.5px solid var(--border);margin-bottom:2rem;"></div>
+          <div style="margin-bottom:2rem;">
+            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tema</div>
+            <div id="dz-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
+          </div>
+          <div style="margin-bottom:2rem;">
+            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Paleta de cores</div>
+            <div id="dz-cores" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;"></div>
+          </div>
+          <div style="margin-bottom:2rem;">
+            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Layout da capa</div>
+            <div id="dz-capas" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;"></div>
+          </div>
+          <div id="dz-focal-wrap" style="margin-bottom:2rem;">
+            <button class="btn" onclick="abrirPontoFocal()" style="font-size:.72rem;display:flex;align-items:center;gap:6px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="10"/></svg>
+              Definir ponto focal da capa
+            </button>
+          </div>
+          <div style="margin-bottom:2rem;">
+            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Grade de fotos</div>
+            <div id="dz-grades" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
+          </div>
+          <button class="btn" onclick="resetarParaTema()" style="font-size:.7rem;color:var(--text-muted);">Voltar para os ajustes do tema</button>
+        </div>
+
+        <!-- Direita: preview -->
+        <div style="position:sticky;top:1rem;">
+          <div style="font-size:.65rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;text-align:center;">Preview ao vivo</div>
+          <div style="border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface2);">
+            <div id="dz-preview"></div>
           </div>
         </div>
-      </div>
-
-      <input type="hidden" id="gal-det-subgal-sel" value="">
-
-    </div>
-    <input type="file" id="gal-det-file-input" multiple accept="image/*" style="display:none" onchange="galDetFileSelect(event)">
-
-    <!-- Sub-galerias (pills) -->
-    <div id="gal-subgal-nav" style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;"></div>
-
-    <!-- Grid de fotos -->
-    <div id="gal-det-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;"></div>
-  </div>
-
-  <!-- Vista: design -->
-  <div id="gal-view-design" style="display:none;">
-
-    <!-- Nav -->
-    <div class="sh" style="margin-bottom:1.25rem;">
-      <button onclick="voltarDetalheGaleria()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        <span id="gal-design-back-nome">Galeria</span>
-      </button>
-      <div style="flex:1;"></div>
-      <span style="font-size:.7rem;color:var(--text-hint);">Alterações salvas automaticamente</span>
-    </div>
-
-    <!-- Duas colunas -->
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:2.5rem;align-items:start;">
-
-      <!-- Esquerda: controles -->
-      <div>
-
-        <!-- TEMPLATES -->
-        <div style="margin-bottom:2.5rem;">
-          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:1rem;">Templates</div>
-          <div id="dz-templates" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
-        </div>
-
-        <div style="border-top:.5px solid var(--border);margin-bottom:2rem;"></div>
-
-        <!-- TEMA -->
-        <div style="margin-bottom:2rem;">
-          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tema</div>
-          <div id="dz-temas" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
-        </div>
-
-        <!-- COR -->
-        <div style="margin-bottom:2rem;">
-          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Paleta de cores</div>
-          <div id="dz-cores" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;"></div>
-        </div>
-
-        <!-- CAPA -->
-        <div style="margin-bottom:2rem;">
-          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Layout da capa</div>
-          <div id="dz-capas" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;"></div>
-        </div>
-
-        <!-- PONTO FOCAL -->
-        <div id="dz-focal-wrap" style="margin-bottom:2rem;">
-          <button class="btn" onclick="abrirPontoFocal()" style="font-size:.72rem;display:flex;align-items:center;gap:6px;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="10"/></svg>
-            Definir ponto focal da capa
-          </button>
-        </div>
-
-        <!-- GRADE -->
-        <div style="margin-bottom:2rem;">
-          <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Grade de fotos</div>
-          <div id="dz-grades" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
-        </div>
-
-        <button class="btn" onclick="resetarParaTema()" style="font-size:.7rem;color:var(--text-muted);">Voltar para os ajustes do tema</button>
 
       </div>
-
-      <!-- Direita: preview -->
-      <div style="position:sticky;top:1rem;">
-        <div style="font-size:.65rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;text-align:center;">Preview ao vivo</div>
-        <div style="border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface2);">
-          <div id="dz-preview"></div>
-        </div>
-      </div>
-
     </div>
+
   </div>
 
 </div>
@@ -6340,6 +6328,19 @@ async function deletarFotoGal(){
   notify('Foto excluída.');
 }
 function voltarListaGalerias(){
+  // Garante reset do estado de design antes de sair
+  var backG = document.getElementById('gal-nav-back-galerias');
+  var backD = document.getElementById('gal-nav-back-detalhe');
+  var gridB = document.getElementById('gal-nav-grid-btns');
+  var dInfo = document.getElementById('gal-nav-design-info');
+  var body  = document.getElementById('gal-det-body');
+  var dBody = document.getElementById('gal-det-design-body');
+  if(backG) backG.style.display = '';
+  if(backD) backD.style.display = 'none';
+  if(gridB) gridB.style.display = 'flex';
+  if(dInfo) dInfo.style.display = 'none';
+  if(body)  body.style.display  = '';
+  if(dBody) dBody.style.display = 'none';
   document.getElementById('gal-view-lista').style.display='';
   document.getElementById('gal-view-detalhe').style.display='none';
   rGal();
@@ -7724,9 +7725,13 @@ function abrirDesignGaleria(){
   var backNome = document.getElementById('gal-design-back-nome');
   if(backNome) backNome.textContent = gal.nomeCliente || 'Galeria';
 
-  // Troca de vista: detalhe → design
-  document.getElementById('gal-view-detalhe').style.display = 'none';
-  document.getElementById('gal-view-design').style.display = '';
+  // Troca estado interno: grid → design (mesmo sh, mesmo container)
+  document.getElementById('gal-nav-back-galerias').style.display   = 'none';
+  document.getElementById('gal-nav-back-detalhe').style.display    = 'flex';
+  document.getElementById('gal-nav-grid-btns').style.display       = 'none';
+  document.getElementById('gal-nav-design-info').style.display     = '';
+  document.getElementById('gal-det-body').style.display            = 'none';
+  document.getElementById('gal-det-design-body').style.display     = '';
 
   // Renderiza controles
   rDzTemplates();
@@ -7738,8 +7743,12 @@ function abrirDesignGaleria(){
 }
 
 function voltarDetalheGaleria(){
-  document.getElementById('gal-view-design').style.display = 'none';
-  document.getElementById('gal-view-detalhe').style.display = '';
+  document.getElementById('gal-nav-back-galerias').style.display   = '';
+  document.getElementById('gal-nav-back-detalhe').style.display    = 'none';
+  document.getElementById('gal-nav-grid-btns').style.display       = 'flex';
+  document.getElementById('gal-nav-design-info').style.display     = 'none';
+  document.getElementById('gal-det-body').style.display            = '';
+  document.getElementById('gal-det-design-body').style.display     = 'none';
 }
 
 // ---- ETAPA 2: Renderização dos controles ----
