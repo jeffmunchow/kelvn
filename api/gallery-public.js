@@ -16,25 +16,38 @@ module.exports = async function handler(req, res) {
   );
 
   try {
-    // Dados ficam na tabela 'galerias', coluna 'data' (array de galerias por usuário)
+    // Busca galeria pelo slug
     const { data: rows, error } = await supabase
       .from('galerias')
-      .select('data');
+      .select('user_id, data');
 
     if (error) throw error;
 
     let galeria = null;
+    let userId = null;
     for (const row of rows || []) {
       const lista = Array.isArray(row.data) ? row.data : [];
       const match = lista.find(g => g.slug === slug && g.status === 'publicado');
-      if (match) { galeria = match; break; }
+      if (match) { galeria = match; userId = row.user_id; break; }
     }
 
     if (!galeria) {
       return res.status(404).json({ error: 'Galeria não encontrada' });
     }
 
-    // Verifica se tem senha — nunca expõe a senha
+    // Busca nome do estúdio do fotógrafo
+    let nomeEstudio = null;
+    if (userId) {
+      const { data: cfg } = await supabase
+        .from('configuracoes')
+        .select('sd')
+        .eq('user_id', userId)
+        .single();
+      if (cfg && cfg.sd && cfg.sd.studio_nome) {
+        nomeEstudio = cfg.sd.studio_nome;
+      }
+    }
+
     const temSenha = !!galeria.senha;
 
     const resposta = {
@@ -45,6 +58,7 @@ module.exports = async function handler(req, res) {
       total_fotos:         galeria.total_fotos,
       downloads_liberados: galeria.downloads_liberados,
       subgalerias:         galeria.subgalerias || [],
+      nomeEstudio,
       temSenha,
       fotos: temSenha ? undefined : (galeria.fotos || [])
     };

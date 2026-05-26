@@ -147,7 +147,7 @@ async function init(){
 function showGate(){
   document.getElementById('app-root').innerHTML =
     '<div class="gate"><div class="gate-box">'
-    +'<div class="gate-studio">Kelvn</div>'
+    +'<div class="gate-studio">'+(_galData&&_galData.nomeEstudio||'')+'</div>'
     +'<div class="gate-title">'+((_galData&&_galData.nomeCliente)||'Galeria')+'</div>'
     +'<div class="gate-sub">Esta galeria está protegida por senha.</div>'
     +'<input class="gate-input" type="password" id="gate-pw" placeholder="Senha" onkeydown="if(event.key===\'Enter\')verificarSenha()">'
@@ -195,7 +195,7 @@ function renderizarGaleria(){
   if(_todasFotos.length) metaParts.push(_todasFotos.length+' foto'+(_todasFotos.length===1?'':'s'));
 
   var html = '<div class="gal-header">'
-    +'<div class="gal-studio">Kelvn</div>'
+    +'<div class="gal-studio">'+(_galData.nomeEstudio||'')+'</div>'
     +'<div class="gal-title">'+(_galData.nomeCliente||'Galeria')+'</div>'
     +'<div class="gal-divider"></div>'
     +'<div class="gal-meta">'+metaParts.join(' &nbsp;·&nbsp; ')+'</div>'
@@ -213,7 +213,8 @@ function renderizarGaleria(){
   }
 
   html += '<div class="gal-grid" id="gal-grid">'+renderSkeletons(_fotosVisiveis.length||12)+'</div>';
-  html += '<div class="gal-footer"><div class="gal-footer-logo">Kelvn</div><div class="gal-footer-sub">Galeria entregue com carinho</div></div>';
+  var nomeFooter = _galData.nomeEstudio || 'Kelvn';
+  html += '<div class="gal-footer"><div class="gal-footer-logo">'+nomeFooter+'</div><div class="gal-footer-sub">Galeria entregue com carinho</div></div>';
 
   document.getElementById('app-root').innerHTML = html;
 
