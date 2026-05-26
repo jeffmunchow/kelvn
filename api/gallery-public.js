@@ -16,18 +16,16 @@ module.exports = async function handler(req, res) {
   );
 
   try {
-    // Dados ficam em dados_usuario: modulo='galerias', chave='galerias', valor=[...array de galerias]
+    // Dados ficam na tabela 'galerias', coluna 'data' (array de galerias por usuário)
     const { data: rows, error } = await supabase
-      .from('dados_usuario')
-      .select('valor')
-      .eq('modulo', 'galerias')
-      .eq('chave', 'galerias');
+      .from('galerias')
+      .select('data');
 
     if (error) throw error;
 
     let galeria = null;
     for (const row of rows || []) {
-      const lista = Array.isArray(row.valor) ? row.valor : [];
+      const lista = Array.isArray(row.data) ? row.data : [];
       const match = lista.find(g => g.slug === slug && g.status === 'publicado');
       if (match) { galeria = match; break; }
     }
@@ -36,11 +34,9 @@ module.exports = async function handler(req, res) {
       return res.status(404).json({ error: 'Galeria não encontrada' });
     }
 
-    // Verifica se tem senha — nunca expõe o hash da senha
+    // Verifica se tem senha — nunca expõe a senha
     const temSenha = !!galeria.senha;
 
-    // Se não tem senha, retorna tudo incluindo fotos
-    // Se tem senha, retorna apenas metadados (fotos vêm via gallery-verify)
     const resposta = {
       id:                  galeria.id,
       nomeCliente:         galeria.nomeCliente,
