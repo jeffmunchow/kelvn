@@ -5554,7 +5554,7 @@ function subgalDragOver(e){
   e.dataTransfer.dropEffect='move';
   var btn=e.currentTarget;
   if(btn.dataset.subid&&btn.dataset.subid!==_subgalDragId){
-    btn.style.outline='2px solid var(--amber)';
+    btn.style.outline='.5px solid var(--text)';
     btn.style.outlineOffset='2px';
   }
 }
