@@ -548,9 +548,14 @@ select.aj-input{cursor:pointer;}
 <div class="panel" id="p-clientes">
   <div class="sh">
     <div class="st">Clientes</div>
-    <div class="sa">
-      <input class="fi" type="text" id="c-search" placeholder="Buscar..." oninput="rC()" style="width:150px;">
-      <select class="fi" id="c-status" onchange="rC()">
+    <div style="display:flex;align-items:center;gap:.6rem;">
+      <!-- Busca -->
+      <div style="position:relative;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="c-search" placeholder="Buscar cliente…" oninput="rC()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:190px;">
+      </div>
+      <!-- Filtro status -->
+      <select id="c-status" onchange="rC()" style="padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
         <option value="">Ativos</option>
         <option value="Prospect">Prospect</option>
         <option value="Sessão">Sessão</option>
@@ -564,7 +569,7 @@ select.aj-input{cursor:pointer;}
         <option disabled>──────</option>
         <option value="Finalizado">Arquivados</option>
       </select>
-      <button class="btn primary" onclick="openC()">+ Cliente</button>
+      <button class="btn" onclick="openC()">+ Cliente</button>
     </div>
   </div>
   <div class="tw"><div class="ts"><table><thead><tr>
