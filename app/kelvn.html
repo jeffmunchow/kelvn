@@ -5739,24 +5739,26 @@ function cancelarUpload(){
   if(plbl) plbl.textContent='Cancelado.';
   setTimeout(function(){if(pwrap)pwrap.style.display='none';},1200);
 }
-function _gerarThumb(file){
+function _gerarImagemRedimensionada(file,maxPx,quality){
   return new Promise(function(resolve){
     var img=new Image();
     var blobUrl=URL.createObjectURL(file);
     img.onload=function(){
-      var MAX=400;
       var w=img.width,h=img.height;
-      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      if(w>maxPx){h=Math.round(h*maxPx/w);w=maxPx;}
+      else if(h>maxPx){w=Math.round(w*maxPx/h);h=maxPx;}
       var c=document.createElement('canvas');
       c.width=w;c.height=h;
       c.getContext('2d').drawImage(img,0,0,w,h);
       URL.revokeObjectURL(blobUrl);
-      c.toBlob(function(blob){resolve(blob);},'image/jpeg',0.75);
+      c.toBlob(function(blob){resolve(blob);},'image/jpeg',quality);
     };
     img.onerror=function(){URL.revokeObjectURL(blobUrl);resolve(null);};
     img.src=blobUrl;
   });
 }
+function _gerarThumb(file){ return _gerarImagemRedimensionada(file,400,0.75); }
+function _gerarWebVersion(file){ return _gerarImagemRedimensionada(file,1080,0.88); }
 
 async function galDetIniciarUpload(files){
   if(!_galAtualId||!_currentUser){notify('Galeria não encontrada.');return;}
@@ -5795,22 +5797,25 @@ async function galDetIniciarUpload(files){
       var putResp=await fetch(data.signedUrl,{method:'PUT',headers:{'Content-Type':file.type},body:file});
       if(!putResp.ok) throw new Error('Erro PUT');
 
-      // 2. Gerar e fazer upload do thumbnail
-      var thumbUrl=null,thumbKey=null;
+      // 2. Gerar thumb (400px) e versão web (1080px) em paralelo
+      var thumbUrl=null,thumbKey=null,webUrl=null,webKey=null;
       try{
-        var thumbBlob=await _gerarThumb(file);
+        var [thumbBlob,webBlob]=await Promise.all([_gerarThumb(file),_gerarWebVersion(file)]);
+        // Upload thumb
         if(thumbBlob){
           var thumbName='thumb_'+file.name;
           var tResp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:thumbName,contentType:'image/jpeg',galeriaId:_galAtualId,userId:_currentUser.id})});
-          if(tResp.ok){
-            var tData=await tResp.json();
-            var tPut=await fetch(tData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:thumbBlob});
-            if(tPut.ok){thumbUrl=tData.publicUrl;thumbKey=tData.key;}
-          }
+          if(tResp.ok){var tData=await tResp.json();var tPut=await fetch(tData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:thumbBlob});if(tPut.ok){thumbUrl=tData.publicUrl;thumbKey=tData.key;}}
         }
-      }catch(te){console.warn('Thumb error',te);}
+        // Upload versão web (1080px)
+        if(webBlob){
+          var webName='web_'+file.name;
+          var wResp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:webName,contentType:'image/jpeg',galeriaId:_galAtualId,userId:_currentUser.id})});
+          if(wResp.ok){var wData=await wResp.json();var wPut=await fetch(wData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:webBlob});if(wPut.ok){webUrl=wData.publicUrl;webKey=wData.key;}}
+        }
+      }catch(te){console.warn('Variants error',te);}
 
-      var novaFoto={url:data.publicUrl,key:data.key,thumbUrl:thumbUrl,thumbKey:thumbKey,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()};
+      var novaFoto={url:data.publicUrl,key:data.key,thumbUrl:thumbUrl,thumbKey:thumbKey,webUrl:webUrl,webKey:webKey,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()};
       gal.fotos.push(novaFoto);
       gal.total_fotos=gal.fotos.length;
       if(!gal.cover_url) gal.cover_url=data.publicUrl;

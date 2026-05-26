@@ -27,23 +27,35 @@ html,body{background:#0e0e0e;color:#e0dbd4;font-family:'DM Sans',sans-serif;min-
 .gal-foto-wrap{break-inside:avoid;margin-bottom:.75rem;position:relative;cursor:pointer;overflow:hidden;border-radius:4px;}
 .gal-foto-wrap img{display:block;width:100%;transition:transform .3s;}
 .gal-foto-wrap:hover img{transform:scale(1.02);}
-.gal-foto-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .2s;display:flex;align-items:flex-end;justify-content:flex-end;padding:.5rem;}
-.gal-foto-wrap:hover .gal-foto-overlay{background:rgba(0,0,0,.2);}
-.btn-dl-foto{display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:rgba(0,0,0,.55);border-radius:50%;color:#fff;font-size:1rem;text-decoration:none;opacity:0;transition:opacity .2s;}
+.gal-foto-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .2s;display:flex;align-items:flex-end;justify-content:flex-end;padding:.6rem;}
+.gal-foto-wrap:hover .gal-foto-overlay{background:rgba(0,0,0,.25);}
+
+/* Botão download na foto */
+.btn-dl-wrap{position:relative;}
+.btn-dl-foto{display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:rgba(0,0,0,.6);border:none;border-radius:50%;color:#fff;font-size:.9rem;cursor:pointer;opacity:0;transition:opacity .2s;font-family:'DM Sans',sans-serif;}
 .gal-foto-wrap:hover .btn-dl-foto{opacity:1;}
+.dl-menu{position:absolute;bottom:38px;right:0;background:#1a1a1a;border:.5px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 0;min-width:170px;display:none;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.6);}
+.dl-menu.open{display:block;}
+.dl-opt{display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:.74rem;color:rgba(255,255,255,.7);cursor:pointer;text-decoration:none;white-space:nowrap;}
+.dl-opt:hover{background:rgba(255,255,255,.07);color:#fff;}
+.dl-opt-label{display:flex;flex-direction:column;gap:1px;}
+.dl-opt-sub{font-size:.65rem;color:rgba(255,255,255,.3);}
 
 /* Lightbox */
-.lb{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:1000;display:none;align-items:center;justify-content:center;}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:1000;display:none;align-items:center;justify-content:center;flex-direction:column;}
 .lb.open{display:flex;}
-.lb-img{max-width:92vw;max-height:92vh;object-fit:contain;border-radius:4px;}
+.lb-img{max-width:92vw;max-height:88vh;object-fit:contain;border-radius:4px;}
 .lb-close{position:fixed;top:1.25rem;right:1.5rem;background:none;border:none;color:rgba(255,255,255,.5);font-size:1.5rem;cursor:pointer;line-height:1;padding:.25rem;}
 .lb-close:hover{color:#fff;}
 .lb-nav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.6);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
 .lb-nav:hover{background:rgba(255,255,255,.16);color:#fff;}
 .lb-prev{left:1rem;}
 .lb-next{right:1rem;}
-.lb-dl{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 20px;color:rgba(255,255,255,.7);font-size:.75rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;}
-.lb-dl:hover{background:rgba(255,255,255,.18);color:#fff;}
+.lb-actions{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.lb-dl-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 16px;color:rgba(255,255,255,.65);font-size:.74rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;transition:all .15s;}
+.lb-dl-btn:hover{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);}
+.lb-dl-btn svg{opacity:.6;}
+.lb-dl-btn:hover svg{opacity:1;}
 
 /* Senha gate */
 .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;}
@@ -72,7 +84,16 @@ html,body{background:#0e0e0e;color:#e0dbd4;font-family:'DM Sans',sans-serif;min-
   <button class="lb-close" onclick="closeLb()">×</button>
   <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
   <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
-  <a class="lb-dl" id="lb-dl" style="display:none;" download>↓ Download</a>
+  <div class="lb-actions" id="lb-actions" style="display:none;">
+    <a class="lb-dl-btn" id="lb-dl-web" href="#" onclick="return dlLb('web')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="dl-opt-label"><span>Versão web</span><span class="dl-opt-sub">Para redes sociais · 1080px</span></span>
+    </a>
+    <a class="lb-dl-btn" id="lb-dl-full" href="#" onclick="return dlLb('full')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="dl-opt-label"><span>Alta resolução</span><span class="dl-opt-sub">Arquivo original</span></span>
+    </a>
+  </div>
 </div>
 
 <script>
@@ -83,7 +104,6 @@ var _subgalPublicaAtiva = null;
 var _lbIdx = 0;
 var _downloads = false;
 
-// Pega slug da URL
 var _slug = location.pathname.replace('/galeria/','').replace(/\//g,'');
 
 init();
@@ -96,10 +116,10 @@ async function init(){
     if(!data || !data.galeria){ showErro('Galeria não encontrada.'); return; }
     _galData = data.galeria;
     document.title = (_galData.nomeCliente || 'Galeria') + ' — Kelvn';
-    if(_galData.senha && !data.fotos){
+    if(_galData.temSenha && !data.fotos){
       showGate();
     } else {
-      _todasFotos = data.fotos || [];
+      _todasFotos = data.fotos || _galData.fotos || [];
       _downloads = !!_galData.downloads_liberados;
       renderizarGaleria();
     }
@@ -160,6 +180,13 @@ function renderizarGaleria(){
   html += '<div class="gal-footer">Galeria entregue com carinho · Kelvn</div>';
 
   document.getElementById('app-root').innerHTML = html;
+
+  // fecha menus ao clicar fora
+  document.addEventListener('click', function(e){
+    if(!e.target.closest('.btn-dl-wrap')){
+      document.querySelectorAll('.dl-menu.open').forEach(function(m){ m.classList.remove('open'); });
+    }
+  });
 }
 
 function renderGridFotos(){
@@ -167,12 +194,56 @@ function renderGridFotos(){
     return '<div class="gal-empty">Nenhuma foto nesta seção.</div>';
   }
   return _fotosVisiveis.map(function(foto, i){
+    var imgSrc = foto.thumbUrl || foto.url;
+    var dlBtn = _downloads ? (
+      '<div class="btn-dl-wrap" onclick="event.stopPropagation()">'
+      +'<button class="btn-dl-foto" onclick="toggleDlMenu(this,'+i+')" title="Download">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      +'</button>'
+      +'<div class="dl-menu" id="dl-menu-'+i+'">'
+      +renderDlOpts(foto, i)
+      +'</div>'
+      +'</div>'
+    ) : '';
     return '<div class="gal-foto-wrap" onclick="openLb('+i+')">'
-      +'<img src="'+foto.url+'" loading="lazy" alt="Foto '+(i+1)+'">'
-      +'<div class="gal-foto-overlay">'
-      +(_downloads?'<a class="btn-dl-foto" href="'+foto.url+'" download="foto-'+(i+1)+'.jpg" onclick="event.stopPropagation()">↓</a>':'')
-      +'</div></div>';
+      +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
+      +(foto.url !== imgSrc ? ' onerror="this.src=\''+foto.url+'\'"' : '')+'>'
+      +'<div class="gal-foto-overlay">'+dlBtn+'</div>'
+      +'</div>';
   }).join('');
+}
+
+function renderDlOpts(foto, i){
+  var html = '';
+  if(foto.webKey){
+    html += '<a class="dl-opt" href="/api/gallery-download?key='+encodeURIComponent(foto.webKey)+'&filename=web_foto-'+(i+1)+'.jpg" download onclick="event.stopPropagation()">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      +'<div class="dl-opt-label"><span>Versão web</span><span class="dl-opt-sub">Para redes sociais · 1080px</span></div>'
+      +'</a>';
+  }
+  if(foto.key){
+    html += '<a class="dl-opt" href="/api/gallery-download?key='+encodeURIComponent(foto.key)+'&filename=foto-'+(i+1)+'.jpg" download onclick="event.stopPropagation()">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      +'<div class="dl-opt-label"><span>Alta resolução</span><span class="dl-opt-sub">Arquivo original</span></div>'
+      +'</a>';
+  }
+  // fallback: fotos antigas sem key
+  if(!foto.key && foto.url){
+    html += '<a class="dl-opt" href="/api/gallery-download?key='+encodeURIComponent(foto.url)+'&filename=foto-'+(i+1)+'.jpg" download onclick="event.stopPropagation()">'
+      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      +'<div class="dl-opt-label"><span>Download</span></div>'
+      +'</a>';
+  }
+  return html;
+}
+
+function toggleDlMenu(btn, i){
+  var menu = document.getElementById('dl-menu-'+i);
+  if(!menu) return;
+  var isOpen = menu.classList.contains('open');
+  // fecha todos
+  document.querySelectorAll('.dl-menu.open').forEach(function(m){ m.classList.remove('open'); });
+  if(!isOpen) menu.classList.add('open');
 }
 
 function filtrarSubgalPublica(subgalId){
@@ -216,14 +287,43 @@ function atualizarLb(){
   var foto = _fotosVisiveis[_lbIdx];
   if(!foto) return;
   document.getElementById('lb-img').src = foto.url;
-  var dlEl = document.getElementById('lb-dl');
+  var actionsEl = document.getElementById('lb-actions');
   if(_downloads){
-    dlEl.href = foto.url;
-    dlEl.download = 'foto-'+(_lbIdx+1)+'.jpg';
-    dlEl.style.display = '';
+    actionsEl.style.display = '';
+    // Versão web
+    var webEl = document.getElementById('lb-dl-web');
+    if(foto.webKey){
+      webEl.href = '/api/gallery-download?key='+encodeURIComponent(foto.webKey)+'&filename=web_foto-'+(_lbIdx+1)+'.jpg';
+      webEl.style.display = '';
+    } else {
+      webEl.style.display = 'none';
+    }
+    // Alta resolução
+    var fullEl = document.getElementById('lb-dl-full');
+    if(foto.key){
+      fullEl.href = '/api/gallery-download?key='+encodeURIComponent(foto.key)+'&filename=foto-'+(_lbIdx+1)+'.jpg';
+      fullEl.style.display = '';
+    } else if(foto.url){
+      fullEl.href = foto.url;
+      fullEl.style.display = '';
+    } else {
+      fullEl.style.display = 'none';
+    }
   } else {
-    dlEl.style.display = 'none';
+    actionsEl.style.display = 'none';
   }
+}
+function dlLb(tipo){
+  var foto = _fotosVisiveis[_lbIdx];
+  if(!foto) return false;
+  var key = tipo === 'web' ? foto.webKey : foto.key;
+  var fname = tipo === 'web' ? 'web_foto-'+(_lbIdx+1)+'.jpg' : 'foto-'+(_lbIdx+1)+'.jpg';
+  if(key){
+    window.location.href = '/api/gallery-download?key='+encodeURIComponent(key)+'&filename='+encodeURIComponent(fname);
+  } else if(foto.url){
+    window.location.href = foto.url;
+  }
+  return false;
 }
 document.addEventListener('keydown', function(e){
   if(!document.getElementById('lb').classList.contains('open')) return;
