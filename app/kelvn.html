@@ -1093,7 +1093,7 @@ select.aj-input{cursor:pointer;}
           </div>
           <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Paleta de cores</div>
-            <div id="dz-cores" style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;"></div>
+            <div id="dz-cores" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
           </div>
           <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Layout da capa</div>
@@ -7916,14 +7916,21 @@ function rDzCores(){
     var p = PALETAS_COR[key];
     var ativo = corAtual === key;
     return '<button onclick="selecionarCor(\''+key+'\')" title="'+p.nome+'" style="' +
-      'aspect-ratio:1;border-radius:50%;cursor:pointer;background:'+p.bg+';' +
-      'border:'+(ativo?'2px solid var(--amber)':'.5px solid var(--border-strong)')+';' +
-      'position:relative;outline:none;transition:transform .15s;">' +
-      (ativo ? '<svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" ' +
-        'width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+p.text+'" ' +
-        'stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') +
+      'padding:0;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-align:left;' +
+      'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
+      'background:var(--surface);transition:border-color .15s;' +
+      'box-shadow:'+(ativo?'0 0 0 3px rgba(196,120,10,.15)':'none')+'">' +
+      '<div style="height:44px;background:'+p.bg+';position:relative;">' +
+        (ativo?'<svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+p.text+'" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'') +
+      '</div>' +
+      '<div style="padding:5px 8px 7px;">' +
+        '<div style="font-size:.72rem;font-weight:500;color:var(--text);">'+p.nome+'</div>' +
+      '</div>' +
     '</button>';
   }).join('');
+  el.style.display = 'grid';
+  el.style.gridTemplateColumns = 'repeat(3,1fr)';
+  el.style.gap = '.75rem';
 }
 
 function selecionarCor(key){
