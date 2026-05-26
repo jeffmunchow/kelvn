@@ -732,8 +732,8 @@ select.aj-input{cursor:pointer;}
     <div class="fk" id="fluxo-kpis"></div>
     <div class="sh" style="margin-bottom:1.25rem;">
       <div class="st"></div>
-      <div class="sa">
-        <select class="fi" id="fluxo-horizonte" onchange="rFluxo()">
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <select id="fluxo-horizonte" onchange="rFluxo()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
           <option value="30">Próximos 30 dias</option>
           <option value="60">Próximos 60 dias</option>
           <option value="90" selected>Próximos 90 dias</option>
