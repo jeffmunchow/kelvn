@@ -6208,7 +6208,11 @@ function entrarGaleria(id){
 }
 var _galZoomTimer=null;
 function galZoom(val){
-  // Salva no design da galeria (debounced) — afeta a galeria pública do cliente
+  var px=parseInt(val,10);
+  // Atualiza _designAtual imediatamente para o preview ao vivo
+  if(_designAtual) _designAtual.zoom_grid=px;
+  atualizarPreview();
+  // Persiste na galeria (debounced)
   clearTimeout(_galZoomTimer);
   _galZoomTimer=setTimeout(function(){
     if(!_galAtualId) return;
@@ -6216,7 +6220,7 @@ function galZoom(val){
     var gal=gals.find(function(x){return x.id===_galAtualId;});
     if(!gal) return;
     gal.design=gal.design||{};
-    gal.design.zoom_grid=parseInt(val,10);
+    gal.design.zoom_grid=px;
     s('galerias',gals);
   },400);
 }
@@ -8136,26 +8140,31 @@ function atualizarPreview(){
   // ---- GRID ----
   if(fotos.length){
     var imgSrc = function(f){ return f.thumbUrl || f.webUrl || f.url; };
+    // Traduz zoom_grid para número de colunas no preview (preview ~300px largura)
+    var zoom = _designAtual.zoom_grid || 180;
+    var nCols = zoom <= 100 ? 5 : zoom <= 140 ? 4 : zoom <= 220 ? 3 : zoom <= 300 ? 2 : 1;
     if(d.grade === 'uniforme'){
-      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px;">';
+      html += '<div style="display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:4px;padding:6px;">';
       fotos.forEach(function(f){
         html += '<div style="aspect-ratio:1;overflow:hidden;"><img src="'+imgSrc(f)+'" style="width:100%;height:100%;object-fit:cover;display:block;"></div>';
       });
       html += '</div>';
     } else if(d.grade === 'editorial'){
+      // Editorial mantém destaque mas adapta grid secundário ao zoom
       html += '<div style="padding:6px;display:grid;grid-template-columns:2fr 1fr;gap:4px;">';
       if(fotos[0]) html += '<div style="aspect-ratio:3/2;overflow:hidden;"><img src="'+imgSrc(fotos[0])+'" style="width:100%;height:100%;object-fit:cover;"></div>';
       html += '<div style="display:grid;grid-template-rows:1fr 1fr;gap:4px;">';
       if(fotos[1]) html += '<div style="overflow:hidden;"><img src="'+imgSrc(fotos[1])+'" style="width:100%;height:100%;object-fit:cover;"></div>';
       if(fotos[2]) html += '<div style="overflow:hidden;"><img src="'+imgSrc(fotos[2])+'" style="width:100%;height:100%;object-fit:cover;"></div>';
       html += '</div></div>';
-      html += '<div style="padding:0 6px 6px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">';
+      html += '<div style="padding:0 6px 6px;display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:4px;">';
       fotos.slice(3, 6).forEach(function(f){
         html += '<div style="aspect-ratio:1;overflow:hidden;"><img src="'+imgSrc(f)+'" style="width:100%;height:100%;object-fit:cover;display:block;"></div>';
       });
       html += '</div>';
     } else {
-      html += '<div style="columns:3;column-gap:4px;padding:6px;">';
+      // Masonry: usa column-count baseado em zoom
+      html += '<div style="columns:'+nCols+';column-gap:4px;padding:6px;">';
       fotos.forEach(function(f){
         html += '<div style="break-inside:avoid;margin-bottom:4px;"><img src="'+imgSrc(f)+'" style="width:100%;display:block;"></div>';
       });
