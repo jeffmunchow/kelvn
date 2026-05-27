@@ -269,20 +269,20 @@ html,body{
 <script>
 // ===== SISTEMA DE DESIGN DE GALERIAS (espelha kelvn.html) =====
 var TEMAS_GALERIA = {
-  editorial: { nome:'Editorial', cor_padrao:'preto',     capa_padrao:'full',      grade_padrao:'masonry',  fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:600 },
-  linho:     { nome:'Linho',     cor_padrao:'creme',     capa_padrao:'dividido',  grade_padrao:'masonry',  fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 },
-  cinema:    { nome:'Cinema',    cor_padrao:'preto_puro',capa_padrao:'full',      grade_padrao:'editorial',fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:600 },
-  memorial:  { nome:'Memorial',  cor_padrao:'branco',    capa_padrao:'retrato',   grade_padrao:'uniforme', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:400 },
-  classico:  { nome:'Clássico',  cor_padrao:'sepia',     capa_padrao:'retrato',   grade_padrao:'masonry',  fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:700 },
-  moderno:   { nome:'Moderno',   cor_padrao:'offwhite',  capa_padrao:'horizonte', grade_padrao:'uniforme', fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 }
+  editorial: { nome:'Editorial', cor_padrao:'pelicula',    capa_padrao:'full',      grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:600 },
+  linho:     { nome:'Linho',     cor_padrao:'linho_ambar', capa_padrao:'dividido',  grade_padrao:'masonry',   fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 },
+  cinema:    { nome:'Cinema',    cor_padrao:'meianoite',   capa_padrao:'full',      grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:600 },
+  memorial:  { nome:'Memorial',  cor_padrao:'nordico',     capa_padrao:'retrato',   grade_padrao:'uniforme',  fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:400 },
+  classico:  { nome:'Clássico',  cor_padrao:'argila',      capa_padrao:'retrato',   grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:700 },
+  moderno:   { nome:'Moderno',   cor_padrao:'lavanda',     capa_padrao:'horizonte', grade_padrao:'uniforme',  fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 }
 };
 var PALETAS_COR = {
-  preto:      { nome:'Preto',     bg:'#0C0C0C', text:'#EDE9E3', accent:'rgba(255,255,255,.45)' },
-  preto_puro: { nome:'Cinema',    bg:'#000000', text:'#FFFFFF', accent:'rgba(255,255,255,.55)' },
-  creme:      { nome:'Linho',     bg:'#F5F0EB', text:'#2A2420', accent:'rgba(42,36,32,.55)'   },
-  sepia:      { nome:'Sépia',     bg:'#EFE9DD', text:'#3A2E20', accent:'rgba(58,46,32,.55)'   },
-  branco:     { nome:'Museu',     bg:'#FAFAF8', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   },
-  offwhite:   { nome:'Off-white', bg:'#F4F4F2', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   }
+  linho_ambar:{ nome:'Linho & Âmbar',        bg:'#F7F4EF', text:'#2C2420', accent:'#C4780A'  },
+  pelicula:   { nome:'Película & Ouro',       bg:'#1A1410', text:'#F5ECD0', accent:'#D4A853'  },
+  argila:     { nome:'Argila & Siena',        bg:'#F2EDE8', text:'#3A2820', accent:'#B5785A'  },
+  lavanda:    { nome:'Lavanda & Noite',       bg:'#F0EEF0', text:'#1E1A28', accent:'#9888B0'  },
+  nordico:    { nome:'Nórdico Cinza',         bg:'#EDEAE4', text:'#1C1C1C', accent:'#888882'  },
+  meianoite:  { nome:'Meia-noite & Dourado',  bg:'#1C2230', text:'#F7F4EF', accent:'#D4A853'  }
 };
 var CAPA_LAYOUTS = { full:{}, dividido:{}, retrato:{}, horizonte:{} };
 var GRADES = { uniforme:{}, masonry:{}, editorial:{} };

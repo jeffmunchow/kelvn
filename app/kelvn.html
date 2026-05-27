@@ -7709,21 +7709,21 @@ async function sendAIMessage(){
 // ========================================================
 
 var TEMAS_GALERIA = {
-  editorial: { nome:'Editorial', desc:'Fundo escuro, serifa elegante, capa dramática', cor_padrao:'preto',     capa_padrao:'full',      grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:600 },
-  linho:     { nome:'Linho',     desc:'Bege quente, tipografia delicada, grid orgânico', cor_padrao:'creme',  capa_padrao:'dividido',  grade_padrao:'masonry',   fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 },
-  cinema:    { nome:'Cinema',    desc:'Preto absoluto, tipografia moderna, capa cinematográfica', cor_padrao:'preto_puro', capa_padrao:'full', grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif",  fonte_corpo:"'Inter', sans-serif",    peso_titulo:600 },
-  memorial:  { nome:'Memorial',  desc:'Branco museu, muito respiro, grid minimalista', cor_padrao:'branco',   capa_padrao:'retrato',   grade_padrao:'uniforme',  fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:400 },
-  classico:  { nome:'Clássico',  desc:'Creme, serifa tradicional, capa centralizada', cor_padrao:'sepia',    capa_padrao:'retrato',   grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:700 },
-  moderno:   { nome:'Moderno',   desc:'Off-white, sans-serif limpa, grid uniforme', cor_padrao:'offwhite',   capa_padrao:'horizonte', grade_padrao:'uniforme',  fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 }
+  editorial: { nome:'Editorial', desc:'Fundo escuro, serifa elegante, capa dramática',        cor_padrao:'pelicula',    capa_padrao:'full',      grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:600 },
+  linho:     { nome:'Linho',     desc:'Bege quente, tipografia delicada, grid orgânico',      cor_padrao:'linho_ambar', capa_padrao:'dividido',  grade_padrao:'masonry',   fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 },
+  cinema:    { nome:'Cinema',    desc:'Preto absoluto, tipografia moderna, capa cinematográfica', cor_padrao:'meianoite', capa_padrao:'full',    grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:600 },
+  memorial:  { nome:'Memorial',  desc:'Branco museu, muito respiro, grid minimalista',        cor_padrao:'nordico',     capa_padrao:'retrato',   grade_padrao:'uniforme',  fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:400 },
+  classico:  { nome:'Clássico',  desc:'Creme, serifa tradicional, capa centralizada',         cor_padrao:'argila',      capa_padrao:'retrato',   grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:700 },
+  moderno:   { nome:'Moderno',   desc:'Off-white, sans-serif limpa, grid uniforme',            cor_padrao:'lavanda',     capa_padrao:'horizonte', grade_padrao:'uniforme',  fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 }
 };
 
 var PALETAS_COR = {
-  preto:      { nome:'Preto',     bg:'#0C0C0C', text:'#EDE9E3', accent:'rgba(255,255,255,.45)' },
-  preto_puro: { nome:'Cinema',    bg:'#000000', text:'#FFFFFF', accent:'rgba(255,255,255,.55)' },
-  creme:      { nome:'Linho',     bg:'#F5F0EB', text:'#2A2420', accent:'rgba(42,36,32,.55)'   },
-  sepia:      { nome:'Sépia',     bg:'#EFE9DD', text:'#3A2E20', accent:'rgba(58,46,32,.55)'   },
-  branco:     { nome:'Museu',     bg:'#FAFAF8', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   },
-  offwhite:   { nome:'Off-white', bg:'#F4F4F2', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   }
+  linho_ambar:{ nome:'Linho & Âmbar',        bg:'#F7F4EF', text:'#2C2420', accent:'#C4780A',  c1:'#F7F4EF',c2:'#8A7A6A',c3:'#2C2420',c4:'#C4780A',  desc:'Claro, quente, atemporal'       },
+  pelicula:   { nome:'Película & Ouro',       bg:'#1A1410', text:'#F5ECD0', accent:'#D4A853',  c1:'#1A1410',c2:'#4A3828',c3:'#D4A853',c4:'#F5ECD0',  desc:'Escuro, sofisticado, analógico'  },
+  argila:     { nome:'Argila & Siena',        bg:'#F2EDE8', text:'#3A2820', accent:'#B5785A',  c1:'#F2EDE8',c2:'#B5785A',c3:'#6B4E3D',c4:'#3A2820',  desc:'Terra, orgânico, humano'         },
+  lavanda:    { nome:'Lavanda & Noite',       bg:'#F0EEF0', text:'#1E1A28', accent:'#9888B0',  c1:'#F0EEF0',c2:'#9888B0',c3:'#4A4060',c4:'#1E1A28',  desc:'Etéreo, romântico, sofisticado'  },
+  nordico:    { nome:'Nórdico Cinza',         bg:'#EDEAE4', text:'#1C1C1C', accent:'#888882',  c1:'#EDEAE4',c2:'#888882',c3:'#404040',c4:'#1C1C1C',  desc:'Frio, minimal, escandinavo'      },
+  meianoite:  { nome:'Meia-noite & Dourado',  bg:'#1C2230', text:'#F7F4EF', accent:'#D4A853',  c1:'#1C2230',c2:'#4A5870',c3:'#D4A853',c4:'#F7F4EF',  desc:'Luxo, noturno, festivo'          }
 };
 
 var CAPA_LAYOUTS = {
@@ -8091,21 +8091,28 @@ function rDzCores(){
   el.innerHTML = Object.keys(PALETAS_COR).map(function(key){
     var p = PALETAS_COR[key];
     var ativo = corAtual === key;
+    var swatches = p.c1
+      ? '<div style="display:flex;height:44px;overflow:hidden;">' +
+          '<div style="flex:1;background:'+p.c1+'"></div>' +
+          '<div style="flex:1;background:'+p.c2+'"></div>' +
+          '<div style="flex:1;background:'+p.c3+'"></div>' +
+          '<div style="flex:1;background:'+p.c4+'"></div>' +
+        '</div>'
+      : '<div style="height:44px;background:'+p.bg+';"></div>';
     return '<button onclick="selecionarCor(\''+key+'\')" title="'+p.nome+'" style="' +
       'padding:0;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-align:left;' +
       'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
       'background:var(--surface);transition:border-color .15s;' +
       'box-shadow:'+(ativo?'0 0 0 3px rgba(196,120,10,.15)':'none')+'">' +
-      '<div style="height:44px;background:'+p.bg+';position:relative;">' +
-        (ativo?'<svg style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+p.text+'" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':'') +
-      '</div>' +
-      '<div style="padding:5px 8px 7px;">' +
-        '<div style="font-size:.72rem;font-weight:500;color:var(--text);">'+p.nome+'</div>' +
+      swatches +
+      '<div style="padding:6px 8px 8px;">' +
+        '<div style="font-size:.72rem;font-weight:500;color:var(--text);margin-bottom:2px;">'+p.nome+'</div>' +
+        (p.desc?'<div style="font-size:.62rem;color:var(--text-hint);">'+p.desc+'</div>':'') +
       '</div>' +
     '</button>';
   }).join('');
   el.style.display = 'grid';
-  el.style.gridTemplateColumns = 'repeat(3,1fr)';
+  el.style.gridTemplateColumns = 'repeat(2,1fr)';
   el.style.gap = '.75rem';
 }
 
