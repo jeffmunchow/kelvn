@@ -7775,10 +7775,14 @@ function abrirDesignGaleria(){
   document.getElementById('gal-det-design-body').style.display     = '';
 
   // Restaura slider de zoom
+  // Limpa valor legado (pixels antigos >6) e define padrão limpo
+  if(!_designAtual.zoom_grid || _designAtual.zoom_grid > 6){
+    _designAtual.zoom_grid = 4;
+    salvarDesign();
+  }
   var sl=document.getElementById('gal-zoom-slider');
-  var savedZoom=_designAtual.zoom_grid;
-  // zoom_grid armazenado = nCols (1-5); sliderValue = 6 - nCols (invertido)
-  if(sl) sl.value=(savedZoom && savedZoom <= 6) ? (7-savedZoom) : 3;
+  // sliderValue = 7 - nCols (invertido: esquerda=muitas, direita=poucas)
+  if(sl) sl.value = 7 - _designAtual.zoom_grid;
 
   // Renderiza controles
   rDzTemas();
@@ -8132,9 +8136,8 @@ function atualizarPreview(){
   // ---- GRID ----
   if(fotos.length){
     var imgSrc = function(f){ return f.thumbUrl || f.webUrl || f.url; };
-    // zoom_grid é número de colunas (1–6); ignorar valores legados (>6)
-    var rawZoom = _designAtual.zoom_grid;
-    var nCols = (rawZoom && rawZoom <= 6) ? rawZoom : 4;
+    // zoom_grid já foi sanitizado ao abrir o painel (sempre 1–6)
+    var nCols = _designAtual.zoom_grid || 4;
     if(d.grade === 'uniforme'){
       html += '<div style="display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:4px;padding:6px;">';
       fotos.forEach(function(f){
@@ -8155,8 +8158,8 @@ function atualizarPreview(){
       });
       html += '</div>';
     } else {
-      // Masonry: usa column-count baseado em zoom
-      html += '<div style="columns:'+nCols+';column-gap:4px;padding:6px;">';
+      // Masonry: column-count explícito para garantir N colunas sem espaço
+      html += '<div style="column-count:'+nCols+';column-width:auto;column-gap:4px;padding:6px;">';
       fotos.forEach(function(f){
         html += '<div style="break-inside:avoid;margin-bottom:4px;"><img src="'+imgSrc(f)+'" style="width:100%;display:block;"></div>';
       });
