@@ -7786,10 +7786,13 @@ function resolverDesign(design){
 
 var _designAtual = null;
 var _designOriginal = null;
+var _designGalId = null; // ID fixo da galeria aberta no painel de design
 
 function abrirDesignGaleria(){
+  // Captura o ID no momento de abertura — imune a qualquer mudança posterior de _galAtualId
+  _designGalId = _galAtualId;
   var galerias = g('galerias') || [];
-  var gal = galerias.find(function(g2){ return g2.id === _galAtualId; });
+  var gal = galerias.find(function(g2){ return g2.id === _designGalId; });
   if(!gal){ notify && notify('Galeria não encontrada.'); return; }
 
   _designAtual = JSON.parse(JSON.stringify(gal.design || { tema: 'editorial' }));
@@ -7957,7 +7960,7 @@ function rDzTemas(){
   if(!el) return;
   // Pega dados da galeria atual para usar na miniatura
   var galerias = g('galerias') || [];
-  var gal = galerias.find(function(x){ return x.id === _galAtualId; }) || {};
+  var gal = galerias.find(function(x){ return x.id === _designGalId; }) || {};
   var coverUrl = gal.cover_url || (gal.fotos && gal.fotos[0] && (gal.fotos[0].thumbUrl || gal.fotos[0].webUrl || gal.fotos[0].url)) || '';
   var nomeCliente = gal.nomeCliente || 'Galeria';
   var dataEv = gal.dataEvento ? fdMini(gal.dataEvento) : '';
@@ -8205,7 +8208,7 @@ function resetarParaTema(){
 
 function salvarDesign(){
   var galerias = g('galerias') || [];
-  var idx = galerias.findIndex(function(g2){ return g2.id === _galAtualId; });
+  var idx = galerias.findIndex(function(g2){ return g2.id === _designGalId; });
   if(idx < 0) return;
   galerias[idx].design = _designAtual;
   s('galerias', galerias);
@@ -8230,7 +8233,7 @@ function atualizarPreview(){
   var el = document.getElementById('dz-preview');
   if(!el) return;
   var galerias = g('galerias') || [];
-  var gal = galerias.find(function(g2){ return g2.id === _galAtualId; });
+  var gal = galerias.find(function(g2){ return g2.id === _designGalId; });
   if(!gal) return;
 
   var d = resolverDesign(_designAtual);
@@ -8362,7 +8365,7 @@ var _focalHandlers = null;
 
 function abrirPontoFocal(){
   var galerias = g('galerias') || [];
-  var gal = galerias.find(function(g2){ return g2.id === _galAtualId; });
+  var gal = galerias.find(function(g2){ return g2.id === _designGalId; });
   if(!gal) return;
   var coverUrl = gal.cover_url || (gal.fotos && gal.fotos[0] && (gal.fotos[0].webUrl || gal.fotos[0].url));
   if(!coverUrl){
