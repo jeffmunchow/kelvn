@@ -1041,12 +1041,6 @@ select.aj-input{cursor:pointer;}
       <!-- Botões do modo grid -->
       <div id="gal-nav-grid-btns" style="display:flex;gap:.5rem;align-items:center;">
         <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;">Visualizar</button>
-        <!-- Slider de zoom -->
-        <div class="gal-zoom-wrap" title="Tamanho das fotos">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          <input type="range" id="gal-zoom-slider" min="80" max="400" step="10" value="180" oninput="galZoom(this.value)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
-        </div>
         <button class="btn" onclick="criarSubgal()">Adicionar seção</button>
         <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
         <button class="btn" onclick="abrirDesignGaleria()">Design</button>
@@ -1122,6 +1116,15 @@ select.aj-input{cursor:pointer;}
           <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Grade de fotos</div>
             <div id="dz-grades" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
+          </div>
+          <div style="margin-bottom:2rem;">
+            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tamanho das fotos</div>
+            <div class="gal-zoom-wrap" style="gap:10px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              <input type="range" id="gal-zoom-slider" min="80" max="400" step="10" value="180" oninput="galZoom(this.value)" style="flex:1;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
+            </div>
+            <div style="font-size:.67rem;color:var(--text-hint);margin-top:.4rem;">Controla quantas fotos aparecem por linha na galeria do cliente</div>
           </div>
           <button class="btn" onclick="resetarParaTema()" style="font-size:.7rem;color:var(--text-muted);">Voltar para os ajustes do tema</button>
         </div>
@@ -6201,23 +6204,11 @@ function entrarGaleria(id){
   _galAtualId=id;
   _subgalAtiva=null;
   _fotosSelecionadas=[];_selAncora=-1;
-  // Restaura zoom salvo na galeria
-  var gals=g('galerias')||[];
-  var gal=gals.find(function(x){return x.id===id;});
-  var zoom=(gal&&gal.design&&gal.design.zoom_grid)||180;
-  var sl=document.getElementById('gal-zoom-slider');
-  if(sl) sl.value=zoom;
-  _galAplicarZoom(zoom);
   rGalDetalhe();
-}
-function _galAplicarZoom(px){
-  var grid=document.getElementById('gal-det-grid');
-  if(grid) grid.style.gridTemplateColumns='repeat(auto-fill,minmax('+px+'px,1fr))';
 }
 var _galZoomTimer=null;
 function galZoom(val){
-  _galAplicarZoom(val);
-  // Salva no design da galeria (debounced)
+  // Salva no design da galeria (debounced) — afeta a galeria pública do cliente
   clearTimeout(_galZoomTimer);
   _galZoomTimer=setTimeout(function(){
     if(!_galAtualId) return;
@@ -7788,6 +7779,10 @@ function abrirDesignGaleria(){
   document.getElementById('gal-nav-design-info').style.display     = 'flex';
   document.getElementById('gal-det-body').style.display            = 'none';
   document.getElementById('gal-det-design-body').style.display     = '';
+
+  // Restaura slider de zoom
+  var sl=document.getElementById('gal-zoom-slider');
+  if(sl) sl.value=(_designAtual.zoom_grid)||180;
 
   // Renderiza controles
   rDzTemas();
