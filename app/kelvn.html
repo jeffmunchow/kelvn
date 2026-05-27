@@ -7936,38 +7936,38 @@ function rDzTemas(){
     var miniCapa = '';
     if(coverUrl && capaPadrao === 'full'){
       miniCapa =
-        '<div style="position:relative;height:80px;overflow:hidden;">' +
+        '<div style="position:relative;aspect-ratio:16/9;overflow:hidden;">' +
           '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
-          '<div style="position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">' +
-            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.75rem;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);text-align:center;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+nomeCliente+'</div>' +
-            (dataEv ? '<div style="font-size:.5rem;color:rgba(255,255,255,.7);letter-spacing:.06em;">'+dataEv+'</div>' : '') +
+          '<div style="position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
+            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.9rem;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);text-align:center;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+nomeCliente+'</div>' +
+            (dataEv ? '<div style="font-size:.55rem;color:rgba(255,255,255,.75);letter-spacing:.06em;">'+dataEv+'</div>' : '') +
           '</div>' +
         '</div>';
     } else if(coverUrl && capaPadrao === 'split'){
       miniCapa =
-        '<div style="height:80px;display:flex;overflow:hidden;">' +
+        '<div style="aspect-ratio:16/9;display:flex;overflow:hidden;">' +
           '<div style="width:55%;overflow:hidden;flex-shrink:0;">' +
             '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
           '</div>' +
-          '<div style="flex:1;background:'+paleta.bg+';display:flex;flex-direction:column;justify-content:center;padding:6px 8px;gap:2px;">' +
-            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.62rem;color:'+paleta.text+';line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nomeCliente+'</div>' +
-            (dataEv ? '<div style="font-size:.47rem;color:'+paleta.accent+';letter-spacing:.05em;">'+dataEv+'</div>' : '') +
+          '<div style="flex:1;background:'+paleta.bg+';display:flex;flex-direction:column;justify-content:center;padding:8px 10px;gap:3px;">' +
+            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.72rem;color:'+paleta.text+';line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nomeCliente+'</div>' +
+            (dataEv ? '<div style="font-size:.52rem;color:'+paleta.accent+';letter-spacing:.05em;">'+dataEv+'</div>' : '') +
           '</div>' +
         '</div>';
     } else if(coverUrl && capaPadrao === 'classico'){
       miniCapa =
-        '<div style="height:80px;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;">' +
-          '<div style="width:70%;height:44px;overflow:hidden;border-radius:1px;">' +
+        '<div style="aspect-ratio:16/9;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px;">' +
+          '<div style="width:65%;flex:1;overflow:hidden;border-radius:1px;min-height:0;">' +
             '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
           '</div>' +
-          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.6rem;color:'+paleta.text+';text-align:center;">'+nomeCliente+'</div>' +
+          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.68rem;color:'+paleta.text+';text-align:center;flex-shrink:0;">'+nomeCliente+'</div>' +
         '</div>';
     } else {
       // Sem capa ou sem foto: apenas tipografia sobre o fundo do tema
       miniCapa =
-        '<div style="height:80px;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">' +
-          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.85rem;color:'+paleta.text+';">'+nomeCliente+'</div>' +
-          (dataEv ? '<div style="font-size:.5rem;color:'+paleta.accent+';letter-spacing:.06em;">'+dataEv+'</div>' : '') +
+        '<div style="aspect-ratio:16/9;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
+          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:1rem;color:'+paleta.text+';">'+nomeCliente+'</div>' +
+          (dataEv ? '<div style="font-size:.55rem;color:'+paleta.accent+';letter-spacing:.06em;">'+dataEv+'</div>' : '') +
         '</div>';
     }
 
