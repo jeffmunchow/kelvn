@@ -6209,20 +6209,10 @@ function entrarGaleria(id){
 var _galZoomTimer=null;
 function galZoom(val){
   var px=parseInt(val,10);
-  // Atualiza _designAtual imediatamente para o preview ao vivo
+  // Atualiza _designAtual e persiste imediatamente na galeria (cache + Supabase debounced)
   if(_designAtual) _designAtual.zoom_grid=px;
+  salvarDesign();
   atualizarPreview();
-  // Persiste na galeria (debounced)
-  clearTimeout(_galZoomTimer);
-  _galZoomTimer=setTimeout(function(){
-    if(!_galAtualId) return;
-    var gals=g('galerias')||[];
-    var gal=gals.find(function(x){return x.id===_galAtualId;});
-    if(!gal) return;
-    gal.design=gal.design||{};
-    gal.design.zoom_grid=px;
-    s('galerias',gals);
-  },400);
 }
 var _fotoAtualKey=null, _fotoAtualIdx=-1;
 var _fotosSelecionadas=[];
