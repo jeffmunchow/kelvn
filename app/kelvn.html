@@ -6062,7 +6062,8 @@ function rGal(manter){
 }
 function abrirNovaGaleria(){
   var id='gal_'+Date.now();
-  var designPadrao = g('design_padrao') || null;
+  var _dpRaw = localStorage.getItem(getUserPrefix()+'design_padrao');
+  var designPadrao = _dpRaw ? JSON.parse(_dpRaw) : null;
   var nova={id:id,nomeCliente:'',dataEvento:'',slug:'',senha:'',status:'rascunho',fotos:[],cover_url:'',total_fotos:0,downloads_liberados:false,created_at:new Date().toISOString(),design:designPadrao};
   var gals=g('galerias')||[];
   gals.unshift(nova);
@@ -7786,14 +7787,15 @@ function resolverDesign(design){
 
 var _designAtual = null;
 var _designOriginal = null;
-var _designGalId = null; // ID fixo da galeria aberta no painel de design
+var _designGalId = null;   // ID fixo da galeria aberta no painel de design
+var _designGalObj = null;  // Objeto galeria capturado no momento de abertura — fonte única de verdade
 
 function abrirDesignGaleria(){
-  // Captura o ID no momento de abertura — imune a qualquer mudança posterior de _galAtualId
   _designGalId = _galAtualId;
   var galerias = g('galerias') || [];
   var gal = galerias.find(function(g2){ return g2.id === _designGalId; });
   if(!gal){ notify && notify('Galeria não encontrada.'); return; }
+  _designGalObj = gal; // captura o objeto completo aqui
 
   _designAtual = JSON.parse(JSON.stringify(gal.design || { tema: 'editorial' }));
   _designOriginal = JSON.parse(JSON.stringify(_designAtual));
@@ -8212,6 +8214,8 @@ function salvarDesign(){
   if(idx < 0) return;
   galerias[idx].design = _designAtual;
   s('galerias', galerias);
+  // Mantém _designGalObj em sync com os dados salvos
+  if(_designGalObj) _designGalObj.design = _designAtual;
 }
 
 // ---- ETAPA 3: Preview ao vivo ----
@@ -8232,9 +8236,9 @@ function fdMini(iso){
 function atualizarPreview(){
   var el = document.getElementById('dz-preview');
   if(!el) return;
-  var galerias = g('galerias') || [];
-  var gal = galerias.find(function(g2){ return g2.id === _designGalId; });
-  if(!gal) return;
+  // Usa o objeto capturado no momento de abertura — nunca re-busca por ID
+  var gal = _designGalObj;
+  if(!gal){ el.innerHTML = ''; return; }
 
   var d = resolverDesign(_designAtual);
   var nColsPreview = _designAtual && _designAtual.zoom_grid ? _designAtual.zoom_grid : 4;
