@@ -427,13 +427,13 @@ function renderizarGaleria(){
     var grid = document.getElementById('gal-grid');
     if(grid){
       grid.innerHTML = renderGridFotos();
-      // Aplica zoom_grid — sobrescreve o layout da classe CSS com inline style
+      // zoom_grid é número de colunas (1–6) — sobrescreve o layout da classe CSS
       if(d.zoom_grid){
+        var nc=d.zoom_grid;
         if(d.grade==='uniforme'||d.grade==='editorial'){
-          grid.style.gridTemplateColumns='repeat(auto-fill,minmax('+d.zoom_grid+'px,1fr))';
+          grid.style.gridTemplateColumns='repeat('+nc+',1fr)';
         } else if(d.grade==='masonry'){
-          // Precisa sobrescrever a regra "columns:4 240px" da classe CSS
-          grid.style.columns=d.zoom_grid+'px';
+          grid.style.columns=nc+' auto';
         }
       }
     }
@@ -598,11 +598,11 @@ function filtrarSubgalPublica(subgalId){
     if(_designResolvido) grid.className = 'gal-grid grade-' + _designResolvido.grade;
     grid.innerHTML = renderGridFotos();
     if(_designResolvido && _designResolvido.zoom_grid){
-      var zg=_designResolvido.zoom_grid;
+      var nc=_designResolvido.zoom_grid;
       if(_designResolvido.grade==='uniforme'||_designResolvido.grade==='editorial')
-        grid.style.gridTemplateColumns='repeat(auto-fill,minmax('+zg+'px,1fr))';
+        grid.style.gridTemplateColumns='repeat('+nc+',1fr)';
       else if(_designResolvido.grade==='masonry')
-        grid.style.columns=zg+'px';
+        grid.style.columns=nc+' auto';
     }
     document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
       var wrap = img.closest('.gal-foto-wrap');

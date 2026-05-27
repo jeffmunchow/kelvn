@@ -1121,7 +1121,7 @@ select.aj-input{cursor:pointer;}
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tamanho das fotos</div>
             <div class="gal-zoom-wrap" style="gap:10px;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-              <input type="range" id="gal-zoom-slider" min="80" max="400" step="10" value="180" oninput="galZoom(this.value)" style="flex:1;">
+              <input type="range" id="gal-zoom-slider" min="1" max="6" step="1" value="4" oninput="galZoom(this.value)" style="flex:1;">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
             </div>
             <div style="font-size:.67rem;color:var(--text-hint);margin-top:.4rem;">Controla quantas fotos aparecem por linha na galeria do cliente</div>
@@ -7776,7 +7776,7 @@ function abrirDesignGaleria(){
 
   // Restaura slider de zoom
   var sl=document.getElementById('gal-zoom-slider');
-  if(sl) sl.value=(_designAtual.zoom_grid)||180;
+  if(sl) sl.value=(_designAtual.zoom_grid)||4;
 
   // Renderiza controles
   rDzTemas();
@@ -8130,9 +8130,8 @@ function atualizarPreview(){
   // ---- GRID ----
   if(fotos.length){
     var imgSrc = function(f){ return f.thumbUrl || f.webUrl || f.url; };
-    // Traduz zoom_grid para número de colunas no preview (preview ~300px largura)
-    var zoom = _designAtual.zoom_grid || 180;
-    var nCols = zoom <= 100 ? 5 : zoom <= 140 ? 4 : zoom <= 220 ? 3 : zoom <= 300 ? 2 : 1;
+    // zoom_grid já é número de colunas (1–6); padrão 4
+    var nCols = _designAtual.zoom_grid || 4;
     if(d.grade === 'uniforme'){
       html += '<div style="display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:4px;padding:6px;">';
       fotos.forEach(function(f){
