@@ -7769,7 +7769,9 @@ function resolverDesign(design){
   var d = design || { tema: 'editorial' };
   var tema = TEMAS_GALERIA[d.tema] || TEMAS_GALERIA.editorial;
   var corKey = d.cor || tema.cor_padrao;
-  var paleta = PALETAS_COR[corKey] || PALETAS_COR.preto;
+  if (!PALETAS_COR[corKey]) corKey = tema.cor_padrao;
+  if (!PALETAS_COR[corKey]) corKey = Object.keys(PALETAS_COR)[0];
+  var paleta = PALETAS_COR[corKey];
   var tipoKey = d.tipografia || TEMA_TIPOGRAFIA_PADRAO[d.tema || 'editorial'] || 'historia';
   var tipo = TIPOGRAFIAS[tipoKey] || TIPOGRAFIAS.historia;
   return {
@@ -7854,7 +7856,7 @@ function rDzTemplates(){
   var el = document.getElementById('dz-templates');
   if(!el) return;
   el.innerHTML = TEMPLATES_GALERIA.map(function(tpl){
-    var paleta  = PALETAS_COR[tpl.cor]  || PALETAS_COR.preto;
+    var paleta  = PALETAS_COR[tpl.cor] || PALETAS_COR[Object.keys(PALETAS_COR)[0]];
     var temaObj = TEMAS_GALERIA[tpl.tema] || TEMAS_GALERIA.editorial;
     var dAtual  = _designAtual || {};
     var temaCur = dAtual.tema || 'editorial';
@@ -8236,11 +8238,14 @@ function fdMini(iso){
 function atualizarPreview(){
   var el = document.getElementById('dz-preview');
   if(!el) return;
+  // Limpa imediatamente — garante que conteúdo de galeria anterior nunca fique visível
+  el.innerHTML = '';
   // Usa o objeto capturado no momento de abertura — nunca re-busca por ID
   var gal = _designGalObj;
-  if(!gal){ el.innerHTML = ''; return; }
+  if(!gal) return;
 
   var d = resolverDesign(_designAtual);
+  if(!d || !d.paleta){ el.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-hint);font-size:.8rem;">Configurando...</div>'; return; }
   var nColsPreview = _designAtual && _designAtual.zoom_grid ? _designAtual.zoom_grid : 4;
   var fotos = (gal.fotos || []).slice(0, Math.max(18, nColsPreview * 4));
   var coverUrl = gal.cover_url || (fotos[0] && (fotos[0].webUrl || fotos[0].url)) || '';

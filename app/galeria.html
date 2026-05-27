@@ -316,7 +316,9 @@ function resolverDesign(design){
   var d = design || { tema: 'editorial' };
   var tema = TEMAS_GALERIA[d.tema] || TEMAS_GALERIA.editorial;
   var corKey = d.cor || tema.cor_padrao;
-  var paleta = PALETAS_COR[corKey] || PALETAS_COR.preto;
+  if (!PALETAS_COR[corKey]) corKey = tema.cor_padrao;
+  if (!PALETAS_COR[corKey]) corKey = Object.keys(PALETAS_COR)[0];
+  var paleta = PALETAS_COR[corKey];
   var tipoKey = d.tipografia || TEMA_TIPOGRAFIA_PADRAO[d.tema || 'editorial'] || 'historia';
   var tipo = TIPOGRAFIAS[tipoKey] || TIPOGRAFIAS.historia;
   return {
