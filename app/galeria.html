@@ -121,9 +121,9 @@ html,body{
 .grade-uniforme .gal-foto-wrap img{width:100%;height:100%;object-fit:cover;}
 .grade-uniforme .gal-skeleton{aspect-ratio:1;}
 
-/* Grade ORGÂNICA (masonry) */
-.grade-masonry{columns:4 240px;column-gap:6px;}
-.grade-masonry .gal-foto-wrap{break-inside:avoid;margin-bottom:6px;}
+/* Grade ORGÂNICA (masonry) — colunas JS via flex */
+.grade-masonry{display:flex;gap:6px;align-items:flex-start;}
+.grade-masonry .masonry-col{flex:1;display:flex;flex-direction:column;gap:6px;}
 .grade-masonry .gal-foto-wrap img{width:100%;display:block;}
 
 /* Grade EDITORIAL */
@@ -152,7 +152,6 @@ html,body{
 /* Responsivo grids */
 @media(max-width:900px){
   .grade-uniforme,.grade-editorial{grid-template-columns:repeat(3,1fr);}
-  .grade-masonry{columns:3 200px;}
   .capa-split{grid-template-columns:1fr;}
   .capa-split-img{aspect-ratio:16/10;}
   .capa-conteudo-centro .gal-titulo{font-size:2.4rem;}
@@ -160,7 +159,7 @@ html,body{
 }
 @media(max-width:600px){
   .grade-uniforme,.grade-editorial{grid-template-columns:repeat(2,1fr);gap:4px;}
-  .grade-masonry{columns:2 150px;column-gap:4px;}
+  .grade-masonry{gap:4px;}
   .gal-grid{padding:.75rem .75rem 3rem;}
   .gal-titulo{font-size:1.7rem;}
   .capa-conteudo-centro .gal-titulo{font-size:2rem;}
@@ -427,15 +426,9 @@ function renderizarGaleria(){
     var grid = document.getElementById('gal-grid');
     if(grid){
       grid.innerHTML = renderGridFotos();
-      // zoom_grid é número de colunas (1–6) — sobrescreve o layout da classe CSS
-      if(d.zoom_grid){
-        var nc=d.zoom_grid;
-        if(d.grade==='uniforme'||d.grade==='editorial'){
-          grid.style.gridTemplateColumns='repeat('+nc+',1fr)';
-        } else if(d.grade==='masonry'){
-          grid.style.columnCount=String(nc);
-          grid.style.columnWidth='auto';
-        }
+      // zoom_grid para uniforme/editorial — masonry já usa as colunas no renderGridFotos
+      if(d.zoom_grid && (d.grade==='uniforme'||d.grade==='editorial')){
+        grid.style.gridTemplateColumns='repeat('+d.zoom_grid+',1fr)';
       }
     }
     document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
@@ -522,10 +515,10 @@ function renderGridFotos(){
     return '<div class="gal-empty">Nenhuma foto nesta seção.</div>';
   }
   var grade = _designResolvido ? _designResolvido.grade : 'masonry';
-  return _fotosVisiveis.map(function(foto, i){
+
+  // Função auxiliar: célula de foto
+  function fotoCell(foto, i, classExtra){
     var imgSrc = foto.webUrl || foto.url;
-    // Destaque em layout editorial: a cada 7 fotos, índices 0 e 3 são grandes
-    var classDestaque = (grade === 'editorial' && (i % 7 === 0 || i % 7 === 3)) ? ' foto-destaque' : '';
     var dlBtn = _downloads ? (
       '<div class="btn-dl-wrap" onclick="event.stopPropagation()">'
       +'<button class="btn-dl-foto" onclick="toggleDlMenu(this,'+i+')" title="Download">'
@@ -536,11 +529,32 @@ function renderGridFotos(){
       +'</div>'
       +'</div>'
     ) : '';
-    return '<div class="gal-foto-wrap'+classDestaque+'" onclick="openLb('+i+')">'
+    return '<div class="gal-foto-wrap'+(classExtra||'')+'" onclick="openLb('+i+')">'
       +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
       +(foto.url !== imgSrc ? ' onerror="this.src=\''+foto.url+'\'"' : '')+'>'
       +'<div class="gal-foto-overlay">'+dlBtn+'</div>'
       +'</div>';
+  }
+
+  if(grade === 'masonry'){
+    // Distribui fotos em colunas via JS — sem gaps do CSS column-fill
+    var nCols = (_designResolvido && _designResolvido.zoom_grid) ? _designResolvido.zoom_grid : 4;
+    var cols = [];
+    for(var c=0;c<nCols;c++) cols.push([]);
+    _fotosVisiveis.forEach(function(f,i){ cols[i%nCols].push({f:f,i:i}); });
+    var html = '';
+    cols.forEach(function(col){
+      html += '<div class="masonry-col">';
+      col.forEach(function(item){ html += fotoCell(item.f, item.i, ''); });
+      html += '</div>';
+    });
+    return html;
+  }
+
+  return _fotosVisiveis.map(function(foto, i){
+    // Destaque em layout editorial: a cada 7 fotos, índices 0 e 3 são grandes
+    var classDestaque = (grade === 'editorial' && (i % 7 === 0 || i % 7 === 3)) ? ' foto-destaque' : '';
+    return fotoCell(foto, i, classDestaque);
   }).join('');
 }
 
@@ -598,14 +612,8 @@ function filtrarSubgalPublica(subgalId){
   if(grid){
     if(_designResolvido) grid.className = 'gal-grid grade-' + _designResolvido.grade;
     grid.innerHTML = renderGridFotos();
-    if(_designResolvido && _designResolvido.zoom_grid){
-      var nc=_designResolvido.zoom_grid;
-      if(_designResolvido.grade==='uniforme'||_designResolvido.grade==='editorial')
-        grid.style.gridTemplateColumns='repeat('+nc+',1fr)';
-      else if(_designResolvido.grade==='masonry'){
-        grid.style.columnCount=String(nc);
-        grid.style.columnWidth='auto';
-      }
+    if(_designResolvido && _designResolvido.zoom_grid && (_designResolvido.grade==='uniforme'||_designResolvido.grade==='editorial')){
+      grid.style.gridTemplateColumns='repeat('+_designResolvido.zoom_grid+',1fr)';
     }
     document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
       var wrap = img.closest('.gal-foto-wrap');
