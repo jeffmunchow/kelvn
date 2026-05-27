@@ -12,7 +12,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Kelvn — Studio</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Bodoni+Moda:ital,wght@0,400;0,600;1,400;1,600&family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500&family=Raleway:wght@300;400;500&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;500&family=Raleway:wght@100;200;300;400;500&family=Playfair+Display+SC:wght@400;700&family=Tenor+Sans&family=IM+Fell+English:ital@0;1&family=Antic+Didone&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -7736,12 +7737,24 @@ var GRADES = {
 };
 
 var TIPOGRAFIAS = {
-  cai:      { nome:'Quando a luz cai', fonte_titulo:"'Cormorant Garamond', serif", peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'DM Sans', sans-serif",  peso_corpo:300, estilo_corpo:'normal' },
-  eterno:   { nome:'Amor eterno',      fonte_titulo:"'Bodoni Moda', serif",        peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'Jost', sans-serif",      peso_corpo:300, estilo_corpo:'normal' },
-  casamento:{ nome:'Casamento',        fonte_titulo:"'Cinzel', serif",             peso_titulo:400, estilo_titulo:'normal', fonte_corpo:"'EB Garamond', serif",   peso_corpo:400, estilo_corpo:'italic' },
-  historia: { nome:'Uma história',     fonte_titulo:"'Playfair Display', serif",   peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'Raleway', sans-serif",  peso_corpo:300, estilo_corpo:'normal' },
-  sempre:   { nome:'Para sempre',      fonte_titulo:"'EB Garamond', serif",        peso_titulo:500, estilo_titulo:'normal', fonte_corpo:"'EB Garamond', serif",   peso_corpo:400, estilo_corpo:'italic' },
-  detalhe:  { nome:'Em cada detalhe',  fonte_titulo:"'Lora', serif",              peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'Raleway', sans-serif",  peso_corpo:300, estilo_corpo:'normal' }
+  casamento: { nome:'Casamento',        tags:['Cinzel','+ Tenor Sans'],
+    fonte_titulo:"'Cinzel', serif",             peso_titulo:400, estilo_titulo:'normal', ls_titulo:'0.07em', tt_titulo:'uppercase',
+    fonte_corpo:"'Tenor Sans', sans-serif",     peso_corpo:400,  estilo_corpo:'normal',  ls_corpo:'0.15em',  tt_corpo:'uppercase' },
+  cai:       { nome:'Quando a luz cai', tags:['Raleway Extralight 200'],
+    fonte_titulo:"'Raleway', sans-serif",        peso_titulo:200, estilo_titulo:'normal', ls_titulo:'0.18em', tt_titulo:'uppercase',
+    fonte_corpo:"'Raleway', sans-serif",         peso_corpo:100,  estilo_corpo:'normal',  ls_corpo:'0.22em',  tt_corpo:'uppercase' },
+  historia:  { nome:'Uma história',     tags:['Playfair Display SC','+ Tenor Sans'],
+    fonte_titulo:"'Playfair Display SC', serif", peso_titulo:400, estilo_titulo:'normal', ls_titulo:'0.04em', tt_titulo:'none',
+    fonte_corpo:"'Tenor Sans', sans-serif",     peso_corpo:400,  estilo_corpo:'normal',  ls_corpo:'0.16em',  tt_corpo:'uppercase' },
+  detalhe:   { nome:'Em cada detalhe', tags:['Tenor Sans Regular'],
+    fonte_titulo:"'Tenor Sans', sans-serif",    peso_titulo:400, estilo_titulo:'normal', ls_titulo:'0.08em', tt_titulo:'none',
+    fonte_corpo:"'Tenor Sans', sans-serif",     peso_corpo:400,  estilo_corpo:'normal',  ls_corpo:'0.20em',  tt_corpo:'uppercase' },
+  sempre:    { nome:'Para sempre',      tags:['IM Fell English','+ IM Fell Italic'],
+    fonte_titulo:"'IM Fell English', serif",    peso_titulo:400, estilo_titulo:'normal', ls_titulo:'0em',    tt_titulo:'none',
+    fonte_corpo:"'IM Fell English', serif",     peso_corpo:400,  estilo_corpo:'italic',  ls_corpo:'0em',     tt_corpo:'none' },
+  eterno:    { nome:'Amor eterno',      tags:['Antic Didone','+ Tenor Sans'],
+    fonte_titulo:"'Antic Didone', serif",       peso_titulo:400, estilo_titulo:'normal', ls_titulo:'0.02em', tt_titulo:'none',
+    fonte_corpo:"'Tenor Sans', sans-serif",     peso_corpo:400,  estilo_corpo:'normal',  ls_corpo:'0.16em',  tt_corpo:'uppercase' }
 };
 
 // Tipografia padrão por tema
@@ -8054,16 +8067,18 @@ function rDzTipos(){
   el.innerHTML = Object.keys(TIPOGRAFIAS).map(function(key){
     var t = TIPOGRAFIAS[key];
     var ativo = tipoAtual === key;
+    var tagPills = (t.tags||[]).map(function(tag){
+      return '<span style="font-size:.58rem;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text-muted);">'+tag+'</span>';
+    }).join('');
     return '<button onclick="selecionarTipografia(\''+key+'\')" style="' +
       'padding:14px 14px 12px;border-radius:var(--radius);cursor:pointer;text-align:left;' +
       'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
       'background:var(--surface);transition:border-color .15s;' +
       'box-shadow:'+(ativo?'0 0 0 3px rgba(196,120,10,.15)':'none')+'">' +
-      '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-style:'+t.estilo_titulo+';font-size:1.15rem;color:var(--text);line-height:1.1;margin-bottom:6px;">'+t.nome+'</div>' +
-      '<div style="font-family:'+t.fonte_corpo+';font-weight:'+t.peso_corpo+';font-style:'+t.estilo_corpo+';font-size:.6rem;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">'+subtitulo+'</div>' +
+      '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-style:'+t.estilo_titulo+';font-size:1.3rem;letter-spacing:'+(t.ls_titulo||'0')+';text-transform:'+(t.tt_titulo||'none')+';color:var(--text);line-height:1.1;margin-bottom:6px;">'+t.nome+'</div>' +
+      '<div style="font-family:'+t.fonte_corpo+';font-weight:'+t.peso_corpo+';font-style:'+t.estilo_corpo+';font-size:.6rem;color:var(--text-muted);letter-spacing:'+(t.ls_corpo||'0.06em')+';text-transform:'+(t.tt_corpo||'uppercase')+';margin-bottom:10px;">'+subtitulo+'</div>' +
       '<div style="border-top:.5px solid var(--border-strong);padding-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' +
-        '<span style="font-size:.58rem;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text-muted);">'+t.fonte_titulo.replace(/['"]/g,'').split(',')[0]+(t.estilo_titulo==='italic'?' Italic':'')+'</span>' +
-        '<span style="font-size:.58rem;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text-muted);">+ '+t.fonte_corpo.replace(/['"]/g,'').split(',')[0]+(t.estilo_corpo==='italic'?' Italic':' Light')+'</span>' +
+        tagPills +
       '</div>' +
     '</button>';
   }).join('');
@@ -8236,8 +8251,8 @@ function atualizarPreview(){
   var pData = gal.dataEvento ? fdMini(gal.dataEvento) : '';
   var pSubInfo = pData; // pode expandir com local se disponível
   var pf = d.ponto_focal.x+'% '+d.ponto_focal.y+'%';
-  var tT = 'font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';';
-  var tB = 'font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';';
+  var tT = 'font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';letter-spacing:'+(d.tipo.ls_titulo||'0')+';text-transform:'+(d.tipo.tt_titulo||'none')+';';
+  var tB = 'font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';font-style:'+d.tipo.estilo_corpo+';letter-spacing:'+(d.tipo.ls_corpo||'0')+';text-transform:'+(d.tipo.tt_corpo||'none')+';';
 
   if(d.capa_layout === 'full'){
     // Full Editorial — foto preenche tudo, overlay escuro, label topo, título centro, data abaixo
