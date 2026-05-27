@@ -6024,7 +6024,9 @@ function rGal(manter){
     var isPub=gal.status==='publicado';
     var statusColor=isPub?'var(--teal)':'var(--text-hint)';
     var statusLabel=isPub?'Publicada':'Rascunho';
-    var capaFoto=(gal.fotos||[]).find(function(f){return f.url===gal.cover_url;});
+    // Busca pelo cover_url; se não encontrar (URL desatualizada), usa a primeira foto da galeria
+    var capaFoto=(gal.fotos||[]).find(function(f){return f.url===gal.cover_url;})
+               ||(gal.fotos&&gal.fotos[0])||null;
     var capaImg=capaFoto?(capaFoto.thumbUrl||capaFoto.url):(gal.cover_url||'');
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:0;overflow:hidden;">'
@@ -6356,6 +6358,11 @@ function rGalDetalhe(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
+  // Auto-heal: se cover_url não corresponde a nenhuma foto, corrige para a primeira foto
+  if(gal.fotos&&gal.fotos.length&&!gal.fotos.find(function(f){return f.url===gal.cover_url;})){
+    gal.cover_url=gal.fotos[0].url;
+    s('galerias',gals);
+  }
   document.getElementById('gal-view-lista').style.display='none';
   document.getElementById('gal-view-detalhe').style.display='';
   // Garante modo grid (caso venha de design mode)
