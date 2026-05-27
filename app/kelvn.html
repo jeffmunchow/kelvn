@@ -8271,17 +8271,18 @@ function atualizarPreview(){
     '</div>';
   } else if(d.capa_layout === 'retrato'){
     // Retrato Centrado — fundo claro preenche tela, foto pequena centralizada, linha amber, título
-    html += '<div style="background:'+d.paleta.bg+';aspect-ratio:16/9;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:0;">' +
-      '<div style="'+tB+'font-size:.5rem;letter-spacing:.14em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:1rem;">'+pLabel+'</div>';
+    html += '<div style="background:'+d.paleta.bg+';aspect-ratio:16/9;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;gap:0;">' +
+      '<div style="'+tB+'font-size:.45rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.5rem;">'+pLabel+'</div>';
     if(coverUrl){
-      html += '<div style="width:38%;aspect-ratio:3/4;overflow:hidden;margin-bottom:.8rem;">' +
+      // max-height limita a foto a 48% da altura do container 16/9
+      html += '<div style="height:48%;aspect-ratio:3/4;overflow:hidden;margin-bottom:.6rem;">' +
         '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">' +
       '</div>';
     }
     html +=
-      '<div style="width:20px;height:1.5px;background:var(--amber);margin-bottom:.8rem;"></div>' +
-      '<div style="'+tT+'font-size:1.5rem;color:'+d.paleta.text+';margin-bottom:.5rem;">'+pNome+'</div>' +
-      (pSubInfo ? '<div style="'+tB+'font-size:.5rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+      '<div style="width:16px;height:1.5px;background:var(--amber);margin-bottom:.55rem;"></div>' +
+      '<div style="'+tT+'font-size:1.1rem;color:'+d.paleta.text+';margin-bottom:.35rem;">'+pNome+'</div>' +
+      (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
     '</div>';
   } else {
     // Horizonte — banner foto topo ~40%, espaço limpo embaixo com título e data
