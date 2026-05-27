@@ -8158,10 +8158,17 @@ function atualizarPreview(){
       });
       html += '</div>';
     } else {
-      // Masonry real: CSS columns idêntico à galeria pública
-      html += '<div style="column-count:'+nCols+';column-width:auto;column-gap:4px;padding:6px;column-fill:auto;">';
-      fotos.forEach(function(f){
-        html += '<div style="break-inside:avoid;margin-bottom:4px;"><img src="'+imgSrc(f)+'" style="width:100%;display:block;"></div>';
+      // Masonry no preview: distribui fotos em N colunas via JS (sem espaço em branco)
+      var mCols = [];
+      for(var mc=0;mc<nCols;mc++) mCols.push([]);
+      fotos.forEach(function(f,i){ mCols[i%nCols].push(f); });
+      html += '<div style="display:flex;gap:4px;padding:6px;align-items:flex-start;">';
+      mCols.forEach(function(col){
+        html += '<div style="flex:1;display:flex;flex-direction:column;gap:4px;">';
+        col.forEach(function(f){
+          html += '<img src="'+imgSrc(f)+'" style="width:100%;display:block;">';
+        });
+        html += '</div>';
       });
       html += '</div>';
     }
