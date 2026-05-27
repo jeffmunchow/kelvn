@@ -1127,7 +1127,7 @@ select.aj-input{cursor:pointer;}
             </div>
             <div style="font-size:.67rem;color:var(--text-hint);margin-top:.4rem;">Controla quantas fotos aparecem por linha na galeria do cliente</div>
           </div>
-          <button class="btn" onclick="resetarParaTema()" style="font-size:.7rem;color:var(--text-muted);">Voltar para os ajustes do tema</button>
+          <button class="btn" onclick="definirLayoutPadrao()" style="font-size:.7rem;color:var(--text-muted);width:100%;display:flex;align-items:center;justify-content:center;padding:10px;">Definir esse layout como padrão</button>
         </div>
 
         <!-- Direita: preview -->
@@ -6066,7 +6066,8 @@ function rGal(manter){
 }
 function abrirNovaGaleria(){
   var id='gal_'+Date.now();
-  var nova={id:id,nomeCliente:'',dataEvento:'',slug:'',senha:'',status:'rascunho',fotos:[],cover_url:'',total_fotos:0,downloads_liberados:false,created_at:new Date().toISOString()};
+  var designPadrao = g('design_padrao') || null;
+  var nova={id:id,nomeCliente:'',dataEvento:'',slug:'',senha:'',status:'rascunho',fotos:[],cover_url:'',total_fotos:0,downloads_liberados:false,created_at:new Date().toISOString(),design:designPadrao};
   var gals=g('galerias')||[];
   gals.unshift(nova);
   s('galerias',gals);
@@ -8184,6 +8185,19 @@ function selecionarGrade(key){
   salvarDesign();
   rDzGrades();
   atualizarPreview();
+}
+
+function definirLayoutPadrao(){
+  if(!_designAtual) return;
+  var padrao = {
+    cor:         _designAtual.cor         || null,
+    capa_layout: _designAtual.capa_layout || null,
+    grade:       _designAtual.grade       || null,
+    tipografia:  _designAtual.tipografia  || null,
+    zoom_grid:   _designAtual.zoom_grid   || 4
+  };
+  s('design_padrao', padrao);
+  notify('Layout definido como padrão para novas galerias.');
 }
 
 function resetarParaTema(){
