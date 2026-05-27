@@ -6450,33 +6450,20 @@ function rDetGrid(){
   if(_subgalAtiva!==null) fotos=fotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;});
   var grid=document.getElementById('gal-det-grid');
   if(!grid) return;
-  // Remove empty state se existir
-  var empty=document.getElementById('gal-empty-state');
-  if(empty) empty.remove();
+  // Limpa o grid para garantir que não sobrem fotos de outra galeria
+  grid.innerHTML='';
   if(!fotos.length){
-    grid.innerHTML='';
     grid.innerHTML='<div id="gal-empty-state" style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'+(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';
     return;
   }
-  // IDs que devem estar visíveis
-  var idsVisiveis={};
-  fotos.forEach(function(f){ var ri=(gal.fotos||[]).indexOf(f); idsVisiveis['gf-'+ri]=true; });
-  // Remove células que não devem estar visíveis
-  Array.from(grid.children).forEach(function(el){ if(el.id&&!idsVisiveis[el.id]) el.remove(); });
-  // Adiciona células que ainda não existem, na ordem certa (via fragment para um único reflow)
   var frag=document.createDocumentFragment();
-  var temNovo=false;
   fotos.forEach(function(f,i){
     var realIdx=(gal.fotos||[]).indexOf(f);
-    var id='gf-'+realIdx;
-    if(!document.getElementById(id)){
-      var tmp=document.createElement('div');
-      tmp.innerHTML=_rFotoCell(f,realIdx,gal.cover_url===f.url,i>=100);
-      frag.appendChild(tmp.firstChild);
-      temNovo=true;
-    }
+    var tmp=document.createElement('div');
+    tmp.innerHTML=_rFotoCell(f,realIdx,gal.cover_url===f.url,i>=100);
+    frag.appendChild(tmp.firstChild);
   });
-  if(temNovo) grid.appendChild(frag);
+  grid.appendChild(frag);
 }
 function rDetGridAppend(f,realIdx,isCapa){
   var grid=document.getElementById('gal-det-grid');
