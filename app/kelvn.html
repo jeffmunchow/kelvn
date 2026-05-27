@@ -8158,10 +8158,12 @@ function atualizarPreview(){
       });
       html += '</div>';
     } else {
-      // Masonry: column-count explícito para garantir N colunas sem espaço
-      html += '<div style="column-count:'+nCols+';column-width:auto;column-gap:4px;padding:6px;">';
-      fotos.forEach(function(f){
-        html += '<div style="break-inside:avoid;margin-bottom:4px;"><img src="'+imgSrc(f)+'" style="width:100%;display:block;"></div>';
+      // Masonry no preview: grid uniforme para mostrar colunas sem espaço em branco
+      // (column-fill:balance do CSS columns deixaria espaço no preview pequeno)
+      var mHeights=['3/2','2/3','1/1','4/3','3/4','1/1','2/3','3/2','1/1'];
+      html += '<div style="display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:4px;padding:6px;">';
+      fotos.forEach(function(f,i){
+        html += '<div style="aspect-ratio:'+mHeights[i%mHeights.length]+';overflow:hidden;"><img src="'+imgSrc(f)+'" style="width:100%;height:100%;object-fit:cover;display:block;"></div>';
       });
       html += '</div>';
     }
