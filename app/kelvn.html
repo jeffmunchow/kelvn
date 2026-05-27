@@ -7685,7 +7685,7 @@ async function sendAIMessage(){
 
 var TEMAS_GALERIA = {
   editorial: { nome:'Editorial', desc:'Fundo escuro, serifa elegante, capa dramática', cor_padrao:'preto', capa_padrao:'full', grade_padrao:'masonry', fonte_titulo:"'Playfair Display', serif", fonte_corpo:"'DM Sans', sans-serif", peso_titulo:600 },
-  linho:     { nome:'Retrato', desc:'Foto retrato centralizada, nome ao fundo em marca d\'água', cor_padrao:'creme', capa_padrao:'retrato', grade_padrao:'masonry', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:300 },
+  linho:     { nome:'Linho', desc:'Bege quente, tipografia delicada, grid orgânico', cor_padrao:'creme', capa_padrao:'split', grade_padrao:'masonry', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:500 },
   cinema:    { nome:'Cinema', desc:'Preto absoluto, tipografia moderna, capa cinematográfica', cor_padrao:'preto_puro', capa_padrao:'full', grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:600 },
   memorial:  { nome:'Memorial', desc:'Branco museu, muito respiro, grid minimalista', cor_padrao:'branco', capa_padrao:'classico', grade_padrao:'uniforme', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:400 },
   classico:  { nome:'Clássico', desc:'Creme, serifa tradicional, capa centralizada', cor_padrao:'sepia', capa_padrao:'classico', grade_padrao:'masonry', fonte_titulo:"'Playfair Display', serif", fonte_corpo:"'DM Sans', sans-serif", peso_titulo:700 },
@@ -7705,7 +7705,6 @@ var CAPA_LAYOUTS = {
   full:     { nome:'Cheia',    desc:'Foto ocupa toda a tela com título sobreposto' },
   split:    { nome:'Dividida', desc:'Foto à esquerda, título à direita' },
   classico: { nome:'Clássica', desc:'Foto centralizada com título abaixo' },
-  retrato:  { nome:'Retrato',  desc:'Foto retrato centralizada, nome como marca d\'água' },
   sem:      { nome:'Sem capa', desc:'Apenas título grande, sem foto de destaque' }
 };
 
@@ -7964,7 +7963,6 @@ function rDzCapas(){
     full:     '<rect x="2" y="2" width="56" height="32" fill="currentColor" opacity=".6"/><rect x="14" y="14" width="32" height="2" fill="white" opacity=".9"/>',
     split:    '<rect x="2" y="2" width="28" height="32" fill="currentColor" opacity=".6"/><rect x="34" y="14" width="18" height="2" fill="currentColor" opacity=".5"/><rect x="34" y="18" width="12" height="1.5" fill="currentColor" opacity=".3"/>',
     classico: '<rect x="14" y="4" width="32" height="20" fill="currentColor" opacity=".6"/><rect x="18" y="28" width="24" height="2" fill="currentColor" opacity=".5"/>',
-    retrato:  '<text x="30" y="13" text-anchor="middle" font-size="7" fill="currentColor" opacity=".18" letter-spacing="3" font-family="serif">NOME</text><rect x="22" y="6" width="16" height="24" rx="1" fill="currentColor" opacity=".55"/>',
     sem:      '<rect x="6" y="14" width="48" height="3" fill="currentColor" opacity=".5"/><rect x="14" y="20" width="32" height="2" fill="currentColor" opacity=".3"/>'
   };
 
@@ -8096,18 +8094,6 @@ function atualizarPreview(){
       '</div>' +
       '<div style="font-family:'+d.tema_obj.fonte_titulo+';font-weight:'+d.tema_obj.peso_titulo+';font-size:1.4rem;">' + (gal.nomeCliente||'Galeria') + '</div>' +
       (gal.dataEvento ? '<div style="font-size:.68rem;color:'+d.paleta.accent+';margin-top:4px;letter-spacing:.05em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
-    '</div>';
-  } else if(d.capa_layout === 'retrato'){
-    var nomeR = gal.nomeCliente || 'Galeria';
-    // Container = 300px (simula 100vh), foto = 120px (40% de 300 = 40vh equivalente), CENTRALIZADA
-    var fszPx = Math.min(Math.max(+(276/(nomeR.length*0.82)).toFixed(1),10),54);
-    html += '<div style="position:relative;height:300px;background:'+d.paleta.bg+';display:flex;align-items:center;justify-content:center;overflow:hidden;">' +
-      '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;font-family:'+d.tema_obj.fonte_titulo+';font-weight:300;font-size:'+fszPx+'px;letter-spacing:.18em;text-transform:uppercase;color:'+d.paleta.text+';opacity:.16;pointer-events:none;user-select:none;z-index:1;">' + nomeR + '</div>' +
-      (coverUrl ?
-        '<div style="height:120px;width:auto;aspect-ratio:2/3;overflow:hidden;position:relative;z-index:2;border-radius:2px;box-shadow:0 4px 16px rgba(0,0,0,.12);">' +
-          '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;">' +
-        '</div>'
-        : '<div style="height:120px;aspect-ratio:2/3;background:'+d.paleta.text+';opacity:.12;border-radius:2px;position:relative;z-index:2;"></div>') +
     '</div>';
   } else {
     html += '<div style="padding:2.5rem 1.5rem 1.5rem;text-align:center;">' +
