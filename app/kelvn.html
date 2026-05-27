@@ -1096,10 +1096,6 @@ select.aj-input{cursor:pointer;}
         <!-- Esquerda: controles -->
         <div>
           <div style="margin-bottom:2rem;">
-            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tema</div>
-            <div id="dz-temas" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;"></div>
-          </div>
-          <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tipografia</div>
             <div id="dz-tipos" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;"></div>
           </div>
@@ -7812,7 +7808,6 @@ function abrirDesignGaleria(){
   if(sl) sl.value = 7 - _designAtual.zoom_grid;
 
   // Renderiza controles
-  rDzTemas();
   rDzTipos();
   rDzCores();
   rDzCapas();
@@ -7941,7 +7936,6 @@ function aplicarTemplate(id){
   _designAtual.capa_layout = tpl.capa_layout;
   _designAtual.grade       = tpl.grade;
   salvarDesign();
-  rDzTemas();
   rDzTipos();
   rDzCores();
   rDzCapas();
@@ -8040,7 +8034,6 @@ function selecionarTema(key){
   _designAtual.grade = null;
   _designAtual.tipografia = null; // reset para padrão do tema
   salvarDesign();
-  rDzTemas();
   rDzTipos();
   rDzCores();
   rDzCapas();
