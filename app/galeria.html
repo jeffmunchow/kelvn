@@ -59,6 +59,15 @@ html,body{
 }
 .capa-conteudo-centro .gal-studio,
 .capa-conteudo-centro .gal-subtitulo{color:rgba(255,255,255,.85);}
+.capa-scroll-hint{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.55);pointer-events:none;
+  animation:scrollBounce 2.4s ease-in-out infinite;
+}
+@keyframes scrollBounce{
+  0%,100%{transform:translateX(-50%) translateY(0);}
+  50%{transform:translateX(-50%) translateY(6px);}
+}
 
 /* Capa SPLIT */
 .capa-split{
@@ -450,6 +459,7 @@ function renderCapa(d, coverUrl){
         +'<h1 class="gal-titulo">'+titulo+'</h1>'
         +(subInfo?'<div class="gal-subtitulo">'+subInfo+'</div>':'')
       +'</div>'
+      +'<div class="capa-scroll-hint"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>'
     +'</div>';
   }
   if(d.capa_layout === 'split' && coverUrl){
