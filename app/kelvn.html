@@ -8058,28 +8058,19 @@ function rDzTipos(){
   var el = document.getElementById('dz-tipos');
   if(!el) return;
   var tipoAtual = _designAtual.tipografia || TEMA_TIPOGRAFIA_PADRAO[_designAtual.tema || 'editorial'] || 'historia';
-  var paleta = PALETAS_COR[(TEMAS_GALERIA[_designAtual.tema]||TEMAS_GALERIA.editorial).cor_padrao];
-  var galerias = g('galerias') || [];
-  var galTipo = galerias.find(function(x){ return x.id === _galAtualId; }) || {};
-  var nomeSubtitulo = (galTipo.nomeCliente || 'Ana & Pedro').toUpperCase();
-  var dataSubtitulo = galTipo.dataEvento ? fdMini(galTipo.dataEvento) : '12 ABR 2025';
-  var subtitulo = nomeSubtitulo + ' — ' + dataSubtitulo;
   el.innerHTML = Object.keys(TIPOGRAFIAS).map(function(key){
     var t = TIPOGRAFIAS[key];
     var ativo = tipoAtual === key;
-    var tagPills = (t.tags||[]).map(function(tag){
-      return '<span style="font-size:.58rem;padding:2px 7px;border-radius:20px;background:var(--surface2);color:var(--text-muted);">'+tag+'</span>';
-    }).join('');
+    var nT = t.fonte_titulo.replace(/['"]/g,'').split(',')[0].trim();
+    var nC = t.fonte_corpo.replace(/['"]/g,'').split(',')[0].trim();
+    var subNome = (nT === nC) ? nT : '+ ' + nC;
     return '<button onclick="selecionarTipografia(\''+key+'\')" style="' +
       'padding:14px 14px 12px;border-radius:var(--radius);cursor:pointer;text-align:left;' +
       'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
       'background:var(--surface);transition:border-color .15s;' +
       'box-shadow:'+(ativo?'0 0 0 3px rgba(196,120,10,.15)':'none')+'">' +
-      '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-style:'+t.estilo_titulo+';font-size:1.3rem;letter-spacing:'+(t.ls_titulo||'0')+';text-transform:'+(t.tt_titulo||'none')+';color:var(--text);line-height:1.1;margin-bottom:6px;">'+t.nome+'</div>' +
-      '<div style="font-family:'+t.fonte_corpo+';font-weight:'+t.peso_corpo+';font-style:'+t.estilo_corpo+';font-size:.6rem;color:var(--text-muted);letter-spacing:'+(t.ls_corpo||'0.06em')+';text-transform:'+(t.tt_corpo||'uppercase')+';margin-bottom:10px;">'+subtitulo+'</div>' +
-      '<div style="border-top:.5px solid var(--border-strong);padding-top:8px;display:flex;gap:6px;flex-wrap:wrap;">' +
-        tagPills +
-      '</div>' +
+      '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-style:'+t.estilo_titulo+';font-size:1.3rem;letter-spacing:'+(t.ls_titulo||'0')+';text-transform:'+(t.tt_titulo||'none')+';color:var(--text);line-height:1.1;margin-bottom:5px;">'+nT+'</div>' +
+      '<div style="font-family:'+t.fonte_corpo+';font-weight:'+t.peso_corpo+';font-style:'+t.estilo_corpo+';font-size:.7rem;color:var(--text-muted);letter-spacing:'+(t.ls_corpo||'0.06em')+';text-transform:'+(t.tt_corpo||'uppercase')+';">'+subNome+'</div>' +
     '</button>';
   }).join('');
 }
