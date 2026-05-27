@@ -6024,9 +6024,8 @@ function rGal(manter){
     var isPub=gal.status==='publicado';
     var statusColor=isPub?'var(--teal)':'var(--text-hint)';
     var statusLabel=isPub?'Publicada':'Rascunho';
-    // Busca pelo cover_url; se não encontrar (URL desatualizada), usa a primeira foto da galeria
-    var capaFoto=(gal.fotos||[]).find(function(f){return f.url===gal.cover_url;})
-               ||(gal.fotos&&gal.fotos[0])||null;
+    // Busca pelo cover_url casando url, webUrl ou thumbUrl (cover pode ter sido salvo como qualquer variante)
+    var capaFoto=(gal.fotos||[]).find(function(f){return f.url===gal.cover_url||f.webUrl===gal.cover_url||f.thumbUrl===gal.cover_url;})||null;
     var capaImg=capaFoto?(capaFoto.thumbUrl||capaFoto.url):(gal.cover_url||'');
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border:.5px solid var(--border-strong);border-radius:0;overflow:hidden;">'
@@ -6306,12 +6305,20 @@ function ovFotoNav(dir){
   verFotoGal(f.webUrl||f.url,f.key||'',novoIdx);
 }
 function definirCapaGal(){
-  var img=document.getElementById('ov-foto-img');
-  if(!img||!_galAtualId) return;
+  if(!_galAtualId) return;
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
-  gal.cover_url=img.src;
+  // Usa o índice rastreado pelo lightbox para buscar o f.url canônico (não img.src que pode ser webUrl)
+  if(_fotoAtualIdx>=0 && gal.fotos[_fotoAtualIdx]){
+    gal.cover_url=gal.fotos[_fotoAtualIdx].url;
+  } else {
+    var img=document.getElementById('ov-foto-img');
+    if(!img) return;
+    var matched=(gal.fotos||[]).find(function(f){return f.url===img.src||f.webUrl===img.src||f.thumbUrl===img.src;});
+    if(!matched) return;
+    gal.cover_url=matched.url;
+  }
   s('galerias',gals);
   cov('ov-foto');
   rGalDetalhe();
@@ -6358,11 +6365,6 @@ function rGalDetalhe(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
-  // Auto-heal: se cover_url não corresponde a nenhuma foto, corrige para a primeira foto
-  if(gal.fotos&&gal.fotos.length&&!gal.fotos.find(function(f){return f.url===gal.cover_url;})){
-    gal.cover_url=gal.fotos[0].url;
-    s('galerias',gals);
-  }
   document.getElementById('gal-view-lista').style.display='none';
   document.getElementById('gal-view-detalhe').style.display='';
   // Garante modo grid (caso venha de design mode)
