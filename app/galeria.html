@@ -12,13 +12,14 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Galeria">
 <meta name="twitter:image" content="">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Bodoni+Moda:ital,wght@0,400;0,600;1,400;1,600&family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Jost:wght@300;400;500&family=Raleway:wght@300;400;500&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{
   background:var(--gal-bg,#0C0C0C);
   color:var(--gal-text,#EDE9E3);
   font-family:var(--gal-font-body,'DM Sans',sans-serif);
+  font-weight:var(--gal-body-weight,400);
   min-height:100vh;
 }
 #app-root{min-height:100vh;}
@@ -32,6 +33,7 @@ html,body{
 .gal-titulo{
   font-family:var(--gal-font-title,'Playfair Display',serif);
   font-weight:var(--gal-title-weight,600);
+  font-style:var(--gal-title-style,italic);
   font-size:2.4rem;line-height:1.15;letter-spacing:-.01em;
 }
 .gal-subtitulo{
@@ -268,11 +270,25 @@ var PALETAS_COR = {
 var CAPA_LAYOUTS = { full:{}, split:{}, classico:{}, sem:{} };
 var GRADES = { uniforme:{}, masonry:{}, editorial:{} };
 
+var TIPOGRAFIAS = {
+  cai:      { nome:'Quando a luz cai', fonte_titulo:"'Cormorant Garamond', serif", peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'DM Sans', sans-serif",  peso_corpo:300, estilo_corpo:'normal' },
+  eterno:   { nome:'Amor eterno',      fonte_titulo:"'Bodoni Moda', serif",        peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'Jost', sans-serif",      peso_corpo:300, estilo_corpo:'normal' },
+  casamento:{ nome:'Casamento',        fonte_titulo:"'Cinzel', serif",             peso_titulo:400, estilo_titulo:'normal', fonte_corpo:"'EB Garamond', serif",   peso_corpo:400, estilo_corpo:'italic' },
+  historia: { nome:'Uma história',     fonte_titulo:"'Playfair Display', serif",   peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'Raleway', sans-serif",  peso_corpo:300, estilo_corpo:'normal' },
+  sempre:   { nome:'Para sempre',      fonte_titulo:"'EB Garamond', serif",        peso_titulo:500, estilo_titulo:'normal', fonte_corpo:"'EB Garamond', serif",   peso_corpo:400, estilo_corpo:'italic' },
+  detalhe:  { nome:'Em cada detalhe',  fonte_titulo:"'Lora', serif",              peso_titulo:400, estilo_titulo:'italic', fonte_corpo:"'Raleway', sans-serif",  peso_corpo:300, estilo_corpo:'normal' }
+};
+var TEMA_TIPOGRAFIA_PADRAO = {
+  editorial:'historia', linho:'cai', cinema:'eterno', memorial:'sempre', classico:'casamento', moderno:'detalhe'
+};
+
 function resolverDesign(design){
   var d = design || { tema: 'editorial' };
   var tema = TEMAS_GALERIA[d.tema] || TEMAS_GALERIA.editorial;
   var corKey = d.cor || tema.cor_padrao;
   var paleta = PALETAS_COR[corKey] || PALETAS_COR.preto;
+  var tipoKey = d.tipografia || TEMA_TIPOGRAFIA_PADRAO[d.tema || 'editorial'] || 'historia';
+  var tipo = TIPOGRAFIAS[tipoKey] || TIPOGRAFIAS.historia;
   return {
     tema:         d.tema || 'editorial',
     tema_obj:     tema,
@@ -281,7 +297,9 @@ function resolverDesign(design){
     capa_layout:  d.capa_layout || tema.capa_padrao,
     grade:        d.grade || tema.grade_padrao,
     zoom_grid:    (d.zoom_grid && d.zoom_grid <= 6) ? d.zoom_grid : null,
-    ponto_focal:  d.ponto_focal || { x: 50, y: 50 }
+    ponto_focal:  d.ponto_focal || { x: 50, y: 50 },
+    tipo_key:     tipoKey,
+    tipo:         tipo
   };
 }
 
@@ -339,9 +357,11 @@ function showGate(){
   root.style.setProperty('--gal-bg',     d.paleta.bg);
   root.style.setProperty('--gal-text',   d.paleta.text);
   root.style.setProperty('--gal-accent', d.paleta.accent);
-  root.style.setProperty('--gal-font-title',  d.tema_obj.fonte_titulo);
-  root.style.setProperty('--gal-font-body',   d.tema_obj.fonte_corpo);
-  root.style.setProperty('--gal-title-weight', d.tema_obj.peso_titulo);
+  root.style.setProperty('--gal-font-title',  d.tipo.fonte_titulo);
+  root.style.setProperty('--gal-font-body',   d.tipo.fonte_corpo);
+  root.style.setProperty('--gal-title-weight', d.tipo.peso_titulo);
+  root.style.setProperty('--gal-title-style',  d.tipo.estilo_titulo);
+  root.style.setProperty('--gal-body-weight',  d.tipo.peso_corpo);
 
   document.getElementById('app-root').innerHTML =
     '<div class="gate"><div class="gate-box">'
@@ -397,9 +417,11 @@ function renderizarGaleria(){
   root.style.setProperty('--gal-bg',     d.paleta.bg);
   root.style.setProperty('--gal-text',   d.paleta.text);
   root.style.setProperty('--gal-accent', d.paleta.accent);
-  root.style.setProperty('--gal-font-title',  d.tema_obj.fonte_titulo);
-  root.style.setProperty('--gal-font-body',   d.tema_obj.fonte_corpo);
-  root.style.setProperty('--gal-title-weight', d.tema_obj.peso_titulo);
+  root.style.setProperty('--gal-font-title',  d.tipo.fonte_titulo);
+  root.style.setProperty('--gal-font-body',   d.tipo.fonte_corpo);
+  root.style.setProperty('--gal-title-weight', d.tipo.peso_titulo);
+  root.style.setProperty('--gal-title-style',  d.tipo.estilo_titulo);
+  root.style.setProperty('--gal-body-weight',  d.tipo.peso_corpo);
 
   var coverUrl = _galData.cover_url || (_todasFotos[0] && (_todasFotos[0].webUrl || _todasFotos[0].url)) || '';
   var html = renderCapa(d, coverUrl);
