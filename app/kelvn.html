@@ -1121,7 +1121,7 @@ select.aj-input{cursor:pointer;}
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tamanho das fotos</div>
             <div class="gal-zoom-wrap" style="gap:10px;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-              <input type="range" id="gal-zoom-slider" min="1" max="5" step="1" value="3" oninput="galZoom(this.value)" style="flex:1;">
+              <input type="range" id="gal-zoom-slider" min="1" max="6" step="1" value="3" oninput="galZoom(this.value)" style="flex:1;">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
             </div>
             <div style="font-size:.67rem;color:var(--text-hint);margin-top:.4rem;">Controla quantas fotos aparecem por linha na galeria do cliente</div>
@@ -6208,8 +6208,8 @@ function entrarGaleria(id){
 }
 var _galZoomTimer=null;
 function galZoom(val){
-  // sliderValue 1=esquerda(muitas cols) 5=direita(poucas cols); nCols = 6 - val
-  var nCols = 6 - parseInt(val, 10); // 1→5, 2→4, 3→3, 4→2, 5→1
+  // sliderValue 1=esquerda(muitas cols) 6=direita(poucas cols); nCols = 7 - val
+  var nCols = 7 - parseInt(val, 10); // 1→6, 2→5, 3→4, 4→3, 5→2, 6→1
   if(_designAtual) _designAtual.zoom_grid = nCols;
   salvarDesign();
   atualizarPreview();
@@ -7778,7 +7778,7 @@ function abrirDesignGaleria(){
   var sl=document.getElementById('gal-zoom-slider');
   var savedZoom=_designAtual.zoom_grid;
   // zoom_grid armazenado = nCols (1-5); sliderValue = 6 - nCols (invertido)
-  if(sl) sl.value=(savedZoom && savedZoom <= 5) ? (6-savedZoom) : 3;
+  if(sl) sl.value=(savedZoom && savedZoom <= 6) ? (7-savedZoom) : 3;
 
   // Renderiza controles
   rDzTemas();
@@ -8132,9 +8132,9 @@ function atualizarPreview(){
   // ---- GRID ----
   if(fotos.length){
     var imgSrc = function(f){ return f.thumbUrl || f.webUrl || f.url; };
-    // zoom_grid é número de colunas (1–5); ignorar valores legados (>5)
+    // zoom_grid é número de colunas (1–6); ignorar valores legados (>6)
     var rawZoom = _designAtual.zoom_grid;
-    var nCols = (rawZoom && rawZoom <= 5) ? rawZoom : 4;
+    var nCols = (rawZoom && rawZoom <= 6) ? rawZoom : 4;
     if(d.grade === 'uniforme'){
       html += '<div style="display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:4px;padding:6px;">';
       fotos.forEach(function(f){
