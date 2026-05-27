@@ -7919,19 +7919,66 @@ function aplicarTemplate(id){
 function rDzTemas(){
   var el = document.getElementById('dz-temas');
   if(!el) return;
+  // Pega dados da galeria atual para usar na miniatura
+  var galerias = g('galerias') || [];
+  var gal = galerias.find(function(x){ return x.id === _galAtualId; }) || {};
+  var coverUrl = gal.cover_url || (gal.fotos && gal.fotos[0] && (gal.fotos[0].thumbUrl || gal.fotos[0].webUrl || gal.fotos[0].url)) || '';
+  var nomeCliente = gal.nomeCliente || 'Galeria';
+  var dataEv = gal.dataEvento ? fdMini(gal.dataEvento) : '';
+
   el.innerHTML = Object.keys(TEMAS_GALERIA).map(function(key){
     var t = TEMAS_GALERIA[key];
     var ativo = _designAtual.tema === key;
     var paleta = PALETAS_COR[t.cor_padrao];
+    var capaPadrao = t.capa_padrao;
+
+    // Miniatura da capa conforme o layout padrão do tema
+    var miniCapa = '';
+    if(coverUrl && capaPadrao === 'full'){
+      miniCapa =
+        '<div style="position:relative;height:80px;overflow:hidden;">' +
+          '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
+          '<div style="position:absolute;inset:0;background:rgba(0,0,0,.32);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">' +
+            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.75rem;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.5);text-align:center;padding:0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+nomeCliente+'</div>' +
+            (dataEv ? '<div style="font-size:.5rem;color:rgba(255,255,255,.7);letter-spacing:.06em;">'+dataEv+'</div>' : '') +
+          '</div>' +
+        '</div>';
+    } else if(coverUrl && capaPadrao === 'split'){
+      miniCapa =
+        '<div style="height:80px;display:flex;overflow:hidden;">' +
+          '<div style="width:55%;overflow:hidden;flex-shrink:0;">' +
+            '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
+          '</div>' +
+          '<div style="flex:1;background:'+paleta.bg+';display:flex;flex-direction:column;justify-content:center;padding:6px 8px;gap:2px;">' +
+            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.62rem;color:'+paleta.text+';line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nomeCliente+'</div>' +
+            (dataEv ? '<div style="font-size:.47rem;color:'+paleta.accent+';letter-spacing:.05em;">'+dataEv+'</div>' : '') +
+          '</div>' +
+        '</div>';
+    } else if(coverUrl && capaPadrao === 'classico'){
+      miniCapa =
+        '<div style="height:80px;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;">' +
+          '<div style="width:70%;height:44px;overflow:hidden;border-radius:1px;">' +
+            '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
+          '</div>' +
+          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.6rem;color:'+paleta.text+';text-align:center;">'+nomeCliente+'</div>' +
+        '</div>';
+    } else {
+      // Sem capa ou sem foto: apenas tipografia sobre o fundo do tema
+      miniCapa =
+        '<div style="height:80px;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;">' +
+          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.85rem;color:'+paleta.text+';">'+nomeCliente+'</div>' +
+          (dataEv ? '<div style="font-size:.5rem;color:'+paleta.accent+';letter-spacing:.06em;">'+dataEv+'</div>' : '') +
+        '</div>';
+    }
+
     return '<button onclick="selecionarTema(\''+key+'\')" style="' +
       'padding:0;border-radius:var(--radius);overflow:hidden;cursor:pointer;' +
-      'border:'+(ativo?'1.5px solid var(--amber)':'1px solid var(--border-strong)')+';' +
-      'background:transparent;text-align:left;transition:border-color .15s;">' +
-      '<div style="height:48px;background:'+paleta.bg+';display:flex;align-items:center;padding:8px 10px;">' +
-        '<div style="font-family:'+t.fonte_titulo+';font-size:.85rem;font-weight:'+t.peso_titulo+';color:'+paleta.text+';">Aa</div>' +
-      '</div>' +
-      '<div style="padding:6px 10px 8px;">' +
-        '<div style="font-size:.78rem;font-weight:500;color:var(--text);">'+t.nome+'</div>' +
+      'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
+      'background:transparent;text-align:left;transition:border-color .15s;' +
+      'box-shadow:'+(ativo?'0 0 0 3px rgba(196,120,10,.15)':'none')+'">' +
+      miniCapa +
+      '<div style="padding:5px 8px 7px;">' +
+        '<div style="font-size:.75rem;font-weight:500;color:var(--text);">'+t.nome+'</div>' +
       '</div>' +
     '</button>';
   }).join('');
