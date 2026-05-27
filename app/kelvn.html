@@ -1111,7 +1111,7 @@ select.aj-input{cursor:pointer;}
           </div>
           <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Paleta de cores</div>
-            <div id="dz-cores" style="display:flex;flex-direction:column;gap:2px;"></div>
+            <div id="dz-cores" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;"></div>
           </div>
           <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Grade de fotos</div>
@@ -8084,23 +8084,27 @@ function rDzCores(){
   el.innerHTML = Object.keys(PALETAS_COR).map(function(key){
     var p = PALETAS_COR[key];
     var ativo = corAtual === key;
-    var dots = [p.c1||p.bg, p.c2||p.accent, p.c3||p.text].map(function(c){
-      return '<span style="width:13px;height:13px;border-radius:50%;background:'+c+';display:inline-block;border:.5px solid rgba(0,0,0,.12);flex-shrink:0;"></span>';
-    }).join('');
+    var faixa =
+      '<div style="display:flex;height:22px;overflow:hidden;border-radius:5px 5px 0 0;">' +
+        '<div style="flex:1;background:'+(p.c1||p.bg)+'"></div>' +
+        '<div style="flex:1;background:'+(p.c2||p.accent)+'"></div>' +
+        '<div style="flex:1;background:'+(p.c3||p.text)+'"></div>' +
+      '</div>';
     return '<button onclick="selecionarCor(\''+key+'\')" title="'+(p.desc||p.nome)+'" style="' +
-      'width:100%;display:flex;align-items:center;gap:10px;padding:7px 10px;' +
-      'border-radius:var(--radius);cursor:pointer;text-align:left;background:' +
-      (ativo?'var(--amber-light)':'transparent')+';' +
-      'border:'+(ativo?'1px solid var(--amber)':'1px solid transparent')+';' +
-      'transition:background .12s,border-color .12s;">' +
-      '<span style="display:flex;gap:4px;align-items:center;">' + dots + '</span>' +
-      '<span style="font-size:.74rem;font-weight:'+(ativo?'500':'400')+';color:'+(ativo?'var(--amber-deep)':'var(--text-muted)')+';">'+p.nome+'</span>' +
+      'padding:0;border-radius:var(--radius);overflow:hidden;cursor:pointer;text-align:left;' +
+      'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
+      'background:var(--surface);transition:border-color .15s;' +
+      'box-shadow:'+(ativo?'0 0 0 3px rgba(196,120,10,.15)':'none')+'">' +
+      faixa +
+      '<div style="padding:5px 8px 7px;">' +
+        '<div style="font-size:.72rem;font-weight:500;color:var(--text);">'+p.nome+'</div>' +
+      '</div>' +
     '</button>';
   }).join('');
-  el.style.display = 'flex';
-  el.style.flexDirection = 'column';
-  el.style.gap = '2px';
-  el.style.gridTemplateColumns = '';
+  el.style.display = 'grid';
+  el.style.gridTemplateColumns = 'repeat(2,1fr)';
+  el.style.flexDirection = '';
+  el.style.gap = '.75rem';
 }
 
 function selecionarCor(key){
