@@ -433,7 +433,8 @@ function renderizarGaleria(){
         if(d.grade==='uniforme'||d.grade==='editorial'){
           grid.style.gridTemplateColumns='repeat('+nc+',1fr)';
         } else if(d.grade==='masonry'){
-          grid.style.columns=nc+' auto';
+          grid.style.columnCount=String(nc);
+          grid.style.columnWidth='auto';
         }
       }
     }
@@ -601,8 +602,10 @@ function filtrarSubgalPublica(subgalId){
       var nc=_designResolvido.zoom_grid;
       if(_designResolvido.grade==='uniforme'||_designResolvido.grade==='editorial')
         grid.style.gridTemplateColumns='repeat('+nc+',1fr)';
-      else if(_designResolvido.grade==='masonry')
-        grid.style.columns=nc+' auto';
+      else if(_designResolvido.grade==='masonry'){
+        grid.style.columnCount=String(nc);
+        grid.style.columnWidth='auto';
+      }
     }
     document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
       var wrap = img.closest('.gal-foto-wrap');
