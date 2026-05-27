@@ -7709,12 +7709,12 @@ async function sendAIMessage(){
 // ========================================================
 
 var TEMAS_GALERIA = {
-  editorial: { nome:'Editorial', desc:'Fundo escuro, serifa elegante, capa dramática', cor_padrao:'preto', capa_padrao:'full', grade_padrao:'masonry', fonte_titulo:"'Playfair Display', serif", fonte_corpo:"'DM Sans', sans-serif", peso_titulo:600 },
-  linho:     { nome:'Linho', desc:'Bege quente, tipografia delicada, grid orgânico', cor_padrao:'creme', capa_padrao:'split', grade_padrao:'masonry', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:500 },
-  cinema:    { nome:'Cinema', desc:'Preto absoluto, tipografia moderna, capa cinematográfica', cor_padrao:'preto_puro', capa_padrao:'full', grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:600 },
-  memorial:  { nome:'Memorial', desc:'Branco museu, muito respiro, grid minimalista', cor_padrao:'branco', capa_padrao:'classico', grade_padrao:'uniforme', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:400 },
-  classico:  { nome:'Clássico', desc:'Creme, serifa tradicional, capa centralizada', cor_padrao:'sepia', capa_padrao:'classico', grade_padrao:'masonry', fonte_titulo:"'Playfair Display', serif", fonte_corpo:"'DM Sans', sans-serif", peso_titulo:700 },
-  moderno:   { nome:'Moderno', desc:'Off-white, sans-serif limpa, grid uniforme', cor_padrao:'offwhite', capa_padrao:'split', grade_padrao:'uniforme', fonte_titulo:"'Inter', sans-serif", fonte_corpo:"'Inter', sans-serif", peso_titulo:500 }
+  editorial: { nome:'Editorial', desc:'Fundo escuro, serifa elegante, capa dramática', cor_padrao:'preto',     capa_padrao:'full',      grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:600 },
+  linho:     { nome:'Linho',     desc:'Bege quente, tipografia delicada, grid orgânico', cor_padrao:'creme',  capa_padrao:'dividido',  grade_padrao:'masonry',   fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 },
+  cinema:    { nome:'Cinema',    desc:'Preto absoluto, tipografia moderna, capa cinematográfica', cor_padrao:'preto_puro', capa_padrao:'full', grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif",  fonte_corpo:"'Inter', sans-serif",    peso_titulo:600 },
+  memorial:  { nome:'Memorial',  desc:'Branco museu, muito respiro, grid minimalista', cor_padrao:'branco',   capa_padrao:'retrato',   grade_padrao:'uniforme',  fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:400 },
+  classico:  { nome:'Clássico',  desc:'Creme, serifa tradicional, capa centralizada', cor_padrao:'sepia',    capa_padrao:'retrato',   grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:700 },
+  moderno:   { nome:'Moderno',   desc:'Off-white, sans-serif limpa, grid uniforme', cor_padrao:'offwhite',   capa_padrao:'horizonte', grade_padrao:'uniforme',  fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 }
 };
 
 var PALETAS_COR = {
@@ -7727,10 +7727,10 @@ var PALETAS_COR = {
 };
 
 var CAPA_LAYOUTS = {
-  full:     { nome:'Cheia',    desc:'Foto ocupa toda a tela com título sobreposto' },
-  split:    { nome:'Dividida', desc:'Foto à esquerda, título à direita' },
-  classico: { nome:'Clássica', desc:'Foto centralizada com título abaixo' },
-  sem:      { nome:'Sem capa', desc:'Apenas título grande, sem foto de destaque' }
+  full:     { nome:'Full Editorial',    desc:'Imagem preenche toda a capa. Título centralizado com overlay.' },
+  dividido: { nome:'Dividido',          desc:'Foto ocupa metade esquerda. Painel claro com título à direita.' },
+  retrato:  { nome:'Retrato Centrado',  desc:'Foto pequena centralizada. Fundo claro, muito espaço negativo.' },
+  horizonte:{ nome:'Horizonte',         desc:'Banner fotográfico no topo. Título e data no espaço limpo abaixo.' }
 };
 
 var GRADES = {
@@ -7833,12 +7833,12 @@ function voltarDetalheGaleria(){
 
 // Templates pré-definidos
 var TEMPLATES_GALERIA = [
-  { id:'atemporal',    nome:'Atemporal',       desc:'Editorial em preto e branco',   tema:'editorial', cor:'preto',     capa_layout:'full',     grade:'masonry'  },
-  { id:'luz_tarde',    nome:'Luz de Tarde',    desc:'Linho, tons de creme quente',   tema:'linho',     cor:'creme',     capa_layout:'split',    grade:'uniforme' },
-  { id:'noir',         nome:'Noir',            desc:'Cinema, escuro e dramático',    tema:'cinema',    cor:'preto_puro',capa_layout:'sem',      grade:'editorial'},
-  { id:'galeria_branca',nome:'Galeria Branca', desc:'Clássico, branco e limpo',      tema:'classico',  cor:'branco',    capa_layout:'classico', grade:'uniforme' },
-  { id:'contemporaneo',nome:'Contemporâneo',   desc:'Moderno, off-white sutil',      tema:'moderno',   cor:'offwhite',  capa_layout:'full',     grade:'masonry'  },
-  { id:'vintage',      nome:'Vintage',         desc:'Sépia, nostálgico e quente',    tema:'memorial',  cor:'sepia',     capa_layout:'classico', grade:'uniforme' }
+  { id:'atemporal',    nome:'Atemporal',       desc:'Editorial em preto e branco',   tema:'editorial', cor:'preto',     capa_layout:'full',      grade:'masonry'  },
+  { id:'luz_tarde',    nome:'Luz de Tarde',    desc:'Linho, tons de creme quente',   tema:'linho',     cor:'creme',     capa_layout:'dividido',  grade:'uniforme' },
+  { id:'noir',         nome:'Noir',            desc:'Cinema, escuro e dramático',    tema:'cinema',    cor:'preto_puro',capa_layout:'horizonte', grade:'editorial'},
+  { id:'galeria_branca',nome:'Galeria Branca', desc:'Clássico, branco e limpo',      tema:'classico',  cor:'branco',    capa_layout:'retrato',   grade:'uniforme' },
+  { id:'contemporaneo',nome:'Contemporâneo',   desc:'Moderno, off-white sutil',      tema:'moderno',   cor:'offwhite',  capa_layout:'full',      grade:'masonry'  },
+  { id:'vintage',      nome:'Vintage',         desc:'Sépia, nostálgico e quente',    tema:'memorial',  cor:'sepia',     capa_layout:'retrato',   grade:'uniforme' }
 ];
 
 function rDzTemplates(){
@@ -7877,25 +7877,30 @@ function buildTemplateMiniPreview(p, t, tpl){
   if(tpl.capa_layout === 'full'){
     cover = '<div style="position:relative;height:50px;background:'+p.bg+';overflow:hidden;">' +
       '<div style="position:absolute;inset:0;background:'+p.text+';opacity:.55;"></div>' +
-      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">' +
+        '<div style="font-size:.42rem;letter-spacing:.1em;color:'+p.bg+';opacity:.7;text-transform:uppercase;">GALERIA</div>' +
         '<div style="font-family:'+t.fonte_titulo+';font-size:.72rem;font-weight:'+t.peso_titulo+';color:'+p.bg+';text-shadow:0 1px 4px rgba(0,0,0,.3);">Casal &amp; Casal</div>' +
       '</div>' +
     '</div>';
-  } else if(tpl.capa_layout === 'split'){
+  } else if(tpl.capa_layout === 'dividido'){
     cover = '<div style="display:flex;height:50px;background:'+p.bg+';">' +
       '<div style="width:55%;background:'+p.text+';opacity:.45;"></div>' +
-      '<div style="width:45%;display:flex;align-items:center;padding:0 8px;">' +
-        '<div style="font-family:'+t.fonte_titulo+';font-size:.6rem;font-weight:'+t.peso_titulo+';color:'+p.text+';opacity:.8;line-height:1.3;">Casal<br>&amp; Casal</div>' +
+      '<div style="width:45%;display:flex;flex-direction:column;justify-content:center;padding:0 7px;gap:2px;">' +
+        '<div style="font-size:.4rem;letter-spacing:.08em;color:'+p.accent+';text-transform:uppercase;">GALERIA</div>' +
+        '<div style="font-family:'+t.fonte_titulo+';font-size:.6rem;font-weight:'+t.peso_titulo+';color:'+p.text+';line-height:1.2;">Casal &amp; Casal</div>' +
       '</div>' +
     '</div>';
-  } else if(tpl.capa_layout === 'classico'){
-    cover = '<div style="background:'+p.bg+';padding:6px;text-align:center;">' +
-      '<div style="height:22px;background:'+p.text+';opacity:.35;width:72%;margin:0 auto 4px;border-radius:1px;"></div>' +
+  } else if(tpl.capa_layout === 'retrato'){
+    cover = '<div style="background:'+p.bg+';padding:5px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;">' +
+      '<div style="height:20px;background:'+p.text+';opacity:.35;width:30%;border-radius:1px;margin-bottom:2px;"></div>' +
       '<div style="font-family:'+t.fonte_titulo+';font-size:.62rem;font-weight:'+t.peso_titulo+';color:'+p.text+';opacity:.75;">Casal &amp; Casal</div>' +
     '</div>';
   } else {
-    cover = '<div style="background:'+p.bg+';padding:10px 8px 4px;text-align:center;">' +
-      '<div style="font-family:'+t.fonte_titulo+';font-size:.72rem;font-weight:'+t.peso_titulo+';color:'+p.text+';opacity:.75;">Casal &amp; Casal</div>' +
+    cover = '<div style="background:'+p.bg+';overflow:hidden;">' +
+      '<div style="height:22px;background:'+p.text+';opacity:.35;"></div>' +
+      '<div style="padding:4px 8px;text-align:center;">' +
+        '<div style="font-family:'+t.fonte_titulo+';font-size:.65rem;font-weight:'+t.peso_titulo+';color:'+p.text+';opacity:.75;">Casal &amp; Casal</div>' +
+      '</div>' +
     '</div>';
   }
   // Mini grid
@@ -7972,27 +7977,42 @@ function rDzTemas(){
             (dataEv ? '<div style="font-size:.55rem;color:rgba(255,255,255,.75);letter-spacing:.06em;">'+dataEv+'</div>' : '') +
           '</div>' +
         '</div>';
-    } else if(coverUrl && capaPadrao === 'split'){
+    } else if(coverUrl && capaPadrao === 'dividido'){
       miniCapa =
         '<div style="aspect-ratio:16/9;display:flex;overflow:hidden;">' +
           '<div style="width:55%;overflow:hidden;flex-shrink:0;">' +
             '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
           '</div>' +
           '<div style="flex:1;background:'+paleta.bg+';display:flex;flex-direction:column;justify-content:center;padding:8px 10px;gap:3px;">' +
-            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.72rem;color:'+paleta.text+';line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nomeCliente+'</div>' +
-            (dataEv ? '<div style="font-size:.52rem;color:'+paleta.accent+';letter-spacing:.05em;">'+dataEv+'</div>' : '') +
+            '<div style="font-size:.44rem;letter-spacing:.1em;color:'+paleta.accent+';text-transform:uppercase;margin-bottom:2px;">GALERIA</div>' +
+            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.72rem;color:'+paleta.text+';line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+nomeCliente+'</div>' +
+            '<div style="width:16px;height:.5px;background:'+paleta.accent+';margin:3px 0;"></div>' +
+            (dataEv ? '<div style="font-size:.44rem;color:'+paleta.accent+';letter-spacing:.06em;">'+dataEv+'</div>' : '') +
           '</div>' +
         '</div>';
-    } else if(coverUrl && capaPadrao === 'classico'){
+    } else if(coverUrl && capaPadrao === 'retrato'){
       miniCapa =
-        '<div style="aspect-ratio:16/9;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:8px;">' +
-          '<div style="width:65%;flex:1;overflow:hidden;border-radius:1px;min-height:0;">' +
+        '<div style="aspect-ratio:16/9;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:6px;">' +
+          '<div style="font-size:.44rem;letter-spacing:.1em;color:'+paleta.accent+';text-transform:uppercase;margin-bottom:4px;">GALERIA DE CASAMENTO</div>' +
+          '<div style="width:34%;aspect-ratio:3/4;overflow:hidden;margin-bottom:5px;">' +
             '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
           '</div>' +
-          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.68rem;color:'+paleta.text+';text-align:center;flex-shrink:0;">'+nomeCliente+'</div>' +
+          '<div style="width:16px;height:1.5px;background:var(--amber);margin-bottom:4px;"></div>' +
+          '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.68rem;color:'+paleta.text+';text-align:center;">'+nomeCliente+'</div>' +
+        '</div>';
+    } else if(coverUrl && capaPadrao === 'horizonte'){
+      miniCapa =
+        '<div style="aspect-ratio:16/9;background:'+paleta.bg+';display:flex;flex-direction:column;overflow:hidden;">' +
+          '<div style="height:55%;overflow:hidden;">' +
+            '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;display:block;">' +
+          '</div>' +
+          '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 8px;">' +
+            '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:.72rem;color:'+paleta.text+';text-align:center;line-height:1.1;">'+nomeCliente+'</div>' +
+            (dataEv ? '<div style="font-size:.44rem;color:'+paleta.accent+';letter-spacing:.06em;">'+dataEv+'</div>' : '') +
+          '</div>' +
         '</div>';
     } else {
-      // Sem capa ou sem foto: apenas tipografia sobre o fundo do tema
+      // fallback sem foto
       miniCapa =
         '<div style="aspect-ratio:16/9;background:'+paleta.bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">' +
           '<div style="font-family:'+t.fonte_titulo+';font-weight:'+t.peso_titulo+';font-size:1rem;color:'+paleta.text+';">'+nomeCliente+'</div>' +
@@ -8104,10 +8124,10 @@ function rDzCapas(){
   var capaAtual = _designAtual.capa_layout || tema.capa_padrao;
 
   var SVGS = {
-    full:     '<rect x="2" y="2" width="56" height="32" fill="currentColor" opacity=".6"/><rect x="14" y="14" width="32" height="2" fill="white" opacity=".9"/>',
-    split:    '<rect x="2" y="2" width="28" height="32" fill="currentColor" opacity=".6"/><rect x="34" y="14" width="18" height="2" fill="currentColor" opacity=".5"/><rect x="34" y="18" width="12" height="1.5" fill="currentColor" opacity=".3"/>',
-    classico: '<rect x="14" y="4" width="32" height="20" fill="currentColor" opacity=".6"/><rect x="18" y="28" width="24" height="2" fill="currentColor" opacity=".5"/>',
-    sem:      '<rect x="6" y="14" width="48" height="3" fill="currentColor" opacity=".5"/><rect x="14" y="20" width="32" height="2" fill="currentColor" opacity=".3"/>'
+    full:      '<rect x="2" y="2" width="56" height="32" fill="currentColor" opacity=".55"/><rect x="14" y="13" width="32" height="2.5" fill="white" opacity=".9"/><rect x="20" y="18" width="20" height="1.5" fill="white" opacity=".6"/>',
+    dividido:  '<rect x="2" y="2" width="28" height="32" fill="currentColor" opacity=".55"/><rect x="34" y="12" width="20" height="3" fill="currentColor" opacity=".6"/><rect x="34" y="17" width="14" height="1.5" fill="currentColor" opacity=".35"/><rect x="34" y="21" width="18" height="1" fill="currentColor" opacity=".2"/>',
+    retrato:   '<rect x="18" y="5" width="24" height="16" fill="currentColor" opacity=".55"/><rect x="20" y="25" width="20" height="2.5" fill="currentColor" opacity=".5"/><rect x="22" y="29" width="16" height="1.5" fill="currentColor" opacity=".3"/>',
+    horizonte: '<rect x="2" y="2" width="56" height="16" fill="currentColor" opacity=".55"/><rect x="14" y="24" width="32" height="2.5" fill="currentColor" opacity=".5"/><rect x="18" y="29" width="24" height="1.5" fill="currentColor" opacity=".3"/>'
   };
 
   el.innerHTML = Object.keys(CAPA_LAYOUTS).map(function(key){
@@ -8125,7 +8145,7 @@ function rDzCapas(){
   }).join('');
 
   var focalWrap = document.getElementById('dz-focal-wrap');
-  if(focalWrap) focalWrap.style.display = capaAtual === 'sem' ? 'none' : '';
+  if(focalWrap) focalWrap.style.display = (capaAtual === 'horizonte') ? '' : '';
 }
 
 function selecionarCapaLayout(key){
@@ -8212,38 +8232,70 @@ function atualizarPreview(){
   var html = '<div style="background:'+d.paleta.bg+';color:'+d.paleta.text+';font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';min-height:100%;overflow:hidden;">';
 
   // ---- CAPA ----
-  if(d.capa_layout === 'full' && coverUrl){
-    html += '<div style="position:relative;aspect-ratio:16/9;overflow:hidden;">' +
-      '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;">' +
-      '<div style="position:absolute;inset:0;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;">' +
-        '<div style="text-align:center;color:#fff;">' +
-          '<div style="font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';font-size:2rem;text-shadow:0 2px 8px rgba(0,0,0,.3);">' + (gal.nomeCliente||'Galeria') + '</div>' +
-          (gal.dataEvento ? '<div style="font-family:'+d.tipo.fonte_corpo+';font-size:.72rem;opacity:.85;margin-top:6px;letter-spacing:.06em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
-        '</div>' +
+  var pNome = gal.nomeCliente || 'Galeria';
+  var pStudio = (gal.nomeEstudio || '').toUpperCase();
+  var pLabel = pStudio || 'GALERIA DE CASAMENTO';
+  var pData = gal.dataEvento ? fdMini(gal.dataEvento) : '';
+  var pSubInfo = pData; // pode expandir com local se disponível
+  var pf = d.ponto_focal.x+'% '+d.ponto_focal.y+'%';
+  var tT = 'font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';';
+  var tB = 'font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';';
+
+  if(d.capa_layout === 'full'){
+    // Full Editorial — foto preenche tudo, overlay escuro, label topo, título centro, data abaixo
+    html += '<div style="position:relative;aspect-ratio:16/9;overflow:hidden;">';
+    if(coverUrl) html += '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">';
+    else html += '<div style="width:100%;height:100%;background:#111;"></div>';
+    html +=
+      '<div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.3) 0%, rgba(0,0,0,.2) 50%, rgba(0,0,0,.45) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:1.5rem;">' +
+        '<div style="'+tB+'font-size:.52rem;letter-spacing:.14em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:.6rem;">'+pLabel+'</div>' +
+        '<div style="width:28px;height:.5px;background:rgba(255,255,255,.4);margin-bottom:.8rem;"></div>' +
+        '<div style="'+tT+'font-size:2rem;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);text-align:center;line-height:1.1;">'+pNome+'</div>' +
+        (pSubInfo ? '<div style="'+tB+'font-size:.56rem;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase;margin-top:.8rem;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
-  } else if(d.capa_layout === 'split' && coverUrl){
-    html += '<div style="display:flex;aspect-ratio:16/8;">' +
-      '<div style="width:55%;overflow:hidden;">' +
-        '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;">' +
+  } else if(d.capa_layout === 'dividido'){
+    // Dividido — foto esquerda 55%, painel claro direita, label topo, título grande, linha, data
+    html += '<div style="display:flex;aspect-ratio:16/9;overflow:hidden;">' +
+      '<div style="width:55%;flex-shrink:0;overflow:hidden;">';
+    if(coverUrl) html += '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">';
+    else html += '<div style="width:100%;height:100%;background:#222;"></div>';
+    html +=
       '</div>' +
-      '<div style="width:45%;display:flex;flex-direction:column;justify-content:center;padding:1.5rem;">' +
-        '<div style="font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';font-size:1.5rem;line-height:1.2;">' + (gal.nomeCliente||'Galeria') + '</div>' +
-        (gal.dataEvento ? '<div style="font-family:'+d.tipo.fonte_corpo+';font-size:.7rem;color:'+d.paleta.accent+';margin-top:8px;letter-spacing:.06em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
+      '<div style="flex:1;background:'+d.paleta.bg+';display:flex;flex-direction:column;justify-content:center;padding:1.5rem 1.2rem;gap:0;">' +
+        '<div style="'+tB+'font-size:.5rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.6rem;">GALERIA · '+(pData ? pData.split(' ').pop() : '2025')+'</div>' +
+        '<div style="'+tT+'font-size:1.7rem;color:'+d.paleta.text+';line-height:1.05;margin-bottom:.6rem;">'+pNome+'</div>' +
+        '<div style="width:24px;height:.5px;background:'+d.paleta.accent+';margin-bottom:.6rem;"></div>' +
+        (pSubInfo ? '<div style="'+tB+'font-size:.5rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
-  } else if(d.capa_layout === 'classico' && coverUrl){
-    html += '<div style="padding:1.5rem;text-align:center;">' +
-      '<div style="max-width:75%;margin:0 auto 1rem;overflow:hidden;border-radius:2px;">' +
-        '<img src="'+coverUrl+'" style="width:100%;display:block;object-fit:cover;object-position:'+d.ponto_focal.x+'% '+d.ponto_focal.y+'%;aspect-ratio:3/2;">' +
-      '</div>' +
-      '<div style="font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';font-size:1.4rem;">' + (gal.nomeCliente||'Galeria') + '</div>' +
-      (gal.dataEvento ? '<div style="font-family:'+d.tipo.fonte_corpo+';font-size:.68rem;color:'+d.paleta.accent+';margin-top:4px;letter-spacing:.06em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
+  } else if(d.capa_layout === 'retrato'){
+    // Retrato Centrado — fundo claro, label topo, foto retrato pequena central, linha amber, título, data
+    html += '<div style="background:'+d.paleta.bg+';padding:1.5rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0;">' +
+      '<div style="'+tB+'font-size:.5rem;letter-spacing:.14em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:1rem;">'+pLabel+'</div>';
+    if(coverUrl){
+      html += '<div style="width:38%;aspect-ratio:3/4;overflow:hidden;margin-bottom:.8rem;">' +
+        '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">' +
+      '</div>';
+    }
+    html +=
+      '<div style="width:20px;height:1.5px;background:var(--amber);margin-bottom:.8rem;"></div>' +
+      '<div style="'+tT+'font-size:1.5rem;color:'+d.paleta.text+';margin-bottom:.5rem;">'+pNome+'</div>' +
+      (pSubInfo ? '<div style="'+tB+'font-size:.5rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
     '</div>';
   } else {
-    html += '<div style="padding:2.5rem 1.5rem 1.5rem;text-align:center;">' +
-      '<div style="font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';font-size:1.8rem;">' + (gal.nomeCliente||'Galeria') + '</div>' +
-      (gal.dataEvento ? '<div style="font-family:'+d.tipo.fonte_corpo+';font-size:.7rem;color:'+d.paleta.accent+';margin-top:6px;letter-spacing:.06em;">'+fdMini(gal.dataEvento)+'</div>' : '') +
+    // Horizonte — banner foto topo ~40%, espaço limpo embaixo com título e data
+    html += '<div style="background:'+d.paleta.bg+';overflow:hidden;">';
+    if(coverUrl){
+      html += '<div style="width:100%;aspect-ratio:21/9;overflow:hidden;">' +
+        '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">' +
+      '</div>';
+    }
+    html +=
+      '<div style="padding:1.5rem;text-align:center;">' +
+        '<div style="'+tT+'font-size:1.8rem;color:'+d.paleta.text+';margin-bottom:.5rem;">'+pNome+'</div>' +
+        (pSubInfo ? '<div style="'+tB+'font-size:.5rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+      '</div>' +
     '</div>';
   }
 

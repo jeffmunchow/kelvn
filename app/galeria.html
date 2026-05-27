@@ -90,11 +90,28 @@ html,body{
 .capa-classico-img img{width:100%;height:100%;object-fit:cover;display:block;}
 .capa-classico .gal-titulo{font-size:2.4rem;}
 
-/* Capa RETRATO */
+/* Capa DIVIDIDO */
+.capa-dividido{display:grid;grid-template-columns:55% 45%;min-height:60vh;}
+.capa-dividido-img{overflow:hidden;}
+.capa-dividido-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.capa-dividido-texto{display:flex;flex-direction:column;justify-content:center;padding:3rem 2.5rem;}
+.capa-dividido-texto .gal-titulo{font-size:2.6rem;line-height:1.05;}
+.capa-dividido-linha{width:36px;height:.5px;background:var(--gal-accent);margin:1rem 0;}
 
-/* Capa SEM */
-.capa-sem{padding:5rem 2rem 3rem;text-align:center;}
-.capa-sem .gal-titulo{font-size:3.2rem;}
+/* Capa RETRATO */
+.capa-retrato{padding:3.5rem 2rem 2.5rem;text-align:center;display:flex;flex-direction:column;align-items:center;}
+.capa-retrato-img{width:42%;max-width:340px;aspect-ratio:3/4;overflow:hidden;margin-bottom:1.5rem;}
+.capa-retrato-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.capa-retrato-linha{width:28px;height:2px;background:var(--gal-accent);margin:0 auto 1.2rem;opacity:.7;}
+.capa-retrato .gal-titulo{font-size:2.4rem;}
+
+/* Capa HORIZONTE */
+.capa-horizonte{}
+.capa-horizonte-banner{width:100%;aspect-ratio:21/9;overflow:hidden;position:relative;}
+.capa-horizonte-banner img{width:100%;height:100%;object-fit:cover;display:block;}
+.capa-horizonte-texto{padding:2.5rem 2rem 2rem;text-align:center;}
+.capa-horizonte-texto .gal-titulo{font-size:2.8rem;}
+.capa-horizonte-linha{width:40px;height:.5px;background:var(--gal-accent);margin:1.2rem auto;}
 
 /* ============ SUB-NAV ============ */
 .gal-subnav{
@@ -252,12 +269,12 @@ html,body{
 <script>
 // ===== SISTEMA DE DESIGN DE GALERIAS (espelha kelvn.html) =====
 var TEMAS_GALERIA = {
-  editorial: { nome:'Editorial', cor_padrao:'preto',      capa_padrao:'full',     grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",      fonte_corpo:"'DM Sans', sans-serif", peso_titulo:600 },
-  linho:     { nome:'Linho',     cor_padrao:'creme',      capa_padrao:'split',    grade_padrao:'masonry',   fonte_titulo:"'Cormorant Garamond', serif",    fonte_corpo:"'Inter', sans-serif",   peso_titulo:500 },
-  cinema:    { nome:'Cinema',    cor_padrao:'preto_puro', capa_padrao:'full',     grade_padrao:'editorial', fonte_titulo:"'Inter', sans-serif",            fonte_corpo:"'Inter', sans-serif",   peso_titulo:600 },
-  memorial:  { nome:'Memorial',  cor_padrao:'branco',     capa_padrao:'classico', grade_padrao:'uniforme',  fonte_titulo:"'Cormorant Garamond', serif",    fonte_corpo:"'Inter', sans-serif",   peso_titulo:400 },
-  classico:  { nome:'Clássico',  cor_padrao:'sepia',      capa_padrao:'classico', grade_padrao:'masonry',   fonte_titulo:"'Playfair Display', serif",      fonte_corpo:"'DM Sans', sans-serif", peso_titulo:700 },
-  moderno:   { nome:'Moderno',   cor_padrao:'offwhite',   capa_padrao:'split',    grade_padrao:'uniforme',  fonte_titulo:"'Inter', sans-serif",            fonte_corpo:"'Inter', sans-serif",   peso_titulo:500 }
+  editorial: { nome:'Editorial', cor_padrao:'preto',     capa_padrao:'full',      grade_padrao:'masonry',  fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:600 },
+  linho:     { nome:'Linho',     cor_padrao:'creme',     capa_padrao:'dividido',  grade_padrao:'masonry',  fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 },
+  cinema:    { nome:'Cinema',    cor_padrao:'preto_puro',capa_padrao:'full',      grade_padrao:'editorial',fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:600 },
+  memorial:  { nome:'Memorial',  cor_padrao:'branco',    capa_padrao:'retrato',   grade_padrao:'uniforme', fonte_titulo:"'Cormorant Garamond', serif", fonte_corpo:"'Inter', sans-serif",    peso_titulo:400 },
+  classico:  { nome:'Clássico',  cor_padrao:'sepia',     capa_padrao:'retrato',   grade_padrao:'masonry',  fonte_titulo:"'Playfair Display', serif",   fonte_corpo:"'DM Sans', sans-serif",  peso_titulo:700 },
+  moderno:   { nome:'Moderno',   cor_padrao:'offwhite',  capa_padrao:'horizonte', grade_padrao:'uniforme', fonte_titulo:"'Inter', sans-serif",         fonte_corpo:"'Inter', sans-serif",    peso_titulo:500 }
 };
 var PALETAS_COR = {
   preto:      { nome:'Preto',     bg:'#0C0C0C', text:'#EDE9E3', accent:'rgba(255,255,255,.45)' },
@@ -267,7 +284,7 @@ var PALETAS_COR = {
   branco:     { nome:'Museu',     bg:'#FAFAF8', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   },
   offwhite:   { nome:'Off-white', bg:'#F4F4F2', text:'#1A1A1A', accent:'rgba(26,26,26,.45)'   }
 };
-var CAPA_LAYOUTS = { full:{}, split:{}, classico:{}, sem:{} };
+var CAPA_LAYOUTS = { full:{}, dividido:{}, retrato:{}, horizonte:{} };
 var GRADES = { uniforme:{}, masonry:{}, editorial:{} };
 
 var TIPOGRAFIAS = {
@@ -471,48 +488,62 @@ function renderizarGaleria(){
 function renderCapa(d, coverUrl){
   var titulo  = _galData.nomeCliente || 'Galeria';
   var studio  = _galData.nomeEstudio || '';
+  var label   = (studio || 'GALERIA DE CASAMENTO').toUpperCase();
   var dataEv  = _galData.dataEvento ? formatarData(_galData.dataEvento) : '';
+  var anoEv   = dataEv ? dataEv.split(' ').pop() : new Date().getFullYear();
   var totFot  = _todasFotos.length;
   var subInfo = (totFot ? totFot + ' foto' + (totFot === 1 ? '' : 's') : '')
     + (totFot && dataEv ? ' · ' : '') + dataEv;
   var pf = d.ponto_focal || { x:50, y:50 };
   var pfStyle = 'object-position:'+pf.x+'% '+pf.y+'%;';
 
-  if(d.capa_layout === 'full' && coverUrl){
+  // Full Editorial — foto preenche tela toda, overlay, label topo, título centro, data
+  if(d.capa_layout === 'full'){
     return '<div class="capa capa-full">'
-      +'<img src="'+coverUrl+'" style="'+pfStyle+'" alt="">'
+      +(coverUrl?'<img src="'+coverUrl+'" style="'+pfStyle+'" alt="">':'')
       +'<div class="capa-overlay"></div>'
       +'<div class="capa-conteudo capa-conteudo-centro">'
-        +(studio?'<div class="gal-studio">'+studio+'</div>':'')
+        +'<div class="gal-studio">'+label+'</div>'
+        +'<div style="width:36px;height:.5px;background:rgba(255,255,255,.4);margin:0 auto .9rem;"></div>'
         +'<h1 class="gal-titulo">'+titulo+'</h1>'
         +(subInfo?'<div class="gal-subtitulo">'+subInfo+'</div>':'')
       +'</div>'
       +'<div class="capa-scroll-hint"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>'
     +'</div>';
   }
-  if(d.capa_layout === 'split' && coverUrl){
-    return '<div class="capa capa-split">'
-      +'<div class="capa-split-img"><img src="'+coverUrl+'" style="'+pfStyle+'" alt=""></div>'
-      +'<div class="capa-split-texto">'
-        +(studio?'<div class="gal-studio">'+studio+'</div>':'')
+
+  // Dividido — foto esquerda, painel texto direita
+  if(d.capa_layout === 'dividido'){
+    return '<div class="capa capa-dividido">'
+      +'<div class="capa-dividido-img">'+(coverUrl?'<img src="'+coverUrl+'" style="'+pfStyle+'" alt="">':'')+'</div>'
+      +'<div class="capa-dividido-texto">'
+        +'<div class="gal-studio">GALERIA · '+anoEv+'</div>'
         +'<h1 class="gal-titulo">'+titulo+'</h1>'
+        +'<div class="capa-dividido-linha"></div>'
         +(subInfo?'<div class="gal-subtitulo">'+subInfo+'</div>':'')
       +'</div>'
     +'</div>';
   }
-  if(d.capa_layout === 'classico' && coverUrl){
-    return '<div class="capa capa-classico">'
-      +'<div class="capa-classico-img"><img src="'+coverUrl+'" style="'+pfStyle+'" alt=""></div>'
-      +(studio?'<div class="gal-studio">'+studio+'</div>':'')
+
+  // Retrato Centrado — foto pequena central, linha amber, título abaixo
+  if(d.capa_layout === 'retrato'){
+    return '<div class="capa capa-retrato">'
+      +'<div class="gal-studio">'+label+'</div>'
+      +(coverUrl?'<div class="capa-retrato-img"><img src="'+coverUrl+'" style="'+pfStyle+'" alt=""></div>':'')
+      +'<div class="capa-retrato-linha"></div>'
       +'<h1 class="gal-titulo">'+titulo+'</h1>'
-      +(subInfo?'<div class="gal-subtitulo">'+subInfo+'</div>':'')
+      +(subInfo?'<div class="gal-subtitulo" style="margin-top:.75rem;">'+subInfo+'</div>':'')
     +'</div>';
   }
-  // sem capa ou sem cover
-  return '<div class="capa capa-sem">'
-    +(studio?'<div class="gal-studio">'+studio+'</div>':'')
-    +'<h1 class="gal-titulo">'+titulo+'</h1>'
-    +(subInfo?'<div class="gal-subtitulo">'+subInfo+'</div>':'')
+
+  // Horizonte — banner foto no topo, espaço limpo abaixo com título
+  return '<div class="capa capa-horizonte">'
+    +(coverUrl?'<div class="capa-horizonte-banner"><img src="'+coverUrl+'" style="'+pfStyle+'" alt=""></div>':'')
+    +'<div class="capa-horizonte-texto">'
+      +'<h1 class="gal-titulo">'+titulo+'</h1>'
+      +'<div class="capa-horizonte-linha"></div>'
+      +(subInfo?'<div class="gal-subtitulo">'+subInfo+'</div>':'')
+    +'</div>'
   +'</div>';
 }
 
