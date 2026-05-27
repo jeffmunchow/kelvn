@@ -8033,10 +8033,14 @@ function rDzTipos(){
   if(!el) return;
   var tipoAtual = _designAtual.tipografia || TEMA_TIPOGRAFIA_PADRAO[_designAtual.tema || 'editorial'] || 'historia';
   var paleta = PALETAS_COR[(TEMAS_GALERIA[_designAtual.tema]||TEMAS_GALERIA.editorial).cor_padrao];
+  var galerias = g('galerias') || [];
+  var galTipo = galerias.find(function(x){ return x.id === _galAtualId; }) || {};
+  var nomeSubtitulo = (galTipo.nomeCliente || 'Ana & Pedro').toUpperCase();
+  var dataSubtitulo = galTipo.dataEvento ? fdMini(galTipo.dataEvento) : '12 ABR 2025';
+  var subtitulo = nomeSubtitulo + ' — ' + dataSubtitulo;
   el.innerHTML = Object.keys(TIPOGRAFIAS).map(function(key){
     var t = TIPOGRAFIAS[key];
     var ativo = tipoAtual === key;
-    var subtitulo = 'ANA & PEDRO — 12 DE ABR. DE 2025';
     return '<button onclick="selecionarTipografia(\''+key+'\')" style="' +
       'padding:14px 14px 12px;border-radius:var(--radius);cursor:pointer;text-align:left;' +
       'border:'+(ativo?'2px solid var(--amber)':'1px solid var(--border-strong)')+';' +
