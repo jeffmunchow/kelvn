@@ -8270,8 +8270,8 @@ function atualizarPreview(){
       '</div>' +
     '</div>';
   } else if(d.capa_layout === 'retrato'){
-    // Retrato Centrado — fundo claro, label topo, foto retrato pequena central, linha amber, título, data
-    html += '<div style="background:'+d.paleta.bg+';padding:1.5rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0;">' +
+    // Retrato Centrado — fundo claro preenche tela, foto pequena centralizada, linha amber, título
+    html += '<div style="background:'+d.paleta.bg+';aspect-ratio:16/9;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:0;">' +
       '<div style="'+tB+'font-size:.5rem;letter-spacing:.14em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:1rem;">'+pLabel+'</div>';
     if(coverUrl){
       html += '<div style="width:38%;aspect-ratio:3/4;overflow:hidden;margin-bottom:.8rem;">' +
