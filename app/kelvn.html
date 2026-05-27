@@ -1115,10 +1115,6 @@ select.aj-input{cursor:pointer;}
             <div id="dz-cores" style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;"></div>
           </div>
           <div style="margin-bottom:2rem;">
-            <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Grade de fotos</div>
-            <div id="dz-grades" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;"></div>
-          </div>
-          <div style="margin-bottom:2rem;">
             <div style="font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--text-hint);margin-bottom:.75rem;">Tamanho das fotos</div>
             <div class="gal-zoom-wrap" style="gap:10px;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -7781,7 +7777,7 @@ function resolverDesign(design){
     cor_key:      corKey,
     paleta:       paleta,
     capa_layout:  d.capa_layout || tema.capa_padrao,
-    grade:        d.grade || tema.grade_padrao,
+    grade:        'masonry',
     ponto_focal:  d.ponto_focal || { x: 50, y: 50 },
     tipo_key:     tipoKey,
     tipo:         tipo
@@ -7825,7 +7821,6 @@ function abrirDesignGaleria(){
   rDzTipos();
   rDzCores();
   rDzCapas();
-  rDzGrades();
   atualizarPreview();
 }
 
@@ -7953,7 +7948,6 @@ function aplicarTemplate(id){
   rDzTipos();
   rDzCores();
   rDzCapas();
-  rDzGrades();
   atualizarPreview();
   notify('Template "'+tpl.nome+'" aplicado.');
 }
@@ -8051,7 +8045,6 @@ function selecionarTema(key){
   rDzTipos();
   rDzCores();
   rDzCapas();
-  rDzGrades();
   atualizarPreview();
 }
 
@@ -8183,7 +8176,6 @@ function selecionarGrade(key){
   var tema = TEMAS_GALERIA[_designAtual.tema];
   _designAtual.grade = (key === tema.grade_padrao) ? null : key;
   salvarDesign();
-  rDzGrades();
   atualizarPreview();
 }
 
@@ -8207,7 +8199,6 @@ function resetarParaTema(){
   salvarDesign();
   rDzCores();
   rDzCapas();
-  rDzGrades();
   atualizarPreview();
   notify('Voltou para os ajustes do tema.');
 }
