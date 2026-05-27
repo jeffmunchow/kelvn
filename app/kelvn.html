@@ -7776,7 +7776,8 @@ function abrirDesignGaleria(){
 
   // Restaura slider de zoom
   var sl=document.getElementById('gal-zoom-slider');
-  if(sl) sl.value=(_designAtual.zoom_grid)||4;
+  var savedZoom=_designAtual.zoom_grid;
+  if(sl) sl.value=(savedZoom && savedZoom <= 6) ? savedZoom : 4;
 
   // Renderiza controles
   rDzTemas();
@@ -8130,8 +8131,9 @@ function atualizarPreview(){
   // ---- GRID ----
   if(fotos.length){
     var imgSrc = function(f){ return f.thumbUrl || f.webUrl || f.url; };
-    // zoom_grid já é número de colunas (1–6); padrão 4
-    var nCols = _designAtual.zoom_grid || 4;
+    // zoom_grid é número de colunas (1–6); ignorar valores legados (>6)
+    var rawZoom = _designAtual.zoom_grid;
+    var nCols = (rawZoom && rawZoom <= 6) ? rawZoom : 4;
     if(d.grade === 'uniforme'){
       html += '<div style="display:grid;grid-template-columns:repeat('+nCols+',1fr);gap:4px;padding:6px;">';
       fotos.forEach(function(f){
