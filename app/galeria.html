@@ -510,9 +510,7 @@ function renderCapa(d, coverUrl){
   var label   = (studio || 'GALERIA DE CASAMENTO').toUpperCase();
   var dataEv  = _galData.dataEvento ? formatarData(_galData.dataEvento) : '';
   var anoEv   = dataEv ? dataEv.split(' ').pop() : new Date().getFullYear();
-  var totFot  = _todasFotos.length;
-  var subInfo = (totFot ? totFot + ' foto' + (totFot === 1 ? '' : 's') : '')
-    + (totFot && dataEv ? ' · ' : '') + dataEv;
+  var subInfo = dataEv;
   var pf = d.ponto_focal || { x:50, y:50 };
   var pfStyle = 'object-position:'+pf.x+'% '+pf.y+'%;';
 
