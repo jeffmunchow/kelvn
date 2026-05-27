@@ -72,6 +72,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* BUTTONS */
 .btn{font-family:'DM Sans',sans-serif;font-size:.78rem;padding:6px 15px;border-radius:var(--radius);border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;}
 .gf-ico{pointer-events:auto;}
+/* Slider de zoom do grid de galeria */
+.gal-zoom-wrap{display:flex;align-items:center;gap:7px;padding:0 2px;}
+.gal-zoom-wrap svg{color:var(--text-hint);flex-shrink:0;}
+#gal-zoom-slider{-webkit-appearance:none;appearance:none;width:90px;height:3px;border-radius:99px;background:var(--border-strong);outline:none;cursor:pointer;}
+#gal-zoom-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:13px;height:13px;border-radius:50%;background:var(--text);cursor:pointer;transition:background .15s;}
+#gal-zoom-slider::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--text);border:none;cursor:pointer;}
+#gal-zoom-slider:hover::-webkit-slider-thumb{background:var(--amber);}
+#gal-zoom-slider:hover::-moz-range-thumb{background:var(--amber);}
 .gal-lote-opt{padding:7px 14px;cursor:pointer;color:var(--text-muted);}
 .gal-lote-opt:hover{background:var(--surface2);color:var(--text);}
 .btn:hover{background:var(--surface2);color:var(--text);}
@@ -1033,6 +1041,12 @@ select.aj-input{cursor:pointer;}
       <!-- Botões do modo grid -->
       <div id="gal-nav-grid-btns" style="display:flex;gap:.5rem;align-items:center;">
         <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;">Visualizar</button>
+        <!-- Slider de zoom -->
+        <div class="gal-zoom-wrap" title="Tamanho das fotos">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          <input type="range" id="gal-zoom-slider" min="80" max="400" step="10" value="180" oninput="galZoom(this.value)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="9" height="9"/><rect x="13" y="2" width="9" height="9"/><rect x="2" y="13" width="9" height="9"/><rect x="13" y="13" width="9" height="9"/></svg>
+        </div>
         <button class="btn" onclick="criarSubgal()">Adicionar seção</button>
         <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
         <button class="btn" onclick="abrirDesignGaleria()">Design</button>
@@ -6187,7 +6201,33 @@ function entrarGaleria(id){
   _galAtualId=id;
   _subgalAtiva=null;
   _fotosSelecionadas=[];_selAncora=-1;
+  // Restaura zoom salvo na galeria
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.id===id;});
+  var zoom=(gal&&gal.design&&gal.design.zoom_grid)||180;
+  var sl=document.getElementById('gal-zoom-slider');
+  if(sl) sl.value=zoom;
+  _galAplicarZoom(zoom);
   rGalDetalhe();
+}
+function _galAplicarZoom(px){
+  var grid=document.getElementById('gal-det-grid');
+  if(grid) grid.style.gridTemplateColumns='repeat(auto-fill,minmax('+px+'px,1fr))';
+}
+var _galZoomTimer=null;
+function galZoom(val){
+  _galAplicarZoom(val);
+  // Salva no design da galeria (debounced)
+  clearTimeout(_galZoomTimer);
+  _galZoomTimer=setTimeout(function(){
+    if(!_galAtualId) return;
+    var gals=g('galerias')||[];
+    var gal=gals.find(function(x){return x.id===_galAtualId;});
+    if(!gal) return;
+    gal.design=gal.design||{};
+    gal.design.zoom_grid=parseInt(val,10);
+    s('galerias',gals);
+  },400);
 }
 var _fotoAtualKey=null, _fotoAtualIdx=-1;
 var _fotosSelecionadas=[];
