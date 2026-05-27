@@ -8274,9 +8274,9 @@ function atualizarPreview(){
     html += '<div style="background:'+d.paleta.bg+';aspect-ratio:16/9;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;gap:0;">' +
       '<div style="'+tB+'font-size:.45rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.5rem;">'+pLabel+'</div>';
     if(coverUrl){
-      // max-height limita a foto a 48% da altura do container 16/9
-      html += '<div style="height:48%;aspect-ratio:3/4;overflow:hidden;margin-bottom:.6rem;">' +
-        '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">' +
+      // altura fixa, largura natural da foto (preserva proporção original)
+      html += '<div style="height:48%;overflow:hidden;margin-bottom:.6rem;">' +
+        '<img src="'+coverUrl+'" style="height:100%;width:auto;display:block;object-fit:cover;object-position:'+pf+';">' +
       '</div>';
     }
     html +=
