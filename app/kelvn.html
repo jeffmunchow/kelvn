@@ -2090,7 +2090,7 @@ function rR(){
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
     var isAuto=!!e._isAuto;
     var isFollowup=e.tipo==='followup_prospect';
-    var col=isFollowup?'var(--amber)':isAuto?'var(--text-hint)':e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)';
+    var col=isFollowup?'var(--text-hint)':isAuto?'var(--text-hint)':e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)';
     var onclick=isFollowup?'abrirModalFollowup(\''+e.id+'\')':isAuto?'_openAutoCard(\''+e.id+'\')':e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
     var badgeFollowup=isFollowup?' <span style="font-size:.6rem;padding:1px 6px;border-radius:3px;background:var(--amber);color:var(--bg);font-weight:500;">follow-up</span>':'';
     var subParts=isFollowup?[cN(e.clienteId)||'']:isAuto?[e.local||'']:e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
@@ -3447,7 +3447,7 @@ function rA(){
     var isFollowupA=e.tipo==='followup_prospect';
     var dl=fmtEvDate(e.data);
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
-    var col=isFollowupA?'var(--amber)':isAuto?'var(--text-hint)':isPrimary?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)',past=d<now;
+    var col=isFollowupA?'var(--text-hint)':isAuto?'var(--text-hint)':isPrimary?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)',past=d<now;
     var onclick=isFollowupA?'onclick="abrirModalFollowup(\''+e.id+'\')"':isAuto?'onclick="_openAutoCard(\''+e.id+'\')"':isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
     var subParts=isFollowupA?[cN(e.clienteId)||'']:isAuto?[e.local||'']:isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var sub=subParts.filter(Boolean).join(' – ');
