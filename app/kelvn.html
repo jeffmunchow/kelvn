@@ -1247,10 +1247,7 @@ select.aj-input{cursor:pointer;}
 
       <div id="aj-panel-automacoes" style="display:none;">
         <div class="aj-section-title">Automações</div>
-        <div style="margin-top:1.25rem;">
-          <div id="auto-list"></div>
-          <div id="auto-followup-row"></div>
-        </div>
+        <div id="auto-list" style="margin-top:1.25rem;"></div>
         <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openAuto()">+ Adicionar automação</button>
       </div>
 
@@ -3271,13 +3268,19 @@ function saveAutoFollowup(){
 
 function _syncAutoFollowupUI(af){
   af=af||(g('sd')||{}).automacao_followup||{ativo:false,dias:5};
-  var el=document.getElementById('auto-followup-row');
+  var el=document.getElementById('auto-list');
   if(!el)return;
+  // Remove row anterior do follow-up se existir
+  var old=document.getElementById('auto-followup-row');
+  if(old)old.remove();
+  var row=document.createElement('div');
+  row.id='auto-followup-row';
+  el.appendChild(row);
   var ativo=!!af.ativo;
   var dias=af.dias||5;
   var trackBg=ativo?'var(--surface2)':'var(--border-strong)';
   var thumbX=ativo?'translateX(14px)':'translateX(0)';
-  el.innerHTML='<div class="kv-auto-row'+(ativo?'':' off')+'" style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
+  row.innerHTML='<div class="kv-auto-row'+(ativo?'':' off')+'" style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
     '<div style="flex:1;">'+
       '<div style="font-size:.82rem;color:var(--text);">Follow-up de prospects</div>'+
       '<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+(ativo?dias+' dias após o cadastro':'Desativado')+'</div>'+
