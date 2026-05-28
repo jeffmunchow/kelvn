@@ -8250,6 +8250,17 @@ function atualizarPreview(){
   var fotos = (gal.fotos || []).slice(0, Math.max(18, nColsPreview * 4));
   var coverUrl = gal.cover_url || (fotos[0] && (fotos[0].webUrl || fotos[0].url)) || '';
 
+  // Tamanhos em px proporcionais ao container vs. galeria real (ref 1440px)
+  // Garante fidelidade visual independente do rem do documento
+  var pW = el.offsetWidth || 600;
+  var sc = pW / 1440;
+  var fsTitleFull = Math.round(3    * 16 * sc) + 'px'; // real: 3rem
+  var fsTitleDiv  = Math.round(2.6  * 16 * sc) + 'px'; // real: 2.6rem
+  var fsTitleRet  = Math.round(2.4  * 16 * sc) + 'px'; // real: 2.4rem
+  var fsTitleHor  = Math.round(2.8  * 16 * sc) + 'px'; // real: 2.8rem
+  var fsLabel     = Math.max(Math.round(.65 * 16 * sc), 7) + 'px'; // real: .65rem, min 7px
+  var fsDate      = Math.max(Math.round(.72 * 16 * sc), 7) + 'px'; // real: .72rem, min 7px
+
   var html = '<div style="background:'+d.paleta.bg+';color:'+d.paleta.text+';font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';min-height:100%;overflow:hidden;">';
 
   // ---- CAPA ----
@@ -8257,23 +8268,20 @@ function atualizarPreview(){
   var pStudio = (gal.nomeEstudio || '').toUpperCase();
   var pLabel = pStudio || 'GALERIA DE CASAMENTO';
   var pData = gal.dataEvento ? fdMini(gal.dataEvento) : '';
-  var pSubInfo = pData; // pode expandir com local se disponível
+  var pSubInfo = pData;
   var pf = d.ponto_focal.x+'% '+d.ponto_focal.y+'%';
   var tT = 'font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';letter-spacing:'+(d.tipo.ls_titulo||'0')+';text-transform:'+(d.tipo.tt_titulo||'none')+';';
   var tB = 'font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';font-style:'+d.tipo.estilo_corpo+';letter-spacing:'+(d.tipo.ls_corpo||'0')+';text-transform:'+(d.tipo.tt_corpo||'none')+';';
-
-  // Fator de escala 0.63 aplicado uniformemente aos tamanhos reais da galeria:
-  // real: título 3rem → preview 1.9rem | label .65rem → .41rem | data .72rem → .45rem
   if(d.capa_layout === 'full'){
     html += '<div style="position:relative;aspect-ratio:16/9;overflow:hidden;">';
     if(coverUrl) html += '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">';
     else html += '<div style="width:100%;height:100%;background:#111;"></div>';
     html +=
       '<div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.3) 0%, rgba(0,0,0,.2) 50%, rgba(0,0,0,.45) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:1.5rem;">' +
-        '<div style="'+tB+'font-size:.41rem;letter-spacing:.14em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:.6rem;">'+pLabel+'</div>' +
+        '<div style="'+tB+'font-size:'+fsLabel+';letter-spacing:.18em;color:rgba(255,255,255,.85);text-transform:uppercase;margin-bottom:.6rem;">'+pLabel+'</div>' +
         '<div style="width:22px;height:.5px;background:rgba(255,255,255,.4);margin-bottom:.7rem;"></div>' +
-        '<div style="'+tT+'font-size:1.9rem;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);text-align:center;line-height:1.15;">'+pNome+'</div>' +
-        (pSubInfo ? '<div style="'+tB+'font-size:.45rem;color:rgba(255,255,255,.7);letter-spacing:.08em;text-transform:uppercase;margin-top:.75rem;">'+pSubInfo+'</div>' : '') +
+        '<div style="'+tT+'font-size:'+fsTitleFull+';color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);text-align:center;line-height:1.15;">'+pNome+'</div>' +
+        (pSubInfo ? '<div style="'+tB+'font-size:'+fsDate+';color:rgba(255,255,255,.85);letter-spacing:.08em;text-transform:uppercase;margin-top:.75rem;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
   } else if(d.capa_layout === 'dividido'){
@@ -8285,16 +8293,16 @@ function atualizarPreview(){
     html +=
       '</div>' +
       '<div style="flex:1;background:'+d.paleta.bg+';display:flex;flex-direction:column;justify-content:center;padding:1.5rem 1.2rem;gap:0;">' +
-        '<div style="'+tB+'font-size:.41rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.6rem;">GALERIA · '+(pData ? pData.split(' ').pop() : '2025')+'</div>' +
-        '<div style="'+tT+'font-size:1.65rem;color:'+d.paleta.text+';line-height:1.05;margin-bottom:.6rem;">'+pNome+'</div>' +
+        '<div style="'+tB+'font-size:'+fsLabel+';letter-spacing:.18em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.6rem;">GALERIA · '+(pData ? pData.split(' ').pop() : '2025')+'</div>' +
+        '<div style="'+tT+'font-size:'+fsTitleDiv+';color:'+d.paleta.text+';line-height:1.05;margin-bottom:.6rem;">'+pNome+'</div>' +
         '<div style="width:22px;height:.5px;background:'+d.paleta.accent+';margin-bottom:.6rem;"></div>' +
-        (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+        (pSubInfo ? '<div style="'+tB+'font-size:'+fsDate+';letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
   } else if(d.capa_layout === 'retrato'){
     // real: título 2.4rem → 1.51rem | label .65rem → .41rem | data .72rem → .45rem
     html += '<div style="background:'+d.paleta.bg+';aspect-ratio:16/9;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;gap:0;">' +
-      '<div style="'+tB+'font-size:.41rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.5rem;">'+pLabel+'</div>';
+      '<div style="'+tB+'font-size:'+fsLabel+';letter-spacing:.18em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.5rem;">'+pLabel+'</div>';
     if(coverUrl){
       html += '<div style="height:42%;overflow:hidden;margin-bottom:.6rem;">' +
         '<img src="'+coverUrl+'" style="height:100%;width:auto;display:block;object-fit:cover;object-position:'+pf+';">' +
@@ -8302,11 +8310,10 @@ function atualizarPreview(){
     }
     html +=
       '<div style="width:16px;height:1.5px;background:'+d.paleta.accent+';margin-bottom:.5rem;opacity:.7;"></div>' +
-      '<div style="'+tT+'font-size:1.5rem;color:'+d.paleta.text+';line-height:1.15;margin-bottom:.35rem;">'+pNome+'</div>' +
-      (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+      '<div style="'+tT+'font-size:'+fsTitleRet+';color:'+d.paleta.text+';line-height:1.15;margin-bottom:.35rem;">'+pNome+'</div>' +
+      (pSubInfo ? '<div style="'+tB+'font-size:'+fsDate+';letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
     '</div>';
   } else {
-    // Horizonte — real: título 2.8rem → 1.76rem | data .72rem → .45rem
     html += '<div style="background:'+d.paleta.bg+';overflow:hidden;">';
     if(coverUrl){
       html += '<div style="width:100%;aspect-ratio:21/9;overflow:hidden;">' +
@@ -8315,9 +8322,9 @@ function atualizarPreview(){
     }
     html +=
       '<div style="padding:1.5rem;text-align:center;">' +
-        '<div style="'+tT+'font-size:1.75rem;color:'+d.paleta.text+';line-height:1.15;margin-bottom:.5rem;">'+pNome+'</div>' +
+        '<div style="'+tT+'font-size:'+fsTitleHor+';color:'+d.paleta.text+';line-height:1.15;margin-bottom:.5rem;">'+pNome+'</div>' +
         '<div style="width:25px;height:.5px;background:'+d.paleta.accent+';margin:.75rem auto;"></div>' +
-        (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+        (pSubInfo ? '<div style="'+tB+'font-size:'+fsDate+';letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
   }
