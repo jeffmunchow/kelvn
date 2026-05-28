@@ -1998,6 +1998,10 @@ function bdg(st){
   var m={'Prospect':'st-prospect','Sessão':'st-sessao','Religioso':'st-religioso','Welcome':'st-welcome','Casamento':'st-casamento','After':'st-after','Edição':'st-pos','Álbum design':'st-album','Entregue':'st-entregue','Finalizado':'st-finalizado'};
   return '<span class="'+(m[st]||'st-prospect')+'">'+(st||'—')+'</span>';
 }
+function obdg(st){
+  var m={'Enviado':'bc','Aprovado':'bw','Recusado':'bpo','Expirado':'bf'};
+  return '<span class="badge '+(m[st]||'bp')+'">'+(st||'—')+'</span>';
+}
 function ebdg(st){
   var m={'Seleção':'bpc','Edição básica':'bc','Retoque':'bpo','Revisão':'bc','Finalizado':'bw'};
   return '<span class="badge '+(m[st]||'bp')+'">'+(st||'—')+'</span>';
