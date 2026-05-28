@@ -7601,6 +7601,18 @@ async function initUserData(){
     // fallback: se Supabase falhar, usa cache local
   }
 
+  // Migra títulos antigos de follow-up
+  (function(){
+    var evs=g('eventos')||[];
+    var changed=false;
+    evs.forEach(function(e){
+      if(e.tipo==='followup_prospect'&&e.titulo!=='Fazer Follow-up'){
+        e.titulo='Fazer Follow-up';changed=true;
+      }
+    });
+    if(changed)s('eventos',evs);
+  })();
+
   rR();
   var panel=document.getElementById('p-agenda');
   if(panel&&panel.style.display!=='none') rCalAno();
