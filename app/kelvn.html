@@ -3151,10 +3151,10 @@ function selectCalDay(m,day){
   // aplica highlight nos itens da lista
   document.querySelectorAll('#ag-list .ai').forEach(function(el){ el.classList.remove('selected'); });
   if(_calDiaSel){
-    var allEvs=g('eventos').concat(_primaryEventsFromClientes());
+    var allEvs=g('eventos').concat(_primaryEventsFromClientes()).concat(_getAutoEventos());
     var firstEl=null;
     allEvs.forEach(function(e){
-      var d=new Date(e.data);
+      var d=new Date((e.data||'').substring(0,10)+'T12:00');
       if(d.getFullYear()===_calAno&&d.getMonth()===m&&d.getDate()===day){
         var el=document.querySelector('#ag-list .ai[data-id="'+e.id+'"]');
         if(el){ el.classList.add('selected'); if(!firstEl)firstEl=el; }
