@@ -479,23 +479,23 @@ function renderizarGaleria(){
   var coverUrl = _galData.cover_url || (_todasFotos[0] && (_todasFotos[0].webUrl || _todasFotos[0].url)) || '';
   var html = renderCapa(d, coverUrl);
 
+  html += '<div class="gal-subnav">'
+    +'<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">';
   if(subs.length > 0){
-    html += '<div class="gal-subnav">'
-      +'<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">'
-      +'<button class="gal-subgal-pill active" onclick="filtrarSubgalPublica(null)">Todas</button>';
+    html += '<button class="gal-subgal-pill active" onclick="filtrarSubgalPublica(null)">Todas</button>';
     subs.forEach(function(sub){
       var count = _todasFotos.filter(function(f){ return f.subgaleriaId === sub.id; }).length;
       html += '<button class="gal-subgal-pill" onclick="filtrarSubgalPublica(\''+sub.id+'\')">'
         +sub.nome+' <span style="opacity:.5;">('+count+')</span></button>';
     });
-    html += '</div>';
-    if(_downloads){
-      html += '<button class="gal-dl-btn" onclick="abrirModalDownload()" title="Baixar galeria">'
-        +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
-        +'</button>';
-    }
-    html += '</div>';
   }
+  html += '</div>';
+  if(_downloads){
+    html += '<button class="gal-dl-btn" onclick="abrirModalDownload()" title="Baixar galeria">'
+      +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      +'</button>';
+  }
+  html += '</div>';
 
   // Modal download galeria
   html += '<div class="gal-dl-modal-overlay" id="gal-dl-modal" onclick="if(event.target===this)fecharModalDownload()">'
@@ -673,23 +673,22 @@ function renderGridFotos(){
 
 function renderDlOpts(foto, i){
   var html = '';
-  if(foto.webKey){
-    html += '<a class="dl-opt" href="/api/gallery-download?key='+encodeURIComponent(foto.webKey)+'&filename=web_foto-'+(i+1)+'.jpg" download onclick="event.stopPropagation()">'
-      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
-      +'<div class="dl-opt-label"><span>Versão web</span><span class="dl-opt-sub">Para redes sociais · 1080px</span></div>'
-      +'</a>';
-  }
-  if(foto.key){
-    html += '<a class="dl-opt" href="/api/gallery-download?key='+encodeURIComponent(foto.key)+'&filename=foto-'+(i+1)+'.jpg" download onclick="event.stopPropagation()">'
-      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+  var webSrc = foto.webKey || foto.webUrl;
+  var fullSrc = foto.key || foto.url;
+  var dlIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+  // Versão web — usa webKey ou webUrl; fallback para fullSrc se nenhum existir
+  var webHref = webSrc
+    ? '/api/gallery-download?key='+encodeURIComponent(webSrc)+'&filename=web_foto-'+(i+1)+'.jpg'
+    : '/api/gallery-download?key='+encodeURIComponent(fullSrc)+'&filename=web_foto-'+(i+1)+'.jpg';
+  html += '<a class="dl-opt" href="'+webHref+'" download onclick="event.stopPropagation()">'
+    +dlIcon
+    +'<div class="dl-opt-label"><span>Versão web</span><span class="dl-opt-sub">Para redes sociais · 1080px</span></div>'
+    +'</a>';
+  // Alta resolução
+  if(fullSrc){
+    html += '<a class="dl-opt" href="/api/gallery-download?key='+encodeURIComponent(fullSrc)+'&filename=foto-'+(i+1)+'.jpg" download onclick="event.stopPropagation()">'
+      +dlIcon
       +'<div class="dl-opt-label"><span>Alta resolução</span><span class="dl-opt-sub">Arquivo original</span></div>'
-      +'</a>';
-  }
-  // fallback: fotos antigas sem key
-  if(!foto.key && foto.url){
-    html += '<a class="dl-opt" href="/api/gallery-download?key='+encodeURIComponent(foto.url)+'&filename=foto-'+(i+1)+'.jpg" download onclick="event.stopPropagation()">'
-      +'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
-      +'<div class="dl-opt-label"><span>Download</span></div>'
       +'</a>';
   }
   return html;
