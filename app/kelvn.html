@@ -7603,14 +7603,16 @@ async function initUserData(){
     // fallback: se Supabase falhar, usa cache local
   }
 
-  // Migra títulos antigos de follow-up
+  // Migra títulos antigos de follow-up e remove órfãos sem cliente
   (function(){
     var evs=g('eventos')||[];
+    var clienteIds=(g('clientes')||[]).map(function(c){return c.id;});
     var changed=false;
-    evs.forEach(function(e){
-      if(e.tipo==='followup_prospect'&&e.titulo!=='Fazer Follow-up'){
-        e.titulo='Fazer Follow-up';changed=true;
-      }
+    evs=evs.filter(function(e){
+      if(e.tipo!=='followup_prospect')return true;
+      if(e.clienteId&&clienteIds.indexOf(e.clienteId)===-1){changed=true;return false;}
+      if(e.titulo!=='Fazer Follow-up'){e.titulo='Fazer Follow-up';changed=true;}
+      return true;
     });
     if(changed)s('eventos',evs);
   })();
