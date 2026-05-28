@@ -20,18 +20,17 @@
   --bg:#F7F4EF;--surface:#FFFFFF;--surface2:#F0EDE6;
   --border:rgba(0,0,0,0.04);--border-strong:rgba(0,0,0,0.09);
   --text:#1A1814;--text-muted:#6B6660;--text-hint:#B0ABA6;
-  --amber:#C4780A;--amber-light:#FDF3E3;
+  --amber:#C4780A;--amber-light:#FDF3E3;--amber-deep:#8A4F00;
   --coral:#C43A1A;--coral-light:#FDF0EC;
   --teal:#0A7864;--teal-light:#E3F4EF;
   --purple:#5255A0;--purple-light:#EEF0FF;
   --radius:8px;--radius-sm:5px;
-  --sidebar-bg: #EFECE6;
 }
 [data-theme="dark"]{
   --bg:#111009;--surface:#1A1814;--surface2:#211E18;
   --border:rgba(255,255,255,0.04);--border-strong:rgba(255,255,255,0.07);
   --text:#EDE9E3;--text-muted:#9E9892;--text-hint:#5C5854;
-  --amber:#D4902A;--amber-light:#221808;
+  --amber:#D4902A;--amber-light:#221808;--amber-deep:#C4780A;
   --coral:#CC4A28;--coral-light:#1E0E08;
   --teal:#18926E;--teal-light:#091E15;
   --purple:#8A8DCC;--purple-light:#12142A;
@@ -45,8 +44,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .snav-sep{width:28px;height:.5px;background:var(--border-strong);margin:.5rem 0;}
 .snav-btn{width:38px;height:38px;border-radius:10px;border:none;background:transparent;color:var(--text-hint);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;position:relative;flex-shrink:0;}
 .snav-btn:hover{background:var(--surface2);color:var(--text-muted);}
-.snav-breve{opacity:.3;cursor:default;}
-.snav-breve:hover{opacity:.45;background:var(--surface2);}
 .snav-btn.active{background:transparent;color:var(--amber);}
 .snav-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
 /* MAIN CONTENT */
@@ -54,9 +51,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* TOPBAR */
 .topbar{padding:.65rem 2rem;background:var(--bg);position:sticky;top:0;z-index:50;}
 .topbar-sub{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
-.thm{position:relative;width:44px;height:24px;background:var(--border-strong);border-radius:12px;cursor:pointer;border:none;flex-shrink:0;}
-.thm::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s;}
-[data-theme="dark"] .thm::after{transform:translateX(20px);background:#1A1814;}
 /* Toggle tema com ícones sol/lua */
 .thm-w{position:relative;width:58px;height:28px;background:var(--border-strong);border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;flex-shrink:0;border:none;padding:0;}
 .thm-w .thm-ico{position:absolute;width:13px;height:13px;pointer-events:none;transition:opacity .2s,color .2s;}
@@ -81,6 +75,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 #gal-zoom-slider::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--text);border:none;cursor:pointer;}
 #gal-zoom-slider:hover::-webkit-slider-thumb{background:var(--amber);}
 #gal-zoom-slider:hover::-moz-range-thumb{background:var(--amber);}
+.sdrop-opt{padding:7px 10px;font-size:.78rem;cursor:pointer;}
 .gal-lote-opt{padding:7px 14px;cursor:pointer;color:var(--text-muted);}
 .gal-lote-opt:hover{background:var(--surface2);color:var(--text);}
 .btn:hover{background:var(--surface2);color:var(--text);}
@@ -138,7 +133,6 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .bw{background:var(--teal-light);color:var(--teal);}
 .bpo{background:var(--coral-light);color:var(--coral);}
 .be{background:var(--teal-light);color:var(--teal);}
-[data-theme="dark"] .be{background:var(--teal-light);color:var(--teal);}
 .bf{background:var(--surface2);color:var(--text-hint);}
 /* AGENDA */
 .ai{background:var(--surface);padding:.85rem 1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:.5px solid var(--border-strong);cursor:pointer;}
@@ -196,14 +190,10 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ag-day{width:100%;aspect-ratio:1;border-radius:3px;font-size:.6rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;}
 .ag-day.has-event{background:var(--surface2);color:var(--text-muted);font-weight:500;border-radius:4px;cursor:pointer;}
 .ag-day.has-event-primary{background:#D4902A;color:#fff;font-weight:500;border-radius:4px;cursor:pointer;}
-.ag-day.today{background:#1A1814;color:#F7F4EF;border-radius:4px;font-weight:600;}
-.ag-day.today.has-event{background:#1A1814;color:#F7F4EF;cursor:pointer;}
-.ag-day.today.has-event-primary{background:#1A1814;color:#F7F4EF;cursor:pointer;}
+.ag-day.today,.ag-day.today.has-event,.ag-day.today.has-event-primary{background:#1A1814;color:#F7F4EF;border-radius:4px;font-weight:600;}
 .ag-day.cal-sel{outline:1px solid #D4902A;outline-offset:1px;}
 [data-theme="dark"] .ag-day.has-event-primary{background:#D4902A;color:#1A1814;}
-[data-theme="dark"] .ag-day.today{background:#EDE9E3;color:#111009;}
-[data-theme="dark"] .ag-day.today.has-event{background:#EDE9E3;color:#111009;}
-[data-theme="dark"] .ag-day.today.has-event-primary{background:#EDE9E3;color:#111009;}
+[data-theme="dark"] .ag-day.today,[data-theme="dark"] .ag-day.today.has-event,[data-theme="dark"] .ag-day.today.has-event-primary{background:#EDE9E3;color:#111009;}
 [data-theme="dark"] .ag-day.has-event{background:var(--surface2);color:var(--text-muted);}
 @media(max-width:900px){.ag-split{grid-template-columns:1fr;}}
 @media(max-width:768px){.ag-cal-grid{grid-template-columns:repeat(2,1fr);}}
@@ -360,7 +350,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-bubble li{margin:.15rem 0;}
 .ai-bubble strong{font-weight:600;}
 .ai-bubble br{line-height:1.8;}
-.aj-cat{display:block;width:100%;text-align:left;padding:.5rem .75rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);background:transparent;border:none;cursor:pointer;border-radius:8px;margin:1px .5rem;width:calc(100% - 1rem);transition:color .15s,background .15s;}
+.aj-cat{display:block;text-align:left;padding:.5rem .75rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);background:transparent;border:none;cursor:pointer;border-radius:8px;margin:1px .5rem;width:calc(100% - 1rem);transition:color .15s,background .15s;}
 .aj-cat:hover{background:var(--surface2);color:var(--text);}
 .aj-cat.active{background:var(--surface2);color:var(--text);font-weight:500;}
 .aj-section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.25rem;}
@@ -387,10 +377,7 @@ select.aj-input{cursor:pointer;}
 <div class="ai-backdrop" id="aiBackdrop" onclick="closeAI()"></div>
 <div class="ai-spanel" id="aiPanel">
   <div class="ai-header">
-    <div>
-      <div class="ai-header-title">Assistente Kelvn</div>
-
-    </div>
+    <div class="ai-header-title">Assistente Kelvn</div>
     <button class="ai-close" onclick="closeAI()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
@@ -1322,16 +1309,16 @@ select.aj-input{cursor:pointer;}
           <svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.4;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
         </div>
         <div id="mc-status-drop" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);">
-          <div onclick="setStatusDrop('Prospect')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;" class="sdrop-opt st-prospect-opt">Prospect</div>
-          <div onclick="setStatusDrop('Sessão')"       style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--coral);" class="sdrop-opt">Sessão</div>
-          <div onclick="setStatusDrop('Religioso')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--teal);" class="sdrop-opt">Religioso</div>
-          <div onclick="setStatusDrop('Welcome')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#D4709A;" class="sdrop-opt">Welcome</div>
-          <div onclick="setStatusDrop('Casamento')"    style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--amber);" class="sdrop-opt">Casamento</div>
-          <div onclick="setStatusDrop('After')"  style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#6B9BAF;" class="sdrop-opt">After</div>
-          <div onclick="setStatusDrop('Edição')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--coral);" class="sdrop-opt">Edição</div>
-          <div onclick="setStatusDrop('Álbum design')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--purple);" class="sdrop-opt">Álbum design</div>
-          <div onclick="setStatusDrop('Entregue')"     style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:var(--teal);" class="sdrop-opt">Entregue</div>
-          <div onclick="setStatusDrop('Finalizado')"   style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:#5C5854;" class="sdrop-opt">Finalizado</div>
+          <div onclick="setStatusDrop('Prospect')"     class="sdrop-opt st-prospect-opt">Prospect</div>
+          <div onclick="setStatusDrop('Sessão')"       class="sdrop-opt" style="color:var(--coral);">Sessão</div>
+          <div onclick="setStatusDrop('Religioso')"    class="sdrop-opt" style="color:var(--teal);">Religioso</div>
+          <div onclick="setStatusDrop('Welcome')"      class="sdrop-opt" style="color:#D4709A;">Welcome</div>
+          <div onclick="setStatusDrop('Casamento')"    class="sdrop-opt" style="color:var(--amber);">Casamento</div>
+          <div onclick="setStatusDrop('After')"        class="sdrop-opt" style="color:#6B9BAF;">After</div>
+          <div onclick="setStatusDrop('Edição')"       class="sdrop-opt" style="color:var(--coral);">Edição</div>
+          <div onclick="setStatusDrop('Álbum design')" class="sdrop-opt" style="color:var(--purple);">Álbum design</div>
+          <div onclick="setStatusDrop('Entregue')"     class="sdrop-opt" style="color:var(--teal);">Entregue</div>
+          <div onclick="setStatusDrop('Finalizado')"   class="sdrop-opt" style="color:#5C5854;">Finalizado</div>
         </div>
       </div>
     </div>
@@ -2002,7 +1989,6 @@ function switchFP(name){
   _curFP=name;
   if(name==='emp')rF();if(name==='fluxo')rFluxo();if(name==='pes')rFP();if(name==='dre')rDRE();if(name==='prec'){loadPrec();calcPrec();}if(name==='imp')calcImp();if(name==='inad')rInad();
 }
-function switchQP(){}
 function switchAG2(name){
   ['tipos','slots','disp'].forEach(function(n){document.getElementById('ag2-panel-'+n).style.display='none';document.getElementById('ag2-'+n).classList.remove('active');});
   document.getElementById('ag2-panel-'+name).style.display='';document.getElementById('ag2-'+name).classList.add('active');
@@ -2011,10 +1997,6 @@ function switchAG2(name){
 function bdg(st){
   var m={'Prospect':'st-prospect','Sessão':'st-sessao','Religioso':'st-religioso','Welcome':'st-welcome','Casamento':'st-casamento','After':'st-after','Edição':'st-pos','Álbum design':'st-album','Entregue':'st-entregue','Finalizado':'st-finalizado'};
   return '<span class="'+(m[st]||'st-prospect')+'">'+(st||'—')+'</span>';
-}
-function obdg(st){
-  var m={'Enviado':'bc','Aprovado':'bw','Recusado':'bpo','Expirado':'bf'};
-  return '<span class="badge '+(m[st]||'bp')+'">'+(st||'—')+'</span>';
 }
 function ebdg(st){
   var m={'Seleção':'bpc','Edição básica':'bc','Retoque':'bpo','Revisão':'bc','Finalizado':'bw'};
@@ -2025,7 +2007,6 @@ function entbdg(st){
   return '<span class="badge '+(m[st]||'bp')+'">'+(st||'—')+'</span>';
 }
 function cN(id){var c=g('clientes').find(function(x){return x.id===id;});return c?c.nome:'—';}
-function pN(id){var p=g('pacotes').find(function(x){return x.id===id;});return p?p.nome:'—';}
 function fillSel(extras){
   var cs=g('clientes');
   var sels=extras||[];
@@ -2364,7 +2345,7 @@ function rCEventos(){
   if(!el)return;
   el.innerHTML=_cEventos.map(function(ev,i){
     var col=_STATUS_COLORS[ev.status]||'var(--text)';
-    var dropOpts=opts.map(function(o){return '<div onclick="_cevSet('+i+',\''+o.v+'\')" style="padding:7px 10px;font-size:.78rem;cursor:pointer;color:'+o.c+';" class="sdrop-opt">'+o.v+'</div>';}).join('');
+    var dropOpts=opts.map(function(o){return '<div onclick="_cevSet('+i+',\''+o.v+'\')" style="color:'+o.c+';" class="sdrop-opt">'+o.v+'</div>';}).join('');
     var statusDrop='<div style="position:relative;" id="cev-wrap-'+i+'">'
       +'<div onclick="_cevToggle('+i+')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;background:var(--surface2);font-size:.88rem;user-select:none;">'
       +'<span id="cev-lbl-'+i+'" style="color:'+col+';">'+ev.status+'</span>'
@@ -2605,7 +2586,6 @@ function recalcP(){
   if(tot>0){el.textContent='Total: '+$m(sum)+(Math.abs(diff)>0.01?' — Faltam: '+$m(diff):' ✓');el.style.color=Math.abs(diff)<0.01?'var(--teal)':'var(--text-hint)';}else el.textContent='';
 }
 // CONTRATO
-var _contratoClienteId=null;
 var _contratoRecord=null;
 
 function _fmtDataLonga(isoStr){
@@ -2618,7 +2598,6 @@ function _fmtValor(v){if(_privacidade)return '••••';return'R$ '+Number(v
 
 async function gerarContrato(){
   var c=g('clientes').find(function(x){return x.id===_cId;});if(!c)return;
-  _contratoClienteId=c.id;
   cov('ov-c');
   notify('Gerando contrato…');
 
@@ -7002,25 +6981,6 @@ function abrirCheckoutObj(eb){
   itensEl.innerHTML=(eb.itens||'').split('\n').map(function(l){return '<div>'+l+'</div>';}).join('');
   document.getElementById('ov-checkout').classList.add('open');
 }
-function abrirCheckout(id){
-  var eb=EBOOKS.find(function(x){return x.id===id;});
-  if(!eb) return;
-  _ckEbook=eb;
-  var realImg=eb.img?(eb.img.indexOf('http')===0?eb.img:(EBIMG&&EBIMG[eb.img])||null):null;
-  document.getElementById('ck-title').textContent='Adquirir ebook';
-  document.getElementById('ck-name').textContent=eb.titulo||'';
-  document.getElementById('ck-desc').textContent=eb.desc||'';
-  document.getElementById('ck-price').textContent='R$ '+(eb.preco||0)+',00';
-  document.getElementById('ck-cover-wrap').innerHTML=makeCover(eb,'110px');
-  var itensEl=document.getElementById('ck-items');
-  if(eb.itens){
-    itensEl.innerHTML=(eb.itens||'').split('\n').map(function(l){return '<div>'+l+'</div>';}).join('');
-  } else {
-    itensEl.innerHTML='';
-  }
-  document.getElementById('ov-checkout').classList.add('open');
-}
-
 function finalizarCompra(){
   cov('ov-checkout');
   setTimeout(function(){ document.getElementById('ov-compra-ok').classList.add('open'); },200);
