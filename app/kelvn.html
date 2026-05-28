@@ -1624,6 +1624,20 @@ select.aj-input{cursor:pointer;}
   </div>
 </div></div>
 
+<!-- MODAL CONFIRMAÇÃO GENÉRICO -->
+<div class="overlay" id="ov-confirm">
+  <div class="modal" style="max-width:360px;">
+    <div style="margin-bottom:1.2rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;margin-bottom:6px;" id="mconfirm-title">Excluir?</div>
+      <div style="font-size:.78rem;color:var(--text-muted);line-height:1.5;" id="mconfirm-msg"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn" onclick="cov('ov-confirm')" id="mconfirm-cancel">Cancelar</button>
+      <button class="btn" id="mconfirm-ok" onclick="_confirmOk()" style="background:var(--coral);color:#fff;border-color:var(--coral);">Excluir</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL FOLLOW-UP -->
 <div class="overlay" id="ov-followup">
   <div class="modal" style="max-width:400px;">
@@ -1912,6 +1926,21 @@ function toggleTheme(){
   setTimeout(renderFatChart,50);
 }
 function cov(id){document.getElementById(id).classList.remove('open');}
+var _confirmCb=null;
+function confirmar(opts,cb){
+  // opts: string (mensagem) ou {titulo, msg, label}
+  var titulo='Excluir?', msg='', label='Excluir', style='background:var(--coral);color:#fff;border-color:var(--coral);';
+  if(typeof opts==='string'){msg=opts;}
+  else{titulo=opts.titulo||titulo;msg=opts.msg||'';label=opts.label||label;if(opts.style)style=opts.style;}
+  document.getElementById('mconfirm-title').textContent=titulo;
+  document.getElementById('mconfirm-msg').textContent=msg;
+  var okBtn=document.getElementById('mconfirm-ok');
+  okBtn.textContent=label;
+  okBtn.style.cssText=style;
+  _confirmCb=cb;
+  document.getElementById('ov-confirm').classList.add('open');
+}
+function _confirmOk(){cov('ov-confirm');if(_confirmCb){var f=_confirmCb;_confirmCb=null;f();}}
 document.addEventListener('input',function(e){
   if(!e.target.classList.contains('sd'))return;
   var v=e.target.value.replace(/\D/g,'');
@@ -2496,18 +2525,19 @@ function saveC(){
   }
 }
 function delC(){
-  if(!confirm('Excluir?'))return;
-  undoBegin();
-  // Limpa entradas auto-criadas das parcelas desse cliente
-  var finLimpo=g('fin').filter(function(e){
-    if(!e.parcela_ref)return true;
-    return e.parcela_ref.indexOf('parcela:'+_cId+':')!==0;
+  confirmar('',function(){
+    undoBegin();
+    // Limpa entradas auto-criadas das parcelas desse cliente
+    var finLimpo=g('fin').filter(function(e){
+      if(!e.parcela_ref)return true;
+      return e.parcela_ref.indexOf('parcela:'+_cId+':')!==0;
+    });
+    s('fin',finLimpo);
+    s('clientes',g('clientes').filter(function(c){return c.id!==_cId;}));
+    // Remove todos os eventos vinculados a esse cliente
+    s('eventos',g('eventos').filter(function(e){return e.clienteId!==_cId;}));
+    undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído');
   });
-  s('fin',finLimpo);
-  s('clientes',g('clientes').filter(function(c){return c.id!==_cId;}));
-  // Remove todos os eventos vinculados a esse cliente
-  s('eventos',g('eventos').filter(function(e){return e.clienteId!==_cId;}));
-  undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído');
 }
 function rPL(ps){_parc=ps.map(function(p){return Object.assign({},p);});bPD();}
 function bPD(){
@@ -2856,10 +2886,11 @@ function fecharEditorTemplate(){
 }
 
 function resetarTemplate(){
-  if(!confirm('Restaurar o template padrão? O template personalizado será removido.'))return;
-  s('contrato_template','');
-  _syncTemplateStatus();
-  notify('Template padrão restaurado');
+  confirmar({titulo:'Restaurar template padrão?',msg:'O template personalizado será removido.',label:'Restaurar',style:'background:var(--text);color:var(--bg);border-color:var(--text);'},function(){
+    s('contrato_template','');
+    _syncTemplateStatus();
+    notify('Template padrão restaurado');
+  });
 }
 
 function _getNodePath(node,root){
@@ -3496,7 +3527,7 @@ function saveE(){
   if(_eId){var i=es.findIndex(function(e){return e.id===_eId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('eventos',es);undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento salvo');
 }
-function delE(){if(!confirm('Excluir?'))return;undoBegin();s('eventos',g('eventos').filter(function(e){return e.id!==_eId;}));undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Excluído');}
+function delE(){confirmar('',function(){undoBegin();s('eventos',g('eventos').filter(function(e){return e.id!==_eId;}));undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Excluído');});}
 var _pId=null;
 function rPe(){
   var flt=document.getElementById('pend-filter').value;
@@ -3548,7 +3579,7 @@ function savePend(){
   if(_pId){var i=ps.findIndex(function(p){return p.id===_pId;});if(i>-1)ps[i]=o;}else ps.push(o);
   undoBegin();s('pends',ps);undoCommit();cov('ov-p');rPe();rR();notify('Salvo');
 }
-function delPend(){if(!confirm('Excluir?'))return;undoBegin();s('pends',g('pends').filter(function(p){return p.id!==_pId;}));undoCommit();cov('ov-p');rPe();rR();notify('Excluído');}
+function delPend(){confirmar('',function(){undoBegin();s('pends',g('pends').filter(function(p){return p.id!==_pId;}));undoCommit();cov('ov-p');rPe();rR();notify('Excluído');});}
 
 // EDIÇÕES
 var _edId=null;
@@ -3583,7 +3614,7 @@ function saveEd(){
   if(_edId){var i=es.findIndex(function(e){return e.id===_edId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('edicoes',es);undoCommit();cov('ov-ed');rED();notify('Edição salva');
 }
-function delEd(){if(!confirm('Excluir?'))return;undoBegin();s('edicoes',g('edicoes').filter(function(e){return e.id!==_edId;}));undoCommit();cov('ov-ed');rED();notify('Excluído');}
+function delEd(){confirmar('',function(){undoBegin();s('edicoes',g('edicoes').filter(function(e){return e.id!==_edId;}));undoCommit();cov('ov-ed');rED();notify('Excluído');});}
 
 // ENTREGAS
 var _entId=null;
@@ -3618,7 +3649,7 @@ function saveEnt(){
   if(_entId){var i=es.findIndex(function(e){return e.id===_entId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('entregas',es);undoCommit();cov('ov-ent');rENT();notify('Entrega salva');
 }
-function delEnt(){if(!confirm('Excluir?'))return;undoBegin();s('entregas',g('entregas').filter(function(e){return e.id!==_entId;}));undoCommit();cov('ov-ent');rENT();notify('Excluído');}
+function delEnt(){confirmar('',function(){undoBegin();s('entregas',g('entregas').filter(function(e){return e.id!==_entId;}));undoCommit();cov('ov-ent');rENT();notify('Excluído');});}
 var _fId=null;
 var _saudeCache=null;
 function rSaude(){
@@ -3985,7 +4016,7 @@ function saveF(){
   if(_fId){var i=fs.findIndex(function(e){return e.id===_fId;});if(i>-1)fs[i]=o;}else fs.push(o);
   undoBegin();s('fin',fs);undoCommit();cov('ov-f');rF();rR();notify('Salvo');
 }
-function delF(){if(!confirm('Excluir?'))return;undoBegin();s('fin',g('fin').filter(function(e){return e.id!==_fId;}));undoCommit();cov('ov-f');rF();rR();notify('Excluído');}
+function delF(){confirmar('',function(){undoBegin();s('fin',g('fin').filter(function(e){return e.id!==_fId;}));undoCommit();cov('ov-f');rF();rR();notify('Excluído');});}
 var _fpId=null;
 function rFP(){
   var per=document.getElementById('fp-period').value,now=new Date();
@@ -4012,7 +4043,7 @@ function saveFP(){
   if(_fpId){var i=fs.findIndex(function(e){return e.id===_fpId;});if(i>-1)fs[i]=o;}else fs.push(o);
   undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Salvo');
 }
-function delFP(){if(!confirm('Excluir?'))return;undoBegin();s('fin_pessoal',g('fin_pessoal').filter(function(e){return e.id!==_fpId;}));undoCommit();cov('ov-fp');rFP();notify('Excluído');}
+function delFP(){confirmar('',function(){undoBegin();s('fin_pessoal',g('fin_pessoal').filter(function(e){return e.id!==_fpId;}));undoCommit();cov('ov-fp');rFP();notify('Excluído');});}
 
 function rFluxo(){
   var hzEl=document.getElementById('fluxo-horizonte');
@@ -4566,7 +4597,7 @@ function savePK(){
   if(_pkId){var i=ps.findIndex(function(p){return p.id===_pkId;});if(i>-1)ps[i]=o;}else ps.push(o);
   undoBegin();s('pacotes',ps);undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Pacote salvo');
 }
-function delPK(){if(!confirm('Excluir?'))return;undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Excluído');}
+function delPK(){confirmar('',function(){undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Excluído');});}
 
 // ── ADD-ONS ──────────────────────────────────────────────────────────────────
 var _aoId=null;
@@ -4608,7 +4639,7 @@ function saveAO(){
   if(_aoId){var i=aos.findIndex(function(a){return a.id===_aoId;});if(i>-1)aos[i]=o;}else aos.push(o);
   s('addons',aos);cov('ov-ao');rAO();rAJServicos();notify('Add-on salvo.');
 }
-function delAO(){if(!confirm('Excluir?'))return;s('addons',(g('addons')||[]).filter(function(a){return a.id!==_aoId;}));cov('ov-ao');rAO();rAJServicos();notify('Excluído.');}
+function delAO(){confirmar('',function(){s('addons',(g('addons')||[]).filter(function(a){return a.id!==_aoId;}));cov('ov-ao');rAO();rAJServicos();notify('Excluído.');});}
 
 var _eqId=null;
 var _eqColW=[220,150,230,160];
@@ -4672,7 +4703,7 @@ function saveEq(){
   if(_eqId){var i=es.findIndex(function(e){return e.id===_eqId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('equipe',es);undoCommit();cov('ov-eq');rEQ();notify('Membro salvo');
 }
-function delEq(){if(!confirm('Excluir?'))return;undoBegin();s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));undoCommit();cov('ov-eq');rEQ();notify('Excluído');}
+function delEq(){confirmar('',function(){undoBegin();s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));undoCommit();cov('ov-eq');rEQ();notify('Excluído');});}
 function saveMetas(){undoBegin();
   var fatMensal=parseFloat(document.getElementById('meta-fat-mensal').value)||0;
   var casamentosAno=parseInt(document.getElementById('meta-casamentos-ano').value)||0;
@@ -5219,9 +5250,10 @@ function toggleAuto(id){
   rAuto();
 }
 function delAuto(id){
-  if(!confirm('Remover automação?'))return;
-  s('automacoes',(g('automacoes')||[]).filter(function(x){return x.id!==id;}));
-  rAuto();
+  confirmar({titulo:'Remover automação?',msg:'',label:'Remover',style:'background:var(--coral);color:#fff;border-color:var(--coral);'},function(){
+    s('automacoes',(g('automacoes')||[]).filter(function(x){return x.id!==id;}));
+    rAuto();
+  });
 }
 function _getAutoEventos(){
   var autos=g('automacoes')||[];
@@ -5396,7 +5428,7 @@ function saveQT(){
   if(_qtId){var i=ts.findIndex(function(t){return t.id===_qtId;});if(i>-1)ts[i]=o;}else ts.push(o);
   undoBegin();s('q_templates',ts);undoCommit();cov('ov-qt');rQT();notify('Template salvo');
 }
-function delQT(){if(!confirm('Excluir?'))return;undoBegin();s('q_templates',g('q_templates').filter(function(t){return t.id!==_qtId;}));undoCommit();cov('ov-qt');rQT();notify('Excluído');}
+function delQT(){confirmar('',function(){undoBegin();s('q_templates',g('q_templates').filter(function(t){return t.id!==_qtId;}));undoCommit();cov('ov-qt');rQT();notify('Excluído');});}
 
 // RESPOSTAS
 var _qrId=null;
@@ -5516,7 +5548,7 @@ function saveQR(){
   if(_qrId){var i=rs.findIndex(function(r){return r.id===_qrId;});if(i>-1)rs[i]=o;}else rs.push(o);
   undoBegin();s('q_respostas',rs);undoCommit();cov('ov-qr');rQR();notify('Salvo');
 }
-function delQR(){if(!confirm('Excluir?'))return;undoBegin();s('q_respostas',g('q_respostas').filter(function(r){return r.id!==_qrId;}));undoCommit();cov('ov-qr');rQR();notify('Excluído');}
+function delQR(){confirmar('',function(){undoBegin();s('q_respostas',g('q_respostas').filter(function(r){return r.id!==_qrId;}));undoCommit();cov('ov-qr');rQR();notify('Excluído');});}
 function verRespostas(id){
   var r=g('q_respostas').find(function(x){return x.id===id;});if(!r)return;
   var t=g('q_templates').find(function(x){return x.id===r.templateId;});
@@ -5587,7 +5619,7 @@ function saveTR(){
   if(_trId){var i=ts.findIndex(function(t){return t.id===_trId;});if(i>-1)ts[i]=o;}else ts.push(o);
   undoBegin();s('tiposReuniao',ts);undoCommit();cov('ov-tr');rTR();notify('Tipo salvo');
 }
-function delTR(){if(!confirm('Excluir?'))return;undoBegin();s('tiposReuniao',g('tiposReuniao').filter(function(t){return t.id!==_trId;}));undoCommit();cov('ov-tr');rTR();notify('Excluído');}
+function delTR(){confirmar('',function(){undoBegin();s('tiposReuniao',g('tiposReuniao').filter(function(t){return t.id!==_trId;}));undoCommit();cov('ov-tr');rTR();notify('Excluído');});}
 
 // SLOTS
 function rSlots(){
@@ -5630,7 +5662,7 @@ function saveSlot(){
   if(!_slId){var tr=g('tiposReuniao').find(function(x){return x.id===o.tipoId;})||{nome:'Reunião'};var es=g('eventos');es.push({id:uid(),titulo:tr.nome+(o.clienteId?' — '+cN(o.clienteId):''),data:o.data,tipo:'Reunião',clienteId:o.clienteId,local:o.local,notas:o.notas});s('eventos',es);}
   undoCommit();cov('ov-sl');rSlots();notify('Sessão salva');
 }
-function delSlot(){if(!confirm('Excluir?'))return;undoBegin();s('slots',g('slots').filter(function(s2){return s2.id!==_slId;}));undoCommit();cov('ov-sl');rSlots();notify('Excluído');}
+function delSlot(){confirmar('',function(){undoBegin();s('slots',g('slots').filter(function(s2){return s2.id!==_slId;}));undoCommit();cov('ov-sl');rSlots();notify('Excluído');});}
 
 // DISPONIBILIDADE
 var DIAS_SEMANA=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
@@ -5920,17 +5952,18 @@ function criarSubgal(){
   notify('Seção criada.');
 }
 function deletarSubgal(id){
-  if(!confirm('Remover esta seção? As fotos dentro dela NÃO serão excluídas — ficarão em "Todas as fotos".')) return;
-  var gals=g('galerias')||[];
-  var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
-  if(idx<0) return;
-  gals[idx].subgalerias=(gals[idx].subgalerias||[]).filter(function(s){return s.id!==id;});
-  (gals[idx].fotos||[]).forEach(function(f){if(f.subgaleriaId===id) f.subgaleriaId=null;});
-  s('galerias',gals);
-  _subgalAtiva=null;
-  rSubgalNav();
-  rDetGrid();
-  notify('Seção removida.');
+  confirmar({titulo:'Remover seção?',msg:'As fotos dentro dela não serão excluídas — vão para "Todas as fotos".',label:'Remover',style:'background:var(--coral);color:#fff;border-color:var(--coral);'},function(){
+    var gals=g('galerias')||[];
+    var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
+    if(idx<0) return;
+    gals[idx].subgalerias=(gals[idx].subgalerias||[]).filter(function(s){return s.id!==id;});
+    (gals[idx].fotos||[]).forEach(function(f){if(f.subgaleriaId===id) f.subgaleriaId=null;});
+    s('galerias',gals);
+    _subgalAtiva=null;
+    rSubgalNav();
+    rDetGrid();
+    notify('Seção removida.');
+  });
 }
 async function visualizarGaleriaPublica(){
   var gals=g('galerias')||[];
@@ -6087,7 +6120,7 @@ async function galLoteAcao(acao){
   }
 
   if(acao==='excluir'){
-    if(!confirm('Excluir '+idxs.length+' foto'+(idxs.length>1?'s':'')+' selecionada'+(idxs.length>1?'s':'')+' permanentemente?')) return;
+    confirmar({titulo:'Excluir '+(idxs.length>1?idxs.length+' fotos':' foto')+' permanentemente?',msg:'Essa ação não pode ser desfeita.',label:'Excluir',style:'background:var(--coral);color:#fff;border-color:var(--coral);'},async function(){
     var sessionRes=await _sb.auth.getSession();
     var token=sessionRes&&sessionRes.data&&sessionRes.data.session?sessionRes.data.session.access_token:null;
     // Excluir do R2 em paralelo
@@ -6110,6 +6143,7 @@ async function galLoteAcao(acao){
     _fotosSelecionadas=[];_selAncora=-1;
     rDetGrid(); rSubgalNav(); rGal(true);
     notify(idxs.length+' foto'+(idxs.length>1?'s':'')+' excluída'+(idxs.length>1?'s':'')+'.');
+    });
   }
 }
 function cancelarUpload(){
@@ -6421,13 +6455,14 @@ function saveGal(){
   notify('Galeria salva.');
 }
 function delGal(){
-  if(!confirm('Excluir esta galeria? As fotos no R2 não serão removidas automaticamente.')) return;
-  var gals=g('galerias')||[];
-  gals=gals.filter(function(x){return x.id!==_galAtualId;});
-  s('galerias',gals);
-  cov('ov-gal');
-  rGal();
-  notify('Galeria excluída.');
+  confirmar({titulo:'Excluir galeria?',msg:'As fotos no R2 não serão removidas automaticamente.',label:'Excluir',style:'background:var(--coral);color:#fff;border-color:var(--coral);'},function(){
+    var gals=g('galerias')||[];
+    gals=gals.filter(function(x){return x.id!==_galAtualId;});
+    s('galerias',gals);
+    cov('ov-gal');
+    rGal();
+    notify('Galeria excluída.');
+  });
 }
 function entrarGaleria(id){
   _galAtualId=id;
