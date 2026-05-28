@@ -106,7 +106,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sh{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
 .st{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;}
 .sa{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.fi{font-family:'DM Sans',sans-serif;font-size:.75rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius);padding:6px 10px;color:var(--text);outline:none;height:28px;box-sizing:border-box;-webkit-appearance:none;appearance:none;cursor:pointer;}
+.fi{font-family:'DM Sans',sans-serif;font-size:.75rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius);padding:6px 10px;color:var(--text);outline:none;height:28px;box-sizing:border-box;}
 .fi:focus{border-color:var(--amber);}
 /* TABLE */
 .tw{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;}
@@ -890,7 +890,7 @@ select.aj-input{cursor:pointer;}
     <div class="sh">
       <div class="st">Questionários enviados</div>
       <div class="sa">
-        <select class="fi" id="qr-status-filter" onchange="rQR()"><option value="">Todos</option><option value="Pendente">Pendente</option><option value="Enviado">Enviado</option><option value="Respondido">Respondido</option></select>
+        <select id="qr-status-filter" onchange="rQR()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;"><option value="">Todos</option><option value="Pendente">Pendente</option><option value="Enviado">Enviado</option><option value="Respondido">Respondido</option></select>
       </div>
     </div>
     <div class="tw"><div class="ts"><table><thead><tr>
