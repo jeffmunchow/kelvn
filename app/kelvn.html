@@ -3451,12 +3451,12 @@ function rA(){
   var _edsAgIds=(g('edicoes')||[]).map(function(x){return x.evId||('_c_'+x.clienteId);});
   var all=primary.concat(secondary).concat(autoEvs).filter(function(e){
     if(_edsAgIds.indexOf(e.id)>-1) return false;
-    var d=new Date(e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;
+    var d=new Date((e.data||'').length===10?e.data+'T12:00':e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;
   }).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
   var el=document.getElementById('ag-list');
   if(!all.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento</div>';return;}
   el.innerHTML='<div>'+all.map(function(e){
-    var d=new Date(e.data);
+    var d=new Date((e.data||'').length===10?e.data+'T12:00':e.data);
     var isPrimary=!!e._fromCliente;
     var isAuto=!!e._isAuto;
     var isFollowupA=e.tipo==='followup_prospect';
