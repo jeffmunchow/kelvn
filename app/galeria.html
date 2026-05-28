@@ -119,7 +119,7 @@ html,body{
 /* ============ SUB-NAV ============ */
 .gal-subnav{
   padding:1.7rem 2rem .5rem;
-  display:flex;gap:20px;flex-wrap:wrap;justify-content:flex-start;align-items:center;
+  display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;
 }
 .gal-subgal-pill{
   font-size:.72rem;padding:0;border:none;border-radius:0;
@@ -184,6 +184,24 @@ html,body{
   .capa-conteudo-centro .gal-titulo{font-size:2rem;}
   .capa-sem .gal-titulo{font-size:2.2rem;}
 }
+
+/* ============ MODAL DOWNLOAD GALERIA ============ */
+.gal-dl-btn{background:none;border:none;cursor:pointer;color:var(--gal-text);opacity:.45;transition:opacity .15s;padding:0;display:flex;align-items:center;}
+.gal-dl-btn:hover{opacity:1;}
+.gal-dl-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:none;align-items:center;justify-content:center;}
+.gal-dl-modal-overlay.open{display:flex;}
+.gal-dl-modal{background:var(--gal-bg);border:.5px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem 2rem 1.6rem;width:92%;max-width:380px;font-family:var(--gal-font-body,'DM Sans',sans-serif);}
+.gal-dl-modal-title{font-family:var(--gal-font-title,'Playfair Display',serif);font-size:1.1rem;color:var(--gal-text);margin-bottom:.35rem;font-weight:400;}
+.gal-dl-modal-sub{font-size:.72rem;color:var(--gal-text);opacity:.45;margin-bottom:1.5rem;line-height:1.5;}
+.gal-dl-modal-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:1.4rem;}
+.gal-dl-opt{display:flex;align-items:center;gap:14px;padding:14px 16px;border:.5px solid rgba(255,255,255,.1);border-radius:10px;cursor:pointer;text-decoration:none;color:var(--gal-text);transition:background .15s;}
+.gal-dl-opt:hover{background:rgba(255,255,255,.05);}
+.gal-dl-opt-icon{opacity:.5;flex-shrink:0;}
+.gal-dl-opt-info{}
+.gal-dl-opt-name{font-size:.8rem;font-weight:500;margin-bottom:2px;}
+.gal-dl-opt-desc{font-size:.67rem;opacity:.45;line-height:1.4;}
+.gal-dl-modal-cancel{width:100%;padding:9px;background:none;border:.5px solid rgba(255,255,255,.1);border-radius:8px;color:var(--gal-text);opacity:.45;font-size:.75rem;font-family:inherit;cursor:pointer;transition:opacity .15s;}
+.gal-dl-modal-cancel:hover{opacity:.8;}
 
 /* Botão download na foto */
 .btn-dl-wrap{position:relative;}
@@ -463,6 +481,7 @@ function renderizarGaleria(){
 
   if(subs.length > 0){
     html += '<div class="gal-subnav">'
+      +'<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">'
       +'<button class="gal-subgal-pill active" onclick="filtrarSubgalPublica(null)">Todas</button>';
     subs.forEach(function(sub){
       var count = _todasFotos.filter(function(f){ return f.subgaleriaId === sub.id; }).length;
@@ -470,7 +489,32 @@ function renderizarGaleria(){
         +sub.nome+' <span style="opacity:.5;">('+count+')</span></button>';
     });
     html += '</div>';
+    if(_downloads){
+      html += '<button class="gal-dl-btn" onclick="abrirModalDownload()" title="Baixar galeria">'
+        +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+        +'</button>';
+    }
+    html += '</div>';
   }
+
+  // Modal download galeria
+  html += '<div class="gal-dl-modal-overlay" id="gal-dl-modal" onclick="if(event.target===this)fecharModalDownload()">'
+    +'<div class="gal-dl-modal">'
+    +'<div class="gal-dl-modal-title">Baixar galeria</div>'
+    +'<div class="gal-dl-modal-sub">Escolha a versão que prefere baixar. Todas as fotos serão preparadas em um arquivo ZIP.</div>'
+    +'<div class="gal-dl-modal-opts">'
+    +'<a class="gal-dl-opt" href="#" onclick="iniciarDownloadGaleria(\'full\');return false;">'
+    +'<div class="gal-dl-opt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>'
+    +'<div class="gal-dl-opt-info"><div class="gal-dl-opt-name">Alta resolução</div><div class="gal-dl-opt-desc">Arquivos originais, ideais para impressão e uso profissional</div></div>'
+    +'</a>'
+    +'<a class="gal-dl-opt" href="#" onclick="iniciarDownloadGaleria(\'web\');return false;">'
+    +'<div class="gal-dl-opt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>'
+    +'<div class="gal-dl-opt-info"><div class="gal-dl-opt-name">Versão web</div><div class="gal-dl-opt-desc">Otimizadas para redes sociais e compartilhamento digital</div></div>'
+    +'</a>'
+    +'</div>'
+    +'<button class="gal-dl-modal-cancel" onclick="fecharModalDownload()">Cancelar</button>'
+    +'</div>'
+    +'</div>';
 
   html += '<div class="gal-grid grade-'+d.grade+'" id="gal-grid">'+renderSkeletons(_fotosVisiveis.length||12, d.grade)+'</div>';
   var nomeFooter = _galData.nomeEstudio || 'Galeria';
@@ -776,6 +820,34 @@ document.addEventListener('keydown', function(e){
     }
   }, {passive:true});
 })();
+
+function abrirModalDownload(){
+  var m = document.getElementById('gal-dl-modal');
+  if(m) m.classList.add('open');
+}
+function fecharModalDownload(){
+  var m = document.getElementById('gal-dl-modal');
+  if(m) m.classList.remove('open');
+}
+function iniciarDownloadGaleria(tipo){
+  fecharModalDownload();
+  var fotos = tipo === 'web'
+    ? _todasFotos.filter(function(f){ return f.webKey || f.webUrl; })
+    : _todasFotos.filter(function(f){ return f.key || f.url; });
+  if(!fotos.length){ alert('Nenhum arquivo disponível para download.'); return; }
+  fotos.forEach(function(foto, i){
+    setTimeout(function(){
+      var key = tipo === 'web' ? (foto.webKey || foto.webUrl) : (foto.key || foto.url);
+      var fname = (tipo === 'web' ? 'web_' : '') + 'foto-'+(i+1)+'.jpg';
+      var a = document.createElement('a');
+      a.href = '/api/gallery-download?key='+encodeURIComponent(key)+'&filename='+encodeURIComponent(fname);
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }, i * 200);
+  });
+}
 
 function showErro(msg){
   document.getElementById('app-root').innerHTML =
