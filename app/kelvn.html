@@ -3377,10 +3377,21 @@ function acaoFollowupWhats(){
 function acaoFollowupAdiar(){
   var sd=g('sd')||{};
   var dias=(sd.automacao_followup&&sd.automacao_followup.dias)||5;
-  var novaData=new Date();novaData.setHours(0,0,0,0);novaData.setDate(novaData.getDate()+dias);
+  // Calcula a partir da data do evento atual, não de hoje
+  var evento=(g('eventos')||[]).find(function(e){return e.id===_fuEventoId;});
+  var base=evento?new Date((evento.data||'').substring(0,10)+'T12:00'):new Date();
+  base.setDate(base.getDate()+dias);
+  var dataISO=base.getFullYear()+'-'+String(base.getMonth()+1).padStart(2,'0')+'-'+String(base.getDate()).padStart(2,'0');
   var meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  _concluirFollowup(true);
-  notify('Follow-up reagendado para '+novaData.getDate()+' de '+meses[novaData.getMonth()]+'.');
+  removerEventoFollowup(_fuClienteId);
+  var cliente=(g('clientes')||[]).find(function(c){return c.id===_fuClienteId;});
+  if(cliente){
+    var eventos=g('eventos')||[];
+    eventos.push({id:uid(),titulo:'Fazer Follow-up',data:dataISO,tipo:'followup_prospect',clienteId:cliente.id,criado_em:new Date().toISOString()});
+    s('eventos',eventos);
+  }
+  cov('ov-followup');rR();rA();
+  notify('Follow-up reagendado para '+base.getDate()+' de '+meses[base.getMonth()]+'.');
 }
 
 function acaoFollowupStatus(){
