@@ -3275,12 +3275,13 @@ function _syncAutoFollowupUI(af){
   if(old)old.remove();
   var row=document.createElement('div');
   row.id='auto-followup-row';
-  el.appendChild(row);
   var ativo=!!af.ativo;
   var dias=af.dias||5;
   var trackBg=ativo?'var(--surface2)':'var(--border-strong)';
   var thumbX=ativo?'translateX(14px)':'translateX(0)';
-  row.innerHTML='<div class="kv-auto-row'+(ativo?'':' off')+'" style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
+  row.className='kv-auto-row'+(ativo?'':' off');
+  row.style.cssText='display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);';
+  row.innerHTML=
     '<div style="flex:1;">'+
       '<div style="font-size:.82rem;color:var(--text);">Follow-up de prospects</div>'+
       '<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+(ativo?dias+' dias após o cadastro':'Desativado')+'</div>'+
@@ -3289,8 +3290,8 @@ function _syncAutoFollowupUI(af){
       '<span style="position:absolute;inset:0;background:'+trackBg+';border-radius:18px;transition:background .2s;"></span>'+
       '<span style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.25);transform:'+thumbX+';transition:transform .2s;"></span>'+
     '</div></div>'+
-    '<button class="btn" onclick="openAutoFollowupConfig()">Editar</button>'+
-  '</div>';
+    '<button class="btn" onclick="openAutoFollowupConfig()">Editar</button>';
+  el.appendChild(row);
 }
 
 function openAutoFollowupConfig(){
