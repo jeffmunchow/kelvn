@@ -3177,7 +3177,7 @@ function rCalAno(){
   var evs=g('eventos').concat(_primaryEventsFromClientes()).filter(function(e){return _edsCalIds.indexOf(e.id)===-1;});
   var evDays={};
   evs.forEach(function(e){
-    var d=new Date(e.data);
+    var d=new Date((e.data||'').substring(0,10)+'T12:00');
     if(d.getFullYear()===_calAno){
       var key=d.getMonth()+'-'+d.getDate();
       var isPrimary=!!e._fromCliente||_PRIMARY_STATUS.indexOf(e.tipo)>-1;
