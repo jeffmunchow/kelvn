@@ -8262,21 +8262,22 @@ function atualizarPreview(){
   var tT = 'font-family:'+d.tipo.fonte_titulo+';font-weight:'+d.tipo.peso_titulo+';font-style:'+d.tipo.estilo_titulo+';letter-spacing:'+(d.tipo.ls_titulo||'0')+';text-transform:'+(d.tipo.tt_titulo||'none')+';';
   var tB = 'font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';font-style:'+d.tipo.estilo_corpo+';letter-spacing:'+(d.tipo.ls_corpo||'0')+';text-transform:'+(d.tipo.tt_corpo||'none')+';';
 
+  // Fator de escala 0.63 aplicado uniformemente aos tamanhos reais da galeria:
+  // real: título 3rem → preview 1.9rem | label .65rem → .41rem | data .72rem → .45rem
   if(d.capa_layout === 'full'){
-    // Full Editorial — foto preenche tudo, overlay escuro, label topo, título centro, data abaixo
     html += '<div style="position:relative;aspect-ratio:16/9;overflow:hidden;">';
     if(coverUrl) html += '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">';
     else html += '<div style="width:100%;height:100%;background:#111;"></div>';
     html +=
       '<div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,.3) 0%, rgba(0,0,0,.2) 50%, rgba(0,0,0,.45) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:1.5rem;">' +
-        '<div style="'+tB+'font-size:.52rem;letter-spacing:.14em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:.6rem;">'+pLabel+'</div>' +
-        '<div style="width:28px;height:.5px;background:rgba(255,255,255,.4);margin-bottom:.8rem;"></div>' +
-        '<div style="'+tT+'font-size:2rem;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);text-align:center;line-height:1.1;">'+pNome+'</div>' +
-        (pSubInfo ? '<div style="'+tB+'font-size:.56rem;color:rgba(255,255,255,.7);letter-spacing:.1em;text-transform:uppercase;margin-top:.8rem;">'+pSubInfo+'</div>' : '') +
+        '<div style="'+tB+'font-size:.41rem;letter-spacing:.14em;color:rgba(255,255,255,.7);text-transform:uppercase;margin-bottom:.6rem;">'+pLabel+'</div>' +
+        '<div style="width:22px;height:.5px;background:rgba(255,255,255,.4);margin-bottom:.7rem;"></div>' +
+        '<div style="'+tT+'font-size:1.9rem;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);text-align:center;line-height:1.15;">'+pNome+'</div>' +
+        (pSubInfo ? '<div style="'+tB+'font-size:.45rem;color:rgba(255,255,255,.7);letter-spacing:.08em;text-transform:uppercase;margin-top:.75rem;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
   } else if(d.capa_layout === 'dividido'){
-    // Dividido — foto esquerda 55%, painel claro direita, label topo, título grande, linha, data
+    // real: título 2.6rem → 1.64rem | label .65rem → .41rem | data .72rem → .45rem
     html += '<div style="display:flex;aspect-ratio:16/9;overflow:hidden;">' +
       '<div style="width:55%;flex-shrink:0;overflow:hidden;">';
     if(coverUrl) html += '<img src="'+coverUrl+'" style="width:100%;height:100%;object-fit:cover;object-position:'+pf+';">';
@@ -8284,29 +8285,28 @@ function atualizarPreview(){
     html +=
       '</div>' +
       '<div style="flex:1;background:'+d.paleta.bg+';display:flex;flex-direction:column;justify-content:center;padding:1.5rem 1.2rem;gap:0;">' +
-        '<div style="'+tB+'font-size:.5rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.6rem;">GALERIA · '+(pData ? pData.split(' ').pop() : '2025')+'</div>' +
-        '<div style="'+tT+'font-size:1.7rem;color:'+d.paleta.text+';line-height:1.05;margin-bottom:.6rem;">'+pNome+'</div>' +
-        '<div style="width:24px;height:.5px;background:'+d.paleta.accent+';margin-bottom:.6rem;"></div>' +
-        (pSubInfo ? '<div style="'+tB+'font-size:.5rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+        '<div style="'+tB+'font-size:.41rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.6rem;">GALERIA · '+(pData ? pData.split(' ').pop() : '2025')+'</div>' +
+        '<div style="'+tT+'font-size:1.65rem;color:'+d.paleta.text+';line-height:1.05;margin-bottom:.6rem;">'+pNome+'</div>' +
+        '<div style="width:22px;height:.5px;background:'+d.paleta.accent+';margin-bottom:.6rem;"></div>' +
+        (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
   } else if(d.capa_layout === 'retrato'){
-    // Retrato Centrado — fundo claro preenche tela, foto pequena centralizada, linha amber, título
+    // real: título 2.4rem → 1.51rem | label .65rem → .41rem | data .72rem → .45rem
     html += '<div style="background:'+d.paleta.bg+';aspect-ratio:16/9;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;gap:0;">' +
-      '<div style="'+tB+'font-size:.45rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.5rem;">'+pLabel+'</div>';
+      '<div style="'+tB+'font-size:.41rem;letter-spacing:.12em;color:'+d.paleta.accent+';text-transform:uppercase;margin-bottom:.5rem;">'+pLabel+'</div>';
     if(coverUrl){
-      // altura fixa, largura natural da foto (preserva proporção original)
-      html += '<div style="height:48%;overflow:hidden;margin-bottom:.6rem;">' +
+      html += '<div style="height:42%;overflow:hidden;margin-bottom:.6rem;">' +
         '<img src="'+coverUrl+'" style="height:100%;width:auto;display:block;object-fit:cover;object-position:'+pf+';">' +
       '</div>';
     }
     html +=
-      '<div style="width:16px;height:1.5px;background:var(--amber);margin-bottom:.55rem;"></div>' +
-      '<div style="'+tT+'font-size:1.1rem;color:'+d.paleta.text+';margin-bottom:.35rem;">'+pNome+'</div>' +
-      (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+      '<div style="width:16px;height:1.5px;background:'+d.paleta.accent+';margin-bottom:.5rem;opacity:.7;"></div>' +
+      '<div style="'+tT+'font-size:1.5rem;color:'+d.paleta.text+';line-height:1.15;margin-bottom:.35rem;">'+pNome+'</div>' +
+      (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
     '</div>';
   } else {
-    // Horizonte — banner foto topo ~40%, espaço limpo embaixo com título e data
+    // Horizonte — real: título 2.8rem → 1.76rem | data .72rem → .45rem
     html += '<div style="background:'+d.paleta.bg+';overflow:hidden;">';
     if(coverUrl){
       html += '<div style="width:100%;aspect-ratio:21/9;overflow:hidden;">' +
@@ -8315,8 +8315,9 @@ function atualizarPreview(){
     }
     html +=
       '<div style="padding:1.5rem;text-align:center;">' +
-        '<div style="'+tT+'font-size:1.8rem;color:'+d.paleta.text+';margin-bottom:.5rem;">'+pNome+'</div>' +
-        (pSubInfo ? '<div style="'+tB+'font-size:.5rem;letter-spacing:.1em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
+        '<div style="'+tT+'font-size:1.75rem;color:'+d.paleta.text+';line-height:1.15;margin-bottom:.5rem;">'+pNome+'</div>' +
+        '<div style="width:25px;height:.5px;background:'+d.paleta.accent+';margin:.75rem auto;"></div>' +
+        (pSubInfo ? '<div style="'+tB+'font-size:.45rem;letter-spacing:.08em;color:'+d.paleta.accent+';text-transform:uppercase;">'+pSubInfo+'</div>' : '') +
       '</div>' +
     '</div>';
   }
