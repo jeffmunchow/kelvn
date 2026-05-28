@@ -1247,11 +1247,9 @@ select.aj-input{cursor:pointer;}
 
       <div id="aj-panel-automacoes" style="display:none;">
         <div class="aj-section-title">Automações</div>
-        <div class="aj-section-desc">Questionários enviados automaticamente via WhatsApp.</div>
         <div id="auto-list" style="margin-top:1.25rem;"></div>
+        <div id="auto-followup-row"></div>
         <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openAuto()">+ Adicionar automação</button>
-
-        <div id="auto-followup-row" style="margin-top:.25rem;"></div>
       </div>
 
       <div id="aj-panel-servicos" style="display:none;">
@@ -3287,21 +3285,38 @@ function _syncAutoFollowupUI(af){
       '<span style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.25);transform:'+thumbX+';transition:transform .2s;"></span>'+
     '</div></div>'+
     '<button class="btn" onclick="openAutoFollowupConfig()">Editar</button>'+
-  '</div>'+
-  '<div id="auto-followup-config" style="display:none;padding:.6rem 0 .25rem;">'+
-    '<div class="field" style="max-width:280px;">'+
-      '<label>Dias até o follow-up</label>'+
-      '<div style="display:flex;align-items:center;gap:8px;">'+
-        '<input type="number" id="auto-followup-dias" class="fi" min="1" max="30" value="'+dias+'" style="width:72px;" oninput="saveAutoFollowup()">'+
-        '<span style="font-size:.78rem;color:var(--text-muted);">dias após o cadastro</span>'+
-      '</div>'+
-    '</div>'+
   '</div>';
 }
 
 function openAutoFollowupConfig(){
-  var cfg=document.getElementById('auto-followup-config');
-  if(cfg)cfg.style.display=cfg.style.display==='none'?'':'none';
+  var af=(g('sd')||{}).automacao_followup||{ativo:false,dias:5};
+  var ov=document.createElement('div');
+  ov.id='ov-auto-followup-temp';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:flex;align-items:center;justify-content:center;';
+  ov.innerHTML='<div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem 2rem;width:380px;max-width:90vw;">'+
+    '<h2 style="font-family:\'Playfair Display\',serif;font-size:1rem;margin-bottom:1.25rem;">Follow-up de prospects</h2>'+
+    '<div style="display:flex;flex-direction:column;gap:1rem;">'+
+      '<div class="field"><label>Dias após o cadastro</label><input type="number" id="mafu-dias" class="fi" min="1" max="30" value="'+(af.dias||5)+'"></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:.5rem;margin-top:1.5rem;justify-content:flex-end;">'+
+      '<button class="btn" onclick="document.getElementById(\'ov-auto-followup-temp\').remove()">Cancelar</button>'+
+      '<button class="btn primary" onclick="saveAutoFollowupModal()">Salvar</button>'+
+    '</div>'+
+  '</div>';
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+  document.body.appendChild(ov);
+}
+
+function saveAutoFollowupModal(){
+  var dias=Math.max(1,Math.min(30,parseInt(document.getElementById('mafu-dias').value)||5));
+  var sd=g('sd')||{};
+  var af=sd.automacao_followup||{ativo:false,dias:5};
+  af.dias=dias;
+  sd.automacao_followup=af;
+  s('sd',sd);
+  document.getElementById('ov-auto-followup-temp').remove();
+  _syncAutoFollowupUI(af);
+  notify('Follow-up configurado.');
 }
 
 function toggleMfuStatus(){
