@@ -3454,7 +3454,7 @@ function rA(){
     var subParts=isFollowupA?[cN(e.clienteId)||'']:isAuto?[e.local||'']:isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var sub=subParts.filter(Boolean).join(' – ');
     var dragAttr=isPrimary?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
-    var badgeA=isFollowupA?'':isAuto?'<span class="st-prospect">Questionário</span>':bdg(e.tipo);
+    var badgeA=isFollowupA?'<span class="st-prospect">Follow-up</span>':isAuto?'<span class="st-prospect">Questionário</span>':bdg(e.tipo);
     return '<div class="ai'+(past?' past':'')+'"'+dragAttr+' data-id="'+e.id+'" '+onclick+'><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+badgeA+'</div>';
   }).join('')+'</div>';
 }
