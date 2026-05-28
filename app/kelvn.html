@@ -1251,29 +1251,7 @@ select.aj-input{cursor:pointer;}
         <div id="auto-list" style="margin-top:1.25rem;"></div>
         <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openAuto()">+ Adicionar automação</button>
 
-        <div class="aj-section-title" style="margin-top:2.5rem;">Follow-up de prospects</div>
-        <div class="aj-section-desc">Cria um evento na agenda quando um prospect é cadastrado. Reagendado automaticamente a cada follow-up até o cliente avançar no pipeline.</div>
-        <div id="auto-followup" style="margin-top:1rem;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 0;border-bottom:.5px solid var(--border);">
-            <div>
-              <div style="font-size:.82rem;color:var(--text);font-weight:500;">Ativar automação</div>
-              <div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">Cria um lembrete na agenda X dias após o cadastro do prospect</div>
-            </div>
-            <div onclick="toggleAutoFollowup()" id="auto-followup-toggle" title="Ativar/desativar" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:28px;flex-shrink:0;cursor:pointer;"><div style="position:relative;width:32px;height:18px;">
-              <span id="auto-followup-track" style="position:absolute;inset:0;background:var(--border-strong);border-radius:18px;transition:background .2s;"></span>
-              <span id="auto-followup-thumb" style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.25);transform:translateX(0);transition:transform .2s;"></span>
-            </div></div>
-          </div>
-          <div id="auto-followup-config" style="display:none;padding:.75rem 0;">
-            <div class="field" style="max-width:280px;">
-              <label>Dias até o follow-up</label>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <input type="number" id="auto-followup-dias" class="fi" min="1" max="30" value="5" style="width:72px;" oninput="saveAutoFollowup()">
-                <span style="font-size:.78rem;color:var(--text-muted);">dias após o cadastro</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div id="auto-followup-row" style="margin-top:.25rem;"></div>
       </div>
 
       <div id="aj-panel-servicos" style="display:none;">
@@ -3293,14 +3271,37 @@ function saveAutoFollowup(){
 
 function _syncAutoFollowupUI(af){
   af=af||(g('sd')||{}).automacao_followup||{ativo:false,dias:5};
-  var track=document.getElementById('auto-followup-track');
-  var thumb=document.getElementById('auto-followup-thumb');
+  var el=document.getElementById('auto-followup-row');
+  if(!el)return;
+  var ativo=!!af.ativo;
+  var dias=af.dias||5;
+  var trackBg=ativo?'var(--surface2)':'var(--border-strong)';
+  var thumbX=ativo?'translateX(14px)':'translateX(0)';
+  el.innerHTML='<div class="kv-auto-row'+(ativo?'':' off')+'" style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:.5px solid var(--border);">'+
+    '<div style="flex:1;">'+
+      '<div style="font-size:.82rem;color:var(--text);">Follow-up de prospects</div>'+
+      '<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+(ativo?dias+' dias após o cadastro':'Desativado')+'</div>'+
+    '</div>'+
+    '<div onclick="toggleAutoFollowup()" title="'+(ativo?'Desativar':'Ativar')+'" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:28px;flex-shrink:0;cursor:pointer;"><div style="position:relative;width:32px;height:18px;">'+
+      '<span style="position:absolute;inset:0;background:'+trackBg+';border-radius:18px;transition:background .2s;"></span>'+
+      '<span style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.25);transform:'+thumbX+';transition:transform .2s;"></span>'+
+    '</div></div>'+
+    '<button class="btn" onclick="openAutoFollowupConfig()">Editar</button>'+
+  '</div>'+
+  '<div id="auto-followup-config" style="display:none;padding:.6rem 0 .25rem;">'+
+    '<div class="field" style="max-width:280px;">'+
+      '<label>Dias até o follow-up</label>'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<input type="number" id="auto-followup-dias" class="fi" min="1" max="30" value="'+dias+'" style="width:72px;" oninput="saveAutoFollowup()">'+
+        '<span style="font-size:.78rem;color:var(--text-muted);">dias após o cadastro</span>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function openAutoFollowupConfig(){
   var cfg=document.getElementById('auto-followup-config');
-  var diasEl=document.getElementById('auto-followup-dias');
-  if(track)track.style.background=af.ativo?'var(--amber)':'var(--border-strong)';
-  if(thumb)thumb.style.transform=af.ativo?'translateX(14px)':'translateX(0)';
-  if(cfg)cfg.style.display=af.ativo?'':'none';
-  if(diasEl)diasEl.value=af.dias||5;
+  if(cfg)cfg.style.display=cfg.style.display==='none'?'':'none';
 }
 
 function toggleMfuStatus(){
