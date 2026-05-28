@@ -3377,8 +3377,10 @@ function acaoFollowupWhats(){
 function acaoFollowupAdiar(){
   var sd=g('sd')||{};
   var dias=(sd.automacao_followup&&sd.automacao_followup.dias)||5;
+  var novaData=new Date();novaData.setHours(0,0,0,0);novaData.setDate(novaData.getDate()+dias);
+  var meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   _concluirFollowup(true);
-  notify('Follow-up adiado por '+dias+' dias.');
+  notify('Follow-up reagendado para '+novaData.getDate()+' de '+meses[novaData.getMonth()]+'.');
 }
 
 function acaoFollowupStatus(){
