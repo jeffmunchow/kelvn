@@ -45,6 +45,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .snav-btn{width:38px;height:38px;border-radius:10px;border:none;background:transparent;color:var(--text-hint);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;position:relative;flex-shrink:0;}
 .snav-btn:hover{background:var(--surface2);color:var(--text-muted);}
 .snav-btn.active{background:transparent;color:var(--amber);}
+.snav-breve{opacity:.3;cursor:default;}
+.snav-breve:hover{opacity:.45;background:var(--surface2);}
 .snav-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
 /* MAIN CONTENT */
 .main{flex:1;margin-left:56px;min-width:0;}
@@ -2011,6 +2013,7 @@ function entbdg(st){
   return '<span class="badge '+(m[st]||'bp')+'">'+(st||'—')+'</span>';
 }
 function cN(id){var c=g('clientes').find(function(x){return x.id===id;});return c?c.nome:'—';}
+function pN(id){var p=g('pacotes').find(function(x){return x.id===id;});return p?p.nome:'—';}
 function fillSel(extras){
   var cs=g('clientes');
   var sels=extras||[];
