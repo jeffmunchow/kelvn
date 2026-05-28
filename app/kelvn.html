@@ -8250,16 +8250,16 @@ function atualizarPreview(){
   var fotos = (gal.fotos || []).slice(0, Math.max(18, nColsPreview * 4));
   var coverUrl = gal.cover_url || (fotos[0] && (fotos[0].webUrl || fotos[0].url)) || '';
 
-  // Tamanhos em px proporcionais ao container vs. galeria real (ref 1440px)
-  // Garante fidelidade visual independente do rem do documento
+  // Tamanhos em px proporcionais ao container vs. galeria real
+  // REF_VIEWPORT: viewport real médio do cliente (tela wide ~2100px equivalente após comparação visual)
   var pW = el.offsetWidth || 600;
-  var sc = pW / 1440;
-  var fsTitleFull = Math.round(3    * 16 * sc) + 'px'; // real: 3rem
-  var fsTitleDiv  = Math.round(2.6  * 16 * sc) + 'px'; // real: 2.6rem
-  var fsTitleRet  = Math.round(2.4  * 16 * sc) + 'px'; // real: 2.4rem
-  var fsTitleHor  = Math.round(2.8  * 16 * sc) + 'px'; // real: 2.8rem
-  var fsLabel     = Math.max(Math.round(.65 * 16 * sc), 7) + 'px'; // real: .65rem, min 7px
-  var fsDate      = Math.max(Math.round(.72 * 16 * sc), 7) + 'px'; // real: .72rem, min 7px
+  var sc = pW / 2100;
+  var fsTitleFull = Math.round(3    * 16 * sc) + 'px';
+  var fsTitleDiv  = Math.round(2.6  * 16 * sc) + 'px';
+  var fsTitleRet  = Math.round(2.4  * 16 * sc) + 'px';
+  var fsTitleHor  = Math.round(2.8  * 16 * sc) + 'px';
+  var fsLabel     = Math.max(Math.round(.65 * 16 * sc), 5) + 'px';
+  var fsDate      = Math.max(Math.round(.72 * 16 * sc), 5) + 'px';
 
   var html = '<div style="background:'+d.paleta.bg+';color:'+d.paleta.text+';font-family:'+d.tipo.fonte_corpo+';font-weight:'+d.tipo.peso_corpo+';min-height:100%;overflow:hidden;">';
 
