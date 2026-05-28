@@ -2092,7 +2092,7 @@ function rR(){
     var isFollowup=e.tipo==='followup_prospect';
     var col=isFollowup?'var(--text-hint)':isAuto?'var(--text-hint)':e._fromCliente?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)';
     var onclick=isFollowup?'abrirModalFollowup(\''+e.id+'\')':isAuto?'_openAutoCard(\''+e.id+'\')':e._fromCliente?'openC(\''+e.clienteId+'\')':'openE(\''+e.id+'\')';
-    var badgeFollowup=isFollowup?' <span style="font-size:.6rem;padding:1px 6px;border-radius:3px;background:var(--amber);color:var(--bg);font-weight:500;">follow-up</span>':'';
+    var badgeFollowup='';
     var subParts=isFollowup?[cN(e.clienteId)||'']:isAuto?[e.local||'']:e._fromCliente?[e.local||e.tipo]:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var subSec=subParts.filter(Boolean).join(' – ');
     var dragAttr=e._fromCliente?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
@@ -3237,7 +3237,7 @@ function criarEventoFollowup(cliente){
   });
   var d=new Date();d.setDate(d.getDate()+dias);
   var dataISO=d.toISOString().split('T')[0];
-  eventos.push({id:uid(),titulo:'Follow-up — '+(cliente.nome||'Prospect'),data:dataISO,tipo:'followup_prospect',clienteId:cliente.id,criado_em:new Date().toISOString()});
+  eventos.push({id:uid(),titulo:'Fazer Follow-up',data:dataISO,tipo:'followup_prospect',clienteId:cliente.id,criado_em:new Date().toISOString()});
   s('eventos',eventos);
 }
 
@@ -3452,7 +3452,7 @@ function rA(){
     var subParts=isFollowupA?[cN(e.clienteId)||'']:isAuto?[e.local||'']:isPrimary?[e.local||'']:[e.clienteId?cN(e.clienteId):'',e.local||'',fmtEvTime(e.data)];
     var sub=subParts.filter(Boolean).join(' – ');
     var dragAttr=isPrimary?' draggable="true" ondragstart="dragEd(event,\''+e.clienteId+'\',\''+e.id+'\')"':'';
-    var badgeA=isFollowupA?'<span style="font-size:.6rem;padding:1px 6px;border-radius:3px;background:var(--amber);color:var(--bg);font-weight:500;">follow-up</span>':isAuto?'<span class="st-prospect">Questionário</span>':bdg(e.tipo);
+    var badgeA=isFollowupA?'':isAuto?'<span class="st-prospect">Questionário</span>':bdg(e.tipo);
     return '<div class="ai'+(past?' past':'')+'"'+dragAttr+' data-id="'+e.id+'" '+onclick+'><div class="ai-date'+(isHoje?' hoje':'')+'">'+dl+'</div><div class="ai-dot" style="background:'+col+'"></div><div class="ai-info"><div class="ai-title">'+e.titulo+'</div><div class="ai-sub">'+sub+'</div></div>'+badgeA+'</div>';
   }).join('')+'</div>';
 }
