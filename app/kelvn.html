@@ -3347,7 +3347,8 @@ function abrirModalFollowup(eventoId){
   document.getElementById('mfu-status').textContent=cliente.status||'—';
   var sd=g('sd')||{};
   var dias=(sd.automacao_followup&&sd.automacao_followup.dias)||5;
-  var dataAdio=new Date();dataAdio.setDate(dataAdio.getDate()+dias);
+  var dataAdio=new Date((evento.data||'').substring(0,10)+'T12:00');
+  dataAdio.setDate(dataAdio.getDate()+dias);
   var meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   document.getElementById('mfu-label-adiar').textContent='Adiar follow-up — '+dias+' dias ('+dataAdio.getDate()+' de '+meses[dataAdio.getMonth()]+')';
   var todosStatus=['Prospect','Sessão','Religioso','Welcome','Casamento','After','Edição','Álbum design','Entregue','Finalizado'];
