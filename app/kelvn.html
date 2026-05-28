@@ -2505,6 +2505,8 @@ function delC(){
   });
   s('fin',finLimpo);
   s('clientes',g('clientes').filter(function(c){return c.id!==_cId;}));
+  // Remove todos os eventos vinculados a esse cliente
+  s('eventos',g('eventos').filter(function(e){return e.clienteId!==_cId;}));
   undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído');
 }
 function rPL(ps){_parc=ps.map(function(p){return Object.assign({},p);});bPD();}
