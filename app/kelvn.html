@@ -2973,7 +2973,7 @@ function switchAJ(name){
   if(name==='geral') _syncThemeUI();
   if(name==='equipe'){_loadEqColW();rEQ();}
   if(name==='contratos') _syncTemplateStatus();
-  if(name==='automacoes') rAuto();
+  if(name==='automacoes'){rAuto();_syncAutoFollowupUI();}
   if(name==='servicos'){rAJServicos();rSD();rFotoSlots();rFaqList();}
 }
 // ── ORÇAMENTO PDF — FOTOS & CONTEÚDO ────────────────────────────────────────
