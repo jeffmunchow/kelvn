@@ -423,6 +423,7 @@ var _favIds = [];              // array de identificadores (foto.key) favoritado
 var _favListaNome = 'Minhas favoritas';
 var _favViewAtiva = false;     // se a view de favoritos está aberta
 var _favPendente = null;       // intenção de favoritar guardada até identificar email
+var _favPendingView = false;   // abrirViewFavoritos foi chamado sem email
 
 // As fotos não têm campo `id` — usamos a key do R2 (única e estável), fallback p/ url
 function _fotoId(foto){ return (foto && (foto.key || foto.url)) || ''; }
@@ -635,6 +636,8 @@ function renderizarGaleria(){
       if(img.complete){ wrap.classList.add('loaded'); }
       else { img.addEventListener('load', function(){ wrap.classList.add('loaded'); }); }
     });
+    // Inicializa favoritos AQUI — depois que os corações já existem no DOM
+    _initFavoritos();
   }, 0);
 
   // fecha menus ao clicar fora
@@ -643,9 +646,6 @@ function renderizarGaleria(){
       document.querySelectorAll('.dl-menu.open').forEach(function(m){ m.classList.remove('open'); });
     }
   });
-
-  // Inicializa favoritos (email salvo no device + corações/contador)
-  _initFavoritos();
 }
 
 function renderCapa(d, coverUrl){
@@ -976,8 +976,10 @@ async function confirmarEmailFav(){
   fecharEmailModal();
   atualizarCoracoesFotos();
   atualizarContadorFav();
+  // Abre view se foi chamada antes da identificação
+  if(_favPendingView){ _favPendingView=false; abrirViewFavoritos(); return; }
   // Aplica intenção pendente (cliente clicou no coração antes de identificar)
-  if(_favPendente){ var p=_favPendente; _favPendente=null; await toggleFavorito(p); }
+  if(_favPendente){ var p=_favPendente; _favPendente=null; await toggleFavorito(p); return; }
   notify('Pronto! Agora é só favoritar.');
 }
 
@@ -1006,7 +1008,7 @@ function atualizarContadorFav(){
 }
 
 async function abrirViewFavoritos(){
-  if(!_favEmail){ abrirEmailModal(); return; }
+  if(!_favEmail){ _favPendingView=true; abrirEmailModal(); return; }
   _favViewAtiva=true;
   renderViewFavoritos();
 }
