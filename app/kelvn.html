@@ -983,6 +983,7 @@ select.aj-input{cursor:pointer;}
     <div class="sh">
       <div class="st">Galerias</div>
       <div style="display:flex;align-items:center;gap:.6rem;">
+        <button class="btn" onclick="abrirTodasSelecoes()">Seleções</button>
         <!-- Ordenar -->
         <div style="position:relative;" id="gal-sort-wrap">
           <button class="btn" onclick="galToggleSort()" id="gal-sort-btn" style="display:flex;align-items:center;gap:.4rem;">
@@ -1003,7 +1004,6 @@ select.aj-input{cursor:pointer;}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="gal-busca" placeholder="Buscar galeria…" oninput="rGalFiltro()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:200px;">
         </div>
-        <button class="btn" onclick="abrirTodasSelecoes()">Seleções</button>
         <button class="btn" style="color:var(--text);" onclick="abrirNovaGaleria()">+ Nova galeria</button>
       </div>
     </div>
