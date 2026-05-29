@@ -6657,6 +6657,8 @@ async function abrirSelecoes(){
   if(body)  body.style.display  = 'none';
   if(dBody) dBody.style.display = 'none';
   if(sBody){ sBody.style.display=''; sBody.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Carregando seleções…</div>'; }
+  var gridB = document.getElementById('gal-nav-grid-btns');
+  if(gridB) gridB.style.display = 'none';
 
   // Botão voltar aponta para a galeria do casal
   var btnBack = document.getElementById('gal-nav-back-galerias');
@@ -6693,6 +6695,8 @@ function fecharSelecoes(){
   var sBody = document.getElementById('gal-det-sel-body');
   if(sBody) sBody.style.display='none';
   if(body)  body.style.display='';
+  var gridB = document.getElementById('gal-nav-grid-btns');
+  if(gridB) gridB.style.display = 'flex';
   // Restaura botão voltar para "Galerias"
   var btnBack = document.getElementById('gal-nav-back-galerias');
   if(btnBack){
