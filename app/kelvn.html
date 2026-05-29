@@ -6716,19 +6716,9 @@ function renderSelecoes(selecoes, gal){
     var selFotos = fotos.filter(function(f){ return allIds.indexOf(f.key||f.url)>-1; });
     var data = sel.atualizado_em ? new Date(sel.atualizado_em).toLocaleDateString('pt-BR') : '—';
 
-    // Miniaturas (até 5)
-    var thumbs = selFotos.slice(0,5).map(function(f){
-      var src = f.thumbUrl||f.webUrl||f.url;
-      return '<img src="'+src+'" style="width:32px;height:32px;object-fit:cover;border-radius:3px;flex-shrink:0;" loading="lazy">';
-    }).join('');
-    var extra = selFotos.length > 5
-      ? '<span style="font-size:.68rem;color:var(--text-hint);margin-left:4px;">+' +(selFotos.length-5)+'</span>' : '';
-
     html += '<tr>'
       +'<td class="tdn" style="color:var(--text);">'+sel.email+'</td>'
-      +'<td><div style="display:flex;align-items:center;gap:4px;">'+thumbs+extra
-        +'<span style="font-size:.72rem;color:var(--text-hint);margin-left:6px;">'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+'</span>'
-        +'</div></td>'
+      +'<td>'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+'</td>'
       +'<td>'+data+'</td>'
       +'</tr>';
   });
