@@ -6704,7 +6704,10 @@ function fecharSelecoes(){
 var _selData = null; // cache para voltar à lista
 
 function renderSelecoes(selecoes, gal){
-  _selData = { selecoes: selecoes, gal: gal }; // guarda para poder voltar
+  _selData = { selecoes: selecoes, gal: gal };
+  // Botão principal volta a apontar para fecharSelecoes (grid da galeria)
+  var btnBack = document.getElementById('gal-nav-back-galerias');
+  if(btnBack) btnBack.setAttribute('onclick','fecharSelecoes()');
   var sBody = document.getElementById('gal-det-sel-body');
   if(!sBody) return;
 
@@ -6756,11 +6759,14 @@ function abrirGridSelecao(si){
   var sBody = document.getElementById('gal-det-sel-body');
   if(!sBody) return;
 
-  var html = '<div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;">'
-    +'<button class="btn" onclick="renderSelecoes(_selData.selecoes,_selData.gal)" style="flex-shrink:0;">← Seleções</button>'
-    +'<div><div class="st" style="font-size:.88rem;">'+sel.email+'</div>'
-    +'<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+selFotos.length+' foto'+(selFotos.length!==1?'s':('' ))+' selecionada'+(selFotos.length!==1?'s':'')+'</div>'
-    +'</div></div>';
+  // Botão principal vira "← [nome da galeria]" → volta para a lista de seleções
+  var btnBack = document.getElementById('gal-nav-back-galerias');
+  if(btnBack) btnBack.setAttribute('onclick','renderSelecoes(_selData.selecoes,_selData.gal)');
+
+  var html = '<div style="margin-bottom:1.5rem;">'
+    +'<div class="st" style="font-size:.88rem;">'+sel.email+'</div>'
+    +'<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+' selecionada'+(selFotos.length!==1?'s':'')+'</div>'
+    +'</div>';
 
   if(!selFotos.length){
     html += '<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">As fotos desta seleção não estão mais na galeria.</div>';
