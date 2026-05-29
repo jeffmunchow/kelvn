@@ -6692,52 +6692,48 @@ function renderSelecoes(selecoes, gal){
 
   var fotos = (gal&&gal.fotos)||[];
 
+  var header = '<div style="margin-bottom:1.5rem;">'
+    +'<div class="st">Seleções <span style="font-size:.72rem;color:var(--text-hint);font-family:\'DM Sans\',sans-serif;font-weight:400;margin-left:.5rem;">'+(selecoes.length||'Nenhuma')+(selecoes.length?' pessoa'+(selecoes.length>1?'s':''):'')+'</span></div>'
+    +'</div>';
+
   if(!selecoes.length){
-    sBody.innerHTML =
-      '<div style="margin-bottom:1.5rem;">'
-      +'<div class="st">Seleções</div>'
-      +'</div>'
-      +'<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">'
-      +'Nenhum cliente fez seleções nesta galeria ainda.</div>';
+    sBody.innerHTML = header+'<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Nenhum cliente fez seleções nesta galeria ainda.</div>';
     return;
   }
 
-  var html = '<div style="margin-bottom:1.5rem;">'
-    +'<div class="st">Seleções <span style="font-size:.72rem;color:var(--text-hint);font-family:\'DM Sans\',sans-serif;font-weight:400;margin-left:.5rem;">'+selecoes.length+' pessoa'+(selecoes.length>1?'s':'')+'</span></div>'
-    +'</div>';
+  var html = header
+    +'<div class="tw"><div class="ts"><table>'
+    +'<thead><tr>'
+    +'<th>Cliente</th>'
+    +'<th>Fotos selecionadas</th>'
+    +'<th>Última atualização</th>'
+    +'</tr></thead>'
+    +'<tbody>';
 
   selecoes.forEach(function(sel){
     var allIds = [];
     Object.values(sel.listas||{}).forEach(function(ids){ allIds=allIds.concat(ids); });
     var selFotos = fotos.filter(function(f){ return allIds.indexOf(f.key||f.url)>-1; });
-    var data = sel.atualizado_em ? new Date(sel.atualizado_em).toLocaleDateString('pt-BR') : '';
+    var data = sel.atualizado_em ? new Date(sel.atualizado_em).toLocaleDateString('pt-BR') : '—';
 
-    html += '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">'
-      // Cabeçalho clicável para expandir
-      +'<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'\':\' none\'">'
-      +'<div>'
-      +'<div style="font-size:.78rem;color:var(--text);font-weight:500;">'+sel.email+'</div>'
-      +'<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+' favoritada'+(selFotos.length!==1?'s':'')+(data?' · '+data:'')+'</div>'
-      +'</div>'
-      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-hint);flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>'
-      +'</div>';
+    // Miniaturas (até 5)
+    var thumbs = selFotos.slice(0,5).map(function(f){
+      var src = f.thumbUrl||f.webUrl||f.url;
+      return '<img src="'+src+'" style="width:32px;height:32px;object-fit:cover;border-radius:3px;flex-shrink:0;" loading="lazy">';
+    }).join('');
+    var extra = selFotos.length > 5
+      ? '<span style="font-size:.68rem;color:var(--text-hint);margin-left:4px;">+' +(selFotos.length-5)+'</span>' : '';
 
-    // Grid de fotos (começa expandido)
-    if(selFotos.length){
-      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;margin-top:1rem;">';
-      selFotos.forEach(function(f){
-        var src = f.thumbUrl||f.webUrl||f.url;
-        html += '<div style="aspect-ratio:1;border-radius:4px;overflow:hidden;cursor:pointer;" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+fotos.indexOf(f)+')">'
-          +'<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;" loading="lazy">'
-          +'</div>';
-      });
-      html += '</div>';
-    } else {
-      html += '<div style="font-size:.72rem;color:var(--text-hint);margin-top:.75rem;">As fotos desta seleção não estão mais na galeria.</div>';
-    }
-    html += '</div>';
+    html += '<tr>'
+      +'<td class="tdn" style="color:var(--text);">'+sel.email+'</td>'
+      +'<td><div style="display:flex;align-items:center;gap:4px;">'+thumbs+extra
+        +'<span style="font-size:.72rem;color:var(--text-hint);margin-left:6px;">'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+'</span>'
+        +'</div></td>'
+      +'<td>'+data+'</td>'
+      +'</tr>';
   });
 
+  html += '</tbody></table></div></div>';
   sBody.innerHTML = html;
 }
 
