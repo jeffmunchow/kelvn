@@ -6700,8 +6700,9 @@ async function deletarFotoGal(){
   notify('Foto excluída.');
 }
 // ===== SELEÇÕES DE FAVORITOS =====
-var _selCache={};      // { [galId]: { selecoes, gal, ts } }
-var _selFetching={};   // { [galId]: bool }
+var _selCache={};        // { [galId]: { selecoes, gal, ts } }
+var _selFetching={};     // { [galId]: bool }
+var _selFromGlobal=false; // veio da view global de seleções
 
 async function _prefetchSelecoes(galId){
   if(_selFetching[galId]) return;
@@ -6850,11 +6851,18 @@ function abrirGridSelecao(si){
   var sBody = document.getElementById('gal-det-sel-body');
   if(!sBody) return;
 
-  // Botão principal vira "← Seleções" → volta para a lista de seleções
+  // Botão principal — destino depende de onde veio
   var btnBack = document.getElementById('gal-nav-back-galerias');
-  if(btnBack) btnBack.setAttribute('onclick','renderSelecoes(_selData.selecoes,_selData.gal)');
   var lbl = document.getElementById('gal-nav-back-label');
-  if(lbl) lbl.textContent = 'Seleções';
+  if(_selFromGlobal){
+    // Veio da view global: voltar restaura a lista global
+    if(btnBack) btnBack.setAttribute('onclick','voltarParaGlobalSelecoes()');
+    if(lbl) lbl.textContent='Seleções';
+  } else {
+    // Veio da galeria: voltar vai para a lista da galeria
+    if(btnBack) btnBack.setAttribute('onclick','renderSelecoes(_selData.selecoes,_selData.gal)');
+    if(lbl) lbl.textContent='Seleções';
+  }
 
   var html = '<div style="margin-bottom:1.5rem;">'
     +'<div class="st" style="font-size:.88rem;">'+sel.email+'</div>'
@@ -6931,6 +6939,23 @@ async function abrirTodasSelecoes(){
   }
 }
 
+function voltarParaGlobalSelecoes(){
+  // Restaura a view global sem refetch — usa o cache ou os dados já carregados
+  _selFromGlobal=false;
+  fecharSelecoes(); // oculta gal-det-sel-body, restaura grid buttons e label "Galerias"
+  // Mostra novamente a view global
+  _galSelecoesAllAberta=true;
+  document.getElementById('gal-view-lista').style.display='none';
+  document.getElementById('gal-view-detalhe').style.display='none';
+  var v=document.getElementById('gal-view-selecoes-all');
+  if(v) v.style.display='';
+  // Restaura o botão voltar para "← Galerias"
+  var btnBack=document.getElementById('gal-nav-back-galerias');
+  if(btnBack) btnBack.setAttribute('onclick','fecharTodasSelecoes()');
+  var lbl=document.getElementById('gal-nav-back-label');
+  if(lbl) lbl.textContent='Galerias';
+}
+
 function fecharTodasSelecoes(){
   _galSelecoesAllAberta=false;
   var v=document.getElementById('gal-view-selecoes-all');
@@ -6968,6 +6993,7 @@ async function entrarGaleriaPorSlug(slug, email){
   if(!gal) return;
 
   fecharTodasSelecoes();
+  _selFromGlobal=true; // marca origem para o botão voltar usar a view global
 
   // Configura o estado sem renderizar o grid (evita o flash)
   _galAtualId=gal.id;
