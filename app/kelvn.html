@@ -6349,10 +6349,10 @@ async function _prefetchTodasSelecoes(){
     var slugs=gals.filter(function(x){return !!x.slug;}).map(function(x){return x.slug;});
     var slugToNome={};gals.forEach(function(x){if(x.slug)slugToNome[x.slug]=x.nomeCliente||x.slug;});
     if(!slugs.length){_selAllCache={selecoes:[],ts:Date.now()};return;}
-    var resp=await fetch('/api/favoritos-all',{
+    var resp=await fetch('/api/favoritos',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({slugs:slugs,slugToNome:slugToNome})
+      body:JSON.stringify({action:'all',slugs:slugs,slugToNome:slugToNome})
     });
     if(!resp.ok) return;
     var data=await resp.json();
@@ -6745,7 +6745,7 @@ async function _prefetchSelecoes(galId){
     var gals=g('galerias')||[];
     var gal=gals.find(function(x){return x.id===galId;});
     if(!gal||!gal.slug) return;
-    var resp=await fetch('/api/favoritos-list?slug='+encodeURIComponent(gal.slug),{
+    var resp=await fetch('/api/favoritos?action=list&slug='+encodeURIComponent(gal.slug),{
       headers:{'Authorization':'Bearer '+token}
     });
     if(!resp.ok) return;
@@ -6793,7 +6793,7 @@ async function abrirSelecoes(){
     var gal  = gals.find(function(x){ return x.id===_galAtualId; });
     if(!gal||!gal.slug) throw new Error('Slug não encontrado');
 
-    var resp = await fetch('/api/favoritos-list?slug='+encodeURIComponent(gal.slug), {
+    var resp = await fetch('/api/favoritos?action=list&slug='+encodeURIComponent(gal.slug), {
       headers: { 'Authorization': 'Bearer '+token }
     });
     var data = await resp.json();
@@ -6954,10 +6954,10 @@ async function abrirTodasSelecoes(){
     var slugToNome={};
     gals.forEach(function(x){if(x.slug) slugToNome[x.slug]=x.nomeCliente||x.slug;});
 
-    var resp=await fetch('/api/favoritos-all',{
+    var resp=await fetch('/api/favoritos',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({slugs:slugs,slugToNome:slugToNome})
+      body:JSON.stringify({action:'all',slugs:slugs,slugToNome:slugToNome})
     });
     var data=await resp.json();
     if(!resp.ok) throw new Error(data.error||'Erro');

@@ -439,7 +439,7 @@ function salvarEmailDevice(email){
 async function carregarFavoritos(){
   if(!_favEmail) return;
   try {
-    var resp = await fetch('/api/favoritos-get?slug='+encodeURIComponent(_slug)+'&email='+encodeURIComponent(_favEmail));
+    var resp = await fetch('/api/favoritos?action=get&slug='+encodeURIComponent(_slug)+'&email='+encodeURIComponent(_favEmail));
     var data = await resp.json();
     var listas = (data && data.listas) || {};
     _favIds = listas[_favListaNome] || [];
@@ -448,9 +448,9 @@ async function carregarFavoritos(){
 async function salvarFavoritos(){
   if(!_favEmail) return;
   try {
-    await fetch('/api/favoritos-save', {
+    await fetch('/api/favoritos', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ slug:_slug, email:_favEmail, lista:_favListaNome, foto_ids:_favIds })
+      body: JSON.stringify({ action:'save', slug:_slug, email:_favEmail, lista:_favListaNome, foto_ids:_favIds })
     });
   } catch(err){ console.error('Erro ao salvar favoritos:', err); }
 }
