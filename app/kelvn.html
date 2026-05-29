@@ -6577,12 +6577,15 @@ async function galExcluirFoto(url,key,idx){
   _fotoAtualIdx=idx;
   await deletarFotoGal();
 }
-function verFotoGal(url,key,idx){
+function verFotoGal(url,key,idx,soLeitura){
   _fotoAtualKey=key||null;
   _fotoAtualIdx=(idx!==undefined)?idx:-1;
   var img=document.getElementById('ov-foto-img');
   if(img) img.src=url;
   document.getElementById('ov-foto').classList.add('open');
+  var d=soLeitura?'none':'flex';
+  var capaBtn=document.getElementById('ov-foto-capa'); if(capaBtn) capaBtn.style.display=d;
+  var delBtn=document.getElementById('ov-foto-del');  if(delBtn)  delBtn.style.display=d;
   // Nav entre selecionadas (só se houver mais de 1)
   var temNav=_fotosSelecionadas.length>1&&_fotosSelecionadas.indexOf(_fotoAtualIdx)!==-1;
   var prevEl=document.getElementById('ov-foto-prev');
@@ -6786,7 +6789,7 @@ function abrirGridSelecao(si){
   selFotos.forEach(function(f){
     var src = f.webUrl||f.url;
     var idx = fotos.indexOf(f);
-    html += '<div style="border-radius:4px;overflow:hidden;cursor:pointer;" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+idx+')">'
+    html += '<div style="border-radius:4px;overflow:hidden;cursor:pointer;" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+idx+',true)">'
       +'<img src="'+src+'" style="width:100%;display:block;" loading="lazy">'
       +'</div>';
   });
