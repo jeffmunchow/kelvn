@@ -1187,16 +1187,16 @@ select.aj-input{cursor:pointer;}
               <div style="font-size:.72rem;color:var(--text-hint);margin-top:.4rem;line-height:1.5;">Suas galerias ficam acessíveis pelo seu próprio domínio. Disponível no plano Pro.</div>
             </div>
           </div>
-          <div class="aj-row">
-            <div>
+          <div class="aj-row kv-auto-row" id="newsletter-row">
+            <div style="flex:1;">
               <span class="aj-label">Resumo semanal por email</span>
               <div style="font-size:.72rem;color:var(--text-hint);margin-top:3px;line-height:1.5;">Toda segunda às 8h: prospects, eventos da semana, financeiro e alertas.</div>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span id="newsletter-toggle-label" style="font-size:.72rem;color:var(--text-hint);">Ativo</span>
-              <button id="newsletter-toggle-btn" onclick="toggleNewsletter()" style="width:38px;height:22px;border-radius:11px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;background:var(--teal);">
-                <span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;display:block;" id="newsletter-toggle-knob"></span>
-              </button>
+            <div id="newsletter-toggle-btn" onclick="toggleNewsletter()" style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:28px;flex-shrink:0;cursor:pointer;">
+              <div style="position:relative;width:32px;height:18px;">
+                <span id="newsletter-toggle-track" style="position:absolute;inset:0;border-radius:18px;transition:background .2s;"></span>
+                <span id="newsletter-toggle-knob" style="position:absolute;top:3px;left:3px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s;"></span>
+              </div>
             </div>
           </div>
           <div class="aj-row">
@@ -3178,13 +3178,13 @@ function _syncThemeUI(){
 
 function _syncNewsletterToggle(){
   var sd=g('sd')||{};
-  var ativo = sd.newsletter_ativo !== false; // default: ativo
-  var btn  = document.getElementById('newsletter-toggle-btn');
-  var knob = document.getElementById('newsletter-toggle-knob');
-  var lbl  = document.getElementById('newsletter-toggle-label');
-  if(btn)  btn.style.background  = ativo ? 'var(--teal)' : 'var(--border-strong)';
-  if(knob) knob.style.transform  = ativo ? 'translateX(16px)' : 'translateX(0)';
-  if(lbl)  lbl.textContent       = ativo ? 'Ativo' : 'Pausado';
+  var ativo = sd.newsletter_ativo !== false;
+  var row   = document.getElementById('newsletter-row');
+  var track = document.getElementById('newsletter-toggle-track');
+  var knob  = document.getElementById('newsletter-toggle-knob');
+  if(row)   row.classList.toggle('off', !ativo);
+  if(track) track.style.background = ativo ? 'var(--amber)' : 'var(--border-strong)';
+  if(knob)  knob.style.transform   = ativo ? 'translateX(14px)' : 'translateX(0)';
 }
 function toggleNewsletter(){
   var sd=g('sd')||{};
