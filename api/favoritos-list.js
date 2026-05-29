@@ -29,15 +29,14 @@ module.exports = async function handler(req, res) {
 
   try {
     // Confirma que o slug pertence a esse fotógrafo
-    const { data: rows } = await supabase
-      .from('dados_usuario')
-      .select('valor')
+    // Galerias ficam na tabela `galerias`, coluna `data` (array de objetos)
+    const { data: row } = await supabase
+      .from('galerias')
+      .select('data')
       .eq('user_id', userId)
-      .eq('modulo', 'galerias')
-      .eq('chave', 'data')
       .single();
 
-    const galerias = Array.isArray(rows?.valor) ? rows.valor : [];
+    const galerias = Array.isArray(row?.data) ? row.data : [];
     const galeria = galerias.find(g => g.slug === slug);
     if (!galeria) return res.status(403).json({ error: 'Galeria não encontrada' });
 
