@@ -1011,11 +1011,11 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- Vista: todas as seleções -->
   <div id="gal-view-selecoes-all" style="display:none;">
-    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;">
-      <button onclick="fecharTodasSelecoes()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Galerias
-      </button>
+    <button onclick="fecharTodasSelecoes()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-bottom:.6rem;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Galerias
+    </button>
+    <div class="sh" style="margin-bottom:1.5rem;">
       <div class="st">Seleções</div>
     </div>
     <div id="gal-sel-all-body"></div>
@@ -6301,7 +6301,9 @@ function galSetSort(val){
   rGal(true);
 }
 function rGalFiltro(){rGal(true);}
+var _galSelecoesAllAberta=false;
 function rGal(manter){
+  if(_galSelecoesAllAberta) return; // não sobrescreve a view global de seleções
   if(!manter){
     var lista=document.getElementById('gal-view-lista');
     var detalhe=document.getElementById('gal-view-detalhe');
@@ -6820,6 +6822,7 @@ function abrirGridSelecao(si){
 
 // ===== TODAS AS SELEÇÕES (visão global) =====
 async function abrirTodasSelecoes(){
+  _galSelecoesAllAberta=true;
   document.getElementById('gal-view-lista').style.display='none';
   document.getElementById('gal-view-detalhe').style.display='none';
   var v=document.getElementById('gal-view-selecoes-all');
@@ -6842,6 +6845,7 @@ async function abrirTodasSelecoes(){
 }
 
 function fecharTodasSelecoes(){
+  _galSelecoesAllAberta=false;
   var v=document.getElementById('gal-view-selecoes-all');
   if(v) v.style.display='none';
   document.getElementById('gal-view-lista').style.display='';
