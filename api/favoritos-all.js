@@ -1,5 +1,13 @@
 const { createClient } = require('@supabase/supabase-js');
 
+// Extrai user_id do JWT sem chamada de rede (payload é base64url)
+function jwtUserId(token) {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+    return payload.sub || null;
+  } catch { return null; }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://app.kelvn.com.br');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -12,44 +20,36 @@ module.exports = async function handler(req, res) {
   if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
   const token = auth.slice(7);
 
+  // Decodifica localmente — elimina a chamada getUser (era o gargalo principal)
+  const userId = jwtUserId(token);
+  if (!userId) return res.status(401).json({ error: 'Invalid token' });
+
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-  const { data: userData, error: authErr } = await supabase.auth.getUser(token);
-  if (authErr || !userData?.user) return res.status(401).json({ error: 'Invalid token' });
-  const userId = userData.user.id;
-
   try {
-    // Busca todas as galerias do fotógrafo para mapear slug → nome
-    const { data: row } = await supabase
-      .from('galerias')
-      .select('data')
-      .eq('user_id', userId)
-      .single();
+    // Busca galerias e favoritos em paralelo
+    const [galRow, favsRes] = await Promise.all([
+      supabase.from('galerias').select('data').eq('user_id', userId).single(),
+      supabase.from('galeria_favoritos')
+        .select('galeria_slug, email, foto_ids, atualizado_em')
+        .order('atualizado_em', { ascending: false })
+    ]);
 
-    const galerias = Array.isArray(row?.data) ? row.data : [];
+    const galerias = Array.isArray(galRow.data?.data) ? galRow.data.data : [];
     const slugToNome = {};
     galerias.forEach(g => { if (g.slug) slugToNome[g.slug] = g.nomeCliente || g.slug; });
-    const slugsDoFotografo = Object.keys(slugToNome);
 
-    if (!slugsDoFotografo.length) return res.status(200).json({ selecoes: [] });
+    if (favsRes.error) throw favsRes.error;
 
-    // Busca todos os favoritos dessas galerias
-    const { data: favs, error } = await supabase
-      .from('galeria_favoritos')
-      .select('galeria_slug, email, lista, foto_ids, atualizado_em')
-      .in('galeria_slug', slugsDoFotografo)
-      .order('atualizado_em', { ascending: false });
-
-    if (error) throw error;
-
-    // Agrupa por (slug + email), mantém ordem por atualizado_em
+    // Filtra só favoritos das galerias desse fotógrafo e agrupa por slug+email
     const map = {};
-    (favs || []).forEach(row => {
+    (favsRes.data || []).forEach(row => {
+      if (!slugToNome[row.galeria_slug]) return; // ignora galerias de outros fotógrafos
       const key = row.galeria_slug + '||' + row.email;
       if (!map[key]) {
         map[key] = {
           galeria_slug: row.galeria_slug,
-          galeria_nome: slugToNome[row.galeria_slug] || row.galeria_slug,
+          galeria_nome: slugToNome[row.galeria_slug],
           email: row.email,
           total_fotos: 0,
           atualizado_em: row.atualizado_em

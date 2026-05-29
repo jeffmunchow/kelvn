@@ -1,5 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
 
+function jwtUserId(token) {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+    return payload.sub || null;
+  } catch { return null; }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://app.kelvn.com.br');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -9,54 +16,39 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
   const token = auth.slice(7);
 
   const { slug } = req.query;
   if (!slug) return res.status(400).json({ error: 'Missing slug' });
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-  );
+  const userId = jwtUserId(token);
+  if (!userId) return res.status(401).json({ error: 'Invalid token' });
 
-  // Verifica que o usuário autenticado é dono da galeria com esse slug
-  const { data: userData, error: authErr } = await supabase.auth.getUser(token);
-  if (authErr || !userData?.user) return res.status(401).json({ error: 'Invalid token' });
-  const userId = userData.user.id;
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
   try {
-    // Confirma que o slug pertence a esse fotógrafo
-    // Galerias ficam na tabela `galerias`, coluna `data` (array de objetos)
-    const { data: row } = await supabase
-      .from('galerias')
-      .select('data')
-      .eq('user_id', userId)
-      .single();
+    // Busca galerias do fotógrafo e favoritos do slug em paralelo
+    const [galRow, favsRes] = await Promise.all([
+      supabase.from('galerias').select('data').eq('user_id', userId).single(),
+      supabase.from('galeria_favoritos')
+        .select('email, lista, foto_ids, atualizado_em')
+        .eq('galeria_slug', slug)
+        .order('atualizado_em', { ascending: false })
+    ]);
 
-    const galerias = Array.isArray(row?.data) ? row.data : [];
-    const galeria = galerias.find(g => g.slug === slug);
-    if (!galeria) return res.status(403).json({ error: 'Galeria não encontrada' });
+    const galerias = Array.isArray(galRow.data?.data) ? galRow.data.data : [];
+    if (!galerias.find(g => g.slug === slug)) {
+      return res.status(403).json({ error: 'Galeria não encontrada' });
+    }
 
-    // Busca todos os favoritos desse slug
-    const { data: favs, error } = await supabase
-      .from('galeria_favoritos')
-      .select('email, lista, foto_ids, atualizado_em')
-      .eq('galeria_slug', slug)
-      .order('atualizado_em', { ascending: false });
+    if (favsRes.error) throw favsRes.error;
 
-    if (error) throw error;
-
-    // Agrupa por email
     const porEmail = {};
-    (favs || []).forEach(row => {
+    (favsRes.data || []).forEach(row => {
       if (!porEmail[row.email]) porEmail[row.email] = { email: row.email, listas: {}, atualizado_em: row.atualizado_em };
       porEmail[row.email].listas[row.lista] = row.foto_ids || [];
-      if (row.atualizado_em > porEmail[row.email].atualizado_em) {
-        porEmail[row.email].atualizado_em = row.atualizado_em;
-      }
+      if (row.atualizado_em > porEmail[row.email].atualizado_em) porEmail[row.email].atualizado_em = row.atualizado_em;
     });
 
     return res.status(200).json({ selecoes: Object.values(porEmail) });
