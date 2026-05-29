@@ -6962,20 +6962,26 @@ function renderTodasSelecoes(selecoes){
   body.innerHTML=html;
 }
 
-function entrarGaleriaPorSlug(slug, email){
+async function entrarGaleriaPorSlug(slug, email){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.slug===slug;});
   if(!gal) return;
+
   fecharTodasSelecoes();
-  entrarGaleria(gal.id);
-  // Abre as seleções e vai direto para o grid do cliente (se email fornecido)
-  setTimeout(async function(){
-    await abrirSelecoes();
-    if(email && _selData){
-      var si=_selData.selecoes.findIndex(function(s){ return s.email===email; });
-      if(si>=0) abrirGridSelecao(si);
-    }
-  }, 150);
+
+  // Configura o estado sem renderizar o grid (evita o flash)
+  _galAtualId=gal.id;
+  _subgalAtiva=null;
+  _fotosSelecionadas=[];_selAncora=-1;
+  document.getElementById('gal-view-lista').style.display='none';
+  document.getElementById('gal-view-detalhe').style.display='';
+
+  // Vai direto para seleções sem passar pelo grid
+  await abrirSelecoes();
+  if(email && _selData){
+    var si=_selData.selecoes.findIndex(function(s){ return s.email===email; });
+    if(si>=0) abrirGridSelecao(si);
+  }
 }
 
 function voltarListaGalerias(){
