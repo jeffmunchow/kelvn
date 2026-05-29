@@ -1631,6 +1631,20 @@ select.aj-input{cursor:pointer;}
   </div>
 </div>
 
+<!-- MODAL INPUT GENÉRICO -->
+<div class="overlay" id="ov-input">
+  <div class="modal" style="max-width:360px;">
+    <div style="margin-bottom:1.2rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:600;margin-bottom:10px;" id="minput-title"></div>
+      <input class="fi" id="minput-val" style="width:100%;height:32px;font-size:.82rem;" onkeydown="if(event.key==='Enter')_inputOk();if(event.key==='Escape')cov('ov-input')">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn" onclick="cov('ov-input')">Cancelar</button>
+      <button class="btn primary" onclick="_inputOk()">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL FOLLOW-UP -->
 <div class="overlay" id="ov-followup">
   <div class="modal" style="max-width:400px;">
@@ -1934,6 +1948,20 @@ function confirmar(opts,cb){
   document.getElementById('ov-confirm').classList.add('open');
 }
 function _confirmOk(){cov('ov-confirm');if(_confirmCb){var f=_confirmCb;_confirmCb=null;f();}}
+var _inputCb=null;
+function pedirInput(titulo,valorInicial,cb){
+  document.getElementById('minput-title').textContent=titulo;
+  var inp=document.getElementById('minput-val');
+  inp.value=valorInicial||'';
+  _inputCb=cb;
+  document.getElementById('ov-input').classList.add('open');
+  setTimeout(function(){inp.focus();inp.select();},80);
+}
+function _inputOk(){
+  var val=document.getElementById('minput-val').value.trim();
+  cov('ov-input');
+  if(val&&_inputCb){var f=_inputCb;_inputCb=null;f(val);}
+}
 document.addEventListener('input',function(e){
   if(!e.target.classList.contains('sd'))return;
   var v=e.target.value.replace(/\D/g,'');
@@ -5927,19 +5955,18 @@ function filtrarSubgal(subgalId){
   rDetGrid();
 }
 function criarSubgal(){
-  var nome=prompt('Nome da seção:','Nova seção');
-  if(!nome||!nome.trim()) return;
-  var gals=g('galerias')||[];
-  var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
-  if(idx<0) return;
-  if(!gals[idx].subgalerias) gals[idx].subgalerias=[];
-  gals[idx].subgalerias.push({id:'subgal_'+uid(),nome:nome.trim(),ordem:gals[idx].subgalerias.length});
-  s('galerias',gals);
-  rSubgalNav();
-  // Atualiza dropdown de upload
-  var sel=document.getElementById('gal-det-subgal-sel');
-  if(sel){var subs=gals[idx].subgalerias;sel.innerHTML='<option value="">Todas as fotos</option>'+subs.map(function(s){return '<option value="'+s.id+'">'+s.nome+'</option>';}).join('');}
-  notify('Seção criada.');
+  pedirInput('Nome da seção','Nova seção',function(nome){
+    var gals=g('galerias')||[];
+    var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
+    if(idx<0) return;
+    if(!gals[idx].subgalerias) gals[idx].subgalerias=[];
+    gals[idx].subgalerias.push({id:'subgal_'+uid(),nome:nome,ordem:gals[idx].subgalerias.length});
+    s('galerias',gals);
+    rSubgalNav();
+    var sel=document.getElementById('gal-det-subgal-sel');
+    if(sel){var subs=gals[idx].subgalerias;sel.innerHTML='<option value="">Todas as fotos</option>'+subs.map(function(s){return '<option value="'+s.id+'">'+s.nome+'</option>';}).join('');}
+    notify('Seção criada.');
+  });
 }
 function deletarSubgal(id){
   confirmar({titulo:'Remover seção?',msg:'As fotos dentro dela não serão excluídas — vão para "Todas as fotos".',label:'Remover',style:'background:var(--coral);color:#fff;border-color:var(--coral);'},function(){
