@@ -260,6 +260,48 @@ html,body{
 /* Fade-in nas fotos */
 .gal-foto-wrap{opacity:0;transition:opacity .5s ease;}
 .gal-foto-wrap.loaded{opacity:1;}
+
+/* ============ FAVORITOS ============ */
+/* Botão "favoritas" no subnav (topo) */
+.gal-fav-btn{display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:var(--gal-text);opacity:.45;transition:opacity .15s;padding:0;font-family:inherit;}
+.gal-fav-btn:hover{opacity:1;}
+.gal-fav-btn svg{fill:currentColor;}
+.gal-fav-count{font-size:.62rem;background:var(--gal-text);color:var(--gal-bg);border-radius:10px;padding:1px 6px;min-width:16px;text-align:center;line-height:1.5;}
+
+/* Coração em cada foto — fica fora do overlay p/ favorito aparecer sempre */
+.btn-fav-foto{position:absolute;top:.5rem;right:.5rem;z-index:3;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.32);border:none;border-radius:50%;cursor:pointer;color:#fff;opacity:0;transition:opacity .2s;padding:0;}
+.btn-fav-foto svg{fill:none;stroke:#fff;stroke-width:2;width:17px;height:17px;}
+.gal-foto-wrap:hover .btn-fav-foto{opacity:.85;}
+.btn-fav-foto:hover{opacity:1!important;}
+.btn-fav-foto.ativo{opacity:1;}
+.btn-fav-foto.ativo svg{fill:#fff;stroke:#fff;}
+/* Touch (sem hover): coração sempre visível p/ ser tocável */
+@media(hover:none){ .btn-fav-foto{opacity:.7;} }
+
+/* Modal de email */
+.fav-email-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;padding:1.5rem;}
+.fav-email-modal.open{display:flex;}
+.fav-email-box{background:var(--gal-bg);border:.5px solid var(--gal-accent);border-radius:14px;padding:2.5rem 2rem;max-width:380px;width:100%;text-align:center;}
+.fav-email-icon{font-size:2rem;color:var(--gal-text);opacity:.6;margin-bottom:1rem;}
+.fav-email-titulo{font-family:var(--gal-font-title,'Playfair Display',serif);font-weight:var(--gal-title-weight,600);font-size:1.2rem;color:var(--gal-text);margin-bottom:.5rem;}
+.fav-email-sub{font-size:.78rem;color:var(--gal-accent);line-height:1.6;margin-bottom:1.5rem;}
+.fav-email-input{width:100%;padding:11px 14px;border-radius:8px;border:.5px solid var(--gal-accent);background:transparent;color:var(--gal-text);font-family:inherit;font-size:.88rem;outline:none;margin-bottom:.75rem;text-align:center;}
+.fav-email-input:focus{border-color:var(--gal-text);}
+.fav-email-btn{width:100%;padding:11px;border-radius:8px;background:var(--gal-text);color:var(--gal-bg);border:none;font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;margin-bottom:.5rem;}
+.fav-email-cancel{width:100%;padding:8px;background:transparent;border:none;color:var(--gal-accent);font-family:inherit;font-size:.75rem;cursor:pointer;}
+.fav-email-erro{font-size:.72rem;color:#CC4A28;margin-top:.5rem;min-height:1rem;}
+
+/* View de favoritas */
+.fav-view-header{text-align:center;padding:3rem 1.5rem 1.5rem;}
+.fav-view-voltar{background:transparent;border:none;color:var(--gal-accent);font-family:inherit;font-size:.75rem;cursor:pointer;margin-bottom:1.2rem;letter-spacing:.04em;}
+.fav-view-voltar:hover{color:var(--gal-text);}
+.fav-view-titulo{font-family:var(--gal-font-title,'Playfair Display',serif);font-weight:var(--gal-title-weight,600);font-size:1.8rem;color:var(--gal-text);}
+.fav-view-sub{font-size:.75rem;color:var(--gal-accent);margin-top:.4rem;}
+.fav-view-vazio{text-align:center;padding:4rem 2rem;color:var(--gal-text);opacity:.7;font-size:.85rem;}
+
+/* Toast */
+.gal-toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--gal-text);color:var(--gal-bg);padding:10px 20px;border-radius:40px;font-size:.75rem;font-family:var(--gal-font-body,'DM Sans',sans-serif);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:11000;}
+.gal-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
@@ -281,6 +323,19 @@ html,body{
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       <span class="dl-opt-label"><span>Alta resolução</span><span class="dl-opt-sub">Arquivo original</span></span>
     </a>
+  </div>
+</div>
+
+<!-- MODAL EMAIL DE FAVORITOS -->
+<div class="fav-email-modal" id="fav-email-modal">
+  <div class="fav-email-box">
+    <div class="fav-email-icon">♡</div>
+    <div class="fav-email-titulo">Salve suas fotos favoritas</div>
+    <div class="fav-email-sub">Digite seu email para criar sua seleção. Assim você pode voltar depois e continuar de onde parou — de qualquer dispositivo.</div>
+    <input type="email" class="fav-email-input" id="fav-email-input" placeholder="seu@email.com" onkeydown="if(event.key==='Enter') confirmarEmailFav()">
+    <button class="fav-email-btn" onclick="confirmarEmailFav()">Começar</button>
+    <button class="fav-email-cancel" onclick="cancelarEmailModal()">Agora não</button>
+    <div class="fav-email-erro" id="fav-email-erro"></div>
   </div>
 </div>
 
@@ -361,6 +416,43 @@ var _downloads = false;
 var _designResolvido = null;
 
 var _slug = location.pathname.replace('/galeria/','').replace(/\//g,'');
+
+// ===== FAVORITOS DO CLIENTE =====
+var _favEmail = null;          // email identificado do cliente
+var _favIds = [];              // array de identificadores (foto.key) favoritados
+var _favListaNome = 'Minhas favoritas';
+var _favViewAtiva = false;     // se a view de favoritos está aberta
+var _favPendente = null;       // intenção de favoritar guardada até identificar email
+
+// As fotos não têm campo `id` — usamos a key do R2 (única e estável), fallback p/ url
+function _fotoId(foto){ return (foto && (foto.key || foto.url)) || ''; }
+
+function _favEmailKey(){ return 'kelvn_fav_email_' + _slug; }
+function carregarEmailSalvo(){
+  try { var e = localStorage.getItem(_favEmailKey()); if(e) _favEmail = e; } catch(err){}
+}
+function salvarEmailDevice(email){
+  try { localStorage.setItem(_favEmailKey(), email); } catch(err){}
+}
+
+async function carregarFavoritos(){
+  if(!_favEmail) return;
+  try {
+    var resp = await fetch('/api/favoritos-get?slug='+encodeURIComponent(_slug)+'&email='+encodeURIComponent(_favEmail));
+    var data = await resp.json();
+    var listas = (data && data.listas) || {};
+    _favIds = listas[_favListaNome] || [];
+  } catch(err){ console.error('Erro ao carregar favoritos:', err); _favIds = []; }
+}
+async function salvarFavoritos(){
+  if(!_favEmail) return;
+  try {
+    await fetch('/api/favoritos-save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ slug:_slug, email:_favEmail, lista:_favListaNome, foto_ids:_favIds })
+    });
+  } catch(err){ console.error('Erro ao salvar favoritos:', err); }
+}
 
 function _setMeta(prop, val){
   var el = document.querySelector('meta[property="'+prop+'"]');
@@ -490,11 +582,18 @@ function renderizarGaleria(){
     });
   }
   html += '</div>';
+  // Cluster direito: favoritas (sempre) + download (se liberado)
+  html += '<div style="display:flex;align-items:center;gap:18px;">';
+  html += '<button class="gal-fav-btn" onclick="abrirViewFavoritos()" title="Ver favoritas">'
+    +'<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
+    +'<span class="gal-fav-count" id="gal-fav-count" style="display:none;">0</span>'
+    +'</button>';
   if(_downloads){
     html += '<button class="gal-dl-btn" onclick="abrirModalDownload()" title="Baixar galeria">'
       +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
       +'</button>';
   }
+  html += '</div>';
   html += '</div>';
 
   // Modal download galeria
@@ -545,6 +644,9 @@ function renderizarGaleria(){
       document.querySelectorAll('.dl-menu.open').forEach(function(m){ m.classList.remove('open'); });
     }
   });
+
+  // Inicializa favoritos (email salvo no device + corações/contador)
+  _initFavoritos();
 }
 
 function renderCapa(d, coverUrl){
@@ -642,9 +744,14 @@ function renderGridFotos(){
       +'</div>'
       +'</div>'
     ) : '';
+    var favKey = _fotoId(foto);
+    var favBtn = '<button class="btn-fav-foto'+(_favIds.indexOf(favKey)>-1?' ativo':'')+'" '
+      +'data-fav-key="'+favKey+'" onclick="event.stopPropagation();toggleFavorito(\''+favKey+'\')" title="Favoritar">'
+      +_favHeartSvg+'</button>';
     return '<div class="gal-foto-wrap'+(classExtra||'')+'" onclick="openLb('+i+')">'
       +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
       +(foto.url !== imgSrc ? ' onerror="this.src=\''+foto.url+'\'"' : '')+'>'
+      +favBtn
       +'<div class="gal-foto-overlay">'+dlBtn+'</div>'
       +'</div>';
   }
@@ -732,6 +839,7 @@ function filtrarSubgalPublica(subgalId){
       if(img.complete){ wrap.classList.add('loaded'); }
       else { img.addEventListener('load', function(){ wrap.classList.add('loaded'); }); }
     });
+    atualizarCoracoesFotos();
   }
 }
 
@@ -846,6 +954,119 @@ function iniciarDownloadGaleria(tipo){
       document.body.removeChild(a);
     }, i * 200);
   });
+}
+
+// ===== FAVORITOS — UI, TOGGLE E VIEW =====
+var _favHeartSvg = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+
+function abrirEmailModal(){
+  document.getElementById('fav-email-modal').classList.add('open');
+  setTimeout(function(){ var inp=document.getElementById('fav-email-input'); if(inp) inp.focus(); }, 100);
+}
+function fecharEmailModal(){ document.getElementById('fav-email-modal').classList.remove('open'); }
+function cancelarEmailModal(){ _favPendente=null; fecharEmailModal(); }
+
+async function confirmarEmailFav(){
+  var email=(document.getElementById('fav-email-input').value||'').toLowerCase().trim();
+  var erroEl=document.getElementById('fav-email-erro');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ erroEl.textContent='Digite um email válido.'; return; }
+  erroEl.textContent='';
+  _favEmail=email;
+  salvarEmailDevice(email);
+  await carregarFavoritos();
+  fecharEmailModal();
+  atualizarCoracoesFotos();
+  atualizarContadorFav();
+  // Aplica intenção pendente (cliente clicou no coração antes de identificar)
+  if(_favPendente){ var p=_favPendente; _favPendente=null; await toggleFavorito(p); }
+  notify('Pronto! Agora é só favoritar.');
+}
+
+async function toggleFavorito(fotoKey){
+  // Sem email ainda? Guarda a intenção e pede o email primeiro
+  if(!_favEmail){ _favPendente=fotoKey; abrirEmailModal(); return; }
+  var idx=_favIds.indexOf(fotoKey);
+  if(idx>-1) _favIds.splice(idx,1); else _favIds.push(fotoKey);
+  // Atualiza UI imediatamente (responsivo), depois persiste
+  if(_favViewAtiva){ renderViewFavoritos(); }
+  else { atualizarCoracoesFotos(); atualizarContadorFav(); }
+  await salvarFavoritos();
+}
+
+function atualizarCoracoesFotos(){
+  document.querySelectorAll('.btn-fav-foto').forEach(function(btn){
+    var k=btn.getAttribute('data-fav-key');
+    if(_favIds.indexOf(k)>-1) btn.classList.add('ativo'); else btn.classList.remove('ativo');
+  });
+}
+function atualizarContadorFav(){
+  var el=document.getElementById('gal-fav-count');
+  if(!el) return;
+  if(_favIds.length>0){ el.textContent=_favIds.length; el.style.display=''; }
+  else { el.style.display='none'; }
+}
+
+async function abrirViewFavoritos(){
+  if(!_favEmail){ abrirEmailModal(); return; }
+  _favViewAtiva=true;
+  renderViewFavoritos();
+}
+function fecharViewFavoritos(){
+  _favViewAtiva=false;
+  renderizarGaleria(); // re-renderiza a galeria normal (restaura corações/contador via _initFavoritos)
+}
+function renderViewFavoritos(){
+  var favFotos=_todasFotos.filter(function(f){ return _favIds.indexOf(_fotoId(f))>-1; });
+  _fotosVisiveis=favFotos; // lightbox navega só entre as favoritas
+  var d=_designResolvido;
+  var grade=d?d.grade:'masonry';
+
+  var html='<div class="fav-view-header">'
+    +'<button class="fav-view-voltar" onclick="fecharViewFavoritos()">← Voltar à galeria</button>'
+    +'<div class="fav-view-titulo">'+_favListaNome+'</div>'
+    +'<div class="fav-view-sub">'+favFotos.length+' foto'+(favFotos.length===1?'':'s')+' · '+_favEmail+'</div>'
+    +'</div>';
+
+  if(!favFotos.length){
+    html+='<div class="fav-view-vazio">'
+      +'<div style="font-size:2rem;opacity:.3;margin-bottom:1rem;">♡</div>'
+      +'<div>Você ainda não favoritou nenhuma foto.</div>'
+      +'<div style="font-size:.75rem;opacity:.6;margin-top:.5rem;">Toque no coração das fotos que você ama para criar sua seleção.</div>'
+      +'</div>';
+    document.getElementById('app-root').innerHTML=html;
+    return;
+  }
+
+  html+='<div class="gal-grid grade-'+grade+'" id="gal-grid"></div>';
+  document.getElementById('app-root').innerHTML=html;
+  var grid=document.getElementById('gal-grid');
+  grid.innerHTML=renderGridFotos(); // reaproveita a renderização real (masonry/uniforme/editorial)
+  if(d&&d.zoom_grid&&(grade==='uniforme'||grade==='editorial')){ grid.style.gridTemplateColumns='repeat('+d.zoom_grid+',1fr)'; }
+  document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
+    var wrap=img.closest('.gal-foto-wrap');
+    if(img.complete){ wrap.classList.add('loaded'); }
+    else { img.addEventListener('load',function(){ wrap.classList.add('loaded'); }); }
+  });
+}
+
+async function _initFavoritos(){
+  carregarEmailSalvo();
+  atualizarContadorFav();
+  if(_favEmail){
+    await carregarFavoritos();
+    atualizarCoracoesFotos();
+    atualizarContadorFav();
+  }
+}
+
+// Toast leve (notify não existe na galeria, diferente do app do fotógrafo)
+var _favToastTimer=null;
+function notify(msg){
+  var t=document.getElementById('gal-toast');
+  if(!t){ t=document.createElement('div'); t.id='gal-toast'; t.className='gal-toast'; document.body.appendChild(t); }
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_favToastTimer);
+  _favToastTimer=setTimeout(function(){ t.classList.remove('show'); }, 2200);
 }
 
 function showErro(msg){
