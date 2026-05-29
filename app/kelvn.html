@@ -6667,18 +6667,16 @@ function renderSelecoes(selecoes, gal){
 
   if(!selecoes.length){
     sBody.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">'
+      '<div style="margin-bottom:1.5rem;">'
       +'<div class="st">Seleções</div>'
-      +'<button class="btn" onclick="fecharSelecoes()">← Voltar</button>'
       +'</div>'
       +'<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">'
       +'Nenhum cliente fez seleções nesta galeria ainda.</div>';
     return;
   }
 
-  var html = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">'
+  var html = '<div style="margin-bottom:1.5rem;">'
     +'<div class="st">Seleções <span style="font-size:.72rem;color:var(--text-hint);font-family:\'DM Sans\',sans-serif;font-weight:400;margin-left:.5rem;">'+selecoes.length+' pessoa'+(selecoes.length>1?'s':'')+'</span></div>'
-    +'<button class="btn" onclick="fecharSelecoes()">← Voltar</button>'
     +'</div>';
 
   selecoes.forEach(function(sel){
