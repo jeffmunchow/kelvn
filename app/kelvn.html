@@ -3045,7 +3045,7 @@ function switchAJ(name){
   });
   var ap=document.getElementById('aj-panel-'+name);if(ap)ap.style.display='';
   var ab=document.getElementById('aj-cat-'+name);if(ab)ab.classList.add('active');
-  if(name==='geral') _syncThemeUI();
+  if(name==='geral'){ _syncThemeUI(); _syncNewsletterToggle(); }
   if(name==='equipe'){_loadEqColW();rEQ();}
   if(name==='contratos') _syncTemplateStatus();
   if(name==='automacoes'){rAuto();_syncAutoFollowupUI();}
