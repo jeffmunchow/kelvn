@@ -6708,6 +6708,8 @@ function renderSelecoes(selecoes, gal){
   // Botão principal volta a apontar para fecharSelecoes (grid da galeria)
   var btnBack = document.getElementById('gal-nav-back-galerias');
   if(btnBack) btnBack.setAttribute('onclick','fecharSelecoes()');
+  var lbl = document.getElementById('gal-nav-back-label');
+  if(lbl) lbl.textContent = (gal&&gal.nomeCliente)||'Galeria';
   var sBody = document.getElementById('gal-det-sel-body');
   if(!sBody) return;
 
