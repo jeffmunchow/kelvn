@@ -1017,7 +1017,7 @@ select.aj-input{cursor:pointer;}
       <!-- Modo grid: ← Galerias -->
       <button id="gal-nav-back-galerias" onclick="voltarListaGalerias()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Galerias
+        <span id="gal-nav-back-label">Galerias</span>
       </button>
 
       <!-- Modo design: ← [Nome da galeria] (oculto inicialmente) -->
@@ -6658,6 +6658,15 @@ async function abrirSelecoes(){
   if(dBody) dBody.style.display = 'none';
   if(sBody){ sBody.style.display=''; sBody.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Carregando seleções…</div>'; }
 
+  // Botão voltar aponta para a galeria do casal
+  var btnBack = document.getElementById('gal-nav-back-galerias');
+  if(btnBack){
+    var gals = g('galerias')||[];
+    var gal  = gals.find(function(x){ return x.id===_galAtualId; });
+    btnBack.setAttribute('onclick','fecharSelecoes()');
+    document.getElementById('gal-nav-back-label').textContent = (gal&&gal.nomeCliente)||'Galeria';
+  }
+
   try {
     var sessionRes = await _sb.auth.getSession();
     var token = sessionRes?.data?.session?.access_token;
@@ -6684,6 +6693,12 @@ function fecharSelecoes(){
   var sBody = document.getElementById('gal-det-sel-body');
   if(sBody) sBody.style.display='none';
   if(body)  body.style.display='';
+  // Restaura botão voltar para "Galerias"
+  var btnBack = document.getElementById('gal-nav-back-galerias');
+  if(btnBack){
+    btnBack.setAttribute('onclick','voltarListaGalerias()');
+    document.getElementById('gal-nav-back-label').textContent = 'Galerias';
+  }
 }
 
 var _selData = null; // cache para voltar à lista
@@ -6805,7 +6820,8 @@ function rGalDetalhe(){
   var dInfo=document.getElementById('gal-nav-design-info');
   var body =document.getElementById('gal-det-body');
   var dBody=document.getElementById('gal-det-design-body');
-  if(backG) backG.style.display='flex';
+  if(backG){ backG.style.display='flex'; backG.setAttribute('onclick','voltarListaGalerias()'); }
+  var lbl=document.getElementById('gal-nav-back-label'); if(lbl) lbl.textContent='Galerias';
   if(backD) backD.style.display='none';
   if(gridB) gridB.style.display='flex';
   if(dInfo) dInfo.style.display='none';
