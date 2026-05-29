@@ -6759,9 +6759,11 @@ function abrirGridSelecao(si){
   var sBody = document.getElementById('gal-det-sel-body');
   if(!sBody) return;
 
-  // Botão principal vira "← [nome da galeria]" → volta para a lista de seleções
+  // Botão principal vira "← Seleções" → volta para a lista de seleções
   var btnBack = document.getElementById('gal-nav-back-galerias');
   if(btnBack) btnBack.setAttribute('onclick','renderSelecoes(_selData.selecoes,_selData.gal)');
+  var lbl = document.getElementById('gal-nav-back-label');
+  if(lbl) lbl.textContent = 'Seleções';
 
   var html = '<div style="margin-bottom:1.5rem;">'
     +'<div class="st" style="font-size:.88rem;">'+sel.email+'</div>'
