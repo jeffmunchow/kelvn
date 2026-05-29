@@ -6778,22 +6778,13 @@ function abrirGridSelecao(si){
     return;
   }
 
-  // Masonry em 4 colunas — sem corte, foto no seu formato natural
-  var nCols = 4;
-  var cols = [];
-  for(var c=0;c<nCols;c++) cols.push([]);
-  selFotos.forEach(function(f,i){ cols[i%nCols].push({f:f,i:i}); });
-  html += '<div style="display:flex;gap:.75rem;align-items:flex-start;">';
-  cols.forEach(function(col){
-    html += '<div style="flex:1;display:flex;flex-direction:column;gap:.75rem;">';
-    col.forEach(function(item){
-      var src = item.f.webUrl||item.f.url;
-      var idx = fotos.indexOf(item.f);
-      html += '<div style="border-radius:4px;overflow:hidden;cursor:pointer;" onclick="verFotoGal(\''+item.f.url+'\',\''+(item.f.key||'')+'\','+idx+')">'
-        +'<img src="'+src+'" style="width:100%;display:block;" loading="lazy">'
-        +'</div>';
-    });
-    html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;">';
+  selFotos.forEach(function(f){
+    var src = f.webUrl||f.url;
+    var idx = fotos.indexOf(f);
+    html += '<div style="border-radius:4px;overflow:hidden;cursor:pointer;" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+idx+')">'
+      +'<img src="'+src+'" style="width:100%;display:block;" loading="lazy">'
+      +'</div>';
   });
   html += '</div>';
 
