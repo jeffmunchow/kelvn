@@ -6951,7 +6951,7 @@ function renderTodasSelecoes(selecoes){
     +'<tbody>';
   selecoes.forEach(function(sel){
     var data=sel.atualizado_em?new Date(sel.atualizado_em).toLocaleDateString('pt-BR'):'—';
-    html+='<tr class="tdn" style="cursor:pointer;" onclick="entrarGaleriaPorSlug(\''+sel.galeria_slug+'\')">'
+    html+='<tr class="tdn" style="cursor:pointer;" onclick="entrarGaleriaPorSlug(\''+sel.galeria_slug+'\',\''+sel.email+'\')">'
       +'<td style="color:var(--text);">'+sel.email+'</td>'
       +'<td>'+sel.galeria_nome+'</td>'
       +'<td>'+sel.total_fotos+' foto'+(sel.total_fotos!==1?'s':'')+'</td>'
@@ -6962,14 +6962,20 @@ function renderTodasSelecoes(selecoes){
   body.innerHTML=html;
 }
 
-function entrarGaleriaPorSlug(slug){
+function entrarGaleriaPorSlug(slug, email){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.slug===slug;});
   if(!gal) return;
   fecharTodasSelecoes();
   entrarGaleria(gal.id);
-  // Abre diretamente a view de seleções dessa galeria
-  setTimeout(function(){ abrirSelecoes(); }, 100);
+  // Abre as seleções e vai direto para o grid do cliente (se email fornecido)
+  setTimeout(async function(){
+    await abrirSelecoes();
+    if(email && _selData){
+      var si=_selData.selecoes.findIndex(function(s){ return s.email===email; });
+      if(si>=0) abrirGridSelecao(si);
+    }
+  }, 150);
 }
 
 function voltarListaGalerias(){
