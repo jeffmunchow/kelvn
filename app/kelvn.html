@@ -1003,11 +1003,20 @@ select.aj-input{cursor:pointer;}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="gal-busca" placeholder="Buscar galeria…" oninput="rGalFiltro()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:200px;">
         </div>
+        <button class="btn" onclick="abrirTodasSelecoes()">Seleções</button>
         <button class="btn" style="color:var(--text);" onclick="abrirNovaGaleria()">+ Nova galeria</button>
       </div>
     </div>
     <div id="gal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
   </div>
+  <!-- Vista: todas as seleções -->
+  <div id="gal-view-selecoes-all" style="display:none;">
+    <div class="sh" style="margin-bottom:1.5rem;">
+      <div class="st">Seleções</div>
+    </div>
+    <div id="gal-sel-all-body"></div>
+  </div>
+
   <!-- Vista: detalhe + design (mesmo container, mesma sh) -->
   <div id="gal-view-detalhe" style="display:none;">
 
@@ -6803,6 +6812,69 @@ function abrirGridSelecao(si){
     if(img.complete){ img.style.opacity='1'; }
     else { img.addEventListener('load',function(){ img.style.opacity='1'; }); }
   });
+}
+
+// ===== TODAS AS SELEÇÕES (visão global) =====
+async function abrirTodasSelecoes(){
+  document.getElementById('gal-view-lista').style.display='none';
+  document.getElementById('gal-view-detalhe').style.display='none';
+  var v=document.getElementById('gal-view-selecoes-all');
+  if(v) v.style.display='';
+  var body=document.getElementById('gal-sel-all-body');
+  if(body) body.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Carregando…</div>';
+
+  try{
+    var sessionRes=await _sb.auth.getSession();
+    var token=sessionRes?.data?.session?.access_token;
+    if(!token) throw new Error('Sem sessão');
+    var resp=await fetch('/api/favoritos-all',{headers:{'Authorization':'Bearer '+token}});
+    var data=await resp.json();
+    if(!resp.ok) throw new Error(data.error||'Erro');
+    renderTodasSelecoes(data.selecoes||[]);
+  }catch(err){
+    var body=document.getElementById('gal-sel-all-body');
+    if(body) body.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--coral);font-size:.78rem;">Não foi possível carregar as seleções.</div>';
+  }
+}
+
+function fecharTodasSelecoes(){
+  var v=document.getElementById('gal-view-selecoes-all');
+  if(v) v.style.display='none';
+  document.getElementById('gal-view-lista').style.display='';
+  rGal();
+}
+
+function renderTodasSelecoes(selecoes){
+  var body=document.getElementById('gal-sel-all-body');
+  if(!body) return;
+  if(!selecoes.length){
+    body.innerHTML='<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Nenhum cliente fez seleções ainda.</div>';
+    return;
+  }
+  var html='<div class="tw"><div class="ts"><table>'
+    +'<thead><tr><th>Cliente</th><th>Galeria</th><th>Fotos selecionadas</th><th>Última atualização</th></tr></thead>'
+    +'<tbody>';
+  selecoes.forEach(function(sel){
+    var data=sel.atualizado_em?new Date(sel.atualizado_em).toLocaleDateString('pt-BR'):'—';
+    html+='<tr class="tdn" style="cursor:pointer;" onclick="entrarGaleriaPorSlug(\''+sel.galeria_slug+'\')">'
+      +'<td style="color:var(--text);">'+sel.email+'</td>'
+      +'<td>'+sel.galeria_nome+'</td>'
+      +'<td>'+sel.total_fotos+' foto'+(sel.total_fotos!==1?'s':'')+'</td>'
+      +'<td>'+data+'</td>'
+      +'</tr>';
+  });
+  html+='</tbody></table></div></div>';
+  body.innerHTML=html;
+}
+
+function entrarGaleriaPorSlug(slug){
+  var gals=g('galerias')||[];
+  var gal=gals.find(function(x){return x.slug===slug;});
+  if(!gal) return;
+  fecharTodasSelecoes();
+  entrarGaleria(gal.id);
+  // Abre diretamente a view de seleções dessa galeria
+  setTimeout(function(){ abrirSelecoes(); }, 100);
 }
 
 function voltarListaGalerias(){
