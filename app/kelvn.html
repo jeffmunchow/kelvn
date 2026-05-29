@@ -1031,7 +1031,7 @@ select.aj-input{cursor:pointer;}
       <!-- Botões do modo grid -->
       <div id="gal-nav-grid-btns" style="display:flex;gap:.5rem;align-items:center;">
         <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;">Visualizar</button>
-        <button class="btn" id="gal-det-btn-sel" onclick="abrirSelecoes()" style="display:none;">Seleções</button>
+        <button class="btn" id="gal-det-btn-sel" onclick="abrirSelecoes()">Seleções</button>
         <button class="btn" onclick="criarSubgal()">Adicionar seção</button>
         <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
         <button class="btn" onclick="abrirDesignGaleria()">Design</button>
@@ -6768,9 +6768,9 @@ function rGalDetalhe(){
   var btnVis=document.getElementById('gal-det-btn-vis');
   if(btnVis) btnVis.style.display=isPub?'inline-flex':'none';
 
-  // Botão seleções (só quando online)
+  // Botão seleções (sempre visível — favoritos persistem mesmo offline)
   var btnSel=document.getElementById('gal-det-btn-sel');
-  if(btnSel) btnSel.style.display=isPub?'inline-flex':'none';
+  if(btnSel) btnSel.style.display='inline-flex';
 
   // KPI 1 — Casal + data
   var kCasal=document.getElementById('gal-kpi-casal');
