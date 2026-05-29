@@ -1011,7 +1011,11 @@ select.aj-input{cursor:pointer;}
   </div>
   <!-- Vista: todas as seleções -->
   <div id="gal-view-selecoes-all" style="display:none;">
-    <div class="sh" style="margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;">
+      <button onclick="fecharTodasSelecoes()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:.4rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Galerias
+      </button>
       <div class="st">Seleções</div>
     </div>
     <div id="gal-sel-all-body"></div>
