@@ -6686,15 +6686,16 @@ function fecharSelecoes(){
   if(body)  body.style.display='';
 }
 
+var _selData = null; // cache para voltar à lista
+
 function renderSelecoes(selecoes, gal){
+  _selData = { selecoes: selecoes, gal: gal }; // guarda para poder voltar
   var sBody = document.getElementById('gal-det-sel-body');
   if(!sBody) return;
 
   var fotos = (gal&&gal.fotos)||[];
 
-  var header = '<div style="margin-bottom:1.5rem;">'
-    +'<div class="st">Seleções</div>'
-    +'</div>';
+  var header = '<div style="margin-bottom:1.5rem;"><div class="st">Seleções</div></div>';
 
   if(!selecoes.length){
     sBody.innerHTML = header+'<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Nenhum cliente fez seleções nesta galeria ainda.</div>';
@@ -6710,14 +6711,14 @@ function renderSelecoes(selecoes, gal){
     +'</tr></thead>'
     +'<tbody>';
 
-  selecoes.forEach(function(sel){
+  selecoes.forEach(function(sel, si){
     var allIds = [];
     Object.values(sel.listas||{}).forEach(function(ids){ allIds=allIds.concat(ids); });
     var selFotos = fotos.filter(function(f){ return allIds.indexOf(f.key||f.url)>-1; });
     var data = sel.atualizado_em ? new Date(sel.atualizado_em).toLocaleDateString('pt-BR') : '—';
 
-    html += '<tr>'
-      +'<td class="tdn" style="color:var(--text);">'+sel.email+'</td>'
+    html += '<tr class="tdn" style="cursor:pointer;" onclick="abrirGridSelecao('+si+')">'
+      +'<td style="color:var(--text);">'+sel.email+'</td>'
       +'<td>'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+'</td>'
       +'<td>'+data+'</td>'
       +'</tr>';
@@ -6725,6 +6726,51 @@ function renderSelecoes(selecoes, gal){
 
   html += '</tbody></table></div></div>';
   sBody.innerHTML = html;
+}
+
+function abrirGridSelecao(si){
+  if(!_selData) return;
+  var sel = _selData.selecoes[si];
+  var gal = _selData.gal;
+  if(!sel) return;
+  var fotos = (gal&&gal.fotos)||[];
+  var allIds = [];
+  Object.values(sel.listas||{}).forEach(function(ids){ allIds=allIds.concat(ids); });
+  var selFotos = fotos.filter(function(f){ return allIds.indexOf(f.key||f.url)>-1; });
+
+  var sBody = document.getElementById('gal-det-sel-body');
+  if(!sBody) return;
+
+  var html = '<div style="margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;">'
+    +'<button class="btn" onclick="renderSelecoes(_selData.selecoes,_selData.gal)" style="flex-shrink:0;">← Seleções</button>'
+    +'<div><div class="st" style="font-size:.88rem;">'+sel.email+'</div>'
+    +'<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+selFotos.length+' foto'+(selFotos.length!==1?'s':('' ))+' selecionada'+(selFotos.length!==1?'s':'')+'</div>'
+    +'</div></div>';
+
+  if(!selFotos.length){
+    html += '<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">As fotos desta seleção não estão mais na galeria.</div>';
+    sBody.innerHTML = html;
+    return;
+  }
+
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;">';
+  selFotos.forEach(function(f){
+    var src = f.webUrl||f.url;
+    var idx = fotos.indexOf(f);
+    html += '<div style="aspect-ratio:1;border-radius:4px;overflow:hidden;cursor:pointer;background:var(--surface2);" onclick="verFotoGal(\''+f.url+'\',\''+(f.key||'')+'\','+idx+')">'
+      +'<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">'
+      +'</div>';
+  });
+  html += '</div>';
+
+  sBody.innerHTML = html;
+
+  // Fade-in nas imagens
+  sBody.querySelectorAll('img').forEach(function(img){
+    img.style.opacity='0';img.style.transition='opacity .4s';
+    if(img.complete){ img.style.opacity='1'; }
+    else { img.addEventListener('load',function(){ img.style.opacity='1'; }); }
+  });
 }
 
 function voltarListaGalerias(){
