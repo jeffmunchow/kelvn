@@ -6834,7 +6834,18 @@ async function abrirTodasSelecoes(){
     var sessionRes=await _sb.auth.getSession();
     var token=sessionRes?.data?.session?.access_token;
     if(!token) throw new Error('Sem sessão');
-    var resp=await fetch('/api/favoritos-all',{headers:{'Authorization':'Bearer '+token}});
+
+    // Monta slugs e nomes do cache local — elimina query ao servidor
+    var gals=g('galerias')||[];
+    var slugs=gals.filter(function(x){return !!x.slug;}).map(function(x){return x.slug;});
+    var slugToNome={};
+    gals.forEach(function(x){if(x.slug) slugToNome[x.slug]=x.nomeCliente||x.slug;});
+
+    var resp=await fetch('/api/favoritos-all',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({slugs:slugs,slugToNome:slugToNome})
+    });
     var data=await resp.json();
     if(!resp.ok) throw new Error(data.error||'Erro');
     renderTodasSelecoes(data.selecoes||[]);
