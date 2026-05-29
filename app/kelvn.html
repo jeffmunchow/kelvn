@@ -6302,8 +6302,38 @@ function galSetSort(val){
 }
 function rGalFiltro(){rGal(true);}
 var _galSelecoesAllAberta=false;
+
+var _selAllCache=null;       // { selecoes, ts } — prefetch em background
+var _selAllFetching=false;
+
+async function _prefetchTodasSelecoes(){
+  if(_selAllFetching) return;
+  // Cache válido por 3 minutos
+  if(_selAllCache && (Date.now()-_selAllCache.ts < 180000)) return;
+  _selAllFetching=true;
+  try{
+    var sessionRes=await _sb.auth.getSession();
+    var token=sessionRes?.data?.session?.access_token;
+    if(!token) return;
+    var gals=g('galerias')||[];
+    var slugs=gals.filter(function(x){return !!x.slug;}).map(function(x){return x.slug;});
+    var slugToNome={};gals.forEach(function(x){if(x.slug)slugToNome[x.slug]=x.nomeCliente||x.slug;});
+    if(!slugs.length){_selAllCache={selecoes:[],ts:Date.now()};return;}
+    var resp=await fetch('/api/favoritos-all',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({slugs:slugs,slugToNome:slugToNome})
+    });
+    if(!resp.ok) return;
+    var data=await resp.json();
+    _selAllCache={selecoes:data.selecoes||[],ts:Date.now()};
+  }catch(e){}
+  finally{_selAllFetching=false;}
+}
 function rGal(manter){
-  if(_galSelecoesAllAberta) return; // não sobrescreve a view global de seleções
+  if(_galSelecoesAllAberta) return;
+  // Prefetch em background — acorda a função serverless enquanto o user vê as galerias
+  setTimeout(_prefetchTodasSelecoes, 300); // não sobrescreve a view global de seleções
   if(!manter){
     var lista=document.getElementById('gal-view-lista');
     var detalhe=document.getElementById('gal-view-detalhe');
@@ -6831,11 +6861,19 @@ async function abrirTodasSelecoes(){
   if(body) body.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Carregando…</div>';
 
   try{
+    // Usa cache do prefetch se válido (< 3 min)
+    if(_selAllCache && (Date.now()-_selAllCache.ts < 180000)){
+      renderTodasSelecoes(_selAllCache.selecoes);
+      // Revalida em background silenciosamente
+      _selAllCache=null;
+      _prefetchTodasSelecoes();
+      return;
+    }
+
     var sessionRes=await _sb.auth.getSession();
     var token=sessionRes?.data?.session?.access_token;
     if(!token) throw new Error('Sem sessão');
 
-    // Monta slugs e nomes do cache local — elimina query ao servidor
     var gals=g('galerias')||[];
     var slugs=gals.filter(function(x){return !!x.slug;}).map(function(x){return x.slug;});
     var slugToNome={};
@@ -6848,6 +6886,7 @@ async function abrirTodasSelecoes(){
     });
     var data=await resp.json();
     if(!resp.ok) throw new Error(data.error||'Erro');
+    _selAllCache={selecoes:data.selecoes||[],ts:Date.now()};
     renderTodasSelecoes(data.selecoes||[]);
   }catch(err){
     var body=document.getElementById('gal-sel-all-body');
