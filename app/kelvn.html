@@ -6531,6 +6531,8 @@ function entrarGaleria(id){
   _subgalAtiva=null;
   _fotosSelecionadas=[];_selAncora=-1;
   rGalDetalhe();
+  // Prefetch das seleções em background enquanto o user vê as fotos
+  setTimeout(function(){ _prefetchSelecoes(id); }, 400);
 }
 var _galZoomTimer=null;
 function galZoom(val){
@@ -6698,6 +6700,30 @@ async function deletarFotoGal(){
   notify('Foto excluída.');
 }
 // ===== SELEÇÕES DE FAVORITOS =====
+var _selCache={};      // { [galId]: { selecoes, gal, ts } }
+var _selFetching={};   // { [galId]: bool }
+
+async function _prefetchSelecoes(galId){
+  if(_selFetching[galId]) return;
+  if(_selCache[galId] && (Date.now()-_selCache[galId].ts < 180000)) return;
+  _selFetching[galId]=true;
+  try{
+    var sessionRes=await _sb.auth.getSession();
+    var token=sessionRes?.data?.session?.access_token;
+    if(!token) return;
+    var gals=g('galerias')||[];
+    var gal=gals.find(function(x){return x.id===galId;});
+    if(!gal||!gal.slug) return;
+    var resp=await fetch('/api/favoritos-list?slug='+encodeURIComponent(gal.slug),{
+      headers:{'Authorization':'Bearer '+token}
+    });
+    if(!resp.ok) return;
+    var data=await resp.json();
+    _selCache[galId]={selecoes:data.selecoes||[],gal:gal,ts:Date.now()};
+  }catch(e){}
+  finally{_selFetching[galId]=false;}
+}
+
 async function abrirSelecoes(){
   var body  = document.getElementById('gal-det-body');
   var dBody = document.getElementById('gal-det-design-body');
@@ -6718,6 +6744,16 @@ async function abrirSelecoes(){
   }
 
   try {
+    // Usa cache do prefetch se válido (< 3 min)
+    if(_selCache[_galAtualId] && (Date.now()-_selCache[_galAtualId].ts < 180000)){
+      var cached=_selCache[_galAtualId];
+      renderSelecoes(cached.selecoes, cached.gal);
+      // Revalida em background
+      _selCache[_galAtualId]=null;
+      _prefetchSelecoes(_galAtualId);
+      return;
+    }
+
     var sessionRes = await _sb.auth.getSession();
     var token = sessionRes?.data?.session?.access_token;
     if(!token) throw new Error('Sem sessão');
@@ -6731,6 +6767,7 @@ async function abrirSelecoes(){
     });
     var data = await resp.json();
     if(!resp.ok) throw new Error(data.error||'Erro');
+    _selCache[_galAtualId]={selecoes:data.selecoes||[],gal:gal,ts:Date.now()};
     renderSelecoes(data.selecoes||[], gal);
   } catch(err){
     var sBody=document.getElementById('gal-det-sel-body');
