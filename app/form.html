@@ -241,9 +241,9 @@
     })();
 
     async function carregarFormulario(){
-      var res = await _sb.from('q_form_tokens').select('*').eq('token', _token).single();
-      if(res.error || !res.data){ mostrarErro('Não encontrado.', 'Este questionário não existe ou o link expirou.'); return; }
-      _dados = res.data;
+      var res = await _sb.rpc('questionario_obter', { p_token: _token });
+      if(res.error || !res.data || !res.data.length){ mostrarErro('Não encontrado.', 'Este questionário não existe ou o link expirou.'); return; }
+      _dados = res.data[0];
       if(_dados.status === 'respondido'){ mostrarRespondido(); return; }
       renderForm();
     }
@@ -319,12 +319,12 @@
         respostasFormatadas[p.id || String(i)] = { pergunta: p.texto, resposta: _respostas[i] };
       });
 
-      var res = await _sb.from('q_form_tokens')
-        .update({ status: 'respondido', respostas: respostasFormatadas, submitted_at: new Date().toISOString() })
-        .eq('token', _token)
-        .eq('status', 'pendente');
+      var res = await _sb.rpc('questionario_responder', {
+        p_token: _token,
+        p_respostas: respostasFormatadas
+      });
 
-      if(res.error){ btn.disabled = false; btn.textContent = 'Enviar respostas'; alert('Erro ao enviar. Tente novamente.'); return; }
+      if(res.error || res.data !== true){ btn.disabled = false; btn.textContent = 'Enviar respostas'; alert('Erro ao enviar. Tente novamente.'); return; }
 
       mostrarRespondido();
     }
