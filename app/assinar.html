@@ -89,9 +89,9 @@ function formatDate(str){
 async function init(){
   var token=getToken();
   if(!token||token.length<10){renderState('🔗','Link inválido','Este link de contrato não é válido ou está incompleto.');return;}
-  var res=await _sb.from('contratos').select('*').eq('token_assinatura',token).maybeSingle();
-  if(res.error||!res.data){renderState('❌','Contrato não encontrado','Este link não corresponde a nenhum contrato ativo.');return;}
-  _contrato=res.data;
+  var res=await _sb.rpc('assinatura_obter',{p_token:token});
+  if(res.error||!res.data||!res.data.length){renderState('❌','Contrato não encontrado','Este link não corresponde a nenhum contrato ativo.');return;}
+  _contrato=res.data[0];
 
   var badge=document.getElementById('status-badge');
   var labels={rascunho:'Rascunho',enviado:'Aguardando assinatura',assinado:'Assinado',expirado:'Expirado'};
@@ -99,9 +99,7 @@ async function init(){
   badge.className='badge badge-'+_contrato.status;
   badge.style.display='inline-flex';
 
-  if(_contrato.status==='expirado'||((_contrato.token_expira_em&&new Date(_contrato.token_expira_em)<new Date())&&_contrato.status==='enviado')){
-    // Mark as expired in Supabase
-    if(_contrato.status==='enviado') await _sb.from('contratos').update({status:'expirado'}).eq('id',_contrato.id);
+  if(_contrato.status==='expirado'){
     document.getElementById('app').innerHTML=
       '<div class="state"><div class="state-icon">⏰</div><div class="state-title">Contrato expirado</div><div class="state-sub">Este contrato expirou em '+formatDate(_contrato.token_expira_em)+'.<br>Entre em contato com o fotógrafo para receber um novo link.</div></div>';
     badge.textContent='Expirado';badge.className='badge badge-expirado';
@@ -169,17 +167,9 @@ async function assinar(){
   var btn=document.getElementById('confirm-btn');
   btn.disabled=true;
   btn.innerHTML='<span class="loader"></span> Registrando…';
-  var ip='';
-  try{ var r=await fetch('https://api.ipify.org?format=json'); var j=await r.json(); ip=j.ip; }catch(e){}
-  var res=await _sb.from('contratos').update({
-    status:'assinado',
-    assinado_em:new Date().toISOString(),
-    assinado_ip:ip,
-    assinado_user_agent:navigator.userAgent,
-    assinado_canal:'whatsapp'
-  }).eq('id',_contrato.id).eq('token_assinatura',getToken());
+  var res=await _sb.rpc('assinatura_registrar',{p_token:getToken(),p_canal:'whatsapp'});
 
-  if(res.error){
+  if(res.error||res.data!==true){
     btn.disabled=false; btn.innerHTML='Assinar';
     alert('Erro ao registrar assinatura. Tente novamente.');
     return;
