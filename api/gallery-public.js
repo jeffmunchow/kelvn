@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { signFotos, signCoverUrl } = require('./gallery-sign');
+const { signFotos, signKey } = require('./gallery-sign');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -46,11 +46,23 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // Assina a cover_url extraindo a key do formato pub-xxx.r2.dev/{key}
+    let signedCover = null;
+    if (g.cover_url) {
+      const m = g.cover_url.match(/r2\.dev\/([^?]+)/)
+             || g.cover_url.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+)/);
+      const coverKey = m ? m[1] : null;
+      if (coverKey) {
+        try { signedCover = await signKey(coverKey); }
+        catch(e) { console.error('cover sign error:', e.message); }
+      }
+    }
+
     const resposta = {
       id:                  g.id,
       nomeCliente:         g.nome_cliente,
       dataEvento:          g.data_evento,
-      cover_url:           await signCoverUrl(g.cover_url),
+      cover_url:           signedCover,
       total_fotos:         g.total_fotos,
       downloads_liberados: g.downloads_lib,
       subgalerias:         g.subgalerias || [],

@@ -407,6 +407,18 @@ function resolverDesign(design){
   };
 }
 
+// Recuperação automática de imagens R2 quebradas (bucket privado).
+(function(){
+  document.addEventListener('error',function(e){
+    if(e.target.tagName!=='IMG'||e.target.dataset.r2tried) return;
+    var src=e.target.getAttribute('src')||'';
+    var m=src.match(/r2\.dev\/([^?]+)/)||src.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+?)(?:\?|$)/);
+    if(!m) return;
+    e.target.dataset.r2tried='1';
+    e.target.src='/api/gallery-img?key='+encodeURIComponent(m[1]);
+  },true);
+})();
+
 var _galData = null;
 var _todasFotos = [];
 var _fotosVisiveis = [];
