@@ -33,9 +33,28 @@ async function signKey(key, filename) {
 }
 
 /**
+ * Extrai a key R2 de uma URL pública do bucket.
+ * Suporta: https://pub-xxx.r2.dev/{key} e https://xxx.r2.cloudflarestorage.com/{bucket}/{key}
+ * Retorna null se não for URL R2 reconhecível.
+ */
+function keyFromUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  // Formato pub-xxx.r2.dev (Public Development URL)
+  const devMatch = url.match(/r2\.dev\/(.+)/);
+  if (devMatch) return devMatch[1].split('?')[0];
+  // Formato storage R2 (r2.cloudflarestorage.com/bucket/key)
+  const storageMatch = url.match(/r2\.cloudflarestorage\.com\/[^/]+\/(.+?)(\?|$)/);
+  if (storageMatch) return storageMatch[1];
+  // Tenta usar o env var R2_PUBLIC_URL se disponível
+  const pub = process.env.R2_PUBLIC_URL;
+  if (pub && url.startsWith(pub + '/')) return url.slice(pub.length + 1).split('?')[0];
+  return null;
+}
+
+/**
  * Recebe o array de fotos armazenado no Supabase e substitui
  * url/webUrl pelas versões assinadas, mantendo key/webKey intactos.
- * Fotos sem key são ignoradas (mantêm url original).
+ * Se foto.key não existir, tenta extrair a key da url para assinar.
  */
 async function signFotos(fotos) {
   if (!Array.isArray(fotos) || !fotos.length) return fotos;
@@ -43,23 +62,25 @@ async function signFotos(fotos) {
   return Promise.all(fotos.map(async (foto) => {
     const signed = { ...foto };
     try {
-      if (foto.key)    signed.url    = await signKey(foto.key);
-      if (foto.webKey) signed.webUrl = await signKey(foto.webKey);
+      const key    = foto.key    || keyFromUrl(foto.url);
+      const webKey = foto.webKey || keyFromUrl(foto.webUrl);
+      if (key)    signed.url    = await signKey(key);
+      if (webKey) signed.webUrl = await signKey(webKey);
     } catch (e) {
       console.error('gallery-sign: erro ao assinar foto', foto.key, e.message);
-      // Em caso de erro, mantém a URL original para não quebrar a galeria
     }
     return signed;
   }));
 }
 
 /**
- * Assina a cover_url se ela tiver um key R2 associado.
- * Recebe o objeto completo da galeria e devolve com cover_url assinada.
+ * Assina a cover_url de uma galeria.
+ * Aceita tanto uma key R2 direta quanto uma URL pública do bucket.
  */
-async function signCoverUrl(coverKey) {
-  if (!coverKey) return null;
-  try { return await signKey(coverKey); }
+async function signCoverUrl(coverUrl) {
+  if (!coverUrl) return null;
+  const key = keyFromUrl(coverUrl) || coverUrl; // se não for URL, trata como key direta
+  try { return await signKey(key); }
   catch (e) { return null; }
 }
 

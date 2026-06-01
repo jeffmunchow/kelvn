@@ -1915,6 +1915,18 @@ var MO=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','
 var DA=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 var MABB=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+// Recuperação automática de imagens R2 quebradas (bucket privado).
+// Se uma <img src> do R2 falhar a carregar, extrai a key e tenta via gallery-img.
+(function(){
+  document.addEventListener('error',function(e){
+    if(e.target.tagName!=='IMG'||e.target.dataset.r2tried) return;
+    var src=e.target.getAttribute('src')||'';
+    var m=src.match(/r2\.dev\/([^?]+)/)||src.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+)/);
+    if(!m) return;
+    e.target.dataset.r2tried='1';
+    e.target.src='/api/gallery-img?key='+encodeURIComponent(m[1]);
+  },true);
+})();
 // esc(): escapa HTML para uso seguro dentro de innerHTML.
 // Obrigatório para qualquer dado vindo de terceiros (email de convidado, nome de cliente, etc.)
 function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(String(s==null?'':s)));return d.innerHTML;}

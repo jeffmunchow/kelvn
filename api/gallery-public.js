@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { signFotos } = require('./gallery-sign');
+const { signFotos, signCoverUrl } = require('./gallery-sign');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -50,7 +50,7 @@ module.exports = async function handler(req, res) {
       id:                  g.id,
       nomeCliente:         g.nome_cliente,
       dataEvento:          g.data_evento,
-      cover_url:           g.cover_url,
+      cover_url:           await signCoverUrl(g.cover_url),
       total_fotos:         g.total_fotos,
       downloads_liberados: g.downloads_lib,
       subgalerias:         g.subgalerias || [],
