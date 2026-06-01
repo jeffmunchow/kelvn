@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { signFotos } = require('./gallery-sign');
 
 // Rate limit: máximo de tentativas por IP por janela de tempo
 const RATE_LIMIT_MAX    = 10;  // tentativas
@@ -72,9 +73,13 @@ module.exports = async function handler(req, res) {
       return res.status(403).json({ error: 'Senha incorreta' });
     }
 
-    // 4) Sucesso — retorna os dados da galeria
+    // 4) Sucesso — assina as URLs das fotos antes de retornar.
+    //    Bucket é privado: URLs públicas não funcionam mais.
+    //    Signed URLs expiram em 1h — suficiente para uma sessão.
+    const fotosAssinadas = await signFotos(galeria.fotos || []);
+
     return res.status(200).json({
-      fotos:               galeria.fotos || [],
+      fotos:               fotosAssinadas,
       downloads_liberados: galeria.downloads_liberados,
       subgalerias:         galeria.subgalerias || []
     });

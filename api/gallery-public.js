@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { signFotos } = require('./gallery-sign');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -56,7 +57,8 @@ module.exports = async function handler(req, res) {
       design:              g.design || null,
       nomeEstudio,
       temSenha:            g.tem_senha,
-      fotos:               g.tem_senha ? undefined : (g.fotos || [])
+      // Galeria sem senha: assina URLs antes de retornar (bucket privado)
+      fotos: g.tem_senha ? undefined : await signFotos(g.fotos || [])
     };
 
     return res.status(200).json({ galeria: resposta });
