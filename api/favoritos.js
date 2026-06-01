@@ -52,7 +52,20 @@ module.exports = async function handler(req, res) {
     // A regex anterior ([^\s@]+) permitia esses caracteres, abrindo vetor de XSS stored.
     if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(emailNorm))
       return res.status(400).json({ error: 'Invalid email' });
+    // Limites de sanidade — impede escrever lixo em massa na tabela.
+    if (typeof lista !== 'string' || lista.length > 60) return res.status(400).json({ error: 'Invalid lista' });
+    if (foto_ids.length > 5000 || !foto_ids.every(x => typeof x === 'string' && x.length <= 300))
+      return res.status(400).json({ error: 'Invalid foto_ids' });
     try {
+      // P2-B: valida que o slug existe e está PUBLICADO antes de gravar.
+      // Sem isso, qualquer um sobrescrevia seleções de qualquer galeria ou
+      // escrevia lixo em massa com slugs arbitrários. galeria_publica_obter
+      // (SECURITY DEFINER) só retorna linha para galeria publicada.
+      const { data: gal, error: gErr } = await supabase
+        .rpc('galeria_publica_obter', { p_slug: slug });
+      if (gErr) throw gErr;
+      if (!gal || !gal.length) return res.status(404).json({ error: 'Galeria não encontrada' });
+
       const { error } = await supabase.from('galeria_favoritos').upsert(
         { galeria_slug: slug, email: emailNorm, lista, foto_ids, atualizado_em: new Date().toISOString() },
         { onConflict: 'galeria_slug,email,lista' }
