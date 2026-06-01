@@ -12,7 +12,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Kelvn — Studio</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;500&family=Raleway:wght@100;200;300;400;500&family=Playfair+Display+SC:wght@400;700&family=Tenor+Sans&family=Oswald:wght@400;600;700&family=Antic+Didone&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -434,8 +434,13 @@ select.aj-input{cursor:pointer;}
       <div class="auth-forgot" onclick="showForgot()">Esqueci minha senha</div>
       <button class="auth-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
       <div class="auth-msg" id="loginMsg"></div>
-      <!-- Turnstile: container invisível para proteção anti-bot no login -->
-      <div id="turnstile-widget" style="display:none;"></div>
+      <!-- Turnstile: renderização implícita, visualmente invisível mas ativo -->
+      <div class="cf-turnstile"
+           data-sitekey="0x4AAAAAADc-6qdswap_6sf0"
+           data-callback="onTurnstileSuccess"
+           data-expired-callback="onTurnstileExpired"
+           data-error-callback="onTurnstileError"
+           style="height:0;overflow:hidden;"></div>
     </div>
 
     <div id="authForgot" style="display:none;">
@@ -7895,7 +7900,7 @@ function _setupRealtime(){
   _realtimeChannel.subscribe();
 }
 
-function showAuthScreen(){ document.getElementById('authScreen').classList.add('visible'); document.getElementById('appMain').style.display='none'; setTimeout(_initTurnstile,100); }
+function showAuthScreen(){ document.getElementById('authScreen').classList.add('visible'); document.getElementById('appMain').style.display='none'; }
 function hideAuthScreen(){ document.getElementById('authScreen').classList.remove('visible'); document.getElementById('appMain').style.display='flex'; }
 function showLogin(){
   document.getElementById('authLogin').style.display='';
@@ -7907,28 +7912,13 @@ function showLogin(){
 function showForgot(){ document.getElementById('authLogin').style.display='none'; document.getElementById('authForgot').style.display=''; }
 function setMsg(id, msg, type){ var el=document.getElementById(id); el.textContent=msg; el.className='auth-msg '+(type||''); }
 
-// Turnstile — proteção anti-bot no login.
-// Pré-renderiza o widget ao exibir a tela de auth e armazena o token
-// gerado automaticamente (modo Managed). O token é consumido no login
-// e renovado para o próximo uso.
+// Turnstile — proteção anti-bot no login (renderização implícita via cf-turnstile).
+// O SDK gera o token automaticamente e chama onTurnstileSuccess.
+// Token é consumido no login e renovado via turnstile.reset() para o próximo uso.
 var _captchaToken = null;
-var _turnstileWidgetId = null;
-
-function _initTurnstile(){
-  if(typeof turnstile==='undefined'||_turnstileWidgetId!==null) return;
-  try {
-    _turnstileWidgetId = turnstile.render('#turnstile-widget',{
-      sitekey: TURNSTILE_SITE_KEY,
-      callback: function(token){ _captchaToken=token; },
-      'expired-callback': function(){ _captchaToken=null; if(_turnstileWidgetId!==null) turnstile.reset(_turnstileWidgetId); },
-      'error-callback': function(){ _captchaToken=null; },
-    });
-  } catch(e){ console.warn('Turnstile init error:',e); }
-}
-
-// Chama _initTurnstile() assim que o script do Turnstile estiver pronto
-if(typeof turnstile!=='undefined'){ _initTurnstile(); }
-else{ window.onloadTurnstileCallback=function(){ _initTurnstile(); }; }
+function onTurnstileSuccess(token){ _captchaToken = token; }
+function onTurnstileExpired(){ _captchaToken = null; }
+function onTurnstileError(){ _captchaToken = null; }
 
 async function doLogin(){
   var btn=document.getElementById('loginBtn');
@@ -7938,8 +7928,7 @@ async function doLogin(){
   btn.disabled=true; btn.textContent='Entrando...';
   try {
     var opts=_captchaToken?{captchaToken:_captchaToken}:{};
-    _captchaToken=null; // consome o token (one-time use)
-    if(_turnstileWidgetId!==null) turnstile.reset(_turnstileWidgetId); // gera o próximo
+    _captchaToken=null;
     var res=await _sb.auth.signInWithPassword({email:email,password:pass,options:opts});
     if(res.error){ setMsg('loginMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Entrar'; }
     else{ onLogin(res.data.user); }
