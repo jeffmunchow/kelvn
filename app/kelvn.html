@@ -1915,16 +1915,30 @@ var MO=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','
 var DA=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 var MABB=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
-// Recuperação automática de imagens R2 quebradas (bucket privado).
-// Se uma <img src> do R2 falhar a carregar, extrai a key e tenta via gallery-img.
+// Bucket R2 privado: URLs públicas de fotos não funcionam mais.
+// r2key(url): extrai a key R2 de qualquer URL pública (r2.dev ou cloudflarestorage).
+// r2proxy(url): converte URL pública do R2 na URL do proxy autenticado /api/gallery-img.
+function r2key(url){
+  if(!url||typeof url!=='string') return null;
+  var m=url.match(/r2\.dev\/([^?]+)/)||url.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+)/);
+  return m?m[1]:null;
+}
+function r2proxy(url){
+  var k=r2key(url);
+  return k?'/api/gallery-img?key='+encodeURIComponent(k):url;
+}
+// Recuperação automática: se uma <img> do R2 falhar, troca para o proxy.
+// Anula o onerror inline do elemento para evitar que ele reverta o src (causava
+// o "pisca e some" nas capas, que tinham seu próprio onerror apontando p/ URL morta).
 (function(){
   document.addEventListener('error',function(e){
-    if(e.target.tagName!=='IMG'||e.target.dataset.r2tried) return;
-    var src=e.target.getAttribute('src')||'';
-    var m=src.match(/r2\.dev\/([^?]+)/)||src.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+)/);
-    if(!m) return;
-    e.target.dataset.r2tried='1';
-    e.target.src='/api/gallery-img?key='+encodeURIComponent(m[1]);
+    var t=e.target;
+    if(t.tagName!=='IMG'||t.dataset.r2tried) return;
+    var k=r2key(t.getAttribute('src')||'');
+    if(!k) return;
+    t.dataset.r2tried='1';
+    t.onerror=null;
+    t.src='/api/gallery-img?key='+encodeURIComponent(k);
   },true);
 })();
 // esc(): escapa HTML para uso seguro dentro de innerHTML.
@@ -6470,7 +6484,7 @@ function abrirGaleria(id, isNova){
   if(countEl){var n=(gal.fotos||[]).length;countEl.textContent=n?n+' foto'+(n!==1?'s':''):'Nenhuma foto ainda';}
   var coverEl=document.getElementById('mgal-cover-preview');
   if(coverEl){
-    if(gal.cover_url){coverEl.style.backgroundImage='url('+gal.cover_url+')';coverEl.style.display='';}
+    if(gal.cover_url){coverEl.style.backgroundImage='url('+r2proxy(gal.cover_url)+')';coverEl.style.display='';}
     else coverEl.style.display='none';
   }
   // sempre mostra área de upload no modal
@@ -6541,7 +6555,7 @@ function mgalEscolherCapa(){
   gal.cover_url=url;
   s('galerias',gals);
   var coverEl=document.getElementById('mgal-cover-preview');
-  if(coverEl){coverEl.style.backgroundImage='url('+url+')';coverEl.style.display='';}
+  if(coverEl){coverEl.style.backgroundImage='url('+r2proxy(url)+')';coverEl.style.display='';}
   notify('Capa definida.');
 }
 function saveGal(){

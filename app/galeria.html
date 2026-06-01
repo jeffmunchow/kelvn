@@ -408,14 +408,17 @@ function resolverDesign(design){
 }
 
 // Recuperação automática de imagens R2 quebradas (bucket privado).
+// Anula o onerror inline para que ele não reverta o src para a URL morta.
 (function(){
   document.addEventListener('error',function(e){
-    if(e.target.tagName!=='IMG'||e.target.dataset.r2tried) return;
-    var src=e.target.getAttribute('src')||'';
+    var t=e.target;
+    if(t.tagName!=='IMG'||t.dataset.r2tried) return;
+    var src=t.getAttribute('src')||'';
     var m=src.match(/r2\.dev\/([^?]+)/)||src.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+?)(?:\?|$)/);
     if(!m) return;
-    e.target.dataset.r2tried='1';
-    e.target.src='/api/gallery-img?key='+encodeURIComponent(m[1]);
+    t.dataset.r2tried='1';
+    t.onerror=null;
+    t.src='/api/gallery-img?key='+encodeURIComponent(m[1]);
   },true);
 })();
 
