@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { signKey } = require('./gallery-sign');
+const { signKey } = require('./_gallery-sign');
 
 // Regex que valida que a key tem formato esperado: {uuid}/{qualquer-coisa}/arquivo
 // Impede que alguém tente escanear o bucket com paths arbitrários.

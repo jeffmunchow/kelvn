@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { signFotos } = require('./gallery-sign');
+const { signFotos } = require('./_gallery-sign');
 
 // Rate limit: máximo de tentativas por IP por janela de tempo
 const RATE_LIMIT_MAX    = 10;  // tentativas

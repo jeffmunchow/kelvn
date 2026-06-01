@@ -5,7 +5,7 @@
  * Sem autenticação obrigatória — segurança baseada na opacidade da key (UUID).
  * Keys são geradas pelo servidor, não são adivinháveis.
  */
-const { signKey } = require('./gallery-sign');
+const { signKey } = require('./_gallery-sign');
 
 const UUID_PATH = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/.+/i;
 

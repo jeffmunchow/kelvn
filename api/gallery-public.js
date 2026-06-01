@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const { signFotos, signKey } = require('./gallery-sign');
+const { signFotos, signKey } = require('./_gallery-sign');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
