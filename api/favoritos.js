@@ -8,11 +8,13 @@
  */
 const { createClient } = require('@supabase/supabase-js');
 
-function jwtUserId(token) {
-  try {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
-    return payload.sub || null;
-  } catch { return null; }
+// jwtUserId() REMOVIDA — decodificava o JWT sem verificar a assinatura,
+// permitindo tokens forjados. Substituída por supabase.auth.getUser() abaixo.
+async function getAuthUserId(supabase, authHeader) {
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  const { data: { user }, error } = await supabase.auth.getUser(authHeader.slice(7));
+  if (error || !user) return null;
+  return user.id;
 }
 
 module.exports = async function handler(req, res) {
@@ -66,7 +68,7 @@ module.exports = async function handler(req, res) {
     if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
     const { slug } = req.query;
     if (!slug) return res.status(400).json({ error: 'Missing slug' });
-    const userId = jwtUserId(auth.slice(7));
+    const userId = await getAuthUserId(supabase, auth);
     if (!userId) return res.status(401).json({ error: 'Invalid token' });
     try {
       const [galRow, favsRes] = await Promise.all([
@@ -92,14 +94,22 @@ module.exports = async function handler(req, res) {
   if (req.method === 'POST' && action === 'all') {
     const auth = req.headers.authorization;
     if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
-    const userId = jwtUserId(auth.slice(7));
+    const userId = await getAuthUserId(supabase, auth);
     if (!userId) return res.status(401).json({ error: 'Invalid token' });
     const { slugs, slugToNome } = req.body || {};
     if (!Array.isArray(slugs) || !slugs.length) return res.status(200).json({ selecoes: [] });
     try {
+      // Filtra slugs pelo dono — impede que fotógrafo A leia seleções de galerias de B
+      // passando slugs arbitrários no body. Busca apenas slugs que pertencem ao userId.
+      const { data: galRow } = await supabase
+        .from('galerias').select('data').eq('user_id', userId).single();
+      const galeriasDoUser = (Array.isArray(galRow?.data) ? galRow.data : []).map(g => g.slug);
+      const slugsFiltrados = slugs.filter(s => galeriasDoUser.includes(s));
+      if (!slugsFiltrados.length) return res.status(200).json({ selecoes: [] });
+
       const { data: favs, error } = await supabase
         .from('galeria_favoritos').select('galeria_slug, email, foto_ids, atualizado_em')
-        .in('galeria_slug', slugs).order('atualizado_em', { ascending: false });
+        .in('galeria_slug', slugsFiltrados).order('atualizado_em', { ascending: false });
       if (error) throw error;
       const map = {};
       (favs || []).forEach(row => {

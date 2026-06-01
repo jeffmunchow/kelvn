@@ -3851,7 +3851,7 @@ async function gerarMensagem(dadosSaude){
 
   if(cacheValido){
     loadEl.style.display='none';
-    txtEl.innerHTML=_saudeCache.msg;
+    txtEl.textContent=_saudeCache.msg; // IA = conteúdo não confiável para DOM
     return;
   }
 
@@ -3940,7 +3940,7 @@ async function gerarMensagem(dadosSaude){
     var msg=data.content&&data.content[0]?data.content[0].text.trim():'';
     loadEl.style.display='none';
     if(msg){
-      txtEl.innerHTML=msg;
+      txtEl.textContent=msg; // IA = conteúdo não confiável para DOM
       var novoCache={score:dadosSaude.score,msg:msg,ts:Date.now()};
       _saudeCache=novoCache;
       s('saude_palavra_cache',novoCache);
@@ -3949,7 +3949,7 @@ async function gerarMensagem(dadosSaude){
     }
   }catch(e){
     loadEl.style.display='none';
-    if(_saudeCache&&_saudeCache.msg){txtEl.innerHTML=_saudeCache.msg;}
+    if(_saudeCache&&_saudeCache.msg){txtEl.textContent=_saudeCache.msg;} // IA = conteúdo não confiável para DOM
     else{wrapEl.style.display='none';}
     console.warn('Mensagem IA: erro na chamada',e);
   }
@@ -5416,7 +5416,9 @@ async function _whatsAutoEnviar(autoKey){
   }
 
   // Gera token único e salva no Supabase para o formulário público
-  var token=uid()+uid();
+  // crypto.randomUUID() = 122 bits de entropia criptográfica. uid()+uid() usava
+  // Math.random() que é previsível em V8 — token de questionário agora é seguro.
+  var token=crypto.randomUUID();
   var tokenRow={
     token:token,
     user_id:_currentUser.id,
