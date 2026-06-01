@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
+
 const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN;
 
 export const config = {
@@ -5,12 +7,20 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'https://app.kelvn.com.br');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Apenas fotógrafos autenticados podem gerar PDFs — sem auth qualquer um
+  // consumiria os créditos do Browserless e enviaria HTML arbitrário.
+  const token = req.headers.authorization?.split('Bearer ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
 
   let body = req.body;
   if (typeof body === 'string') {
