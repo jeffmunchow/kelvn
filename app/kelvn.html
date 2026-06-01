@@ -12,6 +12,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Kelvn — Studio</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cinzel:wght@400;500&family=Raleway:wght@100;200;300;400;500&family=Playfair+Display+SC:wght@400;700&family=Tenor+Sans&family=Oswald:wght@400;600;700&family=Antic+Didone&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -433,6 +434,8 @@ select.aj-input{cursor:pointer;}
       <div class="auth-forgot" onclick="showForgot()">Esqueci minha senha</div>
       <button class="auth-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
       <div class="auth-msg" id="loginMsg"></div>
+      <!-- Turnstile: container invisível para proteção anti-bot no login -->
+      <div id="turnstile-widget" style="display:none;"></div>
     </div>
 
     <div id="authForgot" style="display:none;">
@@ -7659,7 +7662,12 @@ function seedDemoData(){
 
 var SUPABASE_URL = 'https://lbsepogmbusfkdgnencb.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_ETRT-8mRm7AXdgaKyn_DgQ_Whq5sxav';
-var _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var TURNSTILE_SITE_KEY = '0x4AAAAAADc-6qdswap_6sf0';
+var _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    captchaToken: undefined // preenchido dinamicamente no login/signup pelo Turnstile
+  }
+});
 var _currentUser = null;
 
 var ADMIN_EMAIL = 'jeffmunchowweddings@gmail.com';
@@ -7899,6 +7907,22 @@ function showLogin(){
 function showForgot(){ document.getElementById('authLogin').style.display='none'; document.getElementById('authForgot').style.display=''; }
 function setMsg(id, msg, type){ var el=document.getElementById(id); el.textContent=msg; el.className='auth-msg '+(type||''); }
 
+// Obtém token do Turnstile (proteção anti-bot no login).
+// Em modo Managed, é invisível para usuários legítimos.
+function _getTurnstileToken(){
+  return new Promise(function(resolve){
+    if(typeof turnstile==='undefined'){ resolve(undefined); return; }
+    try {
+      turnstile.render('#turnstile-widget',{
+        sitekey: TURNSTILE_SITE_KEY,
+        callback: function(token){ resolve(token); },
+        'error-callback': function(){ resolve(undefined); },
+        'expired-callback': function(){ resolve(undefined); },
+      });
+    } catch(e){ resolve(undefined); }
+  });
+}
+
 async function doLogin(){
   var btn=document.getElementById('loginBtn');
   var email=document.getElementById('loginEmail').value.trim();
@@ -7906,7 +7930,9 @@ async function doLogin(){
   if(!email||!pass){ setMsg('loginMsg','Preenche e-mail e senha.','error'); return; }
   btn.disabled=true; btn.textContent='Entrando...';
   try {
-    var res=await _sb.auth.signInWithPassword({email:email,password:pass});
+    var captchaToken=await _getTurnstileToken();
+    var opts=captchaToken?{captchaToken:captchaToken}:{};
+    var res=await _sb.auth.signInWithPassword({email:email,password:pass,options:opts});
     if(res.error){ setMsg('loginMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Entrar'; }
     else{ onLogin(res.data.user); }
   } catch(e) {
