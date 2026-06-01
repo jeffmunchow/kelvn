@@ -7,6 +7,15 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Verificação de origem obrigatória — rejeita qualquer chamada sem o segredo correto.
+  // A Vercel injeta automaticamente o CRON_SECRET no header Authorization ao chamar crons.
+  // Para teste manual: passar Authorization: Bearer <CRON_SECRET>
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = req.headers['authorization'];
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
   try {
@@ -46,7 +55,6 @@ module.exports = async function handler(req, res) {
     const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
 
     let sent = 0, skipped = 0;
-    const results = [];
 
     for (const profile of profiles) {
       const email = profile.email?.toLowerCase();
@@ -131,11 +139,12 @@ module.exports = async function handler(req, res) {
         })
       });
 
-      if (r.ok) { sent++; results.push({ email, status: 'sent' }); }
-      else { const e = await r.json(); results.push({ email, status: 'error', error: e }); }
+      if (r.ok) { sent++; }
+      else { skipped++; }
     }
 
-    return res.status(200).json({ sent, skipped, results });
+    // Nunca retornar emails na resposta — expõe a base de membros.
+    return res.status(200).json({ sent, skipped });
   } catch (err) {
     console.error('newsletter-semanal error:', err);
     return res.status(500).json({ error: 'Server error', message: err.message });
