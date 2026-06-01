@@ -1,4 +1,4 @@
-const BROWSERLESS_TOKEN = '2UXSEs19xerqqFb519fb241062efb3309bde0aa013eb278bb';
+const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN;
 
 export const config = {
   api: { bodyParser: { sizeLimit: '4mb' } },
