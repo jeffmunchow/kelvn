@@ -46,7 +46,9 @@ module.exports = async function handler(req, res) {
     if (!slug || !email || !lista || !Array.isArray(foto_ids))
       return res.status(400).json({ error: 'Missing or invalid fields' });
     const emailNorm = email.toLowerCase().trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm))
+    // Regex estrita: bloqueia caracteres HTML (<, >, ", ', &) além de validar o formato.
+    // A regex anterior ([^\s@]+) permitia esses caracteres, abrindo vetor de XSS stored.
+    if (!/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(emailNorm))
       return res.status(400).json({ error: 'Invalid email' });
     try {
       const { error } = await supabase.from('galeria_favoritos').upsert(

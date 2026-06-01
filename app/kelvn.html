@@ -1915,6 +1915,9 @@ var MO=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','
 var DA=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
 var MABB=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+// esc(): escapa HTML para uso seguro dentro de innerHTML.
+// Obrigatório para qualquer dado vindo de terceiros (email de convidado, nome de cliente, etc.)
+function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(String(s==null?'':s)));return d.innerHTML;}
 var _privacidade=false;
 function togglePrivacidade(){
   _privacidade=!_privacidade;
@@ -6858,7 +6861,7 @@ function renderSelecoes(selecoes, gal){
     var data = sel.atualizado_em ? new Date(sel.atualizado_em).toLocaleDateString('pt-BR') : '—';
 
     html += '<tr class="tdn" style="cursor:pointer;" onclick="abrirGridSelecao('+si+')">'
-      +'<td style="color:var(--text);">'+sel.email+'</td>'
+      +'<td style="color:var(--text);">'+esc(sel.email)+'</td>'
       +'<td>'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+'</td>'
       +'<td>'+data+'</td>'
       +'</tr>';
@@ -6895,7 +6898,7 @@ function abrirGridSelecao(si){
   }
 
   var html = '<div style="margin-bottom:1.5rem;">'
-    +'<div class="st" style="font-size:.88rem;">'+sel.email+'</div>'
+    +'<div class="st" style="font-size:.88rem;">'+esc(sel.email)+'</div>'
     +'<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+selFotos.length+' foto'+(selFotos.length!==1?'s':'')+' selecionada'+(selFotos.length!==1?'s':'')+'</div>'
     +'</div>';
 
@@ -7006,9 +7009,9 @@ function renderTodasSelecoes(selecoes){
     +'<tbody>';
   selecoes.forEach(function(sel){
     var data=sel.atualizado_em?new Date(sel.atualizado_em).toLocaleDateString('pt-BR'):'—';
-    html+='<tr class="tdn" style="cursor:pointer;" onclick="entrarGaleriaPorSlug(\''+sel.galeria_slug+'\',\''+sel.email+'\')">'
-      +'<td style="color:var(--text);">'+sel.email+'</td>'
-      +'<td>'+sel.galeria_nome+'</td>'
+    html+='<tr class="tdn" style="cursor:pointer;" onclick="entrarGaleriaPorSlug(\''+esc(sel.galeria_slug)+'\',\''+esc(sel.email)+'\')">'
+      +'<td style="color:var(--text);">'+esc(sel.email)+'</td>'
+      +'<td>'+esc(sel.galeria_nome)+'</td>'
       +'<td>'+sel.total_fotos+' foto'+(sel.total_fotos!==1?'s':'')+'</td>'
       +'<td>'+data+'</td>'
       +'</tr>';
