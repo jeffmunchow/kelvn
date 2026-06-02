@@ -107,7 +107,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .fi{font-family:'DM Sans',sans-serif;font-size:.75rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius);padding:6px 10px;color:var(--text);outline:none;height:28px;box-sizing:border-box;}
 .fi:focus{border-color:var(--amber);}
 /* TABLE */
-.tw{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.tw{background:var(--surface);border-radius:var(--radius);overflow:hidden;}
 .ts{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:.78rem;}
 th{text-align:left;font-size:.63rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;font-weight:400;padding:10px 12px;border-bottom:.5px solid var(--border);}
@@ -152,7 +152,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ed-fases{display:flex;align-items:center;gap:2px;margin-left:auto;flex-shrink:0;}
 .ed-fase-btn:hover{opacity:.75!important;}
 /* PEND CARD */
-.pc{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;cursor:pointer;}
+.pc{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;cursor:pointer;}
 .pc:hover{border-color:var(--border-strong);}
 .pr{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
 .pn{font-size:.88rem;color:var(--text);}
@@ -262,7 +262,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .bar-fill{height:100%;border-radius:4px;background:var(--amber);transition:width .4s;}
 .bar-val{width:100px;color:var(--text-hint);flex-shrink:0;white-space:nowrap;text-align:right;}
 /* EQUIPE CARD */
-.eqcard{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;display:flex;align-items:center;gap:1rem;cursor:pointer;}
+.eqcard{background:var(--surface);border-radius:var(--radius);padding:1.1rem 1.25rem;display:flex;align-items:center;gap:1rem;cursor:pointer;}
 .eqcard:hover{border-color:var(--border-strong);}
 .eq-avatar{width:38px;height:38px;border-radius:50%;background:var(--amber-light);color:var(--amber);display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;flex-shrink:0;}
 .eq-nome{font-size:.88rem;color:var(--text);font-weight:400;}
@@ -939,7 +939,7 @@ select.aj-input{cursor:pointer;}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;" id="an-graficos-wrap">
 
     <!-- Faturamento por produto -->
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
+    <div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;">
         <div>
           <div class="col-title" style="margin-bottom:2px;">Faturamento por produto</div>
@@ -951,7 +951,7 @@ select.aj-input{cursor:pointer;}
     </div>
 
     <!-- Sazonalidade com seletor de ano -->
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;">
+    <div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;">
         <div class="col-title" style="margin:0;">Sazonalidade</div>
         <select class="fi" id="an-sazon-ano" onchange="rAnSazonalidade()" style="width:auto;"></select>
@@ -964,11 +964,11 @@ select.aj-input{cursor:pointer;}
 
   <!-- ORIGEM DA RECEITA -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;" id="an-receita-wrap">
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+    <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;">
       <div class="col-title" style="margin-bottom:1rem;">Receita por produto</div>
       <div id="an-cat-produto"></div>
     </div>
-    <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+    <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;">
       <div class="col-title" style="margin-bottom:1rem;">Receita por tipo</div>
       <div id="an-cat-tipo"></div>
     </div>
@@ -4856,7 +4856,7 @@ function _buildProgressCard(opts){
   var status=pct>=100?'✓ Meta atingida':(opts.tipo==='valor'?'Faltam R$ '+(opts.meta-opts.atual).toLocaleString('pt-BR',{maximumFractionDigits:0}):(opts.meta-opts.atual)+' para a meta');
   var atualFmt=opts.tipo==='valor'?'R$ '+opts.atual.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):opts.atual+' confirmados';
   var metaFmt=opts.tipo==='valor'?'meta: R$ '+opts.meta.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):'meta: '+opts.meta+' casamentos';
-  return '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;flex:1;">'+
+  return '<div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;flex:1;">'+
     '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;">'+opts.label+'</div>'+
     '<div style="margin-bottom:.75rem;">'+
       '<div style="font-size:1.4rem;font-weight:500;letter-spacing:-.02em;line-height:1;color:'+cor+';">'+atualFmt+'</div>'+
@@ -4883,7 +4883,7 @@ function rAnMetas(){
   // Monta estrutura do grid na primeira vez
   if(!document.getElementById('an-metas-definir')){
     el.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:stretch;margin-bottom:1rem;';
-    var definirCard='<div id="an-metas-definir" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">'+
+    var definirCard='<div id="an-metas-definir" style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;flex-direction:column;justify-content:center;">'+
       '<div style="font-size:.6rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;">Definir metas</div>'+
       '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
         '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span><input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'"></div>'+
@@ -5129,7 +5129,7 @@ function calcPrec(){
   var custoFixoPorWed=totalFixo/wedMes;
   var custoTotalPorWed=custoFixoPorWed+custoVar;
   if(!totalFixo&&!custoVar){
-    el.innerHTML='<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:2rem 1.5rem;text-align:center;"><div style="font-size:.78rem;color:var(--text-hint);">Preencha seus custos para ver o cálculo.</div></div>';
+    el.innerHTML='<div style="background:var(--surface);border-radius:var(--radius);padding:2rem 1.5rem;text-align:center;"><div style="font-size:.78rem;color:var(--text-hint);">Preencha seus custos para ver o cálculo.</div></div>';
     return;
   }
   var divisorImp=1-(imposto/100);
@@ -5153,14 +5153,14 @@ function calcPrec(){
       cor='var(--teal)';bg='var(--teal-light)';bord='var(--teal)';
       txt='Preço saudável. Você está no caminho certo.';
     }
-    semaforo='<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">'+
+    semaforo='<div style="background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">'+
       '<div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Meu preço atual — <span style="color:'+cor+';">'+$m(precoAtual)+'</span></div>'+
       '<div style="font-size:.78rem;color:'+cor+';">'+txt+'</div>'+
       '</div>';
   }
   el.innerHTML=
     semaforo+
-    '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem;">'+
+    '<div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem;">'+
     '<div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1rem;">Resultado</div>'+
     '<div class="dre-row"><span style="color:var(--text-muted)">Custos fixos mensais</span><span>'+$m(totalFixo)+'</span></div>'+
     (prolabore?'<div class="dre-row"><span style="color:var(--text-muted);padding-left:.75rem;font-size:.7rem;">↳ inclui pró-labore</span><span style="font-size:.7rem;">'+$m(prolabore)+'</span></div>':'')+
@@ -5168,17 +5168,17 @@ function calcPrec(){
     (custoVar?'<div class="dre-row"><span style="color:var(--text-muted)">Custo variável por casamento</span><span>'+$m(custoVar)+'</span></div>':'')+
     '<div class="dre-row" style="font-weight:500;border-top:.5px solid var(--border);margin-top:.5rem;padding-top:.5rem;"><span>Custo total por casamento</span><span>'+$m(custoTotalPorWed)+'</span></div>'+
     '</div>'+
-    '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
+    '<div style="background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
     '<div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço mínimo — só cobre o custo</div>'+
     '<div style="font-size:1.6rem;font-weight:500;color:var(--coral);letter-spacing:-.03em;">'+$m(precoMinimo)+'</div>'+
     (imposto?'<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">Com '+imposto+'% de imposto incluído</div>':'')+
     '</div>'+
-    '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
+    '<div style="background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;">'+
     '<div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço sugerido — '+margem+'% de margem</div>'+
     '<div style="font-size:1.6rem;font-weight:500;color:var(--amber-deep);letter-spacing:-.03em;">'+$m(precoSugerido)+'</div>'+
     (horas?'<div style="font-size:.68rem;color:var(--text-hint);margin-top:2px;">'+$m(precoSugerido/horas)+'/h trabalhada</div>':'')+
     '</div>'+
-    '<div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">'+
+    '<div style="background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">'+
     '<div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">Preço ideal — +15% para crescimento</div>'+
     '<div style="font-size:1.6rem;font-weight:500;color:var(--teal);letter-spacing:-.03em;">'+$m(precoIdeal)+'</div>'+
     '</div>'+
