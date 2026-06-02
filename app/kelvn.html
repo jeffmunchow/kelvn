@@ -247,7 +247,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .dre-row.header{font-weight:600;color:var(--text);padding:.35rem 0;border-bottom:.5px solid var(--border-strong);}
 .dre-row.total{font-weight:600;border-top:.5px solid var(--border-strong);border-bottom:none;padding-top:.75rem;margin-top:.25rem;}
 /* PACOTE CARD */
-.pkcard{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;}
+.pkcard{background:var(--surface);border-radius:var(--radius);padding:1.25rem;cursor:pointer;}
 .pkcard:hover{border-color:var(--amber);}
 .pkcard-nome{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:600;margin-bottom:4px;}
 .pkcard-valor{font-size:1.3rem;font-weight:500;color:var(--amber);letter-spacing:-.02em;margin-bottom:.5rem;}
@@ -883,7 +883,7 @@ select.aj-input{cursor:pointer;}
         <select id="qr-status-filter" onchange="rQR()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;"><option value="">Todos</option><option value="Pendente">Pendente</option><option value="Enviado">Enviado</option><option value="Respondido">Respondido</option></select>
       </div>
     </div>
-    <div class="tw"><div class="ts"><table><thead><tr>
+    <div class="tw" style="border:none;"><div class="ts"><table><thead><tr>
       <th>Cliente</th><th>Data evento</th><th>Status cliente</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
     </tr></thead><tbody id="qr-tbody"></tbody></table></div></div>
   </div>
