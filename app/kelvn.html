@@ -662,7 +662,7 @@ select.aj-input{cursor:pointer;}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
 
       <!-- Coluna esquerda: card de saúde -->
-      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+      <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;">
         <div style="display:flex;align-items:center;gap:20px;">
           <!-- Left: score + label -->
           <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding-right:20px;border-right:.5px solid var(--border);">
@@ -702,7 +702,7 @@ select.aj-input{cursor:pointer;}
       </div>
 
       <!-- Coluna direita: card com 4 KPIs em grid 2x2 -->
-      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;align-items:center;">
+      <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;align-items:center;">
         <div class="fk" id="fin-kpis" style="width:100%;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:0;"></div>
       </div>
 
@@ -724,7 +724,7 @@ select.aj-input{cursor:pointer;}
     </div>
 
     <!-- TABELA -->
-    <div class="tw"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fin-tbody"></tbody></table></div></div>
+    <div class="tw" style="border:none;"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fin-tbody"></tbody></table></div></div>
   </div>
   <!-- FLUXO DE CAIXA -->
   <div id="fp-panel-fluxo" style="display:none;">
