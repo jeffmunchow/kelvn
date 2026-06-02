@@ -225,9 +225,11 @@ html,body{
 .lb-nav:hover{color:rgba(255,255,255,.8);}
 .lb-prev{left:.5rem;}
 .lb-next{right:.5rem;}
-.lb-actions{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
-.lb-dl-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.07);border:.5px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 16px;color:rgba(255,255,255,.55);font-size:.73rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;transition:all .15s;white-space:nowrap;}
-.lb-dl-btn:hover{background:rgba(255,255,255,.13);color:#fff;border-color:rgba(255,255,255,.25);}
+.lb-img-col{display:inline-flex;flex-direction:column;align-items:flex-end;line-height:0;}
+.lb-actions{display:flex;gap:8px;margin-top:10px;}
+.lb-icon-btn{background:rgba(0,0,0,.55);border:none;border-radius:50%;width:46px;height:46px;cursor:pointer;color:rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;}
+.lb-icon-btn:hover{background:rgba(0,0,0,.8);color:#fff;}
+.lb-icon-btn.fav-ativo svg{fill:rgba(255,255,255,.9);stroke:rgba(255,255,255,.9);}
 
 /* Senha gate */
 .gate{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:2rem;background:var(--gal-bg);}
@@ -309,20 +311,39 @@ html,body{
 
 <!-- Lightbox -->
 <div class="lb" id="lb" onclick="lbClickOutside(event)">
-  <img class="lb-img" id="lb-img" src="" alt="">
+  <div class="lb-img-col">
+    <img class="lb-img" id="lb-img" src="" alt="">
+    <div class="lb-actions" id="lb-actions" style="display:none;">
+      <button class="lb-icon-btn" id="lb-fav-btn" onclick="event.stopPropagation();toggleFavoritoLb()" title="Favoritar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </button>
+      <button class="lb-icon-btn" id="lb-dl-btn-single" onclick="event.stopPropagation();abrirModalDownloadFoto()" title="Baixar foto">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+    </div>
+  </div>
   <button class="lb-close" onclick="closeLb()">×</button>
   <div class="lb-counter" id="lb-counter"></div>
   <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
   <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
-  <div class="lb-actions" id="lb-actions" style="display:none;">
-    <a class="lb-dl-btn" id="lb-dl-web" href="#" onclick="return dlLb('web')">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span class="dl-opt-label"><span>Versão web</span><span class="dl-opt-sub">Para redes sociais · 1080px</span></span>
-    </a>
-    <a class="lb-dl-btn" id="lb-dl-full" href="#" onclick="return dlLb('full')">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span class="dl-opt-label"><span>Alta resolução</span><span class="dl-opt-sub">Arquivo original</span></span>
-    </a>
+</div>
+
+<!-- MODAL DOWNLOAD FOTO INDIVIDUAL -->
+<div class="gal-dl-modal-overlay" id="gal-dl-foto-modal" style="z-index:1100;" onclick="if(event.target===this)fecharModalDownloadFoto()">
+  <div class="gal-dl-modal">
+    <div class="gal-dl-modal-title">Baixar foto</div>
+    <div class="gal-dl-modal-sub">Escolha a versão que prefere baixar.</div>
+    <div class="gal-dl-modal-opts">
+      <a class="gal-dl-opt" href="#" onclick="dlFotoModal('full');return false;">
+        <div class="gal-dl-opt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <div class="gal-dl-opt-info"><div class="gal-dl-opt-name">Alta resolução</div><div class="gal-dl-opt-desc">Arquivo original, ideal para impressão e uso profissional</div></div>
+      </a>
+      <a class="gal-dl-opt" href="#" onclick="dlFotoModal('web');return false;">
+        <div class="gal-dl-opt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <div class="gal-dl-opt-info"><div class="gal-dl-opt-name">Versão web</div><div class="gal-dl-opt-desc">Otimizada para redes sociais e compartilhamento digital</div></div>
+      </a>
+    </div>
+    <button class="gal-dl-modal-cancel" onclick="fecharModalDownloadFoto()">Cancelar</button>
   </div>
 </div>
 
@@ -879,31 +900,12 @@ function atualizarLb(){
   document.getElementById('lb-img').src = foto.webUrl || foto.url;
   var counter = document.getElementById('lb-counter');
   if(counter) counter.textContent = (_lbIdx+1) + ' / ' + _fotosVisiveis.length;
+  // Mostra botões: favoritar sempre, download só se liberado e com arquivo disponível
   var actionsEl = document.getElementById('lb-actions');
-  if(_downloads){
-    actionsEl.style.display = '';
-    // Versão web
-    var webEl = document.getElementById('lb-dl-web');
-    if(foto.webKey){
-      webEl.href = '/api/gallery-download?key='+encodeURIComponent(foto.webKey)+'&filename=web_foto-'+(_lbIdx+1)+'.jpg';
-      webEl.style.display = '';
-    } else {
-      webEl.style.display = 'none';
-    }
-    // Alta resolução
-    var fullEl = document.getElementById('lb-dl-full');
-    if(foto.key){
-      fullEl.href = '/api/gallery-download?key='+encodeURIComponent(foto.key)+'&filename=foto-'+(_lbIdx+1)+'.jpg';
-      fullEl.style.display = '';
-    } else if(foto.url){
-      fullEl.href = foto.url;
-      fullEl.style.display = '';
-    } else {
-      fullEl.style.display = 'none';
-    }
-  } else {
-    actionsEl.style.display = 'none';
-  }
+  if(actionsEl) actionsEl.style.display = '';
+  var dlBtn = document.getElementById('lb-dl-btn-single');
+  if(dlBtn) dlBtn.style.display = (_downloads && (foto.key||foto.webKey||foto.url)) ? '' : 'none';
+  _syncFavLbBtn();
 }
 function dlLb(tipo){
   var foto = _fotosVisiveis[_lbIdx];
@@ -942,6 +944,38 @@ document.addEventListener('keydown', function(e){
   }, {passive:true});
 })();
 
+// ── Download foto individual ──────────────────────────────────────────────────
+function abrirModalDownloadFoto(){
+  var m=document.getElementById('gal-dl-foto-modal');
+  if(m) m.classList.add('open');
+}
+function fecharModalDownloadFoto(){
+  var m=document.getElementById('gal-dl-foto-modal');
+  if(m) m.classList.remove('open');
+}
+function dlFotoModal(tipo){
+  fecharModalDownloadFoto();
+  var foto=_fotosVisiveis[_lbIdx];
+  if(!foto) return;
+  var key = tipo==='web' ? (foto.webKey||foto.webUrl) : (foto.key||foto.url);
+  var nome= tipo==='web' ? 'web_foto-'+(_lbIdx+1)+'.jpg' : 'foto-'+(_lbIdx+1)+'.jpg';
+  if(!key) return;
+  if(key.startsWith('http')){ var a=document.createElement('a');a.href=key;a.download=nome;document.body.appendChild(a);a.click();document.body.removeChild(a); }
+  else { window.location.href='/api/gallery-download?key='+encodeURIComponent(key)+'&filename='+encodeURIComponent(nome); }
+}
+// ── Favoritar no lightbox ─────────────────────────────────────────────────────
+function toggleFavoritoLb(){
+  var foto=_fotosVisiveis[_lbIdx];
+  if(!foto) return;
+  toggleFavorito(_fotoId(foto));
+  _syncFavLbBtn();
+}
+function _syncFavLbBtn(){
+  var foto=_fotosVisiveis[_lbIdx];
+  var btn=document.getElementById('lb-fav-btn');
+  if(!btn||!foto) return;
+  btn.classList.toggle('fav-ativo', _favIds.indexOf(_fotoId(foto))>-1);
+}
 function abrirModalDownload(){
   var m = document.getElementById('gal-dl-modal');
   if(m) m.classList.add('open');
