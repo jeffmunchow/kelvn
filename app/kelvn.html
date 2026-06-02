@@ -3957,9 +3957,11 @@ async function gerarMensagem(dadosSaude){
   var userPrompt='Dados da saúde financeira deste mês:\n'+JSON.stringify(ctx,null,2);
 
   try{
+    var sessionR=await _sb.auth.getSession();
+    var aiToken=sessionR.data&&sessionR.data.session?sessionR.data.session.access_token:'';
     var response=await fetch('/api/ai-proxy',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+aiToken},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:200,
@@ -8360,9 +8362,11 @@ async function sendAIMessage(){
 
     var messages = _aiHistory.slice(-8); // últimas 8 mensagens para contexto
 
+    var sessionR2=await _sb.auth.getSession();
+    var aiToken2=sessionR2.data&&sessionR2.data.session?sessionR2.data.session.access_token:'';
     var response = await fetch('/api/ai-proxy', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json','Authorization':'Bearer '+aiToken2},
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
