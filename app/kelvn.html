@@ -2,6 +2,7 @@
 <html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Kelvn">
@@ -6686,10 +6687,11 @@ async function galExcluirFoto(url,key,idx){
   await deletarFotoGal();
 }
 function verFotoGal(url,key,idx,soLeitura){
+  if(!url){ return; } // sem URL não abre overlay vazio
   _fotoAtualKey=key||null;
   _fotoAtualIdx=(idx!==undefined)?idx:-1;
   var img=document.getElementById('ov-foto-img');
-  if(img) img.src=url;
+  if(img){ img.onerror=function(){ cov('ov-foto'); notify('Não foi possível carregar a foto.'); }; img.src=url; }
   document.getElementById('ov-foto').classList.add('open');
   var d=soLeitura?'none':'flex';
   var capaBtn=document.getElementById('ov-foto-capa'); if(capaBtn) capaBtn.style.display=d;
