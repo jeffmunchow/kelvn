@@ -160,7 +160,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .pok{color:var(--teal);font-size:.7rem;}.pwn{color:var(--amber);font-size:.7rem;}.plt{color:var(--coral);font-size:.7rem;}
 /* FIN KPIS */
 .fk{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;margin-bottom:1.5rem;}
-.fki{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius-sm);padding:.85rem 1rem;}
+.fki{background:var(--surface);border-radius:var(--radius-sm);padding:.85rem 1rem;}
 .fkl{font-size:.61rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
 .fkv{font-size:1.1rem;font-weight:500;letter-spacing:-.02em;}
 .ta{display:flex;gap:8px;margin-bottom:1.25rem;}
@@ -286,7 +286,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .notif{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:var(--bg);font-size:.78rem;padding:10px 18px;border-radius:var(--radius);z-index:9999;opacity:0;transition:opacity .3s,transform .3s;transform:translateY(8px);pointer-events:none;}
 .notif.show{opacity:1;transform:translateY(0);}
 /* INADIMPLENCIA */
-.inad-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;}
+.inad-card{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;}
 .inad-nome{font-size:.88rem;color:var(--text);}
 .inad-meta{font-size:.7rem;color:var(--text-hint);margin-top:3px;}
 .inad-valor{font-size:1.1rem;font-weight:500;color:var(--coral);}
@@ -742,9 +742,9 @@ select.aj-input{cursor:pointer;}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
       <!-- Esquerda: lista (cresce livremente) -->
-      <div id="fluxo-lista" style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;"></div>
+      <div id="fluxo-lista" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;"></div>
       <!-- Direita: gráfico (altura fixa) -->
-      <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;height:460px;position:sticky;top:0;">
+      <div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;height:460px;position:sticky;top:0;">
         <div style="display:flex;justify-content:flex-end;gap:1rem;font-size:.65rem;color:var(--text-hint);margin-bottom:1rem;flex-wrap:wrap;flex-shrink:0;">
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--teal);margin-right:5px;vertical-align:middle;"></span>Entrada</span>
           <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--coral);margin-right:5px;vertical-align:middle;"></span>Saída</span>
@@ -765,7 +765,7 @@ select.aj-input{cursor:pointer;}
         <button class="btn" style="color:var(--text);" onclick="openFP('entrada')">↑ Entrada</button>
       </div>
     </div>
-    <div class="tw"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fp-tbody"></tbody></table></div></div>
+    <div class="tw" style="border:none;"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fp-tbody"></tbody></table></div></div>
   </div>
   <!-- DRE -->
   <div id="fp-panel-dre" style="display:none;">
@@ -777,17 +777,17 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div class="two">
-      <div class="tw" style="padding:1.25rem;" id="dre-content"></div>
+      <div class="tw" style="border:none;padding:1.25rem;" id="dre-content"></div>
       <div style="display:flex;flex-direction:column;gap:1rem;">
-        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
+        <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem;">
           <div class="col-title" style="margin-bottom:.75rem;">Despesas por categoria</div>
           <div id="dre-chart"></div>
         </div>
-        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
+        <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem;">
           <div class="col-title" style="margin-bottom:.75rem;">Receita mês a mês</div>
           <div id="dre-mensal"></div>
         </div>
-        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;">
+        <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem;">
           <div class="col-title" style="margin-bottom:.75rem;">Serviços contratados</div>
           <div id="dre-serv-count"></div>
         </div>
@@ -807,7 +807,7 @@ select.aj-input{cursor:pointer;}
       <!-- Coluna esquerda: dois blocos de input -->
       <div style="display:flex;flex-direction:column;gap:1rem;">
         <!-- Bloco 1: O que você gasta -->
-        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+        <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;">
           <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;">O que você gasta por mês</div>
           <div class="field"><label>Aluguel / coworking (R$)</label><input type="number" id="prec-aluguel" placeholder="0" oninput="calcPrec()"></div>
           <div class="field"><label>Softwares e assinaturas (R$)</label><input type="number" id="prec-soft" placeholder="0" oninput="calcPrec()"></div>
@@ -817,7 +817,7 @@ select.aj-input{cursor:pointer;}
           <div class="field"><label>Pró-labore desejado (R$)</label><input type="number" id="prec-prolabore" placeholder="quanto você quer se pagar" oninput="calcPrec()"></div>
         </div>
         <!-- Bloco 2: Como você trabalha -->
-        <div style="background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;">
+        <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;">
           <div style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem;">Como você trabalha</div>
           <div class="field"><label>Casamentos por mês (média)</label><input type="number" id="prec-wed-mes" placeholder="ex: 4" min="1" oninput="calcPrec()"></div>
           <div class="field"><label>Horas trabalhadas por casamento</label><input type="number" id="prec-horas" placeholder="ex: 15" oninput="calcPrec()"></div>
