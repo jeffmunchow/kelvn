@@ -315,14 +315,29 @@ html,body{
   <button class="lb-nav lb-prev" onclick="lbNav(-1)">‹</button>
   <button class="lb-nav lb-next" onclick="lbNav(1)">›</button>
   <div class="lb-actions" id="lb-actions" style="display:none;">
-    <a class="lb-dl-btn" id="lb-dl-web" href="#" onclick="return dlLb('web')">
+    <button class="lb-dl-btn" onclick="abrirModalDownloadFoto()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span class="dl-opt-label"><span>Versão web</span><span class="dl-opt-sub">Para redes sociais · 1080px</span></span>
-    </a>
-    <a class="lb-dl-btn" id="lb-dl-full" href="#" onclick="return dlLb('full')">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span class="dl-opt-label"><span>Alta resolução</span><span class="dl-opt-sub">Arquivo original</span></span>
-    </a>
+      Baixar foto
+    </button>
+  </div>
+</div>
+
+<!-- MODAL DOWNLOAD FOTO INDIVIDUAL -->
+<div class="gal-dl-modal-overlay" id="gal-dl-foto-modal" onclick="if(event.target===this)fecharModalDownloadFoto()">
+  <div class="gal-dl-modal">
+    <div class="gal-dl-modal-title">Baixar foto</div>
+    <div class="gal-dl-modal-sub">Escolha a versão que prefere baixar.</div>
+    <div class="gal-dl-modal-opts">
+      <a class="gal-dl-opt" href="#" onclick="dlFotoModal('full');return false;">
+        <div class="gal-dl-opt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <div class="gal-dl-opt-info"><div class="gal-dl-opt-name">Alta resolução</div><div class="gal-dl-opt-desc">Arquivo original, ideal para impressão e uso profissional</div></div>
+      </a>
+      <a class="gal-dl-opt" href="#" onclick="dlFotoModal('web');return false;">
+        <div class="gal-dl-opt-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <div class="gal-dl-opt-info"><div class="gal-dl-opt-name">Versão web</div><div class="gal-dl-opt-desc">Otimizada para redes sociais e compartilhamento digital</div></div>
+      </a>
+    </div>
+    <button class="gal-dl-modal-cancel" onclick="fecharModalDownloadFoto()">Cancelar</button>
   </div>
 </div>
 
@@ -879,31 +894,9 @@ function atualizarLb(){
   document.getElementById('lb-img').src = foto.webUrl || foto.url;
   var counter = document.getElementById('lb-counter');
   if(counter) counter.textContent = (_lbIdx+1) + ' / ' + _fotosVisiveis.length;
+  // Mostra botão de download apenas se downloads estão liberados e há arquivo disponível
   var actionsEl = document.getElementById('lb-actions');
-  if(_downloads){
-    actionsEl.style.display = '';
-    // Versão web
-    var webEl = document.getElementById('lb-dl-web');
-    if(foto.webKey){
-      webEl.href = '/api/gallery-download?key='+encodeURIComponent(foto.webKey)+'&filename=web_foto-'+(_lbIdx+1)+'.jpg';
-      webEl.style.display = '';
-    } else {
-      webEl.style.display = 'none';
-    }
-    // Alta resolução
-    var fullEl = document.getElementById('lb-dl-full');
-    if(foto.key){
-      fullEl.href = '/api/gallery-download?key='+encodeURIComponent(foto.key)+'&filename=foto-'+(_lbIdx+1)+'.jpg';
-      fullEl.style.display = '';
-    } else if(foto.url){
-      fullEl.href = foto.url;
-      fullEl.style.display = '';
-    } else {
-      fullEl.style.display = 'none';
-    }
-  } else {
-    actionsEl.style.display = 'none';
-  }
+  if(actionsEl) actionsEl.style.display = (_downloads && (foto.key || foto.webKey || foto.url)) ? '' : 'none';
 }
 function dlLb(tipo){
   var foto = _fotosVisiveis[_lbIdx];
@@ -942,6 +935,29 @@ document.addEventListener('keydown', function(e){
   }, {passive:true});
 })();
 
+function abrirModalDownloadFoto(){
+  var m = document.getElementById('gal-dl-foto-modal');
+  if(m) m.classList.add('open');
+}
+function fecharModalDownloadFoto(){
+  var m = document.getElementById('gal-dl-foto-modal');
+  if(m) m.classList.remove('open');
+}
+function dlFotoModal(tipo){
+  fecharModalDownloadFoto();
+  var foto = _fotosVisiveis[_lbIdx];
+  if(!foto) return;
+  var key  = tipo === 'web' ? (foto.webKey || foto.webUrl) : (foto.key || foto.url);
+  var nome = tipo === 'web' ? 'web_foto-'+(_lbIdx+1)+'.jpg' : 'foto-'+(_lbIdx+1)+'.jpg';
+  if(key && key.startsWith('http')){
+    // URL direta (webUrl/url)
+    var a = document.createElement('a');
+    a.href = key; a.download = nome;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  } else if(key){
+    window.location.href = '/api/gallery-download?key='+encodeURIComponent(key)+'&filename='+encodeURIComponent(nome);
+  }
+}
 function abrirModalDownload(){
   var m = document.getElementById('gal-dl-modal');
   if(m) m.classList.add('open');
