@@ -429,15 +429,15 @@ function resolverDesign(design){
 }
 
 // Recuperação automática de imagens R2 quebradas (bucket privado).
-// Anula o onerror inline para que ele não reverta o src para a URL morta.
+// Não usa dataset.r2tried — verifica se src já é proxy para evitar loop.
 (function(){
   document.addEventListener('error',function(e){
     var t=e.target;
-    if(t.tagName!=='IMG'||t.dataset.r2tried) return;
+    if(t.tagName!=='IMG') return;
     var src=t.getAttribute('src')||'';
+    if(src.indexOf('/api/gallery-img')!==-1) return; // já é proxy, evita loop
     var m=src.match(/r2\.dev\/([^?]+)/)||src.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+?)(?:\?|$)/);
     if(!m) return;
-    t.dataset.r2tried='1';
     t.onerror=null;
     t.src='/api/gallery-img?key='+encodeURIComponent(m[1]);
   },true);

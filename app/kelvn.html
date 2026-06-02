@@ -1929,15 +1929,17 @@ function r2proxy(url){
   return k?'/api/gallery-img?key='+encodeURIComponent(k):url;
 }
 // Recuperação automática: se uma <img> do R2 falhar, troca para o proxy.
-// Anula o onerror inline do elemento para evitar que ele reverta o src (causava
-// o "pisca e some" nas capas, que tinham seu próprio onerror apontando p/ URL morta).
+// NÃO usa dataset.r2tried para não bloquear o lightbox quando o mesmo
+// elemento <img> é reutilizado com outra foto. Em vez disso, verifica se
+// a src já é URL do proxy para evitar loop infinito.
 (function(){
   document.addEventListener('error',function(e){
     var t=e.target;
-    if(t.tagName!=='IMG'||t.dataset.r2tried) return;
-    var k=r2key(t.getAttribute('src')||'');
+    if(t.tagName!=='IMG') return;
+    var src=t.getAttribute('src')||'';
+    if(src.indexOf('/api/gallery-img')!==-1) return; // já é proxy, evita loop
+    var k=r2key(src);
     if(!k) return;
-    t.dataset.r2tried='1';
     t.onerror=null;
     t.src='/api/gallery-img?key='+encodeURIComponent(k);
   },true);
