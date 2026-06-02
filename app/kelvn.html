@@ -181,7 +181,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ag-split{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;}
 .ag-col-list{display:flex;flex-direction:column;}
 .ag-col-list .tw{overflow-y:auto;flex:1;min-height:0;}
-.ag-col-cal{background:var(--surface);border:.5px solid var(--border);border-radius:var(--radius);padding:1.25rem 1rem;}
+.ag-col-cal{background:var(--surface);border-radius:var(--radius);padding:1.25rem 1rem;}
 .ag-cal-header{display:flex;align-items:center;justify-content:center;gap:.75rem;margin-bottom:1.25rem;}
 .ag-cal-year{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
 .ag-cal-nav{background:none;border:.5px solid var(--border-strong);border-radius:6px;color:var(--text-muted);width:26px;height:26px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;}
@@ -593,7 +593,7 @@ select.aj-input{cursor:pointer;}
           <button class="btn" style="color:var(--text);" onclick="openE()">+ Evento</button>
         </div>
       </div>
-      <div class="tw" id="ag-list"></div>
+      <div class="tw" id="ag-list" style="border:none;"></div>
     </div>
     <div class="ag-col-cal">
       <div class="ag-cal-header">
