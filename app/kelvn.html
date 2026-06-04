@@ -1135,8 +1135,16 @@ select.aj-input{cursor:pointer;}
 
         <!-- Direita: preview -->
         <div style="position:sticky;top:1rem;">
-          <div style="font-size:.65rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;text-align:center;">Preview ao vivo</div>
-          <div style="border:.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--surface2);">
+          <!-- Toggle desktop/mobile -->
+          <div style="display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-bottom:.6rem;">
+            <button id="dz-btn-desktop" onclick="setPreviewMode('desktop')" title="Desktop" style="background:var(--text);border:none;border-radius:6px;padding:5px 7px;cursor:pointer;color:var(--bg);display:flex;align-items:center;transition:all .15s;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </button>
+            <button id="dz-btn-mobile" onclick="setPreviewMode('mobile')" title="Mobile" style="background:transparent;border:none;border-radius:6px;padding:5px 7px;cursor:pointer;color:var(--text-hint);display:flex;align-items:center;transition:all .15s;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </button>
+          </div>
+          <div id="dz-preview-shell" style="border-radius:var(--radius);overflow:hidden;background:var(--surface2);transition:max-width .25s ease;">
             <div id="dz-preview"></div>
           </div>
         </div>
@@ -8952,6 +8960,23 @@ function fdMini(iso){
   return d + ' ' + (meses[m-1]||m) + ' ' + a;
 }
 
+var _previewMode = 'desktop'; // 'desktop' | 'mobile'
+function setPreviewMode(mode){
+  _previewMode = mode;
+  var shell = document.getElementById('dz-preview-shell');
+  var btnD  = document.getElementById('dz-btn-desktop');
+  var btnM  = document.getElementById('dz-btn-mobile');
+  if(mode === 'mobile'){
+    if(shell){ shell.style.maxWidth='375px'; shell.style.margin='0 auto'; }
+    if(btnD){ btnD.style.background='transparent'; btnD.style.color='var(--text-hint)'; }
+    if(btnM){ btnM.style.background='var(--text)';  btnM.style.color='var(--bg)'; }
+  } else {
+    if(shell){ shell.style.maxWidth=''; shell.style.margin=''; }
+    if(btnD){ btnD.style.background='var(--text)'; btnD.style.color='var(--bg)'; }
+    if(btnM){ btnM.style.background='transparent'; btnM.style.color='var(--text-hint)'; }
+  }
+  atualizarPreview();
+}
 function atualizarPreview(){
   var el = document.getElementById('dz-preview');
   if(!el) return;
@@ -8963,14 +8988,15 @@ function atualizarPreview(){
 
   var d = resolverDesign(_designAtual);
   if(!d || !d.paleta){ el.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-hint);font-size:.8rem;">Configurando...</div>'; return; }
-  var nColsPreview = _designAtual && _designAtual.zoom_grid ? _designAtual.zoom_grid : 4;
+  var nColsPreview = _previewMode === 'mobile' ? 2 : (_designAtual && _designAtual.zoom_grid ? _designAtual.zoom_grid : 4);
   var fotos = (gal.fotos || []).slice(0, Math.max(18, nColsPreview * 4));
   var coverUrl = gal.cover_url || (fotos[0] && (fotos[0].webUrl || fotos[0].url)) || '';
 
   // Tamanhos em px proporcionais ao container vs. galeria real
-  // REF_VIEWPORT: viewport real médio do cliente (tela wide ~2100px equivalente após comparação visual)
+  // Mobile usa viewport de referência menor (390px), desktop usa ~1700px
   var pW = el.offsetWidth || 600;
-  var sc = pW / 1700;
+  var refVp = (_previewMode === 'mobile') ? 390 : 1700;
+  var sc = pW / refVp;
   var fsTitleFull = Math.round(3    * 16 * sc) + 'px';
   var fsTitleDiv  = Math.round(2.6  * 16 * sc) + 'px';
   var fsTitleRet  = Math.round(2.4  * 16 * sc) + 'px';
