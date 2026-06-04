@@ -1137,10 +1137,10 @@ select.aj-input{cursor:pointer;}
         <div style="position:sticky;top:1rem;">
           <!-- Toggle desktop/mobile -->
           <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:.6rem;">
-            <button id="dz-btn-desktop" onclick="setPreviewMode('desktop')" title="Desktop" style="background:var(--text);border:none;border-radius:6px;padding:5px 7px;cursor:pointer;color:var(--bg);display:flex;align-items:center;transition:all .15s;">
+            <button id="dz-btn-desktop" onclick="setPreviewMode('desktop')" title="Desktop" style="background:transparent;border:none;padding:5px 7px;cursor:pointer;color:var(--text);display:flex;align-items:center;transition:color .15s;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             </button>
-            <button id="dz-btn-mobile" onclick="setPreviewMode('mobile')" title="Mobile" style="background:transparent;border:none;border-radius:6px;padding:5px 7px;cursor:pointer;color:var(--text-hint);display:flex;align-items:center;transition:all .15s;">
+            <button id="dz-btn-mobile" onclick="setPreviewMode('mobile')" title="Mobile" style="background:transparent;border:none;padding:5px 7px;cursor:pointer;color:var(--text-hint);display:flex;align-items:center;transition:color .15s;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
             </button>
           </div>
@@ -8968,12 +8968,12 @@ function setPreviewMode(mode){
   var btnM  = document.getElementById('dz-btn-mobile');
   if(mode === 'mobile'){
     if(shell){ shell.style.maxWidth='375px'; shell.style.margin='0 auto'; }
-    if(btnD){ btnD.style.background='transparent'; btnD.style.color='var(--text-hint)'; }
-    if(btnM){ btnM.style.background='var(--text)';  btnM.style.color='var(--bg)'; }
+    if(btnD) btnD.style.color='var(--text-hint)';
+    if(btnM) btnM.style.color='var(--text)';
   } else {
     if(shell){ shell.style.maxWidth=''; shell.style.margin=''; }
-    if(btnD){ btnD.style.background='var(--text)'; btnD.style.color='var(--bg)'; }
-    if(btnM){ btnM.style.background='transparent'; btnM.style.color='var(--text-hint)'; }
+    if(btnD) btnD.style.color='var(--text)';
+    if(btnM) btnM.style.color='var(--text-hint)';
   }
   atualizarPreview();
 }
