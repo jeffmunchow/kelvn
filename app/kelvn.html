@@ -8995,7 +8995,9 @@ function atualizarPreview(){
   // Tamanhos em px proporcionais ao container vs. galeria real
   // Mobile usa viewport de referência menor (390px), desktop usa ~1700px
   var pW = el.offsetWidth || 600;
-  var refVp = (_previewMode === 'mobile') ? 390 : 1700;
+  // Mobile usa viewport maior como referência para manter fontes menores e proporcionais
+  // (galeria.html reduz título de 3rem→2rem em mobile via @media max-width:600px)
+  var refVp = (_previewMode === 'mobile') ? 700 : 1700;
   var sc = pW / refVp;
   var fsTitleFull = Math.round(3    * 16 * sc) + 'px';
   var fsTitleDiv  = Math.round(2.6  * 16 * sc) + 'px';
