@@ -1303,7 +1303,7 @@ select.aj-input{cursor:pointer;}
   </div>
 
   <!-- Preview com dados fictícios — sempre visível -->
-  <div id="meta-conectado" style="opacity:.45;pointer-events:none;user-select:none;">
+  <div id="meta-conectado" style="display:block;" data-preview="true">
     <div id="meta-desatualizado-aviso" style="display:none;"></div>
 
     <!-- Filtros visíveis -->
@@ -9941,12 +9941,15 @@ function _metaAtualizarWidget(json){
 // ── Painel completo ─────────────────────────────────────────────────
 
 function _metaMostrar(estado){
+  // em modo preview (sem conta real) não esconde o conteúdo
+  var conectado = document.getElementById('meta-conectado');
+  if(conectado && conectado.dataset.preview === 'true') return;
   ['loading','desconectado','escolher-conta','conectado'].forEach(function(s){
     var el = document.getElementById('meta-' + s);
     if(el) el.style.display = 'none';
   });
   var alvo = document.getElementById('meta-' + estado);
-  if(alvo) alvo.style.display = estado === 'conectado' ? 'block' : (estado === 'loading' ? 'block' : 'block');
+  if(alvo) alvo.style.display = 'block';
 }
 
 function _metaAtualizarPainel(json){
