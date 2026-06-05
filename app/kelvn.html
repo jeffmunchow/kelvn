@@ -556,15 +556,29 @@ select.aj-input{cursor:pointer;}
       <span>Meta Ads</span>
       <button id="meta-widget-ver-tudo" onclick="goDirecto('meta-ads')" style="display:none;background:none;border:none;cursor:pointer;font-size:.68rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;padding:0;" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-hint)'">Ver tudo →</button>
     </div>
-    <div id="meta-widget-body" style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1.1rem 1.25rem;">
-      <!-- Estado inicial: carregando -->
+    <!-- Preview desfocado (sem conta conectada) -->
+    <div id="meta-widget-preview" style="position:relative;border-radius:var(--radius);overflow:hidden;">
+      <!-- Dados fictícios desfocados -->
+      <div style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1.1rem 1.25rem;opacity:.38;filter:blur(1.5px);pointer-events:none;user-select:none;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;">
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Gasto</div><div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">R$ 1.840</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">últimos 7 dias</div></div>
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Alcance</div><div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">24.310</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">pessoas</div></div>
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">CPL</div><div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">R$ 42</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">custo por lead</div></div>
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Campanhas</div><div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">3</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">ativas</div></div>
+        </div>
+      </div>
+      <!-- Label flutuante centralizado -->
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+        <span style="font-size:.68rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">Conecte sua conta Meta para ver seus dados aqui</span>
+      </div>
+    </div>
+    <!-- Estados reais (carregando / conectado) — ocultos até haver conta -->
+    <div id="meta-widget-body" style="display:none;background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1.1rem 1.25rem;">
       <div id="meta-widget-loading" style="font-size:.75rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">Carregando…</div>
-      <!-- Estado: não conectado -->
       <div id="meta-widget-desconectado" style="display:none;">
         <div style="font-size:.78rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;margin-bottom:.75rem;">Conecte sua conta Meta para ver o desempenho dos seus anúncios aqui.</div>
         <button class="btn" style="color:var(--text);" onclick="metaIniciarOAuth()">Conectar conta Meta</button>
       </div>
-      <!-- Estado: conectado -->
       <div id="meta-widget-dados" style="display:none;">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;">
           <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Gasto</div><div id="mw-gasto" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">últimos 7 dias</div></div>
@@ -9807,18 +9821,25 @@ async function _metaVerificarConexao(somenteWidget){
 // ── Widget do dashboard ─────────────────────────────────────────────
 
 function _metaAtualizarWidget(json){
+  var preview    = document.getElementById('meta-widget-preview');
+  var body       = document.getElementById('meta-widget-body');
   var loading    = document.getElementById('meta-widget-loading');
   var desconect  = document.getElementById('meta-widget-desconectado');
   var dados      = document.getElementById('meta-widget-dados');
   var verTudo    = document.getElementById('meta-widget-ver-tudo');
   var desataviso = document.getElementById('mw-desatualizado');
 
-  if(loading)   loading.style.display   = 'none';
   if(!json.conectado){
-    if(desconect) desconect.style.display = 'block';
-    if(dados)     dados.style.display     = 'none';
+    // mantém preview visível, body oculto
+    if(preview) preview.style.display = 'block';
+    if(body)    body.style.display    = 'none';
     return;
   }
+
+  // conta conectada: troca preview pelo body real
+  if(preview) preview.style.display = 'none';
+  if(body)    body.style.display    = 'block';
+  if(loading) loading.style.display = 'none';
 
   if(desconect)  desconect.style.display  = 'none';
   if(dados)      dados.style.display      = 'block';
