@@ -550,104 +550,59 @@ select.aj-input{cursor:pointer;}
   </div>
 
   <!-- Widget Meta Ads -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.25rem;margin-bottom:5rem;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.25rem;margin-bottom:3.5rem;">
   <div id="meta-widget">
     <div class="col-title" style="display:flex;align-items:center;justify-content:space-between;">
       <span>Meta Ads</span>
       <button id="meta-widget-ver-tudo" onclick="goDirecto('meta-ads')" style="display:none;background:none;border:none;cursor:pointer;font-size:.68rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;padding:0;" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-hint)'">Ver tudo →</button>
     </div>
-
-    <!-- Preview com dados fictícios (sem conta conectada) -->
-    <div id="meta-widget-preview" style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1.1rem 1.25rem;pointer-events:none;user-select:none;">
-
-      <!-- KPIs -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem;">
-        <div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem;">Gasto</div>
-          <div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">R$ 1.840</div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">últimos 7 dias</div>
+    <!-- preview fictício (sem conta conectada) -->
+    <div id="meta-widget-body" style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1.1rem 1.25rem;">
+      <div id="meta-widget-loading" style="display:none;"></div>
+      <div id="meta-widget-desconectado" style="display:none;"></div>
+      <div id="meta-widget-dados" style="display:block;">
+        <!-- KPIs -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem;">
+          <div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Gasto</div><div id="mw-gasto" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">R$ 1.840</div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">últimos 7 dias</div></div>
+          <div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Alcance</div><div id="mw-alcance" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">24.310</div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">pessoas</div></div>
+          <div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">CPL</div><div id="mw-cpl" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">R$ 42</div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">custo por lead</div></div>
+          <div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Campanhas</div><div id="mw-campanhas" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">3</div><div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">ativas</div></div>
         </div>
-        <div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem;">Alcance</div>
-          <div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">24.310</div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">pessoas</div>
+        <!-- Gráfico de barras SVG -->
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Gasto diário</div>
+          <svg viewBox="0 0 280 56" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:52px;display:block;">
+            <rect x="4"   y="30" width="32" height="26" rx="3" fill="var(--amber)" opacity=".6"/>
+            <rect x="44"  y="18" width="32" height="38" rx="3" fill="var(--amber)" opacity=".6"/>
+            <rect x="84"  y="22" width="32" height="34" rx="3" fill="var(--amber)" opacity=".6"/>
+            <rect x="124" y="8"  width="32" height="48" rx="3" fill="var(--amber)" opacity=".9"/>
+            <rect x="164" y="14" width="32" height="42" rx="3" fill="var(--amber)" opacity=".6"/>
+            <rect x="204" y="26" width="32" height="30" rx="3" fill="var(--amber)" opacity=".6"/>
+            <rect x="244" y="20" width="32" height="36" rx="3" fill="var(--amber)" opacity=".6"/>
+            <text x="20"  y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">dom</text>
+            <text x="60"  y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">seg</text>
+            <text x="100" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">ter</text>
+            <text x="140" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">qua</text>
+            <text x="180" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">qui</text>
+            <text x="220" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">sex</text>
+            <text x="260" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">sáb</text>
+          </svg>
         </div>
-        <div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem;">CPL</div>
-          <div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">R$ 42</div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">custo por lead</div>
-        </div>
-        <div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem;">Campanhas</div>
-          <div style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">3</div>
-          <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">ativas</div>
-        </div>
-      </div>
-
-      <!-- Mini gráfico de barras — gasto diário (SVG inline) -->
-      <div style="margin-bottom:1rem;">
-        <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Gasto diário</div>
-        <svg viewBox="0 0 280 56" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:56px;display:block;">
-          <!-- barras: dom seg ter qua qui sex sab -->
-          <rect x="4"   y="30" width="32" height="26" rx="3" fill="var(--amber)" opacity=".55"/>
-          <rect x="44"  y="18" width="32" height="38" rx="3" fill="var(--amber)" opacity=".55"/>
-          <rect x="84"  y="22" width="32" height="34" rx="3" fill="var(--amber)" opacity=".55"/>
-          <rect x="124" y="8"  width="32" height="48" rx="3" fill="var(--amber)" opacity=".85"/>
-          <rect x="164" y="14" width="32" height="42" rx="3" fill="var(--amber)" opacity=".55"/>
-          <rect x="204" y="26" width="32" height="30" rx="3" fill="var(--amber)" opacity=".55"/>
-          <rect x="244" y="20" width="32" height="36" rx="3" fill="var(--amber)" opacity=".55"/>
-          <!-- labels -->
-          <text x="20"  y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">dom</text>
-          <text x="60"  y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">seg</text>
-          <text x="100" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">ter</text>
-          <text x="140" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">qua</text>
-          <text x="180" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">qui</text>
-          <text x="220" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">sex</text>
-          <text x="260" y="54" text-anchor="middle" font-size="7" fill="var(--text-hint)" font-family="DM Sans,sans-serif">sáb</text>
-        </svg>
-      </div>
-
-      <!-- Campanhas -->
-      <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Campanhas</div>
-      <div style="display:flex;flex-direction:column;gap:.35rem;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .6rem;background:var(--surface2);border-radius:6px;">
-          <div>
-            <div style="font-size:.72rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Casamentos RS — Maio</div>
-            <div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">alcance 11.240 · CPL R$ 38</div>
+        <!-- Campanhas -->
+        <div style="font-size:.58rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem;">Campanhas</div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .55rem;background:var(--surface2);border-radius:6px;">
+            <div><div style="font-size:.72rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Casamentos RS — Maio</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">alcance 11.240 · CPL R$ 38</div></div>
+            <span class="bw" style="font-size:.58rem;">ativo</span>
           </div>
-          <span style="font-size:.58rem;padding:2px 8px;border-radius:20px;background:var(--teal-light);color:var(--teal);font-family:'DM Sans',sans-serif;">ativo</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .6rem;background:var(--surface2);border-radius:6px;">
-          <div>
-            <div style="font-size:.72rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Pré-wedding — Remarket.</div>
-            <div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">alcance 8.450 · CPL R$ 47</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .55rem;background:var(--surface2);border-radius:6px;">
+            <div><div style="font-size:.72rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Pré-wedding — Remarketing</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">alcance 8.450 · CPL R$ 47</div></div>
+            <span class="bw" style="font-size:.58rem;">ativo</span>
           </div>
-          <span style="font-size:.58rem;padding:2px 8px;border-radius:20px;background:var(--teal-light);color:var(--teal);font-family:'DM Sans',sans-serif;">ativo</span>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:.45rem .6rem;background:var(--surface2);border-radius:6px;">
-          <div>
-            <div style="font-size:.72rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Portfólio — Awareness</div>
-            <div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">alcance 4.620 · CPL R$ 61</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem .55rem;background:var(--surface2);border-radius:6px;">
+            <div><div style="font-size:.72rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Portfólio — Awareness</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">alcance 4.620 · CPL R$ 61</div></div>
+            <span class="bw" style="font-size:.58rem;">ativo</span>
           </div>
-          <span style="font-size:.58rem;padding:2px 8px;border-radius:20px;background:var(--teal-light);color:var(--teal);font-family:'DM Sans',sans-serif;">ativo</span>
-        </div>
-      </div>
-
-    </div><!-- /meta-widget-preview -->
-
-    <!-- Estados reais (carregando / conectado) — ocultos até haver conta -->
-    <div id="meta-widget-body" style="display:none;background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1.1rem 1.25rem;">
-      <div id="meta-widget-loading" style="font-size:.75rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">Carregando…</div>
-      <div id="meta-widget-desconectado" style="display:none;">
-        <div style="font-size:.78rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;margin-bottom:.75rem;">Conecte sua conta Meta para ver o desempenho dos seus anúncios aqui.</div>
-        <button class="btn" style="color:var(--text);" onclick="metaIniciarOAuth()">Conectar conta Meta</button>
-      </div>
-      <div id="meta-widget-dados" style="display:none;">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;">
-          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Gasto</div><div id="mw-gasto" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">últimos 7 dias</div></div>
-          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Alcance</div><div id="mw-alcance" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">pessoas</div></div>
-          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">CPL</div><div id="mw-cpl" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">custo por lead</div></div>
-          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Campanhas</div><div id="mw-campanhas" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">ativas</div></div>
         </div>
         <div id="mw-desatualizado" style="display:none;margin-top:.6rem;font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">⚠ Dados com mais de 2 horas. Sincronizando em breve.</div>
       </div>
@@ -1293,29 +1248,27 @@ select.aj-input{cursor:pointer;}
     </div>
   </div>
 
-  <!-- estados JS (ocultos) -->
+  <!-- Estado: carregando -->
   <div id="meta-loading" style="display:none;"></div>
-  <div id="meta-desconectado" style="display:none;"></div>
-  <div id="meta-escolher-conta" style="display:none;">
+
+  <!-- Estado: não conectado -->
+  <div id="meta-desconectado" style="display:none;padding:3rem 0;text-align:center;">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:1rem;"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 10l3 3 2-4 3 4"/></svg>
+    <div style="font-size:.88rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;margin-bottom:.35rem;font-weight:500;">Seus anúncios, tudo num lugar só.</div>
+    <div style="font-size:.78rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-bottom:1.25rem;">Conecte sua conta Meta para ver gasto, alcance, CPL e performance das campanhas.</div>
+    <button class="btn" style="color:var(--text);" onclick="metaIniciarOAuth()">Conectar conta Meta</button>
+  </div>
+
+  <!-- Estado: escolher conta (múltiplas contas) -->
+  <div id="meta-escolher-conta" style="display:none;padding:2rem 0;">
     <div style="font-size:.88rem;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:500;margin-bottom:.4rem;">Qual conta você quer conectar?</div>
     <div style="font-size:.75rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-bottom:1rem;">Encontramos mais de uma conta de anúncios vinculada ao seu perfil.</div>
     <div id="meta-lista-contas" style="display:flex;flex-direction:column;gap:.5rem;max-width:400px;"></div>
   </div>
 
-  <!-- Preview com dados fictícios — sempre visível -->
-  <div id="meta-conectado" style="display:block;" data-preview="true">
-    <div id="meta-desatualizado-aviso" style="display:none;"></div>
-
-    <!-- Filtros visíveis -->
-    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem;">
-      <select style="padding:5px 10px;height:29px;font-family:'DM Sans',sans-serif;font-size:.75rem;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;">
-        <option>Últimos 7 dias</option><option>Últimos 30 dias</option><option>Período personalizado</option>
-      </select>
-      <select style="padding:5px 10px;height:29px;font-family:'DM Sans',sans-serif;font-size:.75rem;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;">
-        <option>Todos os status</option><option>Ativas</option><option>Pausadas</option><option>Encerradas</option>
-      </select>
-      <button style="background:none;border:.5px solid var(--border-strong);border-radius:8px;padding:4px 10px;font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--text-muted);">↓ CSV</button>
-    </div>
+  <!-- Estado: conectado -->
+  <div id="meta-conectado" style="display:block;">
+    <div id="meta-desatualizado-aviso" style="display:none;margin-bottom:.75rem;font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;background:var(--surface2);padding:.45rem .75rem;border-radius:6px;border:.5px solid var(--border);">⚠ Dados com mais de 2 horas. A sincronização acontece automaticamente a cada hora.</div>
 
     <!-- KPIs -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
@@ -1325,14 +1278,14 @@ select.aj-input{cursor:pointer;}
       <div class="kpi"><div class="kpi-l">Campanhas ativas</div><div class="kpi-v" id="meta-kpi-ativas">3</div><div class="kpi-s">no período</div></div>
     </div>
 
-    <!-- Gráfico SVG fictício -->
-    <div style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1rem 1.25rem;margin-bottom:1.25rem;">
+    <!-- Gráfico de barras SVG -->
+    <div id="meta-grafico-wrap" style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1rem 1.25rem;margin-bottom:1.25rem;">
       <div style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.06em;">Gasto diário</div>
       <svg viewBox="0 0 560 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:80px;display:block;">
         <rect x="6"   y="44" width="54" height="36" rx="4" fill="var(--amber)" opacity=".5"/>
         <rect x="68"  y="26" width="54" height="54" rx="4" fill="var(--amber)" opacity=".5"/>
         <rect x="130" y="32" width="54" height="48" rx="4" fill="var(--amber)" opacity=".5"/>
-        <rect x="192" y="10" width="54" height="70" rx="4" fill="var(--amber)" opacity=".85"/>
+        <rect x="192" y="10" width="54" height="70" rx="4" fill="var(--amber)" opacity=".9"/>
         <rect x="254" y="20" width="54" height="60" rx="4" fill="var(--amber)" opacity=".5"/>
         <rect x="316" y="38" width="54" height="42" rx="4" fill="var(--amber)" opacity=".5"/>
         <rect x="378" y="28" width="54" height="52" rx="4" fill="var(--amber)" opacity=".5"/>
@@ -1348,53 +1301,46 @@ select.aj-input{cursor:pointer;}
 
     <!-- Tabela de campanhas -->
     <div style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;margin-bottom:1.25rem;">
-      <div style="padding:.75rem 1rem;border-bottom:.5px solid var(--border);">
+      <div style="padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
         <div style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;">Campanhas</div>
+        <select id="meta-status-sel" style="padding:3px 8px;font-family:'DM Sans',sans-serif;font-size:.72rem;border:.5px solid var(--border-strong);border-radius:6px;background:transparent;color:var(--text-muted);outline:none;">
+          <option>Todos os status</option><option>Ativas</option><option>Pausadas</option><option>Encerradas</option>
+        </select>
       </div>
       <div class="tw" style="border:none;"><div class="ts"><table>
         <thead><tr>
-          <th style="font-size:.65rem;">Campanha</th>
-          <th style="font-size:.65rem;">Status</th>
-          <th style="font-size:.65rem;">Gasto</th>
-          <th style="font-size:.65rem;">Alcance</th>
-          <th style="font-size:.65rem;">CPL</th>
-          <th style="font-size:.65rem;">CTR</th>
-          <th style="font-size:.65rem;"></th>
+          <th style="font-size:.65rem;">Campanha</th><th style="font-size:.65rem;">Status</th><th style="font-size:.65rem;">Gasto</th><th style="font-size:.65rem;">Alcance</th><th style="font-size:.65rem;">CPL</th><th style="font-size:.65rem;">CTR</th><th></th>
         </tr></thead>
         <tbody id="meta-campanhas-tbody">
-          <tr><td style="font-size:.75rem;">Casamentos RS — Maio</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td style="font-size:.75rem;">R$ 820</td><td style="font-size:.75rem;">11.240</td><td style="font-size:.75rem;">R$ 38</td><td style="font-size:.75rem;">2,4%</td><td><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;">↓</button></td></tr>
-          <tr><td style="font-size:.75rem;">Pré-wedding — Remarket.</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td style="font-size:.75rem;">R$ 640</td><td style="font-size:.75rem;">8.450</td><td style="font-size:.75rem;">R$ 47</td><td style="font-size:.75rem;">1,9%</td><td><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;">↓</button></td></tr>
-          <tr><td style="font-size:.75rem;">Portfólio — Awareness</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td style="font-size:.75rem;">R$ 380</td><td style="font-size:.75rem;">4.620</td><td style="font-size:.75rem;">R$ 61</td><td style="font-size:.75rem;">1,2%</td><td><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;">↓</button></td></tr>
-          <tr><td style="font-size:.75rem;">Destaques — Inverno</td><td><span class="bc" style="font-size:.6rem;">pausado</span></td><td style="font-size:.75rem;">R$ 210</td><td style="font-size:.75rem;">2.870</td><td style="font-size:.75rem;">R$ 70</td><td style="font-size:.75rem;">0,8%</td><td><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;">↓</button></td></tr>
+          <tr><td>Casamentos RS — Maio</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td>R$ 820</td><td>11.240</td><td>R$ 38</td><td>2,4%</td><td style="text-align:right;"><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;" title="Ver detalhes">↓</button></td></tr>
+          <tr><td>Pré-wedding — Remarketing</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td>R$ 640</td><td>8.450</td><td>R$ 47</td><td>1,9%</td><td style="text-align:right;"><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;" title="Ver detalhes">↓</button></td></tr>
+          <tr><td>Portfólio — Awareness</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td>R$ 380</td><td>4.620</td><td>R$ 61</td><td>1,2%</td><td style="text-align:right;"><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;" title="Ver detalhes">↓</button></td></tr>
+          <tr><td>Destaques — Inverno</td><td><span class="bc" style="font-size:.6rem;">pausado</span></td><td>R$ 210</td><td>2.870</td><td>R$ 70</td><td>0,8%</td><td style="text-align:right;"><button style="background:none;border:none;font-size:.7rem;color:var(--text-hint);cursor:pointer;" title="Ver detalhes">↓</button></td></tr>
         </tbody>
       </table></div></div>
     </div>
 
-    <!-- Drill-down fictício (visível colapsado) -->
-    <div style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;margin-bottom:1.25rem;">
+    <!-- Drill-down (exemplo visível) -->
+    <div id="meta-drill-wrap" style="margin-top:0;background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;margin-bottom:1.25rem;">
       <div style="padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.6rem;">
-        <span style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">← Voltar</span>
-        <span style="font-size:.78rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Casamentos RS — Maio · Ad Sets</span>
+        <button onclick="metaFecharDrill()" style="background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:.75rem;font-family:'DM Sans',sans-serif;padding:0;">← Voltar</button>
+        <div id="meta-drill-titulo" style="font-size:.78rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Casamentos RS — Maio · Ad Sets</div>
       </div>
       <div class="tw" style="border:none;"><div class="ts"><table>
         <thead><tr>
-          <th style="font-size:.65rem;">Ad Set</th>
-          <th style="font-size:.65rem;">Status</th>
-          <th style="font-size:.65rem;">Gasto</th>
-          <th style="font-size:.65rem;">Alcance</th>
-          <th style="font-size:.65rem;">CTR</th>
+          <th style="font-size:.65rem;">Ad Set</th><th style="font-size:.65rem;">Status</th><th style="font-size:.65rem;">Gasto</th><th style="font-size:.65rem;">Alcance</th><th style="font-size:.65rem;">CTR</th>
         </tr></thead>
         <tbody id="meta-adsets-tbody">
-          <tr><td style="font-size:.75rem;">Mulheres 28-40 · POA</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td style="font-size:.75rem;">R$ 490</td><td style="font-size:.75rem;">6.800</td><td style="font-size:.75rem;">2,8%</td></tr>
-          <tr><td style="font-size:.75rem;">Interesse casamento · RS</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td style="font-size:.75rem;">R$ 330</td><td style="font-size:.75rem;">4.440</td><td style="font-size:.75rem;">1,9%</td></tr>
+          <tr><td>Mulheres 28-40 · POA</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td>R$ 490</td><td>6.800</td><td>2,8%</td></tr>
+          <tr><td>Interesse casamento · RS</td><td><span class="bw" style="font-size:.6rem;">ativo</span></td><td>R$ 330</td><td>4.440</td><td>1,9%</td></tr>
         </tbody>
       </table></div></div>
     </div>
 
     <!-- Rodapé -->
-    <div style="padding-top:1rem;border-top:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div id="meta-conta-nome" style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">Conta: Estúdio Munchow · act_123456789</div>
-      <button style="background:none;border:.5px solid var(--border-strong);border-radius:8px;padding:4px 12px;font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--text-hint);">Desconectar conta Meta</button>
+    <div style="padding-top:1rem;border-top:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;margin-bottom:4rem;">
+      <div id="meta-conta-nome" style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">Conta: Estúdio Exemplo · act_123456789</div>
+      <button onclick="metaDesconectar()" style="background:none;border:.5px solid var(--border-strong);border-radius:8px;padding:4px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--text-hint);" onmouseover="this.style.color='var(--coral)';this.style.borderColor='var(--coral)'" onmouseout="this.style.color='var(--text-hint)';this.style.borderColor='var(--border-strong)'">Desconectar conta Meta</button>
     </div>
   </div>
 </div>
@@ -9864,10 +9810,10 @@ var _metaChart = null;       // instância do Chart.js
 // ── Inicialização ──────────────────────────────────────────────────
 
 function metaIniciarPainel(){
-  // Mostra o preview estático (meta-conectado já visível por padrão no HTML)
-  // Quando houver conta real conectada, _metaVerificarConexao(false) será chamado
-  var el = document.getElementById('meta-conectado');
-  if(el) el.style.display = 'block';
+  // Mostra filtros e carrega dados
+  var filtros = document.getElementById('meta-filtros');
+  if(filtros) filtros.style.display = 'flex';
+  _metaVerificarConexao(false);
 }
 
 // Chamada ao entrar no dashboard (widget)
@@ -9901,25 +9847,18 @@ async function _metaVerificarConexao(somenteWidget){
 // ── Widget do dashboard ─────────────────────────────────────────────
 
 function _metaAtualizarWidget(json){
-  var preview    = document.getElementById('meta-widget-preview');
-  var body       = document.getElementById('meta-widget-body');
   var loading    = document.getElementById('meta-widget-loading');
   var desconect  = document.getElementById('meta-widget-desconectado');
   var dados      = document.getElementById('meta-widget-dados');
   var verTudo    = document.getElementById('meta-widget-ver-tudo');
   var desataviso = document.getElementById('mw-desatualizado');
 
+  if(loading)   loading.style.display   = 'none';
   if(!json.conectado){
-    // mantém preview visível, body oculto
-    if(preview) preview.style.display = 'block';
-    if(body)    body.style.display    = 'none';
+    if(desconect) desconect.style.display = 'block';
+    if(dados)     dados.style.display     = 'none';
     return;
   }
-
-  // conta conectada: troca preview pelo body real
-  if(preview) preview.style.display = 'none';
-  if(body)    body.style.display    = 'block';
-  if(loading) loading.style.display = 'none';
 
   if(desconect)  desconect.style.display  = 'none';
   if(dados)      dados.style.display      = 'block';
@@ -9941,15 +9880,12 @@ function _metaAtualizarWidget(json){
 // ── Painel completo ─────────────────────────────────────────────────
 
 function _metaMostrar(estado){
-  // em modo preview (sem conta real) não esconde o conteúdo
-  var conectado = document.getElementById('meta-conectado');
-  if(conectado && conectado.dataset.preview === 'true') return;
   ['loading','desconectado','escolher-conta','conectado'].forEach(function(s){
     var el = document.getElementById('meta-' + s);
     if(el) el.style.display = 'none';
   });
   var alvo = document.getElementById('meta-' + estado);
-  if(alvo) alvo.style.display = 'block';
+  if(alvo) alvo.style.display = estado === 'conectado' ? 'block' : (estado === 'loading' ? 'block' : 'block');
 }
 
 function _metaAtualizarPainel(json){
