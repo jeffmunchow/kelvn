@@ -9864,10 +9864,10 @@ var _metaChart = null;       // instância do Chart.js
 // ── Inicialização ──────────────────────────────────────────────────
 
 function metaIniciarPainel(){
-  // Mostra filtros e carrega dados
-  var filtros = document.getElementById('meta-filtros');
-  if(filtros) filtros.style.display = 'flex';
-  _metaVerificarConexao(false);
+  // Mostra o preview estático (meta-conectado já visível por padrão no HTML)
+  // Quando houver conta real conectada, _metaVerificarConexao(false) será chamado
+  var el = document.getElementById('meta-conectado');
+  if(el) el.style.display = 'block';
 }
 
 // Chamada ao entrar no dashboard (widget)
