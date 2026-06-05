@@ -9785,7 +9785,7 @@ async function _metaVerificarConexao(somenteWidget){
   if(!token) return;
 
   try {
-    var resp = await fetch('/api/meta-dados?periodo=last_7d&nivel=conta', {
+    var resp = await fetch('/api/meta-ads?action=dados&periodo=last_7d', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     var json = await resp.json();
@@ -9892,7 +9892,7 @@ function metaCarregarDados(){
 
   _metaMostrar('loading');
 
-  var url = '/api/meta-dados?periodo=' + encodeURIComponent(periodo) + '&nivel=conta';
+  var url = '/api/meta-ads?action=dados&periodo=' + encodeURIComponent(periodo);
   fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
     .then(function(r){ return r.json(); })
     .then(function(json){ _metaAtualizarPainel(json); })
@@ -9962,7 +9962,7 @@ async function metaAbrirDrill(campanhaId, campanhaNome){
   var periodo = sel ? sel.value : 'last_7d';
 
   try {
-    var resp = await fetch('/api/meta-campanha-detalhes?campanha_id='+encodeURIComponent(campanhaId)+'&periodo='+encodeURIComponent(periodo), {
+    var resp = await fetch('/api/meta-ads?action=campanha&campanha_id='+encodeURIComponent(campanhaId)+'&periodo='+encodeURIComponent(periodo), {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     var json = await resp.json();
@@ -10058,7 +10058,7 @@ async function metaIniciarOAuth(){
   if(!token){ notify('Faça login para conectar.'); return; }
 
   try {
-    var resp = await fetch('/api/meta-oauth-iniciar', {
+    var resp = await fetch('/api/meta-ads?action=iniciar', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     // O endpoint redireciona — se chegou aqui é erro
@@ -10068,7 +10068,7 @@ async function metaIniciarOAuth(){
   }
 
   // Redireciona o browser para o Meta OAuth
-  window.location.href = '/api/meta-oauth-iniciar';
+  window.location.href = '/api/meta-ads?action=iniciar';
 }
 
 // ── Desconectar ─────────────────────────────────────────────────────
@@ -10080,7 +10080,7 @@ async function metaDesconectar(){
   if(!token) return;
 
   try {
-    var resp = await fetch('/api/meta-desconectar', {
+    var resp = await fetch('/api/meta-ads?action=desconectar', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token }
     });

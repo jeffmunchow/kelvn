@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/meta-sync",
+      "path": "/api/meta-ads?action=sync",
       "schedule": "0 6 * * *"
     }
   ],
