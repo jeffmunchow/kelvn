@@ -6615,8 +6615,9 @@ async function galLoteAcao(acao){
       await Promise.all(idxs.map(async function(i){
         var f=gal.fotos[i]; if(!f) return;
         try{
-          if(f.key) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:f.key})});
+          if(f.key)      await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:f.key})});
           if(f.thumbKey) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:f.thumbKey})});
+          if(f.webKey)   await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:f.webKey})});
         }catch(e){}
       }));
     }
@@ -7138,8 +7139,9 @@ async function deletarFotoGal(){
     try{
       var sessionRes=await _sb.auth.getSession();
       var token=sessionRes.data.session.access_token;
-      if(_fotoAtualKey) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:_fotoAtualKey})});
+      if(_fotoAtualKey)       await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:_fotoAtualKey})});
       if(foto&&foto.thumbKey) await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:foto.thumbKey})});
+      if(foto&&foto.webKey)   await fetch('/api/gallery-delete',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({key:foto.webKey})});
     }catch(e){console.warn('R2 delete error',e);}
   }
   // Remove da galeria
