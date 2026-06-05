@@ -487,6 +487,10 @@ select.aj-input{cursor:pointer;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
   </button>
 
+  <button class="snav-btn" id="sn-meta-ads" onclick="goDirecto('meta-ads')" title="Meta Ads">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 10l3 3 2-4 3 4"/></svg>
+  </button>
+
   <button class="snav-btn" id="sn-educacao" onclick="goDirecto('educacao')" title="Educação">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
   </button>
@@ -542,6 +546,33 @@ select.aj-input{cursor:pointer;}
     <div>
       <div class="col-title">Edições</div>
       <div id="r-edicoes" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
+    </div>
+  </div>
+
+  <!-- Widget Meta Ads -->
+  <div id="meta-widget" style="margin-top:1.25rem;margin-bottom:3.5rem;">
+    <div class="col-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Meta Ads</span>
+      <button id="meta-widget-ver-tudo" onclick="goDirecto('meta-ads')" style="display:none;background:none;border:none;cursor:pointer;font-size:.68rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;padding:0;" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-hint)'">Ver tudo →</button>
+    </div>
+    <div id="meta-widget-body" style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1.1rem 1.25rem;">
+      <!-- Estado inicial: carregando -->
+      <div id="meta-widget-loading" style="font-size:.75rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">Carregando…</div>
+      <!-- Estado: não conectado -->
+      <div id="meta-widget-desconectado" style="display:none;">
+        <div style="font-size:.78rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;margin-bottom:.75rem;">Conecte sua conta Meta para ver o desempenho dos seus anúncios aqui.</div>
+        <button class="btn" style="color:var(--text);" onclick="metaIniciarOAuth()">Conectar conta Meta</button>
+      </div>
+      <!-- Estado: conectado -->
+      <div id="meta-widget-dados" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;">
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Gasto</div><div id="mw-gasto" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">últimos 7 dias</div></div>
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Alcance</div><div id="mw-alcance" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">pessoas</div></div>
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">CPL</div><div id="mw-cpl" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">custo por lead</div></div>
+          <div><div style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.2rem;">Campanhas</div><div id="mw-campanhas" style="font-size:1.05rem;font-weight:600;color:var(--text);font-family:'DM Sans',sans-serif;">—</div><div style="font-size:.6rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">ativas</div></div>
+        </div>
+        <div id="mw-desatualizado" style="display:none;margin-top:.6rem;font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">⚠ Dados com mais de 2 horas. Sincronizando em breve.</div>
+      </div>
     </div>
   </div>
 
@@ -1160,6 +1191,117 @@ select.aj-input{cursor:pointer;}
 <div class="panel" id="p-educacao">
   <div class="sh" style="margin-bottom:0;"></div>
   <div id="edu-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.75rem;"></div>
+</div>
+
+<!-- META ADS -->
+<div class="panel" id="p-meta-ads">
+  <div class="sh">
+    <div class="st">Meta Ads</div>
+    <div style="display:flex;align-items:center;gap:.6rem;">
+      <!-- Filtro período (Nível 2) -->
+      <div id="meta-filtros" style="display:none;align-items:center;gap:.5rem;">
+        <select id="meta-periodo-sel" onchange="metaCarregarDados()" style="padding:5px 10px;height:29px;font-family:'DM Sans',sans-serif;font-size:.75rem;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
+          <option value="last_7d">Últimos 7 dias</option>
+          <option value="last_30d">Últimos 30 dias</option>
+          <option value="custom">Período personalizado</option>
+        </select>
+        <div id="meta-custom-range" style="display:none;align-items:center;gap:.35rem;">
+          <input type="date" id="meta-data-ini" onchange="metaCarregarDados()" style="padding:4px 8px;height:29px;font-family:'DM Sans',sans-serif;font-size:.75rem;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;">
+          <span style="font-size:.72rem;color:var(--text-hint);">até</span>
+          <input type="date" id="meta-data-fim" onchange="metaCarregarDados()" style="padding:4px 8px;height:29px;font-family:'DM Sans',sans-serif;font-size:.75rem;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;">
+        </div>
+        <button onclick="metaExportarCSV()" title="Exportar CSV" style="background:none;border:.5px solid var(--border-strong);border-radius:8px;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--text-muted);" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">↓ CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado: carregando -->
+  <div id="meta-loading" style="padding:3rem 0;text-align:center;font-size:.8rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">Carregando…</div>
+
+  <!-- Estado: não conectado -->
+  <div id="meta-desconectado" style="display:none;padding:3rem 0;text-align:center;">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:1rem;"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 10l3 3 2-4 3 4"/></svg>
+    <div style="font-size:.88rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;margin-bottom:.35rem;font-weight:500;">Seus anúncios, tudo num lugar só.</div>
+    <div style="font-size:.78rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-bottom:1.25rem;">Conecte sua conta Meta para ver gasto, alcance, CPL e performance das campanhas.</div>
+    <button class="btn" style="color:var(--text);" onclick="metaIniciarOAuth()">Conectar conta Meta</button>
+  </div>
+
+  <!-- Estado: escolher conta (múltiplas contas) -->
+  <div id="meta-escolher-conta" style="display:none;padding:2rem 0;">
+    <div style="font-size:.88rem;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:500;margin-bottom:.4rem;">Qual conta você quer conectar?</div>
+    <div style="font-size:.75rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-bottom:1rem;">Encontramos mais de uma conta de anúncios vinculada ao seu perfil.</div>
+    <div id="meta-lista-contas" style="display:flex;flex-direction:column;gap:.5rem;max-width:400px;"></div>
+  </div>
+
+  <!-- Estado: conectado -->
+  <div id="meta-conectado" style="display:none;">
+    <div id="meta-desatualizado-aviso" style="display:none;margin-bottom:.75rem;font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;background:var(--surface2);padding:.45rem .75rem;border-radius:6px;border:.5px solid var(--border);">⚠ Dados com mais de 2 horas. A sincronização acontece automaticamente a cada hora.</div>
+
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
+      <div class="kpi"><div class="kpi-l">Gasto total</div><div class="kpi-v ca" id="meta-kpi-gasto">—</div><div class="kpi-s">no período</div></div>
+      <div class="kpi"><div class="kpi-l">Alcance</div><div class="kpi-v" id="meta-kpi-alcance">—</div><div class="kpi-s">pessoas únicas</div></div>
+      <div class="kpi"><div class="kpi-l">CPL</div><div class="kpi-v" id="meta-kpi-cpl">—</div><div class="kpi-s">custo por lead</div></div>
+      <div class="kpi"><div class="kpi-l">Campanhas ativas</div><div class="kpi-v" id="meta-kpi-ativas">—</div><div class="kpi-s">no período</div></div>
+    </div>
+
+    <!-- Gráfico de tendência (Nível 2) -->
+    <div id="meta-grafico-wrap" style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);padding:1rem 1.25rem;margin-bottom:1.25rem;">
+      <div style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.06em;">Desempenho por campanha</div>
+      <canvas id="meta-chart" height="80"></canvas>
+    </div>
+
+    <!-- Tabela de campanhas -->
+    <div style="background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;">
+      <div style="padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.06em;">Campanhas</div>
+        <div style="display:flex;gap:.5rem;">
+          <select id="meta-status-sel" onchange="metaFiltrarCampanhas()" style="padding:3px 8px;font-family:'DM Sans',sans-serif;font-size:.72rem;border:.5px solid var(--border-strong);border-radius:6px;background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
+            <option value="">Todos os status</option>
+            <option value="ACTIVE">Ativas</option>
+            <option value="PAUSED">Pausadas</option>
+            <option value="ARCHIVED">Encerradas</option>
+          </select>
+        </div>
+      </div>
+      <div class="tw" style="border:none;"><div class="ts"><table>
+        <thead><tr>
+          <th style="font-size:.65rem;">Campanha</th>
+          <th style="font-size:.65rem;">Status</th>
+          <th style="font-size:.65rem;">Gasto</th>
+          <th style="font-size:.65rem;">Alcance</th>
+          <th style="font-size:.65rem;">CPL</th>
+          <th style="font-size:.65rem;">CTR</th>
+          <th style="font-size:.65rem;"></th>
+        </tr></thead>
+        <tbody id="meta-campanhas-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- Drill-down campanha (Nível 2) -->
+    <div id="meta-drill-wrap" style="display:none;margin-top:1.25rem;background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;">
+      <div style="padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.6rem;">
+        <button onclick="metaFecharDrill()" style="background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:.75rem;font-family:'DM Sans',sans-serif;padding:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-hint)'">← Voltar</button>
+        <div id="meta-drill-titulo" style="font-size:.78rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;"></div>
+      </div>
+      <div class="tw" style="border:none;"><div class="ts"><table>
+        <thead><tr>
+          <th style="font-size:.65rem;">Ad Set</th>
+          <th style="font-size:.65rem;">Status</th>
+          <th style="font-size:.65rem;">Gasto</th>
+          <th style="font-size:.65rem;">Alcance</th>
+          <th style="font-size:.65rem;">CTR</th>
+        </tr></thead>
+        <tbody id="meta-adsets-tbody"></tbody>
+      </table></div></div>
+    </div>
+
+    <!-- Rodapé desconectar -->
+    <div style="margin-top:2rem;padding-top:1rem;border-top:.5px solid var(--border);">
+      <div id="meta-conta-nome" style="font-size:.72rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-bottom:.5rem;"></div>
+      <button onclick="metaDesconectar()" style="background:none;border:.5px solid var(--border-strong);border-radius:8px;padding:4px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.72rem;color:var(--text-hint);" onmouseover="this.style.color='var(--coral)';this.style.borderColor='var(--coral)'" onmouseout="this.style.color='var(--text-hint)';this.style.borderColor='var(--border-strong)'">Desconectar conta Meta</button>
+    </div>
+  </div>
 </div>
 
 <!-- AJUSTES -->
@@ -2059,7 +2201,7 @@ function go(name){
   _curTab=name;
   if(name==='equipe'){goDirecto('ajustes');switchAJ('equipe');return;}
   if(name==='pacotes'){goDirecto('ajustes');switchAJ('servicos');return;}
-  ({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,educacao:rEdu,ajustes:rSD})[name]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,educacao:rEdu,ajustes:rSD})[name]();
+  ({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,educacao:rEdu,ajustes:rSD,'meta-ads':metaIniciarPainel})[name]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,educacao:rEdu,ajustes:rSD,'meta-ads':metaIniciarPainel})[name]();
 }
 function switchPP(name){
   ['pend','edicoes','entregas'].forEach(function(n){
@@ -8508,6 +8650,11 @@ async function onLogin(user){
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
   var el = document.getElementById('userNameDisplay');
   if(el) el.textContent = nome;
+  // Meta Ads: verifica retorno do OAuth e carrega widget do dashboard
+  setTimeout(function(){
+    metaVerificarRetornoOAuth();
+    metaIniciarWidget();
+  }, 800);
 }
 
 async function doLogout(){
@@ -9610,6 +9757,441 @@ function salvarPontoFocal(){
   atualizarPreview();
   cov('ov-focal');
   notify('Ponto focal salvo.');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// META ADS — Módulo completo (Nível 1 + Nível 2)
+// ═══════════════════════════════════════════════════════════════════
+
+var _metaDados = null;       // cache local dos dados do período atual
+var _metaChart = null;       // instância do Chart.js
+
+// ── Inicialização ──────────────────────────────────────────────────
+
+function metaIniciarPainel(){
+  // Mostra filtros e carrega dados
+  var filtros = document.getElementById('meta-filtros');
+  if(filtros) filtros.style.display = 'flex';
+  _metaVerificarConexao(false);
+}
+
+// Chamada ao entrar no dashboard (widget)
+function metaIniciarWidget(){
+  _metaVerificarConexao(true);
+}
+
+async function _metaVerificarConexao(somenteWidget){
+  var token = _currentUser?._session?.access_token;
+  if(!token) return;
+
+  try {
+    var resp = await fetch('/api/meta-dados?periodo=last_7d&nivel=conta', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var json = await resp.json();
+
+    if(somenteWidget){
+      _metaAtualizarWidget(json);
+    } else {
+      _metaAtualizarPainel(json);
+    }
+  } catch(e) {
+    console.error('meta verificar conexao:', e);
+    if(!somenteWidget) _metaMostrar('desconectado');
+  }
+}
+
+// ── Widget do dashboard ─────────────────────────────────────────────
+
+function _metaAtualizarWidget(json){
+  var loading    = document.getElementById('meta-widget-loading');
+  var desconect  = document.getElementById('meta-widget-desconectado');
+  var dados      = document.getElementById('meta-widget-dados');
+  var verTudo    = document.getElementById('meta-widget-ver-tudo');
+  var desataviso = document.getElementById('mw-desatualizado');
+
+  if(loading)   loading.style.display   = 'none';
+  if(!json.conectado){
+    if(desconect) desconect.style.display = 'block';
+    if(dados)     dados.style.display     = 'none';
+    return;
+  }
+
+  if(desconect)  desconect.style.display  = 'none';
+  if(dados)      dados.style.display      = 'block';
+  if(verTudo)    verTudo.style.display    = 'inline';
+
+  var d = json.dados || {};
+  var gasto   = document.getElementById('mw-gasto');
+  var alcance = document.getElementById('mw-alcance');
+  var cpl     = document.getElementById('mw-cpl');
+  var campanhas = document.getElementById('mw-campanhas');
+
+  if(gasto)    gasto.textContent    = d.spend    ? 'R$ ' + parseFloat(d.spend).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  if(alcance)  alcance.textContent  = d.reach    ? parseInt(d.reach).toLocaleString('pt-BR') : '—';
+  if(cpl)      cpl.textContent      = d.cpl      ? 'R$ ' + parseFloat(d.cpl).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  if(campanhas) campanhas.textContent = d.campanhas_ativas != null ? String(d.campanhas_ativas) : '—';
+  if(desataviso) desataviso.style.display = json.desatualizado ? 'block' : 'none';
+}
+
+// ── Painel completo ─────────────────────────────────────────────────
+
+function _metaMostrar(estado){
+  ['loading','desconectado','escolher-conta','conectado'].forEach(function(s){
+    var el = document.getElementById('meta-' + s);
+    if(el) el.style.display = 'none';
+  });
+  var alvo = document.getElementById('meta-' + estado);
+  if(alvo) alvo.style.display = estado === 'conectado' ? 'block' : (estado === 'loading' ? 'block' : 'block');
+}
+
+function _metaAtualizarPainel(json){
+  _metaMostrar('loading');
+  if(!json.conectado){ _metaMostrar('desconectado'); return; }
+
+  _metaDados = json;
+  _metaMostrar('conectado');
+
+  // Aviso desatualizado
+  var aviso = document.getElementById('meta-desatualizado-aviso');
+  if(aviso) aviso.style.display = json.desatualizado ? 'block' : 'none';
+
+  // Conta nome
+  var nomeEl = document.getElementById('meta-conta-nome');
+  if(nomeEl) nomeEl.textContent = json.conta_nome ? 'Conta: ' + esc(json.conta_nome) : '';
+
+  var d = json.dados || {};
+
+  // KPIs
+  var kpiGasto  = document.getElementById('meta-kpi-gasto');
+  var kpiAlc    = document.getElementById('meta-kpi-alcance');
+  var kpiCpl    = document.getElementById('meta-kpi-cpl');
+  var kpiAtivas = document.getElementById('meta-kpi-ativas');
+  if(kpiGasto)  kpiGasto.textContent  = d.spend    ? 'R$ ' + parseFloat(d.spend).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  if(kpiAlc)    kpiAlc.textContent    = d.reach    ? parseInt(d.reach).toLocaleString('pt-BR') : '—';
+  if(kpiCpl)    kpiCpl.textContent    = d.cpl      ? 'R$ ' + parseFloat(d.cpl).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+  if(kpiAtivas) kpiAtivas.textContent = d.campanhas_ativas != null ? String(d.campanhas_ativas) : '—';
+
+  // Tabela de campanhas
+  _metaRenderCampanhas(d.campaigns || []);
+
+  // Gráfico
+  _metaRenderGrafico(d.campaigns || []);
+}
+
+function metaCarregarDados(){
+  var sel = document.getElementById('meta-periodo-sel');
+  var periodo = sel ? sel.value : 'last_7d';
+
+  // Mostra/oculta seletor de período personalizado
+  var customRange = document.getElementById('meta-custom-range');
+  if(customRange) customRange.style.display = periodo === 'custom' ? 'flex' : 'none';
+
+  var token = _currentUser?._session?.access_token;
+  if(!token) return;
+
+  _metaMostrar('loading');
+
+  var url = '/api/meta-dados?periodo=' + encodeURIComponent(periodo) + '&nivel=conta';
+  fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(function(r){ return r.json(); })
+    .then(function(json){ _metaAtualizarPainel(json); })
+    .catch(function(){ _metaMostrar('desconectado'); });
+}
+
+// ── Tabela de campanhas ─────────────────────────────────────────────
+
+var _metaCampanhasAll = [];
+
+function _metaRenderCampanhas(campaigns){
+  _metaCampanhasAll = campaigns;
+  metaFiltrarCampanhas();
+}
+
+function metaFiltrarCampanhas(){
+  var sel = document.getElementById('meta-status-sel');
+  var filtroStatus = sel ? sel.value : '';
+  var lista = filtroStatus
+    ? _metaCampanhasAll.filter(function(c){ return c.status === filtroStatus; })
+    : _metaCampanhasAll;
+
+  var tbody = document.getElementById('meta-campanhas-tbody');
+  if(!tbody) return;
+
+  if(!lista.length){
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-hint);font-size:.75rem;padding:1.5rem;">Nenhuma campanha encontrada.</td></tr>';
+    return;
+  }
+
+  var statusLabel = { ACTIVE:'<span class="bp bw">ativa</span>', PAUSED:'<span class="bp">pausada</span>', ARCHIVED:'<span class="bp bpo">encerrada</span>' };
+  tbody.innerHTML = lista.map(function(c){
+    var gasto   = c.spend    ? 'R$ ' + parseFloat(c.spend).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+    var alcance = c.reach    ? parseInt(c.reach).toLocaleString('pt-BR') : '—';
+    var cpl     = c.cpl      ? 'R$ ' + parseFloat(c.cpl).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+    var ctr     = c.ctr      ? parseFloat(c.ctr).toFixed(2) + '%' : '—';
+    var status  = statusLabel[c.status] || '<span class="bp">'+esc(c.status||'')+'</span>';
+    return '<tr>'
+      + '<td style="font-size:.75rem;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+esc(c.campaign_name||'')+'">'+esc(c.campaign_name||'—')+'</td>'
+      + '<td>'+status+'</td>'
+      + '<td style="font-size:.75rem;">'+gasto+'</td>'
+      + '<td style="font-size:.75rem;">'+alcance+'</td>'
+      + '<td style="font-size:.75rem;">'+cpl+'</td>'
+      + '<td style="font-size:.75rem;">'+ctr+'</td>'
+      + '<td><button onclick="metaAbrirDrill(\''+esc(c.campaign_id)+'\',\''+esc(c.campaign_name||'')+'\' )" style="background:none;border:none;cursor:pointer;font-size:.72rem;color:var(--text-hint);font-family:\'DM Sans\',sans-serif;" onmouseover="this.style.color=\'var(--amber)\'" onmouseout="this.style.color=\'var(--text-hint)\'">Detalhes →</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+// ── Drill-down ──────────────────────────────────────────────────────
+
+async function metaAbrirDrill(campanhaId, campanhaNome){
+  var wrap   = document.getElementById('meta-drill-wrap');
+  var titulo = document.getElementById('meta-drill-titulo');
+  var tbody  = document.getElementById('meta-adsets-tbody');
+  if(!wrap || !tbody) return;
+
+  if(titulo) titulo.textContent = esc(campanhaNome);
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-hint);font-size:.75rem;padding:1rem;">Carregando…</td></tr>';
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  var token = _currentUser?._session?.access_token;
+  if(!token) return;
+
+  var sel = document.getElementById('meta-periodo-sel');
+  var periodo = sel ? sel.value : 'last_7d';
+
+  try {
+    var resp = await fetch('/api/meta-campanha-detalhes?campanha_id='+encodeURIComponent(campanhaId)+'&periodo='+encodeURIComponent(periodo), {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var json = await resp.json();
+    var adsets = json.adsets || [];
+
+    if(!adsets.length){
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-hint);font-size:.75rem;padding:1rem;">Nenhum ad set encontrado.</td></tr>';
+      return;
+    }
+    var statusLabel = { ACTIVE:'<span class="bp bw">ativo</span>', PAUSED:'<span class="bp">pausado</span>', ARCHIVED:'<span class="bp bpo">encerrado</span>' };
+    tbody.innerHTML = adsets.map(function(as){
+      var gasto   = as.spend   ? 'R$ ' + parseFloat(as.spend).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+      var alcance = as.reach   ? parseInt(as.reach).toLocaleString('pt-BR') : '—';
+      var ctr     = as.ctr     ? parseFloat(as.ctr).toFixed(2) + '%' : '—';
+      var status  = statusLabel[as.status] || '<span class="bp">'+esc(as.status||'')+'</span>';
+      return '<tr>'
+        + '<td style="font-size:.75rem;">'+esc(as.adset_name||'—')+'</td>'
+        + '<td>'+status+'</td>'
+        + '<td style="font-size:.75rem;">'+gasto+'</td>'
+        + '<td style="font-size:.75rem;">'+alcance+'</td>'
+        + '<td style="font-size:.75rem;">'+ctr+'</td>'
+        + '</tr>';
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-hint);font-size:.75rem;padding:1rem;">Erro ao carregar detalhes.</td></tr>';
+  }
+}
+
+function metaFecharDrill(){
+  var wrap = document.getElementById('meta-drill-wrap');
+  if(wrap) wrap.style.display = 'none';
+}
+
+// ── Gráfico ─────────────────────────────────────────────────────────
+
+function _metaRenderGrafico(campaigns){
+  var canvas = document.getElementById('meta-chart');
+  if(!canvas) return;
+
+  // Carrega Chart.js via CDN se ainda não carregou
+  if(typeof Chart === 'undefined'){
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+    script.onload = function(){ _metaCriarGrafico(canvas, campaigns); };
+    document.head.appendChild(script);
+  } else {
+    _metaCriarGrafico(canvas, campaigns);
+  }
+}
+
+function _metaCriarGrafico(canvas, campaigns){
+  if(_metaChart){ _metaChart.destroy(); _metaChart = null; }
+
+  var top = campaigns.slice(0, 8); // máximo 8 campanhas no gráfico
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var textColor = isDark ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.35)';
+  var gridColor = isDark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)';
+
+  _metaChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: top.map(function(c){ return c.campaign_name ? c.campaign_name.substring(0,28) : '—'; }),
+      datasets: [{
+        label: 'Gasto (R$)',
+        data: top.map(function(c){ return parseFloat(c.spend) || 0; }),
+        backgroundColor: 'rgba(196,120,10,.75)',
+        borderRadius: 4,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx){ return 'R$ ' + ctx.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: textColor, font: { family: 'DM Sans', size: 10 } }, grid: { color: gridColor } },
+        y: { ticks: { color: textColor, font: { family: 'DM Sans', size: 10 }, callback: function(v){ return 'R$ '+v; } }, grid: { color: gridColor } }
+      }
+    }
+  });
+}
+
+// ── OAuth ───────────────────────────────────────────────────────────
+
+async function metaIniciarOAuth(){
+  var token = _currentUser?._session?.access_token;
+  if(!token){ notify('Faça login para conectar.'); return; }
+
+  try {
+    var resp = await fetch('/api/meta-oauth-iniciar', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    // O endpoint redireciona — se chegou aqui é erro
+    if(!resp.ok){ notify('Erro ao iniciar conexão. Tente novamente.'); }
+  } catch(e) {
+    // Redirecionamento causa CORS — isso é esperado, o browser vai seguir
+  }
+
+  // Redireciona o browser para o Meta OAuth
+  window.location.href = '/api/meta-oauth-iniciar';
+}
+
+// ── Desconectar ─────────────────────────────────────────────────────
+
+async function metaDesconectar(){
+  if(!confirm('Desconectar a conta Meta? Os dados serão removidos.')) return;
+
+  var token = _currentUser?._session?.access_token;
+  if(!token) return;
+
+  try {
+    var resp = await fetch('/api/meta-desconectar', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    var json = await resp.json();
+    if(json.ok){
+      notify('Conta Meta desconectada.');
+      _metaDados = null;
+      _metaMostrar('desconectado');
+      _metaAtualizarWidget({ conectado: false });
+      var filtros = document.getElementById('meta-filtros');
+      if(filtros) filtros.style.display = 'none';
+    }
+  } catch(e) {
+    notify('Erro ao desconectar. Tente novamente.');
+  }
+}
+
+// ── Exportar CSV ────────────────────────────────────────────────────
+
+function metaExportarCSV(){
+  if(!_metaCampanhasAll.length){ notify('Nenhum dado para exportar.'); return; }
+
+  var sel = document.getElementById('meta-periodo-sel');
+  var periodo = sel ? sel.value : 'last_7d';
+
+  var linhas = [['Campanha','Status','Gasto (R$)','Alcance','Impressões','CPL (R$)','CTR (%)']];
+  _metaCampanhasAll.forEach(function(c){
+    linhas.push([
+      '"'+String(c.campaign_name||'').replace(/"/g,'""')+'"',
+      c.status||'',
+      c.spend||'0',
+      c.reach||'0',
+      c.impressions||'0',
+      c.cpl||'',
+      c.ctr||'0',
+    ]);
+  });
+
+  var csv = linhas.map(function(l){ return l.join(','); }).join('\n');
+  var blob = new Blob(['﻿'+csv], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'meta-ads-'+periodo+'-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Verificar parâmetro de retorno do OAuth ─────────────────────────
+// Chamado no onload para tratar ?meta=conectado ou ?meta=erro
+
+function metaVerificarRetornoOAuth(){
+  var params = new URLSearchParams(window.location.search);
+  var meta   = params.get('meta');
+  if(!meta) return;
+
+  // Limpa o parâmetro da URL sem recarregar
+  var url = new URL(window.location.href);
+  url.searchParams.delete('meta');
+  url.searchParams.delete('motivo');
+  url.searchParams.delete('contas');
+  window.history.replaceState({}, '', url.toString());
+
+  if(meta === 'conectado'){
+    notify('Conta Meta conectada com sucesso!');
+    goDirecto('meta-ads');
+  } else if(meta === 'escolher_conta'){
+    var contasRaw = params.get('contas');
+    try {
+      var contas = JSON.parse(decodeURIComponent(contasRaw || '[]'));
+      goDirecto('meta-ads');
+      _metaMostrar('escolher-conta');
+      var lista = document.getElementById('meta-lista-contas');
+      if(lista){
+        lista.innerHTML = contas.map(function(c){
+          return '<button onclick="metaSelecionarConta(\''+esc(c.id)+'\',\''+esc(c.name)+'\')" style="text-align:left;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;padding:.6rem 1rem;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.78rem;color:var(--text);width:100%;" onmouseover="this.style.borderColor=\'var(--amber)\'" onmouseout="this.style.borderColor=\'var(--border-strong)\'">'+esc(c.name)+'<span style="display:block;font-size:.65rem;color:var(--text-hint);margin-top:2px;">'+esc(c.id)+'</span></button>';
+        }).join('');
+      }
+    } catch(e) { notify('Erro ao carregar contas. Tente novamente.'); }
+  } else if(meta === 'erro'){
+    var motivo = params.get('motivo') || 'desconhecido';
+    var msgs = { negado:'Você negou o acesso. Tente novamente se quiser conectar.', sem_conta:'Nenhuma conta de anúncios ativa foi encontrada.', csrf:'Sessão expirada. Tente novamente.', expirado:'O tempo limite expirou. Tente novamente.', interno:'Algo deu errado por aqui. Tente novamente em breve.' };
+    notify(msgs[motivo] || 'Erro ao conectar conta Meta.');
+  }
+}
+
+async function metaSelecionarConta(adAccountId, contaNome){
+  var token = _currentUser?._session?.access_token;
+  if(!token) return;
+
+  // Busca o token pendente e finaliza conexão via endpoint dedicado
+  // Por simplicidade, re-inicia o OAuth — o usuário escolherá na tela do Meta
+  // (melhoria futura: endpoint /api/meta-selecionar-conta)
+  notify('Conectando conta '+contaNome+'…');
+
+  try {
+    // Salva a escolha via dados_usuario para o callback processar
+    var supabase = window._supabase;
+    if(supabase){
+      await supabase.from('dados_usuario').upsert({
+        user_id: _currentUser.id,
+        modulo:  'meta_oauth',
+        chave:   'conta_escolhida',
+        valor:   { ad_account_id: adAccountId, conta_nome: contaNome },
+      }, { onConflict: 'user_id,modulo,chave' });
+    }
+    notify('Conta selecionada. Reconecte para confirmar.');
+    metaIniciarOAuth();
+  } catch(e) {
+    notify('Erro ao selecionar conta.');
+  }
 }
 
 </script>
