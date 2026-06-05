@@ -6444,8 +6444,8 @@ var _UE = {
 };
 
 // ── Funções de UI do painel de upload ─────────────────────────────────────────
-var _STATUS_ICON = {pending:'⏳',uploading:'↑',done:'✓',error:'✕'};
-var _STATUS_COLOR = {pending:'var(--text-hint)',uploading:'var(--amber)',done:'var(--teal)',error:'var(--coral)'};
+var _STATUS_ICON = {pending:'↑',uploading:'↑',done:'✓',error:'✕'};
+var _STATUS_COLOR = {pending:'var(--amber)',uploading:'var(--amber)',done:'var(--teal)',error:'var(--coral)'};
 
 function _upRenderFileList(statusMap){
   var list = document.getElementById('up-file-list');
@@ -6712,10 +6712,8 @@ async function galDetIniciarUpload(files, secaoIdOverride){
       }
     },
     onFinish: function(done, erros, total){
-      var icon=document.getElementById('up-status-icon');
       var lbl=document.getElementById('upload-progress-label');
       var pwrap2=document.getElementById('upload-progress-wrap');
-      if(icon) icon.textContent=erros?'⚠️':'✅';
       if(lbl)  lbl.textContent=erros?done+' enviadas, '+erros+' erro(s)':'Envio concluído';
       _upUpdateQuota();
       if(!erros) setTimeout(function(){if(pwrap2)pwrap2.style.display='none';},2500);
@@ -7724,11 +7722,9 @@ async function mgalIniciarUpload(files){
 
   // Usa o widget global (upload-progress-wrap)
   var pwrapM=document.getElementById('upload-progress-wrap');
-  var icon2=document.getElementById('up-status-icon');
   var lbl2=document.getElementById('upload-progress-label');
   var counter2=document.getElementById('up-counter');
   if(pwrapM) pwrapM.style.display='block';
-  if(icon2)  icon2.textContent='⬆️';
   if(lbl2)   lbl2.textContent='Enviando fotos';
   if(counter2) counter2.textContent='0 de '+files.length;
 
@@ -7749,10 +7745,8 @@ async function mgalIniciarUpload(files){
       rGalFotos(gal);
     },
     onFinish: function(done, erros, total){
-      var icon3=document.getElementById('up-status-icon');
       var lbl3=document.getElementById('upload-progress-label');
       var pwrapM2=document.getElementById('upload-progress-wrap');
-      if(icon3) icon3.textContent=erros?'⚠️':'✅';
       if(lbl3)  lbl3.textContent=erros?done+' enviadas, '+erros+' erro(s)':'Envio concluído';
       _upUpdateQuota();
       if(!erros) setTimeout(function(){if(pwrapM2)pwrapM2.style.display='none';},2500);
@@ -9635,7 +9629,6 @@ function salvarPontoFocal(){
   <!-- Cabeçalho -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem .55rem;">
     <div style="display:flex;align-items:center;gap:.5rem;">
-      <span id="up-status-icon" style="font-size:.8rem;">⬆️</span>
       <span id="upload-progress-label" style="font-size:.73rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Enviando fotos</span>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem;">
