@@ -1873,17 +1873,8 @@ select.aj-input{cursor:pointer;}
         </label>
       </div>
 
-      <!-- Barra de progresso (só durante upload) -->
+      <!-- Progresso gerenciado pelo widget global upload-progress-wrap -->
       <div style="grid-column:1/-1;">
-        <div id="mgal-progress-wrap" style="display:none;">
-          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin-bottom:.4rem;">
-            <span id="mgal-progress-label">Enviando...</span>
-            <span id="mgal-progress-pct">0%</span>
-          </div>
-          <div style="height:4px;background:var(--surface2);border-radius:4px;overflow:hidden;">
-            <div id="mgal-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s;"></div>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -6113,15 +6104,405 @@ function galDetDragLeave(el){
 function galDetDrop(e,el){
   e.preventDefault();
   galDetDragLeave(el);
+
+  // Tenta processar via entries (suporte a pastas)
+  var items = e.dataTransfer && e.dataTransfer.items;
+  if(items && items.length){
+    var entries = [];
+    for(var i=0;i<items.length;i++){
+      var entry = items[i].webkitGetAsEntry && items[i].webkitGetAsEntry();
+      if(entry) entries.push(entry);
+    }
+    if(entries.length){
+      galDetProcessarEntries(entries);
+      return;
+    }
+  }
+  // Fallback: sem suporte a entries (só arquivos soltos)
   var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type.startsWith('image/');});
   if(files.length) galDetIniciarUpload(files);
 }
+
+// Processa FileSystemEntry[] — detecta pastas automaticamente
+async function galDetProcessarEntries(entries){
+  // Separa arquivos soltos de pastas
+  var arquivosSoltos = [];
+  var pastas = [];
+  for(var i=0;i<entries.length;i++){
+    if(entries[i].isDirectory) pastas.push(entries[i]);
+    else if(entries[i].isFile) arquivosSoltos.push(entries[i]);
+  }
+
+  // Arquivos soltos vão para a seção ativa (ou sem seção)
+  if(arquivosSoltos.length){
+    var files = await _lerArquivosDeEntries(arquivosSoltos);
+    var imgs = files.filter(function(f){return f.type.startsWith('image/');});
+    if(imgs.length){
+      var subgalTarget = document.getElementById('gal-det-subgal-sel');
+      var secaoId = subgalTarget ? subgalTarget.value||null : null;
+      await galDetIniciarUpload(imgs, secaoId);
+    }
+  }
+
+  // Cada pasta vira uma seção com o nome da pasta
+  for(var j=0;j<pastas.length;j++){
+    var pasta = pastas[j];
+    var nomePasta = pasta.name;
+
+    // Cria seção na JSONB (compatibilidade)
+    var gals = g('galerias')||[];
+    var gal = gals.find(function(x){return x.id===_galAtualId;});
+    if(!gal) continue;
+    if(!gal.subgalerias) gal.subgalerias=[];
+
+    // Reutiliza seção existente com mesmo nome, ou cria nova
+    var subExist = gal.subgalerias.find(function(s){return s.nome===nomePasta;});
+    var subId;
+    if(subExist){
+      subId = subExist.id;
+    } else {
+      subId = 'subgal_'+uid();
+      gal.subgalerias.push({id:subId, nome:nomePasta, ordem:gal.subgalerias.length});
+      s('galerias',gals);
+      rSubgalNav();
+      var selEl = document.getElementById('gal-det-subgal-sel');
+      if(selEl){
+        var subs = gal.subgalerias;
+        selEl.innerHTML = '<option value="">Todas as fotos</option>'+subs.map(function(s){return '<option value="'+s.id+'">'+s.nome+'</option>';}).join('');
+      }
+      notify('Seção criada: '+nomePasta);
+    }
+
+    // Lê arquivos da pasta (recursivo, 1 nível)
+    var pastaFiles = await _lerArquivosDePasta(pasta);
+    var pastaImgs = pastaFiles.filter(function(f){return f.type.startsWith('image/');});
+    if(pastaImgs.length) await galDetIniciarUpload(pastaImgs, subId);
+  }
+}
+
+// Lê File[] a partir de FileEntry[]
+function _lerArquivosDeEntries(fileEntries){
+  return Promise.all(fileEntries.map(function(entry){
+    return new Promise(function(resolve,reject){
+      entry.file(resolve,reject);
+    });
+  }));
+}
+
+// Lê todos os arquivos de um DirectoryEntry (1 nível de profundidade)
+function _lerArquivosDePasta(dirEntry){
+  return new Promise(function(resolve){
+    var reader = dirEntry.createReader();
+    var allEntries = [];
+    function lerLote(){
+      reader.readEntries(function(entries){
+        if(!entries.length){
+          // Filtra apenas arquivos (ignora subpastas)
+          var fileEntries = allEntries.filter(function(e){return e.isFile;});
+          _lerArquivosDeEntries(fileEntries).then(resolve).catch(function(){resolve([]);});
+        } else {
+          allEntries = allEntries.concat(Array.from(entries));
+          lerLote(); // continua lendo (API retorna máx 100 por vez)
+        }
+      }, function(){ resolve([]); });
+    }
+    lerLote();
+  });
+}
+
 function galDetFileSelect(e){
   var files=Array.from(e.target.files);
   if(files.length) galDetIniciarUpload(files);
   e.target.value='';
 }
-var _uploadCancelado=false;
+var _uploadCancelado=false; // legado — mantido para cancelarUpload()
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Motor de upload resiliente — substitui galDetIniciarUpload e mgalIniciarUpload
+// Paralelo (5 workers), retry automático (3x), pausa, UI por arquivo, quota
+// ─────────────────────────────────────────────────────────────────────────────
+var _UE = {
+  CONCURRENCY: 5,
+  MAX_RETRIES: 3,
+  _running: 0,
+  _queue: [],
+  _erroredItems: [],   // itens que falharam (para retry)
+  _fileStatus: {},     // { filename: 'pending'|'uploading'|'done'|'error' }
+  _done: 0,
+  _errors: 0,
+  _total: 0,
+  _cancelled: false,
+  _paused: false,
+  _onProgress: null,
+  _onFileDone: null,
+  _onFinish: null,
+  _sharedOpts: null,
+
+  cancel: function(){
+    this._cancelled = true;
+    this._paused = false;
+  },
+
+  togglePause: function(){
+    this._paused = !this._paused;
+    var btn = document.getElementById('up-btn-pause');
+    if(btn) btn.textContent = this._paused ? '▶' : '⏸';
+    var lbl = document.getElementById('upload-progress-label');
+    if(lbl) lbl.textContent = this._paused ? 'Pausado' : 'Enviando fotos';
+    if(!this._paused) this._kickWorkers(); // retoma
+  },
+
+  retryErrors: function(){
+    if(!this._erroredItems.length || !this._sharedOpts) return;
+    this._queue = this._erroredItems.slice();
+    this._erroredItems = [];
+    this._errors = 0;
+    this._done = Math.max(0, this._done - this._queue.length);
+    this._total += this._queue.length;
+    this._queue.forEach(function(item){ item.retries = 0; });
+    var row = document.getElementById('up-errors-row');
+    if(row) row.style.display = 'none';
+    this._paused = false;
+    this._cancelled = false;
+    this._kickWorkers();
+  },
+
+  _kickWorkers: function(){
+    var needed = Math.min(this.CONCURRENCY - this._running, this._queue.length);
+    for(var i=0;i<needed;i++) this._worker();
+  },
+
+  // Ponto de entrada principal
+  async run(files, opts){
+    this._queue = [];
+    this._erroredItems = [];
+    this._fileStatus = {};
+    this._done = 0;
+    this._errors = 0;
+    this._total = files.length;
+    this._cancelled = false;
+    this._paused = false;
+    this._onProgress = opts.onProgress || null;
+    this._onFileDone  = opts.onFileDone  || null;
+    this._onFinish    = opts.onFinish    || null;
+    this._sharedOpts  = opts;
+
+    for(var i=0;i<files.length;i++){
+      var fname = files[i].name;
+      this._fileStatus[fname] = 'pending';
+      this._queue.push({file:files[i], galeria_slug:opts.galeria_slug,
+        secao_id:opts.secao_id||null, token:opts.token,
+        gal:opts.gal, gals:opts.gals, retries:0});
+    }
+
+    _upRenderFileList(this._fileStatus);
+    _upUpdateQuota();
+
+    // Dispara workers em paralelo
+    var workers = [];
+    var n = Math.min(this.CONCURRENCY, this._total);
+    for(var w=0;w<n;w++) workers.push(this._workerLoop());
+    await Promise.all(workers);
+
+    if(this._onFinish) this._onFinish(this._done, this._errors, this._total);
+  },
+
+  async _workerLoop(){
+    this._running++;
+    while(!this._cancelled){
+      // Espera se pausado
+      if(this._paused){
+        await new Promise(function(r){setTimeout(r,300);});
+        continue;
+      }
+      var item = this._queue.shift();
+      if(!item) break;
+      this._fileStatus[item.file.name] = 'uploading';
+      _upRefreshFileRow(item.file.name, 'uploading');
+      try{
+        var fotoObj = await this._uploadOne(item);
+        this._fileStatus[item.file.name] = 'done';
+        _upRefreshFileRow(item.file.name, 'done');
+        if(fotoObj && this._onFileDone) this._onFileDone(fotoObj);
+        this._done++;
+      }catch(err){
+        if(item.retries < this.MAX_RETRIES){
+          item.retries++;
+          this._queue.unshift(item);
+          this._fileStatus[item.file.name] = 'pending';
+          _upRefreshFileRow(item.file.name, 'pending');
+        } else {
+          console.error('[upload] falhou:', item.file.name, err);
+          this._fileStatus[item.file.name] = 'error';
+          _upRefreshFileRow(item.file.name, 'error');
+          this._erroredItems.push(item);
+          this._errors++;
+          this._done++;
+          // Mostra botão de retry
+          var row = document.getElementById('up-errors-row');
+          var lbl = document.getElementById('up-errors-lbl');
+          if(row){ row.style.display='flex'; }
+          if(lbl){ lbl.textContent = this._errors+' erro'+(this._errors>1?'s'  :''); }
+        }
+      }
+      if(this._onProgress) this._onProgress(this._done, this._total, this._errors);
+    }
+    this._running--;
+  },
+
+  async _uploadOne(item){
+    var file = item.file;
+    var token = item.token;
+    var galSlug = item.galeria_slug;
+    var gal = item.gal;
+    var gals = item.gals;
+
+    // 1. Registra asset no banco e obtém presigned URL
+    var resp = await fetch('/api/gallery-upload',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({
+        action:'init',
+        galeria_slug: galSlug,
+        secao_id:     item.secao_id,
+        filename:     file.name,
+        content_type: file.type||'image/jpeg',
+        tamanho_bytes: file.size
+      })
+    });
+    if(!resp.ok) throw new Error('init falhou: '+resp.status);
+    var initData = await resp.json();
+    var assetId  = initData.asset_id;
+    var signedUrl = initData.signedUrl;
+    var publicUrl = initData.publicUrl;
+    var r2Key     = initData.r2_key;
+
+    // 2. PUT direto para o R2
+    var putResp = await fetch(signedUrl,{
+      method:'PUT',
+      headers:{'Content-Type': file.type||'image/jpeg'},
+      body: file
+    });
+    if(!putResp.ok) throw new Error('PUT R2 falhou: '+putResp.status);
+
+    // 3. Confirma no banco (dispara trigger de quota)
+    await fetch('/api/gallery-upload',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({action:'complete', asset_id: assetId})
+    });
+
+    // 4. Gera e envia thumb + versão web em background (não bloqueia)
+    var thumbUrl=null, thumbKey=null, webUrl=null, webKey=null;
+    try{
+      var [thumbBlob, webBlob] = await Promise.all([_gerarThumb(file), _gerarWebVersion(file)]);
+      // Thumb
+      if(thumbBlob){
+        var tResp = await fetch('/api/gallery-upload',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+          body:JSON.stringify({action:'presign', galeria_slug:galSlug, filename:'thumb_'+file.name, content_type:'image/jpeg'})
+        });
+        if(tResp.ok){
+          var tData=await tResp.json();
+          var tPut=await fetch(tData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:thumbBlob});
+          if(tPut.ok){thumbUrl=tData.publicUrl;thumbKey=tData.r2_key;}
+        }
+      }
+      // Versão web (1080px)
+      if(webBlob){
+        var wResp = await fetch('/api/gallery-upload',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+          body:JSON.stringify({action:'presign', galeria_slug:galSlug, filename:'web_'+file.name, content_type:'image/jpeg'})
+        });
+        if(wResp.ok){
+          var wData=await wResp.json();
+          var wPut=await fetch(wData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:webBlob});
+          if(wPut.ok){webUrl=wData.publicUrl;webKey=wData.r2_key;}
+        }
+      }
+    }catch(ve){console.warn('[upload] variantes:',ve);}
+
+    // 5. Persiste no JSONB (compatibilidade com o sistema atual)
+    var novaFoto = {
+      url: publicUrl, key: r2Key,
+      thumbUrl: thumbUrl, thumbKey: thumbKey,
+      webUrl: webUrl, webKey: webKey,
+      nome: file.name, asset_id: assetId,
+      subgaleriaId: item.secao_id||null,
+      upload_em: new Date().toISOString()
+    };
+    gal.fotos = gal.fotos||[];
+    gal.fotos.push(novaFoto);
+    gal.total_fotos = gal.fotos.length;
+    if(!gal.cover_url) gal.cover_url = publicUrl;
+    s('galerias', gals);
+
+    return novaFoto;
+  }
+};
+
+// ── Funções de UI do painel de upload ─────────────────────────────────────────
+var _STATUS_ICON = {pending:'⏳',uploading:'↑',done:'✓',error:'✕'};
+var _STATUS_COLOR = {pending:'var(--text-hint)',uploading:'var(--amber)',done:'var(--teal)',error:'var(--coral)'};
+
+function _upRenderFileList(statusMap){
+  var list = document.getElementById('up-file-list');
+  if(!list) return;
+  var html = '';
+  Object.keys(statusMap).forEach(function(name){
+    var st = statusMap[name];
+    html += '<div id="up-row-'+_upSafeId(name)+'" style="display:flex;align-items:center;gap:.5rem;padding:3px 1rem;">'
+      +'<span style="font-size:.62rem;color:'+_STATUS_COLOR[st]+';width:12px;text-align:center;flex-shrink:0;">'+_STATUS_ICON[st]+'</span>'
+      +'<span style="font-size:.65rem;color:var(--text-muted);font-family:\'DM Sans\',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;" title="'+name+'">'+name+'</span>'
+      +'</div>';
+  });
+  list.innerHTML = html;
+}
+
+function _upRefreshFileRow(name, status){
+  var row = document.getElementById('up-row-'+_upSafeId(name));
+  if(!row) return;
+  var icon = row.querySelector('span:first-child');
+  if(icon){ icon.textContent=_STATUS_ICON[status]; icon.style.color=_STATUS_COLOR[status]; }
+  // Scroll para o arquivo atual
+  if(status==='uploading') row.scrollIntoView({block:'nearest'});
+}
+
+function _upSafeId(name){ return name.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+function togglePausarUpload(){ _UE.togglePause(); }
+
+async function _upUpdateQuota(){
+  try{
+    var sessionRes = await _sb.auth.getSession();
+    var token = sessionRes?.data?.session?.access_token;
+    if(!token) return;
+    // Busca bytes_usados e bytes_cota do perfil
+    var { data: profile } = await _sb.from('profiles').select('bytes_usados,bytes_cota').eq('id',_currentUser.id).single();
+    if(!profile) return;
+    var usado = profile.bytes_usados || 0;
+    var cota  = profile.bytes_cota;
+    var row   = document.getElementById('up-quota-row');
+    var bar   = document.getElementById('up-quota-bar');
+    var lbl   = document.getElementById('up-quota-lbl');
+    if(!row) return;
+    row.style.display = 'block';
+    var usadoGb = (usado / (1024*1024*1024)).toFixed(2);
+    if(cota){
+      var cotaGb  = (cota  / (1024*1024*1024)).toFixed(1);
+      var pct = Math.min(100, Math.round(usado/cota*100));
+      if(bar) bar.style.width = pct+'%';
+      if(bar) bar.style.background = pct > 85 ? 'var(--coral)' : 'var(--teal)';
+      if(lbl) lbl.textContent = usadoGb+' GB usados de '+cotaGb+' GB';
+    } else {
+      if(bar) bar.style.width = '0%';
+      if(lbl) lbl.textContent = usadoGb+' GB usados';
+    }
+  }catch(e){}
+}
+// ─────────────────────────────────────────────────────────────────────────────
 var _loteMenuAberto=false;
 
 function abrirLoteMenu(e,refIdx){
@@ -6254,6 +6635,7 @@ async function galLoteAcao(acao){
 }
 function cancelarUpload(){
   _uploadCancelado=true;
+  _UE.cancel();
   var pwrap=document.getElementById('upload-progress-wrap');
   var plbl=document.getElementById('upload-progress-label');
   if(plbl) plbl.textContent='Cancelado.';
@@ -6280,78 +6662,66 @@ function _gerarImagemRedimensionada(file,maxPx,quality){
 function _gerarThumb(file){ return _gerarImagemRedimensionada(file,400,0.75); }
 function _gerarWebVersion(file){ return _gerarImagemRedimensionada(file,1080,0.88); }
 
-async function galDetIniciarUpload(files){
+async function galDetIniciarUpload(files, secaoIdOverride){
   if(!_galAtualId||!_currentUser){notify('Galeria não encontrada.');return;}
   var sessionRes=await _sb.auth.getSession();
-  var token=sessionRes&&sessionRes.data&&sessionRes.data.session?sessionRes.data.session.access_token:null;
+  var token=sessionRes?.data?.session?.access_token;
   if(!token){notify('Sessão expirada.');return;}
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal){notify('Galeria não encontrada.');return;}
-  gal.fotos=gal.fotos||[];
-  var subgalTarget=document.getElementById('gal-det-subgal-sel');
-  var subgalId=subgalTarget?subgalTarget.value||null:null;
-  var total=files.length,concluidos=0,erros=0;
-  _uploadCancelado=false;
-  // Mostra barra de progresso
+  if(!gal.slug){notify('Esta galeria não tem slug — publique-a primeiro.');return;}
+
+  // secaoIdOverride vem de galDetProcessarEntries (pasta arrastada)
+  // se não passado, usa o seletor de seção da UI
+  var subgalId = secaoIdOverride !== undefined
+    ? secaoIdOverride
+    : (document.getElementById('gal-det-subgal-sel')?.value || null);
+
   var pwrap=document.getElementById('upload-progress-wrap');
   var pbar=document.getElementById('upload-progress-bar');
   var ppct=document.getElementById('upload-progress-pct');
   var plbl=document.getElementById('upload-progress-label');
-  function _upProgress(done,tot){
-    var pct=tot?Math.round(done/tot*100):0;
-    if(pbar) pbar.style.width=pct+'%';
-    if(ppct) ppct.textContent=pct+'%';
-    if(plbl) plbl.textContent=done+' de '+tot;
-  }
-  if(pwrap){pwrap.style.display='block';_upProgress(0,total);}
+  if(pwrap){pwrap.style.display='block';}
+  if(ppct) ppct.textContent='0%';
+  if(pbar) pbar.style.width='0%';
+  if(plbl) plbl.textContent='0 de '+files.length;
+  _uploadCancelado=false;
 
-  for(var i=0;i<files.length;i++){
-    if(_uploadCancelado) break;
-    var file=files[i];
-    try{
-      // 1. Upload original
-      var resp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:file.name,contentType:file.type,galeriaId:_galAtualId,userId:_currentUser.id})});
-      if(!resp.ok) throw new Error('Erro URL');
-      var data=await resp.json();
-      var putResp=await fetch(data.signedUrl,{method:'PUT',headers:{'Content-Type':file.type},body:file});
-      if(!putResp.ok) throw new Error('Erro PUT');
-
-      // 2. Gerar thumb (400px) e versão web (1080px) em paralelo
-      var thumbUrl=null,thumbKey=null,webUrl=null,webKey=null;
-      try{
-        var [thumbBlob,webBlob]=await Promise.all([_gerarThumb(file),_gerarWebVersion(file)]);
-        // Upload thumb
-        if(thumbBlob){
-          var thumbName='thumb_'+file.name;
-          var tResp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:thumbName,contentType:'image/jpeg',galeriaId:_galAtualId,userId:_currentUser.id})});
-          if(tResp.ok){var tData=await tResp.json();var tPut=await fetch(tData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:thumbBlob});if(tPut.ok){thumbUrl=tData.publicUrl;thumbKey=tData.key;}}
-        }
-        // Upload versão web (1080px)
-        if(webBlob){
-          var webName='web_'+file.name;
-          var wResp=await fetch('/api/gallery-upload',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({filename:webName,contentType:'image/jpeg',galeriaId:_galAtualId,userId:_currentUser.id})});
-          if(wResp.ok){var wData=await wResp.json();var wPut=await fetch(wData.signedUrl,{method:'PUT',headers:{'Content-Type':'image/jpeg'},body:webBlob});if(wPut.ok){webUrl=wData.publicUrl;webKey=wData.key;}}
-        }
-      }catch(te){console.warn('Variants error',te);}
-
-      var novaFoto={url:data.publicUrl,key:data.key,thumbUrl:thumbUrl,thumbKey:thumbKey,webUrl:webUrl,webKey:webKey,nome:file.name,subgaleriaId:subgalId,upload_em:new Date().toISOString()};
-      gal.fotos.push(novaFoto);
-      gal.total_fotos=gal.fotos.length;
-      if(!gal.cover_url) gal.cover_url=data.publicUrl;
-      s('galerias',gals);
-      concluidos++;
-      _upProgress(concluidos,total);
-      // Adiciona só a nova foto ao grid, sem recriar as existentes
-      var realIdx=gal.fotos.length-1;
-      var filtraOk=(_subgalAtiva===null||novaFoto.subgaleriaId===_subgalAtiva);
-      if(filtraOk) rDetGridAppend(novaFoto,realIdx,gal.cover_url===novaFoto.url);
-    }catch(err){console.error(err);erros++;concluidos++;_upProgress(concluidos,total);}
-  }
-  // Esconde barra após 1.5s
-  setTimeout(function(){if(pwrap)pwrap.style.display='none';},1500);
-  rGalDetalhe();
-  notify(erros?concluidos+' enviadas, '+erros+' erro(s).':total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
+  await _UE.run(files, {
+    galeria_slug: gal.slug,
+    secao_id: subgalId,
+    token: token,
+    gal: gal,
+    gals: gals,
+    onProgress: function(done, total, erros){
+      var pct=total?Math.round(done/total*100):0;
+      var pbar2=document.getElementById('upload-progress-bar');
+      var ppct2=document.getElementById('upload-progress-pct');
+      var counter=document.getElementById('up-counter');
+      if(pbar2) pbar2.style.width=pct+'%';
+      if(ppct2) ppct2.textContent=pct+'%';
+      if(counter) counter.textContent=done+' de '+total+(erros?' · '+erros+' erro'+(erros>1?'s':''):'');
+    },
+    onFileDone: function(fotoObj){
+      var filtraOk=(_subgalAtiva===null||fotoObj.subgaleriaId===_subgalAtiva);
+      if(filtraOk){
+        var realIdx=(gal.fotos||[]).length-1;
+        rDetGridAppend(fotoObj, realIdx, gal.cover_url===fotoObj.url);
+      }
+    },
+    onFinish: function(done, erros, total){
+      var icon=document.getElementById('up-status-icon');
+      var lbl=document.getElementById('upload-progress-label');
+      var pwrap2=document.getElementById('upload-progress-wrap');
+      if(icon) icon.textContent=erros?'⚠️':'✅';
+      if(lbl)  lbl.textContent=erros?done+' enviadas, '+erros+' erro(s)':'Envio concluído';
+      _upUpdateQuota();
+      if(!erros) setTimeout(function(){if(pwrap2)pwrap2.style.display='none';},2500);
+      rGalDetalhe();
+      notify(erros?done+' enviadas, '+erros+' erro(s).':total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
+    }
+  });
 }
 function galToggleSort(){
   var m=document.getElementById('gal-sort-menu');
@@ -7192,28 +7562,85 @@ function _rFotoCell(f,realIdx,isCapa,lazyLoad){
     +(isCapa?'<div class="gf-capa-badge" style="position:absolute;bottom:7px;left:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:2px 6px;font-size:.63rem;color:#fff;font-family:\'DM Sans\',sans-serif;pointer-events:none;">Capa</div>':'')
     +'</div>';
 }
+var _galDetFotosFiltradas=[];  // cache das fotos filtradas para a galeria atual
+var _galDetRendered=0;         // quantas já estão no DOM
+var _galDetObserver=null;      // IntersectionObserver do sentinel
+var _GAL_PAGE_SIZE=80;         // fotos por lote
+
 function rDetGrid(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
   var fotos=gal.fotos||[];
   if(_subgalAtiva!==null) fotos=fotos.filter(function(f){return f.subgaleriaId===_subgalAtiva;});
+
+  // Reinicia estado de paginação
+  _galDetFotosFiltradas=fotos;
+  _galDetRendered=0;
+  if(_galDetObserver){_galDetObserver.disconnect();_galDetObserver=null;}
+
   var grid=document.getElementById('gal-det-grid');
   if(!grid) return;
-  // Limpa o grid para garantir que não sobrem fotos de outra galeria
   grid.innerHTML='';
+
   if(!fotos.length){
-    grid.innerHTML='<div id="gal-empty-state" style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'+(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';
+    grid.innerHTML='<div id="gal-empty-state" style="color:var(--text-hint);font-size:.83rem;padding:2rem 0;">'
+      +(gal.fotos&&gal.fotos.length?'Nenhuma foto nesta seção.':'Nenhuma foto ainda.')+'</div>';
     return;
   }
+
+  // Renderiza primeiro lote
+  _galDetRenderLote(gal);
+
+  // Se ainda há mais, adiciona sentinel para scroll infinito
+  if(_galDetRendered < _galDetFotosFiltradas.length){
+    _galDetIniciarObserver(gal);
+  }
+}
+
+function _galDetRenderLote(gal){
+  var grid=document.getElementById('gal-det-grid');
+  if(!grid) return;
+  var inicio=_galDetRendered;
+  var fim=Math.min(inicio+_GAL_PAGE_SIZE, _galDetFotosFiltradas.length);
   var frag=document.createDocumentFragment();
-  fotos.forEach(function(f,i){
+  for(var i=inicio;i<fim;i++){
+    var f=_galDetFotosFiltradas[i];
     var realIdx=(gal.fotos||[]).indexOf(f);
     var tmp=document.createElement('div');
-    tmp.innerHTML=_rFotoCell(f,realIdx,gal.cover_url===f.url,i>=100);
+    tmp.innerHTML=_rFotoCell(f,realIdx,gal.cover_url===f.url,i>=_GAL_PAGE_SIZE);
     frag.appendChild(tmp.firstChild);
-  });
+  }
+  // Remove sentinel antigo, se existir
+  var oldSentinel=document.getElementById('gal-det-sentinel');
+  if(oldSentinel) oldSentinel.remove();
   grid.appendChild(frag);
+  _galDetRendered=fim;
+}
+
+function _galDetIniciarObserver(gal){
+  var grid=document.getElementById('gal-det-grid');
+  if(!grid) return;
+  // Cria sentinela invisível ao final do grid
+  var sentinel=document.createElement('div');
+  sentinel.id='gal-det-sentinel';
+  sentinel.style.cssText='height:1px;margin-top:8px;';
+  grid.appendChild(sentinel);
+
+  _galDetObserver=new IntersectionObserver(function(entries){
+    if(!entries[0].isIntersecting) return;
+    if(_galDetRendered>=_galDetFotosFiltradas.length){
+      _galDetObserver.disconnect();
+      sentinel.remove();
+      return;
+    }
+    _galDetRenderLote(gal);
+    if(_galDetRendered>=_galDetFotosFiltradas.length){
+      _galDetObserver.disconnect();
+      sentinel.remove();
+    }
+  },{rootMargin:'200px'});
+  _galDetObserver.observe(sentinel);
 }
 function rDetGridAppend(f,realIdx,isCapa){
   var grid=document.getElementById('gal-det-grid');
@@ -7284,95 +7711,57 @@ async function mgalIniciarUpload(files){
   if(!_galAtualId||!_currentUser){notify('Salve a galeria antes de enviar fotos.');return;}
   if(!files||!files.length) return;
 
-  // Busca token de autenticação
   var sessionRes=await _sb.auth.getSession();
-  var token=sessionRes&&sessionRes.data&&sessionRes.data.session?sessionRes.data.session.access_token:null;
+  var token=sessionRes?.data?.session?.access_token;
   if(!token){notify('Sessão expirada. Faça login novamente.');return;}
 
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal){notify('Galeria não encontrada.');return;}
-  gal.fotos=gal.fotos||[];
+  if(!gal.slug){notify('Esta galeria não tem slug — publique-a primeiro.');return;}
 
-  var total=files.length;
-  var concluidos=0;
-  var erros=0;
+  // Usa o widget global (upload-progress-wrap)
+  var pwrapM=document.getElementById('upload-progress-wrap');
+  var icon2=document.getElementById('up-status-icon');
+  var lbl2=document.getElementById('upload-progress-label');
+  var counter2=document.getElementById('up-counter');
+  if(pwrapM) pwrapM.style.display='block';
+  if(icon2)  icon2.textContent='⬆️';
+  if(lbl2)   lbl2.textContent='Enviando fotos';
+  if(counter2) counter2.textContent='0 de '+files.length;
 
-  // Mostra barra de progresso
-  var wrap=document.getElementById('mgal-progress-wrap');
-  var bar=document.getElementById('mgal-progress-bar');
-  var label=document.getElementById('mgal-progress-label');
-  var pct=document.getElementById('mgal-progress-pct');
-  if(wrap) wrap.style.display='';
-
-  function atualizaProgresso(){
-    var p=Math.round((concluidos/total)*100);
-    if(bar) bar.style.width=p+'%';
-    if(pct) pct.textContent=p+'%';
-    if(label) label.textContent='Enviando '+concluidos+' de '+total+(erros?' ('+erros+' erro'+(erros>1?'s':'')+')'  :'')+'…';
-  }
-  atualizaProgresso();
-
-  // Upload sequencial para não sobrecarregar
-  for(var i=0;i<files.length;i++){
-    var file=files[i];
-    try{
-      // 1. Pede presigned URL
-      var resp=await fetch('/api/gallery-upload',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({
-          filename:file.name,
-          contentType:file.type,
-          galeriaId:_galAtualId,
-          userId:_currentUser.id
-        })
-      });
-      if(!resp.ok) throw new Error('Erro ao gerar URL de upload');
-      var data=await resp.json();
-
-      // 2. PUT direto para o R2
-      var putResp=await fetch(data.signedUrl,{
-        method:'PUT',
-        headers:{'Content-Type':file.type},
-        body:file
-      });
-      if(!putResp.ok) throw new Error('Erro ao enviar para o R2');
-
-      // 3. Adiciona foto ao array
-      gal.fotos.push({url:data.publicUrl,key:data.key,nome:file.name});
-      gal.total_fotos=gal.fotos.length;
-
-      // Define capa automaticamente com a primeira foto
-      if(!gal.cover_url) gal.cover_url=data.publicUrl;
-
-      s('galerias',gals);
-      concluidos++;
-      atualizaProgresso();
+  await _UE.run(files, {
+    galeria_slug: gal.slug,
+    secao_id: null,
+    token: token,
+    gal: gal,
+    gals: gals,
+    onProgress: function(done, total, erros){
+      var p=Math.round((done/total)*100);
+      var pb=document.getElementById('upload-progress-bar');
+      var pp=document.getElementById('upload-progress-pct');
+      var ct=document.getElementById('up-counter');
+      if(pb) pb.style.width=p+'%';
+      if(pp) pp.textContent=p+'%';
+      if(ct) ct.textContent=done+' de '+total+(erros?' · '+erros+' erro'+(erros>1?'s':''):'');
       rGalFotos(gal);
-
-    }catch(err){
-      console.error('Upload erro:',err);
-      erros++;
-      concluidos++;
-      atualizaProgresso();
+    },
+    onFinish: function(done, erros, total){
+      var icon3=document.getElementById('up-status-icon');
+      var lbl3=document.getElementById('upload-progress-label');
+      var pwrapM2=document.getElementById('upload-progress-wrap');
+      if(icon3) icon3.textContent=erros?'⚠️':'✅';
+      if(lbl3)  lbl3.textContent=erros?done+' enviadas, '+erros+' erro(s)':'Envio concluído';
+      _upUpdateQuota();
+      if(!erros) setTimeout(function(){if(pwrapM2)pwrapM2.style.display='none';},2500);
+      rGal();
+      if(!erros) notify(total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
+      else notify(erros+' foto'+(erros>1?'s':'')+' não foram enviadas.');
+      cov('ov-gal');
+      goDirecto('galerias');
+      rGalDetalhe();
     }
-  }
-
-  // Finaliza
-  if(label) label.textContent=erros?'Concluído com '+erros+' erro'+(erros>1?'s':'')+'.':'Envio concluído.';
-  if(pct) pct.textContent='100%';
-  if(bar) bar.style.width='100%';
-  setTimeout(function(){if(wrap) wrap.style.display='none';},3000);
-
-  rGal();
-  if(!erros) notify(total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
-  else notify(erros+' foto'+(erros>1?'s':'')+' não foram enviadas.');
-
-  // Fecha modal e abre vista de detalhe
-  cov('ov-gal');
-  goDirecto('galerias');
-  rGalDetalhe();
+  });
 }
 
 function rEdu(){
@@ -9240,18 +9629,39 @@ function salvarPontoFocal(){
 </div>
 
 <!-- Upload progress bar -->
-<div id="upload-progress-wrap" style="display:none;position:fixed;bottom:1.5rem;right:1.75rem;z-index:500;background:var(--surface);border:.5px solid var(--border-strong);border-radius:10px;padding:.75rem 1rem;min-width:210px;max-width:250px;box-shadow:0 4px 20px rgba(0,0,0,.12);">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
-    <span style="font-size:.72rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;">Enviando fotos</span>
-    <div style="display:flex;align-items:center;gap:.6rem;">
-      <span id="upload-progress-pct" style="font-size:.72rem;color:var(--text);font-family:'DM Sans',sans-serif;font-weight:500;">0%</span>
-      <button onclick="cancelarUpload()" title="Cancelar" style="background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:.75rem;line-height:1;padding:0;" onmouseover="this.style.color='var(--coral)'" onmouseout="this.style.color='var(--text-hint)'">✕</button>
+<div id="upload-progress-wrap" style="display:none;position:fixed;bottom:1.5rem;right:1.75rem;z-index:500;background:var(--surface);border:.5px solid var(--border-strong);border-radius:12px;padding:0;min-width:280px;max-width:310px;box-shadow:0 6px 28px rgba(0,0,0,.14);overflow:hidden;">
+  <!-- Cabeçalho -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem .55rem;">
+    <div style="display:flex;align-items:center;gap:.5rem;">
+      <span id="up-status-icon" style="font-size:.8rem;">⬆️</span>
+      <span id="upload-progress-label" style="font-size:.73rem;font-weight:500;color:var(--text);font-family:'DM Sans',sans-serif;">Enviando fotos</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem;">
+      <span id="upload-progress-pct" style="font-size:.72rem;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-weight:500;">0%</span>
+      <button id="up-btn-pause" onclick="togglePausarUpload()" title="Pausar" style="background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:.78rem;line-height:1;padding:2px 3px;" onmouseover="this.style.color='var(--amber)'" onmouseout="this.style.color='var(--text-hint)'">⏸</button>
+      <button onclick="cancelarUpload()" title="Cancelar" style="background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:.75rem;line-height:1;padding:2px 3px;" onmouseover="this.style.color='var(--coral)'" onmouseout="this.style.color='var(--text-hint)'">✕</button>
     </div>
   </div>
-  <div style="height:3px;background:var(--surface2);border-radius:2px;overflow:hidden;">
-    <div id="upload-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .25s ease;border-radius:2px;"></div>
+  <!-- Barra total -->
+  <div style="height:2px;background:var(--surface2);margin:0 1rem .6rem;">
+    <div id="upload-progress-bar" style="height:100%;background:var(--amber);width:0%;transition:width .3s ease;"></div>
   </div>
-  <div id="upload-progress-label" style="font-size:.65rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;margin-top:.4rem;">0 de 0</div>
+  <!-- Contador -->
+  <div id="up-counter" style="padding:0 1rem .45rem;font-size:.65rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;">0 de 0</div>
+  <!-- Lista de arquivos -->
+  <div id="up-file-list" style="max-height:160px;overflow-y:auto;border-top:.5px solid var(--border);padding:.4rem 0;"></div>
+  <!-- Rodapé: erros + retry -->
+  <div id="up-errors-row" style="display:none;padding:.5rem 1rem;border-top:.5px solid var(--border);display:none;align-items:center;justify-content:space-between;">
+    <span id="up-errors-lbl" style="font-size:.65rem;color:var(--coral);font-family:'DM Sans',sans-serif;"></span>
+    <button onclick="_UE.retryErrors()" style="font-size:.65rem;color:var(--amber);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;text-decoration:underline;">Tentar de novo</button>
+  </div>
+  <!-- Quota -->
+  <div id="up-quota-row" style="display:none;padding:.4rem 1rem .55rem;border-top:.5px solid var(--border);">
+    <div style="height:2px;background:var(--surface2);border-radius:1px;overflow:hidden;margin-bottom:.3rem;">
+      <div id="up-quota-bar" style="height:100%;background:var(--teal);width:0%;transition:width .4s;"></div>
+    </div>
+    <span id="up-quota-lbl" style="font-size:.62rem;color:var(--text-hint);font-family:'DM Sans',sans-serif;"></span>
+  </div>
 </div>
 
 <!-- MODAL DESIGN DA GALERIA -->

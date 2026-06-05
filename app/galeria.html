@@ -451,6 +451,11 @@ var _lbIdx = 0;
 var _downloads = false;
 var _designResolvido = null;
 
+// ── Paginação do grid ─────────────────────────────────────────────────────────
+var _galGridRendered = 0;
+var _galGridObserver = null;
+var _GAL_PAGE_SIZE = 80;
+
 var _slug = location.pathname.replace('/galeria/','').replace(/\//g,'');
 
 // ===== FAVORITOS DO CLIENTE =====
@@ -657,15 +662,17 @@ function renderizarGaleria(){
 
   document.getElementById('app-root').innerHTML = html;
 
-  // Renderiza fotos com fade-in por imagem
+  // Renderiza fotos — primeiro lote imediato, restante via scroll infinito
   setTimeout(function(){
     var grid = document.getElementById('gal-grid');
     if(grid){
-      grid.innerHTML = renderGridFotos();
-      // zoom_grid para uniforme/editorial — masonry já usa as colunas no renderGridFotos
       if(d.zoom_grid && (d.grade==='uniforme'||d.grade==='editorial')){
         grid.style.gridTemplateColumns='repeat('+d.zoom_grid+',1fr)';
       }
+      _galGridRendered = 0;
+      if(_galGridObserver){ _galGridObserver.disconnect(); _galGridObserver=null; }
+      galGridRenderLote(grid, d);
+      if(_galGridRendered < _fotosVisiveis.length) galGridIniciarObserver(grid, d);
     }
     document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
       var wrap = img.closest('.gal-foto-wrap');
@@ -761,38 +768,14 @@ function renderSkeletons(n, grade){
 }
 
 function renderGridFotos(){
+  // Legado — ainda usado em nenhum lugar crítico após E6,
+  // mas mantido por segurança para chamadas não migradas.
   if(!_fotosVisiveis.length){
     return '<div class="gal-empty">Nenhuma foto nesta seção.</div>';
   }
   var grade = _designResolvido ? _designResolvido.grade : 'masonry';
 
-  // Função auxiliar: célula de foto
-  function fotoCell(foto, i, classExtra){
-    var imgSrc = foto.webUrl || foto.url;
-    var dlBtn = _downloads ? (
-      '<div class="btn-dl-wrap" onclick="event.stopPropagation()">'
-      +'<button class="btn-dl-foto" onclick="toggleDlMenu(this,'+i+')" title="Download">'
-      +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
-      +'</button>'
-      +'<div class="dl-menu" id="dl-menu-'+i+'">'
-      +renderDlOpts(foto, i)
-      +'</div>'
-      +'</div>'
-    ) : '';
-    var favKey = _fotoId(foto);
-    var favBtn = '<button class="btn-fav-foto'+(_favIds.indexOf(favKey)>-1?' ativo':'')+'" '
-      +'data-fav-key="'+favKey+'" onclick="event.stopPropagation();toggleFavorito(\''+favKey+'\')" title="Favoritar">'
-      +_favHeartSvg+'</button>';
-    return '<div class="gal-foto-wrap'+(classExtra||'')+'" onclick="openLb('+i+')">'
-      +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
-      +(foto.url !== imgSrc ? ' onerror="this.src=\''+foto.url+'\'"' : '')+'>'
-      +favBtn
-      +'<div class="gal-foto-overlay">'+dlBtn+'</div>'
-      +'</div>';
-  }
-
   if(grade === 'masonry'){
-    // Distribui fotos em colunas via JS — sem gaps do CSS column-fill
     var nCols = (_designResolvido && _designResolvido.zoom_grid) ? _designResolvido.zoom_grid : 4;
     var cols = [];
     for(var c=0;c<nCols;c++) cols.push([]);
@@ -807,11 +790,112 @@ function renderGridFotos(){
   }
 
   return _fotosVisiveis.map(function(foto, i){
-    // Destaque em layout editorial: a cada 7 fotos, índices 0 e 3 são grandes
     var classDestaque = (grade === 'editorial' && (i % 7 === 0 || i % 7 === 3)) ? ' foto-destaque' : '';
     return fotoCell(foto, i, classDestaque);
   }).join('');
 }
+
+// ── Paginação do grid ─────────────────────────────────────────────────────────
+function galGridRenderLote(grid, d){
+  var grade = d ? d.grade : 'masonry';
+  var inicio = _galGridRendered;
+  var fim = Math.min(inicio + _GAL_PAGE_SIZE, _fotosVisiveis.length);
+  var lote = _fotosVisiveis.slice(inicio, fim);
+
+  // Remove sentinel antigo
+  var old = document.getElementById('gal-grid-sentinel');
+  if(old) old.remove();
+
+  if(grade === 'masonry'){
+    var nCols = (d && d.zoom_grid) ? d.zoom_grid : 4;
+    // Reutiliza colunas já existentes ou cria novas
+    var cols = Array.from(grid.querySelectorAll('.masonry-col'));
+    if(!cols.length){
+      for(var c=0;c<nCols;c++){
+        var col=document.createElement('div');
+        col.className='masonry-col';
+        grid.appendChild(col);
+        cols.push(col);
+      }
+    }
+    lote.forEach(function(f, li){
+      var i = inicio + li;
+      var tmp = document.createElement('div');
+      tmp.innerHTML = fotoCell(f, i, '');
+      cols[i % nCols].appendChild(tmp.firstChild);
+    });
+  } else {
+    var frag = document.createDocumentFragment();
+    lote.forEach(function(f, li){
+      var i = inicio + li;
+      var classDestaque = (grade==='editorial'&&(i%7===0||i%7===3))?' foto-destaque':'';
+      var tmp = document.createElement('div');
+      tmp.innerHTML = fotoCell(f, i, classDestaque);
+      frag.appendChild(tmp.firstChild);
+    });
+    grid.appendChild(frag);
+  }
+
+  // Aplica fade-in nas novas fotos
+  grid.querySelectorAll('.gal-foto-wrap img:not(.img-watched)').forEach(function(img){
+    img.classList.add('img-watched');
+    var wrap = img.closest('.gal-foto-wrap');
+    if(img.complete){ wrap.classList.add('loaded'); }
+    else { img.addEventListener('load',function(){ wrap.classList.add('loaded'); }); }
+  });
+
+  _galGridRendered = fim;
+}
+
+function galGridIniciarObserver(grid, d){
+  var sentinel = document.createElement('div');
+  sentinel.id = 'gal-grid-sentinel';
+  sentinel.style.cssText = 'height:1px;grid-column:1/-1;';
+  grid.appendChild(sentinel);
+
+  _galGridObserver = new IntersectionObserver(function(entries){
+    if(!entries[0].isIntersecting) return;
+    if(_galGridRendered >= _fotosVisiveis.length){
+      _galGridObserver.disconnect();
+      sentinel.remove();
+      return;
+    }
+    galGridRenderLote(grid, d);
+    if(_galGridRendered >= _fotosVisiveis.length){
+      _galGridObserver.disconnect();
+      sentinel.remove();
+    }
+  }, {rootMargin:'300px'});
+  _galGridObserver.observe(sentinel);
+}
+
+// `fotoCell` precisa ser acessível fora de renderGridFotos para o lote.
+// Movida para função de módulo — definida uma vez e reutilizada.
+function fotoCell(foto, i, classExtra){
+  var d = _designResolvido;
+  var imgSrc = foto.webUrl || foto.url;
+  var dlBtn = _downloads ? (
+    '<div class="btn-dl-wrap" onclick="event.stopPropagation()">'
+    +'<button class="btn-dl-foto" onclick="toggleDlMenu(this,'+i+')" title="Download">'
+    +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+    +'</button>'
+    +'<div class="dl-menu" id="dl-menu-'+i+'">'
+    +renderDlOpts(foto, i)
+    +'</div>'
+    +'</div>'
+  ) : '';
+  var favKey = _fotoId(foto);
+  var favBtn = '<button class="btn-fav-foto'+(_favIds.indexOf(favKey)>-1?' ativo':'')+'" '
+    +'data-fav-key="'+favKey+'" onclick="event.stopPropagation();toggleFavorito(\''+favKey+'\')" title="Favoritar">'
+    +_favHeartSvg+'</button>';
+  return '<div class="gal-foto-wrap'+(classExtra||'')+'" onclick="openLb('+i+')">'
+    +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
+    +(foto.url !== imgSrc ? ' onerror="this.src=\''+foto.url+'\'"' : '')+'>'
+    +favBtn
+    +'<div class="gal-foto-overlay">'+dlBtn+'</div>'
+    +'</div>';
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function renderDlOpts(foto, i){
   var html = '';
@@ -865,10 +949,14 @@ function filtrarSubgalPublica(subgalId){
   var grid = document.getElementById('gal-grid');
   if(grid){
     if(_designResolvido) grid.className = 'gal-grid grade-' + _designResolvido.grade;
-    grid.innerHTML = renderGridFotos();
     if(_designResolvido && _designResolvido.zoom_grid && (_designResolvido.grade==='uniforme'||_designResolvido.grade==='editorial')){
       grid.style.gridTemplateColumns='repeat('+_designResolvido.zoom_grid+',1fr)';
     }
+    _galGridRendered = 0;
+    if(_galGridObserver){ _galGridObserver.disconnect(); _galGridObserver=null; }
+    grid.innerHTML = '';
+    galGridRenderLote(grid, _designResolvido||{grade:'masonry'});
+    if(_galGridRendered < _fotosVisiveis.length) galGridIniciarObserver(grid, _designResolvido||{grade:'masonry'});
     document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
       var wrap = img.closest('.gal-foto-wrap');
       if(img.complete){ wrap.classList.add('loaded'); }
@@ -1090,8 +1178,11 @@ function renderViewFavoritos(){
   html+='<div class="gal-grid grade-'+grade+'" id="gal-grid"></div>';
   document.getElementById('app-root').innerHTML=html;
   var grid=document.getElementById('gal-grid');
-  grid.innerHTML=renderGridFotos(); // reaproveita a renderização real (masonry/uniforme/editorial)
   if(d&&d.zoom_grid&&(grade==='uniforme'||grade==='editorial')){ grid.style.gridTemplateColumns='repeat('+d.zoom_grid+',1fr)'; }
+  _galGridRendered=0;
+  if(_galGridObserver){_galGridObserver.disconnect();_galGridObserver=null;}
+  galGridRenderLote(grid,d||{grade:grade});
+  if(_galGridRendered<_fotosVisiveis.length) galGridIniciarObserver(grid,d||{grade:grade});
   document.querySelectorAll('.gal-foto-wrap img').forEach(function(img){
     var wrap=img.closest('.gal-foto-wrap');
     if(img.complete){ wrap.classList.add('loaded'); }
