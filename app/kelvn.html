@@ -9789,6 +9789,7 @@ async function _metaVerificarConexao(somenteWidget){
     var resp = await fetch('/api/meta-ads?action=dados&periodo=last_7d', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
+    if(!resp.ok){ throw new Error('status ' + resp.status); }
     var json = await resp.json();
 
     if(somenteWidget){
@@ -9798,7 +9799,8 @@ async function _metaVerificarConexao(somenteWidget){
     }
   } catch(e) {
     console.error('meta verificar conexao:', e);
-    if(!somenteWidget) _metaMostrar('desconectado');
+    if(somenteWidget) _metaAtualizarWidget({ conectado: false });
+    else _metaMostrar('desconectado');
   }
 }
 
