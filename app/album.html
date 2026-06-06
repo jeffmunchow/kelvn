@@ -355,7 +355,8 @@ function setSaveStatus(txt) {
   if (el) el.textContent = txt;
 }
 
-// ── Tema (compartilhado com a Kelvn via localStorage) ──────────────────────────
+// ── Tema (fonte da verdade: Supabase em configuracoes.sd; localStorage é cache) ─
+var _sd = {};
 function syncThemeIcons() {
   var t = document.documentElement.getAttribute('data-theme');
   var sun = document.getElementById('snav-theme-sun');
@@ -363,10 +364,29 @@ function syncThemeIcons() {
   if (sun) sun.style.display = t === 'dark' ? 'none' : 'block';
   if (moon) moon.style.display = t === 'dark' ? 'block' : 'none';
 }
+async function carregarSd() {
+  try {
+    var { data } = await _sb.from('configuracoes').select('sd').eq('user_id', _userId).maybeSingle();
+    _sd = (data && data.sd) ? data.sd : {};
+    if (_sd.theme && _sd.theme !== document.documentElement.getAttribute('data-theme')) {
+      document.documentElement.setAttribute('data-theme', _sd.theme);
+      try { localStorage.setItem('kelvn_theme', _sd.theme); } catch(e) {}
+    }
+    syncThemeIcons();
+  } catch(e) {}
+}
 function toggleTheme() {
   var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
-  try { localStorage.setItem('kelvn_theme', t); } catch(e) {}
+  try { localStorage.setItem('kelvn_theme', t); } catch(e) {} // cache pré-paint
+  // Fonte da verdade: Supabase (merge no sd para não apagar outras configs)
+  _sd.theme = t;
+  if (_userId) {
+    _sb.from('configuracoes').upsert(
+      { user_id: _userId, sd: _sd, atualizado_em: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    ).then(function(){}, function(){});
+  }
   syncThemeIcons();
 }
 
@@ -379,6 +399,7 @@ async function init() {
     if (!_session) { window.location.href = '/'; return; }
     _userId = _session.user.id;
     document.getElementById('overlay-auth').style.display = 'none';
+    await carregarSd();
     await carregarGalerias();
     await irParaLista();
   } catch(e) {

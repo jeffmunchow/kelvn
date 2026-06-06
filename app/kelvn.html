@@ -1987,7 +1987,9 @@ function notify(m){var n=document.getElementById('notif');n.textContent=m;n.clas
 function toggleTheme(){
   var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',t);
-  localStorage.setItem('kelvn_theme',t);
+  localStorage.setItem('kelvn_theme',t); // cache pré-paint (não é a fonte da verdade)
+  // Fonte da verdade: Supabase, dentro de configuracoes.sd (s() já sincroniza)
+  if(_currentUser){ var sd=g('sd')||{}; sd.theme=t; s('sd',sd); }
   var sun=document.getElementById('snav-theme-sun');
   var moon=document.getElementById('snav-theme-moon');
   if(sun) sun.style.display=t==='dark'?'none':'block';
@@ -8508,6 +8510,15 @@ async function onLogin(user){
   _currentUser = user;
   hideAuthScreen();
   await initUserData();
+  // Tema: configuracoes.sd.theme (Supabase) é a fonte da verdade; reconcilia o cache
+  var _sdTheme=(g('sd')||{}).theme;
+  if(_sdTheme && _sdTheme!==document.documentElement.getAttribute('data-theme')){
+    document.documentElement.setAttribute('data-theme',_sdTheme);
+    localStorage.setItem('kelvn_theme',_sdTheme);
+    var _ts=document.getElementById('snav-theme-sun'),_tm=document.getElementById('snav-theme-moon');
+    if(_ts)_ts.style.display=_sdTheme==='dark'?'none':'block';
+    if(_tm)_tm.style.display=_sdTheme==='dark'?'block':'none';
+  }
   rR();
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
   var el = document.getElementById('userNameDisplay');
