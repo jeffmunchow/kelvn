@@ -5,10 +5,15 @@
   "engines": {
     "node": "22.x"
   },
+  "scripts": {
+    "vercel-build": "npm install --platform=linux --arch=x64 sharp"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.600.0",
     "@aws-sdk/s3-request-presigner": "^3.600.0",
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "dotenv": "^17.4.2"

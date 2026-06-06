@@ -164,6 +164,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .modal-spread-label{font-size:.58rem;color:var(--text-hint);text-align:center;padding:.3rem 0;}
 .modal-footer{padding:.75rem 1.25rem;border-top:.5px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:flex-end;}
 
+/* ── Nível 6 — Exportação ────────────────────────────────────────── */
+#modal-exportar{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
+#modal-exportar.open{display:flex;}
+.perfil-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;}
+.perfil-opt{padding:.65rem .9rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;transition:border-color .15s,background .15s;}
+.perfil-opt:hover{border-color:var(--amber);}
+.perfil-opt.sel{border-color:var(--amber);background:var(--amber-light);}
+.perfil-opt-nome{font-size:.75rem;font-weight:500;color:var(--text);margin-bottom:.2rem;}
+.perfil-opt-desc{font-size:.63rem;color:var(--text-hint);}
+.res-aviso{padding:.6rem .9rem;border-radius:6px;font-size:.75rem;margin-bottom:.5rem;}
+.res-aviso.ok{background:var(--teal-light);color:var(--teal);border:.5px solid var(--teal);}
+.res-aviso.warn{background:var(--amber-light);color:var(--amber);border:.5px solid var(--amber);}
+.res-aviso.critico{background:var(--coral-light);color:var(--coral);border:.5px solid var(--coral);}
+/* Painel flutuante de progresso */
+#export-progress-panel{
+  position:fixed;bottom:1.25rem;right:1.25rem;
+  width:280px;background:var(--surface);border:.5px solid var(--border-strong);
+  border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.3);
+  padding:1rem;z-index:600;display:none;
+}
+#export-progress-panel.visible{display:block;}
+.exp-panel-titulo{font-size:.78rem;font-weight:500;color:var(--text);margin-bottom:.6rem;}
+.exp-progress-bar-wrap{height:4px;background:var(--surface3);border-radius:2px;margin-bottom:.5rem;overflow:hidden;}
+.exp-progress-bar{height:100%;background:var(--amber);border-radius:2px;transition:width .4s;}
+.exp-panel-sub{font-size:.68rem;color:var(--text-hint);margin-bottom:.75rem;}
+.exp-panel-actions{display:flex;gap:.5rem;}
+/* Histórico de exportações */
+#exportacoes-hist{padding:.5rem 0;display:flex;flex-direction:column;gap:.5rem;}
+.exp-hist-item{background:var(--surface2);border:.5px solid var(--border-strong);border-radius:8px;padding:.65rem .9rem;}
+.exp-hist-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;}
+.exp-hist-perfil{font-size:.7rem;font-weight:500;color:var(--text);}
+.exp-hist-data{font-size:.62rem;color:var(--text-hint);margin-left:auto;}
+.exp-hist-status{font-size:.65rem;padding:1px 7px;border-radius:20px;}
+.exp-hist-status.ok{background:var(--teal-light);color:var(--teal);}
+.exp-hist-status.err{background:var(--coral-light);color:var(--coral);}
+.exp-hist-status.prog{background:var(--amber-light);color:var(--amber);}
+.exp-hist-size{font-size:.65rem;color:var(--text-hint);}
 /* ── Nível 5 — Revisão ───────────────────────────────────────────── */
 #modal-share{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
 #modal-share.open{display:flex;}
@@ -350,6 +387,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Propriedades
       </button>
+      <button class="btn" id="btn-exportar" onclick="abrirModalExportar()" style="padding:4px 12px;font-size:.72rem;display:none;" title="Gerar PDF para gráfica">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar PDF
+      </button>
       <div id="save-status">—</div>
     </div>
     <!-- Banner de aprovado -->
@@ -428,6 +469,44 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <button class="btn" onclick="aplicarAutoLayout()" style="padding:5px 14px;font-size:.75rem;">Aceitar layout</button>
     </div>
   </div>
+</div>
+
+<!-- ── Modal Exportar PDF ── -->
+<div id="modal-exportar">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-titulo">Exportar para impressão</div>
+      <button class="btn btn-sec" onclick="fecharModalExportar()" style="padding:3px 10px;font-size:.72rem;">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem;">
+      <!-- Resumo -->
+      <div id="exp-resumo" style="font-size:.78rem;color:var(--text-muted);margin-bottom:1rem;padding:.6rem .9rem;background:var(--surface2);border-radius:6px;"></div>
+      <!-- Perfil de gráfica -->
+      <div style="font-size:.72rem;color:var(--text-hint);margin-bottom:.5rem;">Perfil de gráfica</div>
+      <div class="perfil-grid" id="perfil-grid"></div>
+      <!-- Validação de resolução -->
+      <div id="exp-resolucao" style="margin-top:.5rem;"></div>
+      <!-- Histórico de exportações -->
+      <div style="margin-top:1rem;">
+        <div style="font-size:.72rem;color:var(--text-hint);margin-bottom:.5rem;">Exportações anteriores</div>
+        <div id="exportacoes-hist"><div style="font-size:.75rem;color:var(--text-hint);">Carregando…</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="fecharModalExportar()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
+      <button class="btn" id="btn-gerar-pdf" onclick="gerarPdf()" style="padding:5px 14px;font-size:.75rem;">Gerar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Painel flutuante de progresso ── -->
+<div id="export-progress-panel">
+  <div class="exp-panel-titulo" id="exp-panel-titulo">Gerando PDF…</div>
+  <div class="exp-progress-bar-wrap">
+    <div class="exp-progress-bar" id="exp-progress-bar" style="width:5%"></div>
+  </div>
+  <div class="exp-panel-sub" id="exp-panel-sub">Processando spreads…</div>
+  <div class="exp-panel-actions" id="exp-panel-actions"></div>
 </div>
 
 <!-- ── Modal Compartilhar ── -->
@@ -1993,6 +2072,297 @@ async function aplicarAutoLayout() {
   renderSpread();
 }
 
+// ── Nível 6: Exportação ──────────────────────────────────────────────────────
+
+// Perfis de gráfica (espelho de _perfis-grafica.js)
+var PERFIS_GRAFICA = [
+  { id:'padrao',         nome:'Padrão',            desc:'Maioria das gráficas brasileiras', sangria:3, dpi:300 },
+  { id:'alta_resolucao', nome:'Alta resolução',     desc:'350 DPI para offset premium',     sangria:5, dpi:350 },
+  { id:'grapho',         nome:'Grapho',             desc:'Especificação Grapho (SP)',        sangria:5, dpi:300 },
+  { id:'labfoto',        nome:'Labfoto',            desc:'Especificação Labfoto',            sangria:3, dpi:300 },
+];
+
+// Dimensões físicas do spread por formato (cm)
+var DIMENSOES_FORMATO_PRINT = {
+  paisagem: { spread_w: 60, h: 20 },
+  quadrado: { spread_w: 50, h: 25 },
+  retrato:  { spread_w: 40, h: 28 },
+};
+
+var _perfilSelecionado = 'padrao';
+var _exportJobId       = null;
+var _pollTimer         = null;
+
+function abrirModalExportar() {
+  var album = estado.album;
+  if (!album) return;
+  document.getElementById('modal-exportar').classList.add('open');
+
+  // Resumo
+  var fmt = album.formato || 'paisagem';
+  var dims = DIMENSOES_FORMATO_PRINT[fmt] || DIMENSOES_FORMATO_PRINT.paisagem;
+  var nSpreads = estado.spreads.length;
+  document.getElementById('exp-resumo').innerHTML =
+    '<strong>' + esc(album.nome) + '</strong>' +
+    ' &mdash; ' + nSpreads + ' spread' + (nSpreads !== 1 ? 's' : '') +
+    ' &mdash; ' + fmt + ' (' + dims.spread_w + '×' + dims.h + ' cm por spread)';
+
+  // Perfis
+  var grid = document.getElementById('perfil-grid');
+  grid.innerHTML = '';
+  PERFIS_GRAFICA.forEach(function(p) {
+    var d = document.createElement('div');
+    d.className = 'perfil-opt' + (p.id === _perfilSelecionado ? ' sel' : '');
+    d.innerHTML =
+      '<div class="perfil-opt-nome">' + esc(p.nome) + '</div>' +
+      '<div class="perfil-opt-desc">' + esc(p.desc) + ' &mdash; ' + p.dpi + ' DPI, ' + p.sangria + 'mm sangria</div>';
+    d.onclick = function() {
+      _perfilSelecionado = p.id;
+      grid.querySelectorAll('.perfil-opt').forEach(function(el) { el.classList.remove('sel'); });
+      d.classList.add('sel');
+      validarResolucaoUI();
+    };
+    grid.appendChild(d);
+  });
+
+  // Validação + histórico
+  validarResolucaoUI();
+  carregarHistoricoExportacoes();
+}
+
+function fecharModalExportar() {
+  document.getElementById('modal-exportar').classList.remove('open');
+}
+
+function validarResolucaoUI() {
+  var perfil = PERFIS_GRAFICA.find(function(p) { return p.id === _perfilSelecionado; }) || PERFIS_GRAFICA[0];
+  var alertas = validarResolucao(perfil);
+  var el = document.getElementById('exp-resolucao');
+  var btn = document.getElementById('btn-gerar-pdf');
+  if (!alertas.length) {
+    el.innerHTML = '<div class="res-aviso ok">✓ Todas as fotos têm resolução adequada para ' + perfil.dpi + ' DPI.</div>';
+    btn.disabled = false;
+  } else {
+    var criticos = alertas.filter(function(a) { return a.nivel === 'critico'; });
+    var avisos   = alertas.filter(function(a) { return a.nivel === 'aviso'; });
+    var html = '';
+    if (criticos.length) {
+      html += '<div class="res-aviso critico">⚠ ' + criticos.length + ' foto(s) abaixo de ' +
+        Math.round(perfil.dpi * 0.7) + ' DPI — qualidade insuficiente para impressão.</div>';
+      btn.disabled = true;
+    } else {
+      btn.disabled = false;
+    }
+    if (avisos.length) {
+      html += '<div class="res-aviso warn">! ' + avisos.length + ' foto(s) levemente abaixo de ' + perfil.dpi + ' DPI — resultado pode ser aceitável.</div>';
+    }
+    if (criticos.length) {
+      html += '<div style="font-size:.72rem;color:var(--text-hint);margin-top:.35rem;">Substitua as fotos com baixa resolução antes de exportar.</div>';
+    }
+    el.innerHTML = html;
+  }
+}
+
+function validarResolucao(perfil) {
+  var alertas = [];
+  var dpi = perfil.dpi;
+  var formato = (estado.album && estado.album.formato) || 'paisagem';
+  var dims = DIMENSOES_FORMATO_PRINT[formato] || DIMENSOES_FORMATO_PRINT.paisagem;
+  var CM2PX = dpi / 2.54;
+
+  estado.spreads.forEach(function(spread) {
+    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; });
+    if (!tpl) return;
+    var slots = (spread.album_slots || []).sort(function(a,b) { return a.slot_index - b.slot_index; });
+    slots.forEach(function(slot, idx) {
+      if (!slot.foto_key) return;
+      var foto = estado.pool.find(function(f) { return f.key === slot.foto_key; });
+      if (!foto || !foto.w || !foto.h) return; // sem dados de dimensão, ignorar
+      var s = tpl.slots[idx];
+      if (!s) return;
+      var slotWcm = s.w * dims.spread_w;
+      var slotHcm = s.h * dims.h;
+      var minPxW = Math.ceil((slotWcm / 2.54) * dpi);
+      var minPxH = Math.ceil((slotHcm / 2.54) * dpi);
+      var minPx  = Math.max(minPxW, minPxH);
+      var fotoPx = Math.max(foto.w, foto.h);
+      if (fotoPx < minPx) {
+        var dpiReal = Math.round((fotoPx / Math.max(slotWcm, slotHcm)) * 2.54);
+        alertas.push({
+          foto_key: slot.foto_key,
+          spread_pos: spread.posicao,
+          dpi_necessario: dpi,
+          dpi_atual: dpiReal,
+          nivel: dpiReal < dpi * 0.7 ? 'critico' : 'aviso',
+        });
+      }
+    });
+  });
+  return alertas;
+}
+
+async function gerarPdf() {
+  var album = estado.album;
+  if (!album) return;
+  var btn = document.getElementById('btn-gerar-pdf');
+  btn.disabled = true;
+  btn.textContent = 'Iniciando…';
+
+  try {
+    var jwt = _session.access_token;
+    var r = await fetch('/api/album-exportar?action=iniciar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify({ album_id: album.id, perfil_grafica: _perfilSelecionado }),
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Erro ao iniciar exportação');
+    _exportJobId = data.job_id;
+    fecharModalExportar();
+    iniciarPainelProgresso();
+    _pollTimer = setInterval(pollExportStatus, 5000);
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Gerar PDF';
+    alert('Erro: ' + (err.message || 'Tente novamente.'));
+  }
+}
+
+function iniciarPainelProgresso() {
+  var panel = document.getElementById('export-progress-panel');
+  document.getElementById('exp-panel-titulo').textContent = 'Gerando PDF…';
+  document.getElementById('exp-progress-bar').style.width = '5%';
+  document.getElementById('exp-panel-sub').textContent = 'Aguardando processamento…';
+  document.getElementById('exp-panel-actions').innerHTML =
+    '<button class="btn btn-sec" onclick="fecharPainelProgresso()" style="padding:4px 10px;font-size:.7rem;">Ocultar</button>';
+  panel.classList.add('visible');
+}
+
+function fecharPainelProgresso() {
+  document.getElementById('export-progress-panel').classList.remove('visible');
+}
+
+async function pollExportStatus() {
+  if (!_exportJobId) return;
+  try {
+    var jwt = _session.access_token;
+    var r = await fetch('/api/album-exportar?action=status&job_id=' + _exportJobId, {
+      headers: { 'Authorization': 'Bearer ' + jwt },
+    });
+    var data = await r.json();
+
+    var bar = document.getElementById('exp-progress-bar');
+    var sub = document.getElementById('exp-panel-sub');
+
+    if (data.status === 'processando' || data.status === 'aguardando') {
+      var pct = data.progresso || 5;
+      bar.style.width = pct + '%';
+      sub.textContent = pct + '% — processando ' + (data.total_spreads ? 'spreads…' : '…');
+    } else if (data.status === 'concluido') {
+      clearInterval(_pollTimer);
+      bar.style.width = '100%';
+      bar.style.background = 'var(--teal)';
+      document.getElementById('exp-panel-titulo').textContent = '✓ PDF pronto!';
+      var mb = data.pdf_tamanho_kb ? (data.pdf_tamanho_kb / 1024).toFixed(1) + ' MB' : '';
+      sub.textContent = (estado.album ? estado.album.nome : 'Álbum') + (mb ? ' — ' + mb : '');
+      var actions = document.getElementById('exp-panel-actions');
+      if (data.download_url) {
+        actions.innerHTML =
+          '<a class="btn" href="' + esc(data.download_url) + '" download="album.pdf" style="padding:5px 12px;font-size:.72rem;text-decoration:none;">Baixar PDF</a>' +
+          '<button class="btn btn-sec" onclick="fecharPainelProgresso()" style="padding:5px 10px;font-size:.72rem;">Fechar</button>';
+      } else {
+        actions.innerHTML = '<button class="btn btn-sec" onclick="fecharPainelProgresso()" style="padding:5px 10px;font-size:.72rem;">Fechar</button>';
+      }
+    } else if (data.status === 'erro') {
+      clearInterval(_pollTimer);
+      bar.style.background = 'var(--coral)';
+      document.getElementById('exp-panel-titulo').textContent = 'Erro ao gerar PDF';
+      sub.textContent = 'Tente novamente pelo botão Exportar.';
+      document.getElementById('exp-panel-actions').innerHTML =
+        '<button class="btn btn-sec" onclick="fecharPainelProgresso()" style="padding:4px 10px;font-size:.7rem;">Fechar</button>';
+    }
+  } catch(err) {
+    console.error('pollExportStatus:', err.message);
+  }
+}
+
+async function carregarHistoricoExportacoes() {
+  var album = estado.album;
+  if (!album) return;
+  var hist = document.getElementById('exportacoes-hist');
+  hist.innerHTML = '<div style="font-size:.75rem;color:var(--text-hint);">Carregando…</div>';
+
+  var { data: exportacoes, error } = await _sb.from('album_exportacoes')
+    .select('id, perfil_grafica, status, progresso, pdf_tamanho_kb, iniciado_em, concluido_em, pdf_expira_em')
+    .eq('album_id', album.id)
+    .eq('user_id', _userId)
+    .order('iniciado_em', { ascending: false })
+    .limit(5);
+
+  if (error || !exportacoes || !exportacoes.length) {
+    hist.innerHTML = '<div style="font-size:.75rem;color:var(--text-hint);">Nenhuma exportação ainda.</div>';
+    return;
+  }
+
+  hist.innerHTML = '';
+  exportacoes.forEach(function(ex) {
+    var perfil = PERFIS_GRAFICA.find(function(p) { return p.id === ex.perfil_grafica; });
+    var nomePerfil = perfil ? perfil.nome : ex.perfil_grafica;
+    var data = new Date(ex.iniciado_em).toLocaleDateString('pt-BR');
+    var statusCls = ex.status === 'concluido' ? 'ok' : ex.status === 'erro' ? 'err' : 'prog';
+    var statusTxt = ex.status === 'concluido' ? '✓ Pronto' : ex.status === 'erro' ? 'Erro' : ex.status === 'processando' ? 'Processando…' : 'Aguardando…';
+    var tamanho = ex.pdf_tamanho_kb ? (ex.pdf_tamanho_kb / 1024).toFixed(1) + ' MB' : '';
+
+    // Verificar expiração
+    var expirado = ex.pdf_expira_em && new Date(ex.pdf_expira_em) < new Date();
+    var acaoHtml = '';
+    if (ex.status === 'concluido') {
+      if (expirado) {
+        acaoHtml = '<button class="btn btn-sec" onclick="baixarExportacao(\'' + ex.id + '\', this)" style="padding:3px 8px;font-size:.65rem;margin-top:.4rem;">Gerar link</button>';
+      } else {
+        acaoHtml = '<button class="btn btn-sec" onclick="baixarExportacao(\'' + ex.id + '\', this)" style="padding:3px 8px;font-size:.65rem;margin-top:.4rem;">Baixar</button>';
+      }
+    }
+
+    var div = document.createElement('div');
+    div.className = 'exp-hist-item';
+    div.innerHTML =
+      '<div class="exp-hist-header">' +
+        '<span class="exp-hist-perfil">' + esc(nomePerfil) + '</span>' +
+        '<span class="exp-hist-status ' + statusCls + '">' + statusTxt + '</span>' +
+        '<span class="exp-hist-data">' + data + '</span>' +
+      '</div>' +
+      (tamanho ? '<div class="exp-hist-size">' + tamanho + '</div>' : '') +
+      acaoHtml;
+    hist.appendChild(div);
+  });
+}
+
+async function baixarExportacao(jobId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Gerando…';
+  try {
+    var jwt = _session.access_token;
+    var r = await fetch('/api/album-exportar?action=status&job_id=' + jobId, {
+      headers: { 'Authorization': 'Bearer ' + jwt },
+    });
+    var data = await r.json();
+    if (data.download_url) {
+      var a = document.createElement('a');
+      a.href = data.download_url;
+      a.download = 'album.pdf';
+      a.click();
+      btn.disabled = false;
+      btn.textContent = 'Baixar';
+    } else {
+      btn.textContent = 'Link expirado';
+    }
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Erro';
+  }
+}
+
 // ── Nível 5: Revisão ─────────────────────────────────────────────────────────
 
 // Modo aprovado: bloqueia edição
@@ -2011,6 +2381,11 @@ function aplicarModoAprovado() {
   // Esconder pool (casal não edita)
   var pool = document.getElementById('pool-panel');
   if (pool) pool.style.display = 'none';
+  // Mostrar botão de exportar PDF
+  var btnExportar = document.getElementById('btn-exportar');
+  if (btnExportar) btnExportar.style.display = 'inline-flex';
+  // Carregar histórico de exportações
+  carregarHistoricoExportacoes();
 }
 
 // Modal de compartilhamento

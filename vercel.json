@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/album-exportar.js": {
+      "maxDuration": 300
+    }
+  },
   "crons": [
     {
       "path": "/api/meta-ads?action=sync",
