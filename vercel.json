@@ -27,6 +27,14 @@
       "dest": "/api/album-revisao$1"
     },
     {
+      "src": "/api/gallery-delete",
+      "dest": "/api/gallery-ops?action=delete"
+    },
+    {
+      "src": "/api/gallery-download",
+      "dest": "/api/gallery-ops?action=download"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
