@@ -1,0 +1,12 @@
+# Arquivos excluídos do deploy para manter o limite de 12 Serverless Functions (Vercel Hobby).
+# Estes arquivos têm lógica movida para outros handlers + rewrites no vercel.json.
+
+# Movido para api/album-revisao.js (rewrite: /api/newsletter → /api/album-revisao)
+api/newsletter.js
+
+# Movido para api/gallery-ops.js (rewrites: /api/gallery-delete e /api/gallery-download → /api/gallery-ops)
+api/gallery-delete.js
+api/gallery-download.js
+
+# Dependências locais não precisam ir no deploy
+node_modules
