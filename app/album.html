@@ -119,6 +119,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .tpl-slot{position:absolute;background:var(--surface3);border:.5px solid var(--border-strong);}
 .tpl-nome{font-size:.58rem;color:var(--text-hint);text-align:center;}
 
+/* ── Auto-layout ─────────────────────────────────────────────────── */
+#btn-autolayout{display:none;padding:4px 12px;font-size:.72rem;}
+#modal-autolayout{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
+#modal-autolayout.open{display:flex;}
+.modal-box{background:var(--surface);border:.5px solid var(--border-strong);border-radius:12px;width:min(820px,92vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-header{padding:1rem 1.25rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;}
+.modal-titulo{font-family:'Playfair Display',serif;font-size:1rem;flex:1;}
+.modal-opts{padding:.75rem 1.25rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:1.25rem;}
+.toggle-wrap{display:flex;align-items:center;gap:.5rem;font-size:.75rem;color:var(--text-muted);cursor:pointer;user-select:none;}
+.toggle-wrap input{accent-color:var(--amber);}
+#modal-preview-grid{flex:1;overflow-y:auto;padding:1rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem;}
+.modal-spread-item{background:var(--surface2);border-radius:6px;overflow:hidden;border:.5px solid var(--border);}
+.modal-spread-label{font-size:.58rem;color:var(--text-hint);text-align:center;padding:.3rem 0;}
+.modal-footer{padding:.75rem 1.25rem;border-top:.5px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:flex-end;}
+
 /* ── Utilitários ─────────────────────────────────────────────────── */
 .hidden{display:none!important;}
 .drop-over{outline:2px solid var(--amber)!important;outline-offset:-2px;}
@@ -259,6 +274,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <div id="canvas-topbar">
       <button class="btn btn-sec" onclick="irParaLista()" style="padding:4px 10px;font-size:.72rem;">← Álbuns</button>
       <div id="album-nome-topbar"></div>
+      <button id="btn-autolayout" class="btn btn-sec" onclick="abrirModalAutoLayout()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Montar automaticamente
+      </button>
       <div id="save-status">—</div>
     </div>
     <!-- Corpo do editor -->
@@ -297,6 +316,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     </div>
   </div>
 
+</div>
+
+<!-- ── Modal Auto-layout ── -->
+<div id="modal-autolayout">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-titulo">Montar álbum automaticamente</div>
+      <button class="btn btn-sec" onclick="fecharModalAutoLayout()" style="padding:3px 10px;font-size:.72rem;">✕</button>
+    </div>
+    <div class="modal-opts">
+      <label class="toggle-wrap">
+        <input type="checkbox" id="opt-cronologico" checked>
+        Manter ordem cronológica
+      </label>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="opt-preservar" checked>
+        Preservar spreads com fotos manuais
+      </label>
+    </div>
+    <div id="modal-preview-grid"></div>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="tentarNovamente()" style="padding:5px 14px;font-size:.75rem;">Tentar novamente</button>
+      <button class="btn btn-sec" onclick="fecharModalAutoLayout()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
+      <button class="btn" onclick="aplicarAutoLayout()" style="padding:5px 14px;font-size:.75rem;">Aceitar layout</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -615,23 +660,26 @@ async function carregarPool(galeriaSlug) {
     (r.foto_ids || []).forEach(function(k) { todas.add(k); });
   });
 
-  estado.pool = Array.from(todas);
+  estado.pool = Array.from(todas).map(function(k) { return { key: k, w: 0, h: 0 }; });
   loading.style.display = 'none';
 
   if (!estado.pool.length) {
     empty.style.display = 'block';
     count.textContent   = '';
+    document.getElementById('btn-autolayout').style.display = 'none';
     return;
   }
 
   count.textContent = estado.pool.length + ' fotos';
+  document.getElementById('btn-autolayout').style.display = '';
   renderPool();
 }
 
 function renderPool() {
   var grid = document.getElementById('pool-grid');
   grid.innerHTML = '';
-  estado.pool.forEach(function(key) {
+  estado.pool.forEach(function(foto) {
+    var key = foto.key;
     var div = document.createElement('div');
     div.className = 'pool-foto' + (estado.fotosUsadas.has(key) ? ' usada' : '');
     div.draggable = true;
@@ -641,6 +689,8 @@ function renderPool() {
     img.src = '/api/gallery-img?key=' + encodeURIComponent(key);
     img.loading = 'lazy';
     img.alt = '';
+    // Captura dimensões ao carregar (para auto-layout sem fetch extra)
+    img.onload = function() { if (!foto.w) { foto.w = img.naturalWidth; foto.h = img.naturalHeight; } };
     div.appendChild(img);
 
     div.addEventListener('dragstart', function(e) {
@@ -1032,8 +1082,295 @@ async function removerSpread(spreadId) {
 function atualizarUsadasNoPool() {
   document.querySelectorAll('.pool-foto').forEach(function(el) {
     var key = el.dataset.key;
-    if (estado.fotosUsadas.has(key)) el.classList.add('usada'); else el.classList.remove('usada');
+    if (key) { if (estado.fotosUsadas.has(key)) el.classList.add('usada'); else el.classList.remove('usada'); }
   });
+}
+
+// ── Nível 3 — Auto-layout ────────────────────────────────────────────────────
+
+// Resultado pendente do algoritmo (aplicado só ao aceitar)
+var _autoLayoutResultado = null;
+
+// Extrai timestamp do nome do arquivo para ordenação cronológica
+// Padrão real: {userId}/{galeriaSlug}/{timestamp}__{seq}.jpg
+function extrairSequencia(key) {
+  var nome = key.split('/').pop();
+  var match = nome.match(/^(\d+)/);
+  return match ? parseInt(match[1]) : 0;
+}
+
+// Classificação de orientação da foto
+function orientacaoFoto(foto) {
+  if (!foto.w || !foto.h) return 'quadrado';
+  var r = foto.w / foto.h;
+  if (r > 1.2) return 'paisagem';
+  if (r < 0.85) return 'retrato';
+  return 'quadrado';
+}
+
+// Escolhe template para um spread dado as próximas fotos disponíveis
+function escolherTemplate(fotos, posNoAlbum, tplAnterior, tplAnteAnterior) {
+  var ors = fotos.slice(0, 4).map(orientacaoFoto);
+  var podeUsar = function(tid) { return !(tid === tplAnterior && tid === tplAnteAnterior); };
+
+  // A cada 5 spreads, full-bleed para respiração narrativa
+  if (posNoAlbum > 0 && posNoAlbum % 5 === 4 && fotos.length >= 1 && podeUsar('full-bleed')) {
+    return { template_id: 'full-bleed', consumir: 1 };
+  }
+
+  var o1 = ors[0], o2 = ors[1], o3 = ors[2];
+
+  // Duas paisagens ou dois retratos → lado a lado
+  if (o1 && o2 && (o1 === o2) && podeUsar('duas-lado')) {
+    return { template_id: 'duas-lado', consumir: 2 };
+  }
+  // Misto → grande + duas (ou duas + grande alternando)
+  if (o1 && o2 && o3) {
+    var tpl = (posNoAlbum % 2 === 0) ? 'tres-direita' : 'tres-esquerda';
+    if (podeUsar(tpl)) return { template_id: tpl, consumir: 3 };
+  }
+  // Quatro fotos em grade quando disponível
+  if (fotos.length >= 4 && podeUsar('quatro-grid')) {
+    return { template_id: 'quatro-grid', consumir: 4 };
+  }
+  // Panorama
+  if (o1 === 'paisagem' && o2 && podeUsar('panorama')) {
+    return { template_id: 'panorama', consumir: 2 };
+  }
+  // Fallback: uma foto
+  return { template_id: 'uma-foto', consumir: 1 };
+}
+
+// Loop principal do algoritmo
+function autoLayoutAlgoritmo(fotos, numSpreads, opcoes) {
+  var pool = opcoes.cronologico
+    ? fotos.slice().sort(function(a, b) { return extrairSequencia(a.key) - extrairSequencia(b.key); })
+    : fotos.slice();
+
+  var resultado = [];
+  var cursor = 0;
+  var tplAnterior = null;
+  var tplAnteAnterior = null;
+
+  for (var i = 0; i < numSpreads && cursor < pool.length; i++) {
+    var disponiveis = pool.slice(cursor);
+    var escolha = escolherTemplate(disponiveis, i, tplAnterior, tplAnteAnterior);
+    var fotasDoSpread = pool.slice(cursor, cursor + escolha.consumir);
+    resultado.push({ template_id: escolha.template_id, fotos: fotasDoSpread });
+    cursor += escolha.consumir;
+    tplAnteAnterior = tplAnterior;
+    tplAnterior = escolha.template_id;
+  }
+
+  // Spreads que sobraram sem foto ficam com template padrão
+  while (resultado.length < numSpreads) {
+    resultado.push({ template_id: 'uma-foto', fotos: [] });
+  }
+
+  return resultado;
+}
+
+// Smart crop — calcula melhor posicionamento (cover centrado)
+function calcularSmartCrop(fw, fh, sw, sh) {
+  if (!fw || !fh) return { escala: 1, ox: 0, oy: 0 };
+  var propFoto = fw / fh;
+  var propSlot = sw / sh;
+  var escala, ox, oy;
+  if (propFoto > propSlot) {
+    escala = sh / fh;
+    ox = -((fw * escala) - sw) / 2;
+    oy = 0;
+  } else {
+    escala = sw / fw;
+    oy = -((fh * escala) - sh) / 2;
+    ox = 0;
+  }
+  return { escala: escala, ox: ox, oy: oy };
+}
+
+// Mede dimensões de todas as fotos do pool carregando thumbnails
+function medirDimensoesPool() {
+  var fotos = estado.pool.filter(function(f) { return !f.w; });
+  if (!fotos.length) return Promise.resolve();
+  return Promise.all(fotos.map(function(foto) {
+    return new Promise(function(resolve) {
+      var img = new Image();
+      img.onload = function() { foto.w = img.naturalWidth; foto.h = img.naturalHeight; resolve(); };
+      img.onerror = function() { resolve(); };
+      img.src = '/api/gallery-img?key=' + encodeURIComponent(foto.key);
+    });
+  }));
+}
+
+// Identifica spreads com trabalho manual (têm pelo menos 1 foto)
+function spreadsComFotos() {
+  return estado.spreads
+    .filter(function(s) { return s.tipo === 'spread'; })
+    .filter(function(s) { return (s.album_slots || []).some(function(sl) { return sl.foto_key; }); });
+}
+
+// Abre modal e gera preview
+async function abrirModalAutoLayout() {
+  var spreadsTipo = estado.spreads.filter(function(s) { return s.tipo === 'spread'; });
+  if (!spreadsTipo.length) { alert('Adicione spreads ao álbum primeiro.'); return; }
+  if (!estado.pool.length) { alert('O pool de fotos está vazio.'); return; }
+
+  document.getElementById('modal-autolayout').classList.add('open');
+  await gerarPreviewAutoLayout();
+}
+
+function fecharModalAutoLayout() {
+  document.getElementById('modal-autolayout').classList.remove('open');
+  _autoLayoutResultado = null;
+}
+
+async function gerarPreviewAutoLayout() {
+  var grid = document.getElementById('modal-preview-grid');
+  grid.innerHTML = '<div style="padding:1.5rem;color:var(--text-hint);font-size:.75rem;">Analisando fotos…</div>';
+
+  await medirDimensoesPool();
+
+  var cronologico = document.getElementById('opt-cronologico').checked;
+  var preservar   = document.getElementById('opt-preservar').checked;
+
+  var manuaisIds  = new Set(spreadsComFotos().map(function(s) { return s.id; }));
+  var spreadsAlvo = estado.spreads.filter(function(s) {
+    return s.tipo === 'spread' && (!preservar || !manuaisIds.has(s.id));
+  });
+
+  var fotosDisponiveis = estado.pool.filter(function(f) {
+    return !preservar || !estado.fotosUsadas.has(f.key);
+  });
+
+  if (!fotosDisponiveis.length) {
+    grid.innerHTML = '<div style="padding:1.5rem;color:var(--text-hint);font-size:.75rem;">Todos os spreads já têm fotos. Desmarque "Preservar spreads" para remontar tudo.</div>';
+    _autoLayoutResultado = null;
+    return;
+  }
+
+  _autoLayoutResultado = {
+    spreadsAlvo: spreadsAlvo,
+    resultado: autoLayoutAlgoritmo(fotosDisponiveis, spreadsAlvo.length, { cronologico: cronologico }),
+    preservar: preservar,
+    manuaisIds: manuaisIds,
+  };
+
+  // Renderizar miniaturas de preview
+  grid.innerHTML = '';
+  _autoLayoutResultado.resultado.forEach(function(item, i) {
+    var wrap = document.createElement('div');
+    wrap.className = 'modal-spread-item';
+
+    var cnv = document.createElement('canvas');
+    cnv.width = 280; cnv.height = 100;
+    cnv.style.width = '100%'; cnv.style.display = 'block';
+    wrap.appendChild(cnv);
+
+    var label = document.createElement('div');
+    label.className = 'modal-spread-label';
+    var tplObj = TEMPLATES.find(function(t) { return t.id === item.template_id; });
+    label.textContent = (tplObj ? tplObj.nome : item.template_id) + ' · ' + item.fotos.length + ' foto' + (item.fotos.length !== 1 ? 's' : '');
+    wrap.appendChild(label);
+
+    grid.appendChild(wrap);
+
+    // Desenhar miniatura
+    renderizarMiniaturaMod(cnv, item);
+  });
+}
+
+function renderizarMiniaturaMod(cnv, item) {
+  var ctx = cnv.getContext('2d');
+  var W = cnv.width, H = cnv.height;
+  ctx.fillStyle = '#1A1814';
+  ctx.fillRect(0, 0, W, H);
+
+  var tpl = TEMPLATES.find(function(t) { return t.id === item.template_id; });
+  if (!tpl) return;
+
+  tpl.slots.forEach(function(s, i) {
+    var foto = item.fotos[i];
+    var sx = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
+    if (foto) {
+      var img = new Image();
+      img.onload = function() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(sx, sy, sw, sh);
+        ctx.clip();
+        var sc = Math.max(sw / img.naturalWidth, sh / img.naturalHeight);
+        var dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+        ctx.drawImage(img, sx + (sw - dw) / 2, sy + (sh - dh) / 2, dw, dh);
+        ctx.restore();
+      };
+      img.src = '/api/gallery-img?key=' + encodeURIComponent(foto.key);
+    } else {
+      ctx.fillStyle = '#2a2620';
+      ctx.fillRect(sx, sy, sw, sh);
+    }
+  });
+}
+
+async function tentarNovamente() {
+  // Embaralha levemente para gerar variação
+  estado.pool.sort(function() { return Math.random() - 0.5; });
+  await gerarPreviewAutoLayout();
+}
+
+// Aplica o resultado do auto-layout nos spreads
+async function aplicarAutoLayout() {
+  if (!_autoLayoutResultado) return;
+  var btn = document.querySelector('.modal-footer .btn:last-child');
+  if (btn) { btn.textContent = 'Aplicando…'; btn.disabled = true; }
+
+  var { spreadsAlvo, resultado } = _autoLayoutResultado;
+
+  for (var i = 0; i < spreadsAlvo.length && i < resultado.length; i++) {
+    var spread = spreadsAlvo[i];
+    var item   = resultado[i];
+    var tpl    = TEMPLATES.find(function(t) { return t.id === item.template_id; });
+    if (!tpl) continue;
+
+    // Atualiza template_id no spread (estado + Supabase)
+    spread.template_id = item.template_id;
+    await _sb.from('album_spreads').update({ template_id: item.template_id }).eq('id', spread.id).eq('user_id', _userId);
+
+    // Garante slots suficientes no estado
+    while ((spread.album_slots || []).length < tpl.slots.length) {
+      var novoSlot = { spread_id: spread.id, user_id: _userId, slot_index: spread.album_slots.length, foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 1 };
+      var { data: slotCriado } = await _sb.from('album_slots').insert(novoSlot).select().single();
+      if (slotCriado) spread.album_slots.push(slotCriado);
+    }
+
+    // Coloca fotos nos slots com smart crop
+    for (var j = 0; j < tpl.slots.length; j++) {
+      var foto = item.fotos[j] || null;
+      var slot = spread.album_slots[j];
+      if (!slot) continue;
+
+      var s    = tpl.slots[j];
+      var slotW = s.w * _dimSpread.w;
+      var slotH = s.h * _dimSpread.h;
+      var crop  = foto ? calcularSmartCrop(foto.w || slotW, foto.h || slotH, slotW, slotH) : { escala: 1, ox: 0, oy: 0 };
+
+      slot.foto_key   = foto ? foto.key : null;
+      slot.foto_x     = crop.ox;
+      slot.foto_y     = crop.oy;
+      slot.foto_escala = crop.escala;
+
+      if (foto) estado.fotosUsadas.add(foto.key);
+
+      await _sb.from('album_slots').update({
+        foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala, atualizado_em: new Date().toISOString()
+      }).eq('id', slot.id).eq('user_id', _userId);
+    }
+  }
+
+  fecharModalAutoLayout();
+  setSaveStatus('Salvo ✓');
+  renderThumbs();
+  renderTemplates();
+  renderSpread();
 }
 
 // ── Utilitários ───────────────────────────────────────────────────────────────
