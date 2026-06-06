@@ -8512,6 +8512,10 @@ async function onLogin(user){
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
   var el = document.getElementById('userNameDisplay');
   if(el) el.textContent = nome;
+  // Deep-link por hash (ex.: vindo do album.html via /#galerias)
+  var _h=(window.location.hash||'').replace('#','');
+  var _secoes=['resumo','clientes','agenda','posproducao','galerias','questionarios','financeiro','analises','educacao','ajustes'];
+  if(_secoes.indexOf(_h)>-1) goDirecto(_h);
 }
 
 async function doLogout(){

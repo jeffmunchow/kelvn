@@ -1,36 +1,49 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Editor de Álbuns — Kelvn</title>
+<title>Álbuns — Kelvn</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>k</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>try{var _t=localStorage.getItem('kelvn_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/konva/9.3.6/konva.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/konva@9.3.6/konva.min.js"></script>
 <style>
-:root,[data-theme="dark"]{
-  --bg:#111009;--surface:#1A1814;--surface2:#211E18;--surface3:#2A2620;
-  --border:rgba(255,255,255,.07);--border-strong:rgba(255,255,255,.13);
-  --text:#F0EDE6;--text-muted:#9A9590;--text-hint:#5C5854;
-  --amber:#D4902A;--amber-light:rgba(212,144,42,.12);
-  --teal:#0A7864;--teal-light:rgba(10,120,100,.18);
-  --coral:#C43A1A;--radius:8px;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F7F4EF;--surface:#FFFFFF;--surface2:#F0EDE6;--surface3:#E8E3DA;
+  --border:rgba(0,0,0,0.04);--border-strong:rgba(0,0,0,0.09);
+  --text:#1A1814;--text-muted:#6B6660;--text-hint:#B0ABA6;
+  --amber:#C4780A;--amber-light:#FDF3E3;--amber-deep:#8A4F00;
+  --coral:#C43A1A;--coral-light:#FDF0EC;
+  --teal:#0A7864;--teal-light:#E3F4EF;
+  --purple:#5255A0;--purple-light:#EEF0FF;
+  --radius:8px;--radius-sm:5px;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;}
+[data-theme="dark"]{
+  --bg:#111009;--surface:#1A1814;--surface2:#211E18;--surface3:#2A2620;
+  --border:rgba(255,255,255,0.04);--border-strong:rgba(255,255,255,0.07);
+  --text:#EDE9E3;--text-muted:#9E9892;--text-hint:#5C5854;
+  --amber:#D4902A;--amber-light:#221808;--amber-deep:#C4780A;
+  --coral:#CC4A28;--coral-light:#1E0E08;
+  --teal:#18926E;--teal-light:#091E15;
+  --purple:#8A8DCC;--purple-light:#12142A;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:calc(100vh / 0.9);overflow:hidden;display:flex;zoom:0.9;}
 
-/* ── Sidebar ─────────────────────────────────────────────────────── */
-#sidebar{width:56px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:.75rem 0;gap:.25rem;z-index:10;}
-.snav-logo{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--amber);margin-bottom:.5rem;cursor:pointer;text-decoration:none;}
-.snav-btn{width:36px;height:36px;border-radius:8px;border:none;background:transparent;color:var(--text-hint);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s;text-decoration:none;}
+/* ── Sidebar (idêntica à Kelvn) ──────────────────────────────────── */
+.snav{width:56px;flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border-strong);display:flex;flex-direction:column;align-items:center;padding:1rem 0;position:fixed;top:0;left:0;height:calc(100vh / 0.9);z-index:100;gap:2px;}
+.snav-logo{font-family:'Cherry Bomb One',cursive;font-size:1.6rem;color:var(--amber);margin-bottom:.75rem;padding:.25rem 0;line-height:1;text-decoration:none;}
+.snav-sep{width:28px;height:.5px;background:var(--border-strong);margin:.5rem 0;}
+.snav-btn{width:38px;height:38px;border-radius:10px;border:none;background:transparent;color:var(--text-hint);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;position:relative;flex-shrink:0;text-decoration:none;}
 .snav-btn:hover{background:var(--surface2);color:var(--text-muted);}
-.snav-btn.active{background:var(--amber-light);color:var(--amber);}
-.snav-spacer{flex:1;}
-.snav-sep{width:24px;height:.5px;background:var(--border);margin:.25rem 0;}
+.snav-btn.active{background:transparent;color:var(--amber);}
+.snav-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
 
 /* ── Main ────────────────────────────────────────────────────────── */
-#main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+#main{flex:1;margin-left:56px;min-width:0;overflow:hidden;display:flex;flex-direction:column;}
 
 /* ── Estado: Lista de álbuns ─────────────────────────────────────── */
 #view-lista{flex:1;overflow-y:auto;padding:2rem 2.5rem 4rem;}
@@ -116,30 +129,65 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
 <div id="overlay-auth">Verificando sessão…</div>
 
-<!-- ── Sidebar ── -->
-<nav id="sidebar">
-  <a href="/kelvn.html" class="snav-logo" title="Kelvn">k</a>
-  <a href="/kelvn.html" class="snav-btn" title="Dashboard">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+<!-- ── Sidebar (idêntica à Kelvn) ── -->
+<nav class="snav">
+  <a href="/" class="snav-logo" title="Kelvn">k</a>
+
+  <a href="/#resumo" class="snav-btn" title="Resumo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
   </a>
-  <a href="/kelvn.html#clientes" class="snav-btn" title="Clientes">
+
+  <a href="/#clientes" class="snav-btn" title="Clientes">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
   </a>
-  <a href="/kelvn.html#agenda" class="snav-btn" title="Agenda">
+
+  <a href="/#agenda" class="snav-btn" title="Agenda">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
   </a>
-  <!-- Álbuns — ativo -->
+
+  <a href="/#posproducao" class="snav-btn" title="Pós-produção">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  </a>
+
+  <a href="/#galerias" class="snav-btn" title="Galerias">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+  </a>
+
+  <!-- Álbuns — ativo (estamos aqui) -->
   <a href="/album.html" class="snav-btn active" title="Álbuns">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
   </a>
-  <a href="/kelvn.html#galerias" class="snav-btn" title="Galerias">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+
+  <a href="/#questionarios" class="snav-btn" title="Questionários">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
   </a>
-  <div class="snav-spacer"></div>
-  <div class="snav-sep"></div>
-  <a href="/kelvn.html#ajustes" class="snav-btn" title="Ajustes">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+
+  <a href="/#financeiro" class="snav-btn" title="Financeiro">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
   </a>
+
+  <a href="/#analises" class="snav-btn" title="Análises & Metas">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  </a>
+
+  <a href="/#educacao" class="snav-btn" title="Educação">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+  </a>
+
+  <a href="/" class="snav-btn" title="Assistente IA">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </a>
+
+  <div class="snav-bottom">
+    <div class="snav-sep"></div>
+    <button class="snav-btn" onclick="toggleTheme()" title="Alternar tema">
+      <svg id="snav-theme-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>
+      <svg id="snav-theme-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <a href="/#ajustes" class="snav-btn" title="Ajustes">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </a>
+  </div>
 </nav>
 
 <!-- ── Área principal ── -->
@@ -307,8 +355,24 @@ function setSaveStatus(txt) {
   if (el) el.textContent = txt;
 }
 
+// ── Tema (compartilhado com a Kelvn via localStorage) ──────────────────────────
+function syncThemeIcons() {
+  var t = document.documentElement.getAttribute('data-theme');
+  var sun = document.getElementById('snav-theme-sun');
+  var moon = document.getElementById('snav-theme-moon');
+  if (sun) sun.style.display = t === 'dark' ? 'none' : 'block';
+  if (moon) moon.style.display = t === 'dark' ? 'block' : 'none';
+}
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('kelvn_theme', t); } catch(e) {}
+  syncThemeIcons();
+}
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 async function init() {
+  syncThemeIcons();
   try {
     var res = await _sb.auth.getSession();
     _session = res.data.session;
