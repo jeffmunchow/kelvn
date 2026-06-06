@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisão de álbum — Kelvn</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>k</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0E0C0A;--surface:#1A1814;--surface2:#221E18;--surface3:#2A2520;
+  --border:rgba(255,255,255,0.05);--border-strong:rgba(255,255,255,0.09);
+  --text:#EDE9E3;--text-muted:#9E9892;--text-hint:#4E4A46;
+  --amber:#D4902A;--amber-light:#1E1208;
+  --coral:#CC4A28;--coral-light:#1E0A06;
+  --teal:#18926E;--teal-light:#091E15;
+  --radius:8px;
+}
+body{
+  font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;
+}
+
+/* ── Loading / erro / aprovado ─────────────────────────────────────────────── */
+#estado-loading,#estado-erro,#estado-aprovado{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:2rem;text-align:center;gap:1rem;
+}
+.estado-logo{font-family:'Cherry Bomb One',cursive;font-size:2rem;color:var(--amber);}
+.estado-titulo{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);}
+.estado-sub{font-size:.85rem;color:var(--text-muted);max-width:380px;line-height:1.6;}
+.spinner{width:28px;height:28px;border:2.5px solid var(--border-strong);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.check-grande{width:48px;height:48px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.check-grande svg{stroke:#fff;}
+
+/* ── Revisão principal ─────────────────────────────────────────────────────── */
+#estado-revisao{flex:1;display:flex;flex-direction:column;min-height:0;}
+.hidden{display:none!important;}
+
+/* Topbar */
+#rev-topbar{
+  background:var(--surface);border-bottom:.5px solid var(--border);
+  padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;
+}
+#rev-logo{font-family:'Cherry Bomb One',cursive;font-size:1.4rem;color:var(--amber);line-height:1;}
+#rev-album-nome{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--text);flex:1;}
+#rev-rodada{font-size:.65rem;color:var(--text-hint);padding:2px 8px;border-radius:20px;background:var(--surface2);border:.5px solid var(--border-strong);}
+
+/* Corpo */
+#rev-body{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto;padding:1.5rem;gap:1.5rem;align-items:center;}
+
+/* Canvas do spread */
+#canvas-wrap{
+  position:relative;width:100%;max-width:860px;
+  background:var(--surface2);border-radius:10px;overflow:hidden;
+  border:.5px solid var(--border-strong);flex-shrink:0;
+}
+#spread-canvas{display:block;width:100%;height:auto;}
+
+/* Navegação */
+#rev-nav{
+  display:flex;align-items:center;gap:1rem;max-width:860px;width:100%;
+}
+.nav-btn{
+  width:36px;height:36px;border-radius:50%;border:.5px solid var(--border-strong);
+  background:var(--surface);color:var(--text-muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:color .15s,border-color .15s;flex-shrink:0;
+}
+.nav-btn:hover:not(:disabled){color:var(--amber);border-color:var(--amber);}
+.nav-btn:disabled{opacity:.3;cursor:default;}
+#nav-label{flex:1;text-align:center;font-size:.8rem;color:var(--text-muted);}
+#nav-progress{
+  flex:1;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;
+}
+#nav-progress-bar{height:100%;background:var(--amber);border-radius:2px;transition:width .3s;}
+
+/* Seção de comentário */
+#comment-section{
+  width:100%;max-width:860px;background:var(--surface);
+  border:.5px solid var(--border);border-radius:10px;padding:1.25rem;
+}
+.comment-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);margin-bottom:1rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;}
+@media(max-width:560px){.form-row{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:.35rem;}
+.form-label{font-size:.7rem;color:var(--text-muted);}
+.form-input{
+  padding:8px 12px;background:var(--surface2);
+  border:.5px solid var(--border-strong);border-radius:var(--radius);
+  color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;
+  transition:border-color .15s;
+}
+.form-input:focus{border-color:var(--amber);}
+textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:var(--text);color:var(--bg);border:.5px solid var(--text);
+  border-radius:var(--radius);padding:8px 18px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;
+  cursor:pointer;transition:opacity .15s;
+}
+.btn:hover{opacity:.85;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-sec{background:transparent;color:var(--text-muted);border-color:var(--border-strong);}
+.btn-sec:hover{color:var(--text);opacity:1;}
+.btn-teal{background:var(--teal);border-color:var(--teal);color:#fff;}
+.comment-success{
+  margin-top:.75rem;padding:.6rem 1rem;background:var(--teal-light);
+  border:.5px solid var(--teal);border-radius:var(--radius);
+  font-size:.78rem;color:var(--teal);display:none;
+}
+#comment-error{
+  margin-top:.5rem;font-size:.75rem;color:var(--coral);display:none;
+}
+#btn-enviar-comentario{margin-top:.75rem;}
+
+/* Seção de aprovação */
+#approval-section{
+  width:100%;max-width:860px;background:var(--surface);
+  border:.5px solid var(--amber);border-radius:10px;padding:1.5rem;text-align:center;
+}
+#approval-section h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:.5rem;}
+#approval-section p{font-size:.82rem;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.6;}
+.banner-aprovado{
+  width:100%;max-width:860px;background:var(--teal-light);
+  border:.5px solid var(--teal);border-radius:10px;padding:1rem 1.5rem;
+  display:flex;align-items:center;gap:.75rem;
+}
+.banner-aprovado svg{stroke:var(--teal);flex-shrink:0;}
+.banner-aprovado-txt{font-size:.82rem;color:var(--teal);}
+
+/* Modal de aprovação */
+#modal-aprovacao{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+}
+.modal-box{
+  background:var(--surface);border:.5px solid var(--border-strong);
+  border-radius:12px;width:min(420px,100%);overflow:hidden;
+}
+.modal-header{padding:1rem 1.25rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;}
+.modal-titulo{font-family:'Playfair Display',serif;font-size:.95rem;flex:1;}
+.modal-body{padding:1.25rem;}
+.modal-footer{padding:.75rem 1.25rem;border-top:.5px solid var(--border);display:flex;gap:.6rem;justify-content:flex-end;}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="estado-loading">
+  <div class="estado-logo">k</div>
+  <div class="spinner"></div>
+  <div class="estado-sub">Carregando álbum…</div>
+</div>
+
+<!-- Erro -->
+<div id="estado-erro" class="hidden">
+  <div class="estado-logo">k</div>
+  <div class="estado-titulo" id="erro-titulo">Link inválido</div>
+  <div class="estado-sub" id="erro-msg">Este link de revisão não existe ou expirou. Peça ao seu fotógrafo um novo link.</div>
+</div>
+
+<!-- Aprovado (mostrado quando já estava aprovado antes de abrir) -->
+<div id="estado-aprovado" class="hidden">
+  <div class="check-grande">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="estado-titulo">Álbum já aprovado</div>
+  <div class="estado-sub" id="aprovado-msg">Você já aprovou este álbum. Se precisar de ajustes, entre em contato com o fotógrafo.</div>
+</div>
+
+<!-- Revisão principal -->
+<div id="estado-revisao" class="hidden">
+
+  <div id="rev-topbar">
+    <div id="rev-logo">k</div>
+    <div id="rev-album-nome">Álbum</div>
+    <div id="rev-rodada"></div>
+  </div>
+
+  <div id="rev-body">
+    <!-- Canvas do spread atual -->
+    <div id="canvas-wrap">
+      <canvas id="spread-canvas"></canvas>
+    </div>
+
+    <!-- Progresso + navegação -->
+    <div id="rev-nav" style="gap:.75rem;flex-wrap:wrap;">
+      <button class="nav-btn" id="btn-prev" onclick="prevSpread()" title="Spread anterior">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div id="nav-progress"><div id="nav-progress-bar" style="width:0%"></div></div>
+      <span id="nav-label">1 / 1</span>
+      <button class="nav-btn" id="btn-next" onclick="nextSpread()" title="Próximo spread">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <!-- Comentário -->
+    <div id="comment-section">
+      <div class="comment-title">Deixar comentário neste spread</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Seu nome</label>
+          <input class="form-input" id="c-nome" type="text" placeholder="ex: Ana Silva" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail <span style="color:var(--text-hint);font-size:.65rem;">(opcional)</span></label>
+          <input class="form-input" id="c-email" type="email" placeholder="para resposta" autocomplete="email">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Comentário</label>
+        <textarea class="form-input" id="c-texto" placeholder="Descreva o que gostaria de ajustar neste spread…"></textarea>
+      </div>
+      <div id="comment-error"></div>
+      <div class="comment-success" id="comment-success">Comentário enviado! O fotógrafo vai receber uma notificação.</div>
+      <button class="btn" id="btn-enviar-comentario" onclick="enviarComentario()">Enviar comentário</button>
+    </div>
+
+    <!-- Banner aprovado (quando álbum está aprovado mas casal ainda acessa) -->
+    <div class="banner-aprovado hidden" id="banner-aprovado">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <div class="banner-aprovado-txt">Você aprovou este álbum. Obrigado!</div>
+    </div>
+
+    <!-- Aprovação (aparece só depois de ver todos os spreads) -->
+    <div id="approval-section" class="hidden">
+      <h3>Tudo certo com o álbum?</h3>
+      <p>Se estiver satisfeito com todas as páginas, clique em Aprovar para confirmar. Após a aprovação o fotógrafo poderá enviar o álbum para impressão.</p>
+      <button class="btn btn-teal" onclick="abrirModalAprovacao()">Aprovar álbum</button>
+    </div>
+
+  </div><!-- /rev-body -->
+</div><!-- /estado-revisao -->
+
+<!-- Modal de confirmação de aprovação -->
+<div id="modal-aprovacao" class="hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-titulo">Confirmar aprovação</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row" style="margin-bottom:.75rem;">
+        <div class="form-group">
+          <label class="form-label">Seu nome *</label>
+          <input class="form-input" id="ap-nome" type="text" placeholder="Nome completo" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Seu e-mail *</label>
+          <input class="form-input" id="ap-email" type="email" placeholder="seu@email.com" autocomplete="email">
+        </div>
+      </div>
+      <p style="font-size:.75rem;color:var(--text-hint);line-height:1.5;">Ao aprovar, você confirma que o álbum está correto e autoriza o envio para impressão. Esta ação não pode ser desfeita.</p>
+      <div id="ap-erro" style="margin-top:.5rem;font-size:.75rem;color:var(--coral);display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="fecharModalAprovacao()" style="padding:7px 16px;font-size:.78rem;">Cancelar</button>
+      <button class="btn btn-teal" id="btn-confirmar-aprovacao" onclick="confirmarAprovacao()" style="padding:7px 18px;font-size:.78rem;">Confirmar aprovação</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+var SUPABASE_URL = 'https://lbsepogmbusfkdgnencb.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_ETRT-8mRm7AXdgaKyn_DgQ_Whq5sxav';
+var _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Templates (idênticos ao album.html) ──────────────────────────────────────
+var TEMPLATES = [
+  { id:'uma-foto',       slots:[{x:.02,y:.02,w:.96,h:.96}] },
+  { id:'full-bleed',     slots:[{x:0,y:0,w:1,h:1}] },
+  { id:'duas-lado',      slots:[{x:.01,y:.02,w:.485,h:.96},{x:.505,y:.02,w:.485,h:.96}] },
+  { id:'tres-direita',   slots:[{x:.01,y:.02,w:.63,h:.96},{x:.65,y:.02,w:.335,h:.47},{x:.65,y:.51,w:.335,h:.47}] },
+  { id:'tres-esquerda',  slots:[{x:.01,y:.02,w:.335,h:.47},{x:.01,y:.51,w:.335,h:.47},{x:.36,y:.02,w:.63,h:.96}] },
+  { id:'quatro-grid',    slots:[{x:.01,y:.02,w:.485,h:.47},{x:.505,y:.02,w:.485,h:.47},{x:.01,y:.51,w:.485,h:.47},{x:.505,y:.51,w:.485,h:.47}] },
+  { id:'tira-topo',      slots:[{x:.01,y:.02,w:.32,h:.96},{x:.34,y:.02,w:.32,h:.96},{x:.67,y:.02,w:.32,h:.96}] },
+  { id:'panorama',       slots:[{x:.01,y:.02,w:.96,h:.45},{x:.01,y:.52,w:.475,h:.46},{x:.505,y:.52,w:.475,h:.46}] },
+  { id:'destaque-topo',  slots:[{x:.01,y:.02,w:.96,h:.55},{x:.01,y:.59,w:.31,h:.39},{x:.345,y:.59,w:.31,h:.39},{x:.68,y:.59,w:.305,h:.39}] },
+];
+
+// ── Estado ────────────────────────────────────────────────────────────────────
+var _album   = null;
+var _spreads = [];
+var _idx     = 0;
+var _vistos  = new Set();
+var _fotoCache = {};   // key → HTMLImageElement
+var _albumId = null;   // guid do álbum (para notificações)
+
+// ── Inicialização ─────────────────────────────────────────────────────────────
+(async function init() {
+  var params = new URLSearchParams(window.location.search);
+  var token  = params.get('t');
+
+  if (!token) return mostrarErro('Link inválido', 'Nenhum token de revisão encontrado na URL.');
+
+  try {
+    var { data, error } = await _sb.rpc('album_revisao_obter', { p_token: token });
+    if (error || !data) return mostrarErro('Link inválido', 'Este link de revisão não existe ou expirou.');
+
+    _album   = data.album;
+    _spreads = (data.spreads || []).sort(function(a,b){ return a.posicao - b.posicao; });
+    _albumId = _album.id;
+
+    document.getElementById('rev-album-nome').textContent = _album.nome || 'Álbum';
+    document.getElementById('rev-rodada').textContent = 'Revisão ' + (_album.revisao_rodada || 1);
+
+    if (_album.aprovado) {
+      // Já aprovado: mostrar banner mas deixar navegar
+      document.getElementById('banner-aprovado').classList.remove('hidden');
+      document.getElementById('approval-section').classList.add('hidden');
+    }
+
+    esconder('estado-loading');
+    mostrar('estado-revisao');
+    renderNav();
+    await renderSpread(0);
+
+  } catch(err) {
+    console.error('init error:', err);
+    mostrarErro('Erro', 'Algo deu errado ao carregar o álbum. Tente novamente.');
+  }
+})();
+
+// ── Navegação ─────────────────────────────────────────────────────────────────
+async function prevSpread() {
+  if (_idx > 0) await renderSpread(_idx - 1);
+}
+async function nextSpread() {
+  if (_idx < _spreads.length - 1) await renderSpread(_idx + 1);
+}
+
+function renderNav() {
+  var total = _spreads.length;
+  document.getElementById('nav-label').textContent = (_idx + 1) + ' / ' + total;
+  document.getElementById('btn-prev').disabled = _idx === 0;
+  document.getElementById('btn-next').disabled = _idx === total - 1;
+  var pct = total > 1 ? ((_idx / (total - 1)) * 100) : 100;
+  document.getElementById('nav-progress-bar').style.width = pct + '%';
+
+  // Mostrar aprovação após ver todos os spreads (e se não aprovado)
+  if (!_album.aprovado && _vistos.size >= total && total > 0) {
+    document.getElementById('approval-section').classList.remove('hidden');
+  }
+}
+
+// ── Renderizar spread no canvas ───────────────────────────────────────────────
+async function renderSpread(idx) {
+  _idx = idx;
+  _vistos.add(idx);
+  renderNav();
+
+  var spread = _spreads[idx];
+  if (!spread) return;
+
+  var canvas = document.getElementById('spread-canvas');
+  var ctx    = canvas.getContext('2d');
+
+  // Dimensões do formato
+  var W = 800, H = 300;
+  var fmt = _album.formato || 'paisagem';
+  if (fmt === 'quadrado') { W = 600; H = 600; }
+  if (fmt === 'retrato')  { W = 480; H = 680; }
+
+  canvas.width  = W;
+  canvas.height = H;
+
+  // Fundo
+  ctx.fillStyle = spread.background_color || '#111009';
+  ctx.fillRect(0, 0, W, H);
+
+  // Slots
+  var tpl = TEMPLATES.find(function(t){ return t.id === spread.template_id; });
+  if (!tpl) { ctx.fillStyle = '#1A1814'; ctx.fillRect(0,0,W,H); return; }
+
+  var slots = (spread.slots || []).sort(function(a,b){ return a.slot_index - b.slot_index; });
+
+  for (var i = 0; i < tpl.slots.length; i++) {
+    var s     = tpl.slots[i];
+    var slot  = slots[i];
+    var sx    = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
+
+    // Fundo do slot
+    ctx.fillStyle = '#2A2520';
+    ctx.fillRect(sx, sy, sw, sh);
+
+    if (!slot || !slot.foto_key) continue;
+
+    var img = await carregarFoto(slot.foto_key);
+    if (!img) continue;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(sx, sy, sw, sh);
+    ctx.clip();
+
+    var escala = slot.foto_escala || 1;
+    var ox     = slot.foto_x || 0;
+    var oy     = slot.foto_y || 0;
+    var dw     = img.naturalWidth  * escala;
+    var dh     = img.naturalHeight * escala;
+
+    ctx.drawImage(img, sx + ox, sy + oy, dw, dh);
+    ctx.restore();
+  }
+
+  // Textos
+  var textos = spread.textos || [];
+  textos.forEach(function(t) {
+    ctx.save();
+    ctx.font = (t.negrito ? 'bold ' : '') + (t.italico ? 'italic ' : '') + (t.tamanho || 24) + 'px ' + (t.fonte || 'Playfair Display, serif');
+    ctx.fillStyle = t.cor || '#FFFFFF';
+    ctx.globalAlpha = 0.9;
+    ctx.textAlign   = t.alinhamento || 'left';
+    var tx = t.x * W, ty = t.y * H;
+    ctx.fillText(t.conteudo || '', tx, ty);
+    ctx.restore();
+  });
+}
+
+async function carregarFoto(key) {
+  if (_fotoCache[key]) return _fotoCache[key];
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = function() { _fotoCache[key] = img; resolve(img); };
+    img.onerror = function() { resolve(null); };
+    img.src = '/api/gallery-img?key=' + encodeURIComponent(key);
+  });
+}
+
+// ── Comentário ────────────────────────────────────────────────────────────────
+async function enviarComentario() {
+  var nome   = document.getElementById('c-nome').value.trim();
+  var email  = document.getElementById('c-email').value.trim();
+  var texto  = document.getElementById('c-texto').value.trim();
+  var errEl  = document.getElementById('comment-error');
+  var sucEl  = document.getElementById('comment-success');
+  var btn    = document.getElementById('btn-enviar-comentario');
+
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  if (!nome) { errEl.textContent = 'Informe seu nome.'; errEl.style.display = 'block'; return; }
+  if (!texto){ errEl.textContent = 'Escreva um comentário.'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+
+  var spread = _spreads[_idx];
+
+  // Salvar via RPC (SECURITY DEFINER, anônimo permitido)
+  var { error: rpcErr } = await _sb.rpc('album_comentario_registrar', {
+    p_album_id:   _albumId,
+    p_spread_id:  spread ? spread.id : null,
+    p_nome:       nome,
+    p_email:      email || null,
+    p_conteudo:   texto,
+    p_spread_num: _idx + 1,
+  });
+
+  if (rpcErr) {
+    errEl.textContent = 'Erro ao enviar. Tente novamente.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Enviar comentário';
+    return;
+  }
+
+  // Notificar fotógrafo
+  fetch('/api/album-revisao?action=notificar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      album_id: _albumId,
+      tipo: 'comentario',
+      nome_casal: nome,
+      email_casal: email || null,
+      spread_num: _idx + 1,
+    }),
+  }).catch(function(){});
+
+  sucEl.style.display = 'block';
+  document.getElementById('c-texto').value = '';
+  btn.disabled = false;
+  btn.textContent = 'Enviar comentário';
+}
+
+// ── Aprovação ─────────────────────────────────────────────────────────────────
+function abrirModalAprovacao() {
+  document.getElementById('modal-aprovacao').classList.remove('hidden');
+}
+function fecharModalAprovacao() {
+  document.getElementById('modal-aprovacao').classList.add('hidden');
+  document.getElementById('ap-erro').style.display = 'none';
+}
+
+async function confirmarAprovacao() {
+  var nome  = document.getElementById('ap-nome').value.trim();
+  var email = document.getElementById('ap-email').value.trim();
+  var errEl = document.getElementById('ap-erro');
+  var btn   = document.getElementById('btn-confirmar-aprovacao');
+
+  errEl.style.display = 'none';
+  if (!nome)  { errEl.textContent = 'Informe seu nome.';  errEl.style.display = 'block'; return; }
+  if (!email) { errEl.textContent = 'Informe seu e-mail.'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Confirmando…';
+
+  var { error: rpcErr } = await _sb.rpc('album_aprovacao_registrar', {
+    p_album_id:   _albumId,
+    p_nome:       nome,
+    p_email:      email,
+  });
+
+  if (rpcErr) {
+    errEl.textContent = 'Erro ao confirmar. Tente novamente.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Confirmar aprovação';
+    return;
+  }
+
+  // Notificar fotógrafo
+  fetch('/api/album-revisao?action=notificar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      album_id: _albumId,
+      tipo: 'aprovado',
+      nome_casal: nome,
+      email_casal: email,
+    }),
+  }).catch(function(){});
+
+  fecharModalAprovacao();
+  _album.aprovado = true;
+
+  // Mostrar banner, esconder botão de aprovação
+  document.getElementById('banner-aprovado').classList.remove('hidden');
+  document.getElementById('approval-section').classList.add('hidden');
+  document.getElementById('comment-section').style.opacity = '.5';
+  document.getElementById('comment-section').style.pointerEvents = 'none';
+}
+
+// ── Utilitários ───────────────────────────────────────────────────────────────
+function mostrar(id) { document.getElementById(id).classList.remove('hidden'); }
+function esconder(id){ document.getElementById(id).classList.add('hidden'); }
+
+function mostrarErro(titulo, msg) {
+  esconder('estado-loading');
+  document.getElementById('erro-titulo').textContent = titulo;
+  document.getElementById('erro-msg').textContent = msg;
+  mostrar('estado-erro');
+}
+
+// Teclado: setas esquerda/direita
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowLeft')  prevSpread();
+  if (e.key === 'ArrowRight') nextSpread();
+});
+</script>
+</body>
+</html>

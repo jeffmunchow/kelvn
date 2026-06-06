@@ -164,6 +164,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .modal-spread-label{font-size:.58rem;color:var(--text-hint);text-align:center;padding:.3rem 0;}
 .modal-footer{padding:.75rem 1.25rem;border-top:.5px solid var(--border);display:flex;align-items:center;gap:.6rem;justify-content:flex-end;}
 
+/* ── Nível 5 — Revisão ───────────────────────────────────────────── */
+#modal-share{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
+#modal-share.open{display:flex;}
+.share-link-wrap{display:flex;gap:.5rem;align-items:center;margin:.75rem 0;}
+.share-link-input{flex:1;padding:7px 10px;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius);color:var(--text-muted);font-size:.72rem;font-family:monospace;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.share-rodada{font-size:.65rem;color:var(--text-hint);margin-top:.35rem;}
+#modal-revisao{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
+#modal-revisao.open{display:flex;}
+#revisao-lista{max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;padding:.25rem 0;}
+.rev-item{background:var(--surface2);border:.5px solid var(--border-strong);border-radius:8px;padding:.75rem 1rem;}
+.rev-item.resolvido{opacity:.4;}
+.rev-item-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;}
+.rev-item-nome{font-size:.78rem;font-weight:500;color:var(--text);}
+.rev-item-spread{font-size:.62rem;color:var(--text-hint);padding:1px 6px;background:var(--surface3);border-radius:20px;}
+.rev-item-data{font-size:.62rem;color:var(--text-hint);margin-left:auto;}
+.rev-item-texto{font-size:.78rem;color:var(--text-muted);line-height:1.5;}
+.rev-item-resolver{font-size:.65rem;padding:3px 8px;background:transparent;border:.5px solid var(--border-strong);border-radius:20px;color:var(--text-hint);cursor:pointer;margin-top:.4rem;}
+.rev-item-resolver:hover{color:var(--teal);border-color:var(--teal);}
+#btn-revisao-wrap{position:relative;display:inline-flex;}
+.rev-badge{position:absolute;top:-5px;right:-5px;background:var(--coral);color:#fff;border-radius:50%;width:14px;height:14px;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+#banner-aprovado-editor{background:var(--teal-light);border-bottom:.5px solid var(--teal);padding:.45rem 1.25rem;font-size:.77rem;color:var(--teal);display:none;align-items:center;gap:.5rem;flex-shrink:0;}
 /* ── Utilitários ─────────────────────────────────────────────────── */
 .hidden{display:none!important;}
 .drop-over{outline:2px solid var(--amber)!important;outline-offset:-2px;}
@@ -314,11 +335,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         Montar automaticamente
       </button>
+      <div id="btn-revisao-wrap">
+        <button class="btn btn-sec" id="btn-revisao" onclick="abrirModalRevisao()" style="padding:4px 10px;font-size:.72rem;display:none;" title="Comentários do casal">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Revisão
+        </button>
+        <span class="rev-badge hidden" id="rev-badge-count"></span>
+      </div>
+      <button class="btn btn-sec" id="btn-share" onclick="abrirModalShare()" style="padding:4px 10px;font-size:.72rem;" title="Compartilhar para revisão do casal">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Compartilhar
+      </button>
       <button class="btn btn-sec" onclick="abrirPropsSpread()" style="padding:4px 10px;font-size:.72rem;" title="Fundo, margens e texto">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Propriedades
       </button>
       <div id="save-status">—</div>
+    </div>
+    <!-- Banner de aprovado -->
+    <div id="banner-aprovado-editor">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Álbum aprovado pelo casal — edição bloqueada.
     </div>
     <!-- Corpo do editor -->
     <div style="flex:1;display:flex;overflow:hidden;">
@@ -389,6 +426,53 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <button class="btn btn-sec" onclick="tentarNovamente()" style="padding:5px 14px;font-size:.75rem;">Tentar novamente</button>
       <button class="btn btn-sec" onclick="fecharModalAutoLayout()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
       <button class="btn" onclick="aplicarAutoLayout()" style="padding:5px 14px;font-size:.75rem;">Aceitar layout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Compartilhar ── -->
+<div id="modal-share">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-header">
+      <div class="modal-titulo">Compartilhar para revisão</div>
+      <button class="btn btn-sec" onclick="fecharModalShare()" style="padding:3px 10px;font-size:.72rem;">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem;">
+      <div id="share-body-content">
+        <p style="font-size:.8rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem;">
+          Gere um link para o casal revisar o álbum, deixar comentários e aprovar. O link expira em 30 dias.
+        </p>
+        <div id="share-link-area" style="display:none;">
+          <div class="share-link-wrap">
+            <input class="share-link-input" id="share-link-input" readonly>
+            <button class="btn btn-sec" onclick="copiarLink()" style="padding:6px 12px;font-size:.72rem;white-space:nowrap;" id="btn-copiar">Copiar</button>
+          </div>
+          <div class="share-rodada" id="share-rodada-info"></div>
+        </div>
+        <div id="share-status" style="font-size:.75rem;color:var(--text-hint);margin:.5rem 0;min-height:1rem;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="fecharModalShare()" style="padding:5px 14px;font-size:.75rem;">Fechar</button>
+      <button class="btn" id="btn-gerar-link" onclick="gerarLinkRevisao()" style="padding:5px 14px;font-size:.75rem;">Gerar link</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Revisão (comentários) ── -->
+<div id="modal-revisao">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-header">
+      <div class="modal-titulo">Comentários do casal</div>
+      <button class="btn btn-sec" onclick="fecharModalRevisao()" style="padding:3px 10px;font-size:.72rem;">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1rem 1.25rem;">
+      <div id="revisao-lista">
+        <div style="font-size:.78rem;color:var(--text-hint);text-align:center;padding:1.5rem 0;">Carregando comentários…</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="fecharModalRevisao()" style="padding:5px 14px;font-size:.75rem;">Fechar</button>
     </div>
   </div>
 </div>
@@ -658,6 +742,15 @@ async function abrirAlbum(albumObj) {
   iniciarKonva();
   renderThumbs();
   renderSpread();
+
+  // Nível 5: verificar aprovado + carregar comentários pendentes
+  if (albumObj.aprovado) {
+    aplicarModoAprovado();
+  } else if (albumObj.revisao_ativa) {
+    // Se há revisão ativa, mostrar botão de revisão
+    document.getElementById('btn-revisao').style.display = '';
+    carregarBadgeComentarios(albumObj.id);
+  }
 }
 
 // ── Carregar spreads + slots ──────────────────────────────────────────────────
@@ -1898,6 +1991,217 @@ async function aplicarAutoLayout() {
   renderThumbs();
   renderTemplates();
   renderSpread();
+}
+
+// ── Nível 5: Revisão ─────────────────────────────────────────────────────────
+
+// Modo aprovado: bloqueia edição
+function aplicarModoAprovado() {
+  var banner = document.getElementById('banner-aprovado-editor');
+  if (banner) { banner.style.display = 'flex'; }
+  // Desabilitar interações no stage
+  if (_stage) _stage.listening(false);
+  // Esconder botões de edição
+  var btnShare = document.getElementById('btn-share');
+  var btnRevisao = document.getElementById('btn-revisao');
+  var btnAutolayout = document.getElementById('btn-autolayout');
+  if (btnShare)     btnShare.style.display = 'none';
+  if (btnRevisao)   btnRevisao.style.display = 'none';
+  if (btnAutolayout) btnAutolayout.style.display = 'none';
+  // Esconder pool (casal não edita)
+  var pool = document.getElementById('pool-panel');
+  if (pool) pool.style.display = 'none';
+}
+
+// Modal de compartilhamento
+var _shareLink = null;
+
+function abrirModalShare() {
+  var album = estado.album;
+  if (!album) return;
+  document.getElementById('modal-share').classList.add('open');
+  var area = document.getElementById('share-link-area');
+  var status = document.getElementById('share-status');
+  var btnGerar = document.getElementById('btn-gerar-link');
+
+  // Se já tem token ativo, mostrar o link existente
+  if (album.revisao_token && album.revisao_ativa) {
+    _shareLink = 'https://app.kelvn.com.br/album-revisao?t=' + album.revisao_token;
+    document.getElementById('share-link-input').value = _shareLink;
+    var expira = album.revisao_expira_em ? new Date(album.revisao_expira_em).toLocaleDateString('pt-BR') : '';
+    document.getElementById('share-rodada-info').textContent = 'Rodada ' + (album.revisao_rodada || 1) + (expira ? ' · Expira em ' + expira : '');
+    area.style.display = '';
+    status.textContent = '';
+    btnGerar.textContent = 'Regenerar link';
+  } else {
+    area.style.display = 'none';
+    status.textContent = '';
+    btnGerar.textContent = 'Gerar link';
+  }
+}
+
+function fecharModalShare() {
+  document.getElementById('modal-share').classList.remove('open');
+}
+
+async function gerarLinkRevisao() {
+  var album = estado.album;
+  if (!album) return;
+  var btn = document.getElementById('btn-gerar-link');
+  var status = document.getElementById('share-status');
+  btn.disabled = true;
+  btn.textContent = 'Gerando…';
+  status.textContent = '';
+
+  try {
+    var jwt = _session.access_token;
+    var r = await fetch('/api/album-revisao?action=gerar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify({ album_id: album.id }),
+    });
+    var data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Erro desconhecido');
+
+    // Atualizar estado local
+    _shareLink = data.link;
+    album.revisao_token = _shareLink.split('?t=')[1];
+    album.revisao_ativa = true;
+    album.revisao_rodada = data.rodada;
+    album.revisao_expira_em = data.expira;
+
+    document.getElementById('share-link-input').value = _shareLink;
+    var expira = new Date(data.expira).toLocaleDateString('pt-BR');
+    document.getElementById('share-rodada-info').textContent = 'Rodada ' + data.rodada + ' · Expira em ' + expira;
+    document.getElementById('share-link-area').style.display = '';
+
+    // Mostrar botão de revisão na topbar
+    document.getElementById('btn-revisao').style.display = '';
+
+    btn.textContent = 'Regenerar link';
+    status.textContent = 'Link gerado com sucesso.';
+    status.style.color = 'var(--teal)';
+  } catch(err) {
+    status.textContent = 'Erro: ' + (err.message || 'Tente novamente.');
+    status.style.color = 'var(--coral)';
+    btn.textContent = 'Gerar link';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function copiarLink() {
+  if (!_shareLink) return;
+  navigator.clipboard.writeText(_shareLink).then(function() {
+    var btn = document.getElementById('btn-copiar');
+    btn.textContent = 'Copiado!';
+    setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
+  }).catch(function() {
+    var input = document.getElementById('share-link-input');
+    input.select();
+    document.execCommand('copy');
+  });
+}
+
+// Modal de revisão (comentários)
+async function abrirModalRevisao() {
+  document.getElementById('modal-revisao').classList.add('open');
+  await carregarComentarios();
+}
+
+function fecharModalRevisao() {
+  document.getElementById('modal-revisao').classList.remove('open');
+}
+
+async function carregarComentarios() {
+  var album = estado.album;
+  if (!album) return;
+  var lista = document.getElementById('revisao-lista');
+  lista.innerHTML = '<div style="font-size:.78rem;color:var(--text-hint);text-align:center;padding:1.5rem 0;">Carregando…</div>';
+
+  var { data: comentarios, error } = await _sb.from('album_comentarios')
+    .select('*')
+    .eq('album_id', album.id)
+    .eq('user_id', _userId)
+    .order('criado_em', { ascending: false });
+
+  if (error || !comentarios) {
+    lista.innerHTML = '<div style="font-size:.78rem;color:var(--text-hint);text-align:center;padding:1.5rem 0;">Erro ao carregar comentários.</div>';
+    return;
+  }
+
+  if (!comentarios.length) {
+    lista.innerHTML = '<div style="font-size:.78rem;color:var(--text-hint);text-align:center;padding:1.5rem 0;">Nenhum comentário ainda.</div>';
+    return;
+  }
+
+  lista.innerHTML = '';
+  var pendentes = 0;
+  comentarios.forEach(function(c) {
+    if (!c.resolvido) pendentes++;
+    var data = new Date(c.criado_em).toLocaleDateString('pt-BR');
+    var hora = new Date(c.criado_em).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    var div = document.createElement('div');
+    div.className = 'rev-item' + (c.resolvido ? ' resolvido' : '');
+    div.innerHTML =
+      '<div class="rev-item-header">' +
+        '<span class="rev-item-nome">' + esc(c.nome) + '</span>' +
+        (c.spread_num ? '<span class="rev-item-spread">Spread ' + c.spread_num + '</span>' : '') +
+        '<span class="rev-item-data">' + data + ' ' + hora + '</span>' +
+      '</div>' +
+      '<div class="rev-item-texto">' + esc(c.conteudo) + '</div>' +
+      (!c.resolvido ? '<button class="rev-item-resolver" onclick="resolverComentario(\'' + c.id + '\', this)">Marcar como resolvido</button>' : '<span style="font-size:.65rem;color:var(--text-hint);display:block;margin-top:.35rem;">Resolvido</span>') +
+    '';
+    lista.appendChild(div);
+  });
+
+  // Atualizar badge
+  atualizarBadge(pendentes);
+}
+
+async function carregarBadgeComentarios(albumId) {
+  var { count } = await _sb.from('album_comentarios')
+    .select('*', { count: 'exact', head: true })
+    .eq('album_id', albumId)
+    .eq('user_id', _userId)
+    .eq('resolvido', false);
+  atualizarBadge(count || 0);
+}
+
+function atualizarBadge(n) {
+  var badge = document.getElementById('rev-badge-count');
+  var btnRev = document.getElementById('btn-revisao');
+  if (!badge || !btnRev) return;
+  if (n > 0) {
+    badge.textContent = n > 9 ? '9+' : String(n);
+    badge.classList.remove('hidden');
+    btnRev.style.display = '';
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+async function resolverComentario(id, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Resolvendo…';
+  var { error } = await _sb.from('album_comentarios')
+    .update({ resolvido: true, resolvido_em: new Date().toISOString() })
+    .eq('id', id).eq('user_id', _userId);
+  if (!error) {
+    var item = btn.closest('.rev-item');
+    if (item) {
+      item.classList.add('resolvido');
+      btn.replaceWith(Object.assign(document.createElement('span'), {
+        className: '', style: 'font-size:.65rem;color:var(--text-hint);display:block;margin-top:.35rem;',
+        textContent: 'Resolvido',
+      }));
+    }
+    // Atualizar badge
+    carregarBadgeComentarios(estado.album.id);
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Marcar como resolvido';
+  }
 }
 
 // ── Utilitários ───────────────────────────────────────────────────────────────

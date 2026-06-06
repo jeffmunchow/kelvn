@@ -18,8 +18,17 @@
       "continue": true
     },
     {
+      "src": "/api/newsletter(.*)",
+      "dest": "/api/album-revisao$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
+    },
+    {
+      "src": "/album-revisao",
+      "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
+      "dest": "/app/album-revisao.html"
     },
     {
       "src": "/album.html",
