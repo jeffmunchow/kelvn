@@ -895,6 +895,34 @@ function renderThumbs() {
 
     item.appendChild(mini);
     item.appendChild(label);
+
+    // Reordenar por drag (capa e contracapa fixas)
+    var isMobile = spread.tipo !== 'spread';
+    if (!isMobile) {
+      item.draggable = true;
+      item.addEventListener('dragstart', function(e) {
+        _thumbDragIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        item.style.opacity = '0.4';
+      });
+      item.addEventListener('dragend', function() { item.style.opacity = ''; });
+    }
+    item.addEventListener('dragover', function(e) {
+      if (_thumbDragIdx === null || spread.tipo !== 'spread') return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      item.style.outline = '2px solid var(--amber)';
+    });
+    item.addEventListener('dragleave', function() { item.style.outline = ''; });
+    item.addEventListener('drop', function(e) {
+      e.preventDefault();
+      item.style.outline = '';
+      if (_thumbDragIdx === null || _thumbDragIdx === idx) { _thumbDragIdx = null; return; }
+      var from = _thumbDragIdx;
+      _thumbDragIdx = null;
+      reordenarSpreads(from, idx);
+    });
+
     item.addEventListener('click', function() { mudarSpread(idx); });
     bar.appendChild(item);
   });
@@ -944,6 +972,36 @@ async function adicionarSpread() {
 
   renderThumbs();
   renderTemplates();
+  renderSpread();
+}
+
+var _thumbDragIdx = null;
+
+async function reordenarSpreads(deIdx, paraIdx) {
+  // Capa (0) e contracapa (último) nunca se movem
+  var ultimo = estado.spreads.length - 1;
+  if (deIdx === 0 || deIdx === ultimo) return;
+  if (paraIdx === 0 || paraIdx === ultimo) return;
+  if (deIdx === paraIdx) return;
+
+  var spreads = estado.spreads.slice();
+  var [movido] = spreads.splice(deIdx, 1);
+  spreads.splice(paraIdx, 0, movido);
+  estado.spreads = spreads;
+
+  // Atualiza spreadAtivo para seguir o spread movido
+  if (estado.spreadAtivo === deIdx) estado.spreadAtivo = paraIdx;
+  else if (deIdx < estado.spreadAtivo && paraIdx >= estado.spreadAtivo) estado.spreadAtivo--;
+  else if (deIdx > estado.spreadAtivo && paraIdx <= estado.spreadAtivo) estado.spreadAtivo++;
+
+  // Persiste posições no Supabase em paralelo
+  var updates = estado.spreads.map(function(s, i) {
+    s.posicao = i;
+    return _sb.from('album_spreads').update({ posicao: i }).eq('id', s.id).eq('user_id', _userId);
+  });
+  await Promise.all(updates);
+
+  renderThumbs();
   renderSpread();
 }
 
