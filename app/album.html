@@ -119,6 +119,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .tpl-slot{position:absolute;background:var(--surface3);border:.5px solid var(--border-strong);}
 .tpl-nome{font-size:.58rem;color:var(--text-hint);text-align:center;}
 
+/* ── Nível 4 — Refinamento visual ───────────────────────────────── */
+/* Painel de propriedades do spread (substitui templates quando prop ativo) */
+#props-panel{width:188px;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#props-panel.hidden{display:none!important;}
+#props-header{padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+#props-titulo{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);}
+#props-body{flex:1;overflow-y:auto;padding:.75rem;}
+.props-section{margin-bottom:1rem;}
+.props-label{font-size:.63rem;color:var(--text-hint);margin-bottom:.4rem;display:block;}
+.swatches{display:flex;flex-wrap:wrap;gap:.35rem;}
+.swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:1.5px solid transparent;transition:transform .1s;}
+.swatch:hover{transform:scale(1.15);}
+.swatch.sel{border-color:var(--amber);}
+.props-slider{width:100%;accent-color:var(--amber);}
+.props-btn{width:100%;padding:5px 8px;font-size:.7rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:6px;color:var(--text-muted);cursor:pointer;margin-top:.35rem;text-align:left;transition:color .15s;}
+.props-btn:hover{color:var(--text);}
+.props-btn.danger{color:var(--coral);}
+/* Toolbar Desfazer/Refazer */
+#btn-undo,#btn-redo{padding:4px 9px;font-size:.72rem;opacity:.4;pointer-events:none;}
+#btn-undo.ativo,#btn-redo.ativo{opacity:1;pointer-events:auto;}
+/* Slot em modo de edição */
+.slot-editando-overlay{position:absolute;pointer-events:none;}
+/* Texto inline textarea */
+.texto-inline-edit{position:absolute;background:transparent;border:1px solid var(--amber);outline:none;resize:none;padding:4px;line-height:1.4;color:inherit;font-family:inherit;}
+/* Seletores de alinhamento e fonte */
+.align-btns{display:flex;gap:.3rem;}
+.align-btn{flex:1;padding:3px 0;font-size:.7rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:4px;cursor:pointer;color:var(--text-muted);transition:color .15s,background .15s;}
+.align-btn.sel{background:var(--amber-light);color:var(--amber);border-color:var(--amber);}
+.fonte-sel{width:100%;padding:4px 8px;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:6px;color:var(--text-muted);font-size:.7rem;cursor:pointer;}
+
 /* ── Auto-layout ─────────────────────────────────────────────────── */
 #btn-autolayout{display:none;padding:4px 12px;font-size:.72rem;}
 #modal-autolayout{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
@@ -274,9 +304,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <div id="canvas-topbar">
       <button class="btn btn-sec" onclick="irParaLista()" style="padding:4px 10px;font-size:.72rem;">← Álbuns</button>
       <div id="album-nome-topbar"></div>
-      <button id="btn-autolayout" class="btn btn-sec" onclick="abrirModalAutoLayout()">
+      <button id="btn-undo" class="btn btn-sec" onclick="historico.desfazer()" title="Desfazer (Ctrl+Z)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+      </button>
+      <button id="btn-redo" class="btn btn-sec" onclick="historico.refazer()" title="Refazer (Ctrl+Y)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+      </button>
+      <button id="btn-autolayout" class="btn btn-sec" onclick="abrirModalAutoLayout()" style="display:none;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
         Montar automaticamente
+      </button>
+      <button class="btn btn-sec" onclick="abrirPropsSpread()" style="padding:4px 10px;font-size:.72rem;" title="Fundo, margens e texto">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Propriedades
       </button>
       <div id="save-status">—</div>
     </div>
@@ -311,6 +351,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <div id="templates-panel">
         <div id="tpl-header">Templates</div>
         <div id="tpl-grid"></div>
+      </div>
+
+      <!-- Propriedades do spread -->
+      <div id="props-panel" class="hidden">
+        <div id="props-header">
+          <div id="props-titulo">Spread</div>
+          <button class="btn btn-sec" onclick="fecharProps()" style="padding:2px 8px;font-size:.68rem;">✕</button>
+        </div>
+        <div id="props-body"></div>
       </div>
 
     </div>
@@ -595,6 +644,16 @@ async function abrirAlbum(albumObj) {
     carregarPool(albumObj.galeria_slug),
   ]);
 
+  // Carregar textos de cada spread
+  await Promise.all(estado.spreads.map(async function(s) {
+    s._textos = await carregarTextos(s.id);
+  }));
+
+  // Resetar histórico ao abrir álbum
+  historico.pilha = []; historico.refeita = [];
+  atualizarBotoesHistorico();
+  fecharProps();
+
   renderTemplates();
   iniciarKonva();
   renderThumbs();
@@ -743,50 +802,93 @@ function iniciarKonva() {
 // ── Renderizar spread no canvas ───────────────────────────────────────────────
 function renderSpread() {
   if (!_stage || !_layer) return;
+  _slotEmEdicao = null;
   _layer.destroyChildren();
 
   var spread = estado.spreads[estado.spreadAtivo];
   if (!spread) return;
 
+  var W = _dimSpread.w, H = _dimSpread.h;
+  var bgColor = spread.background_color || '#1e1b16';
+
+  // Fundo do spread
+  _layer.add(new Konva.Rect({ x:0, y:0, width:W, height:H, fill:bgColor }));
+
+  // Full-bleed: foto cobre o spread inteiro
+  var slots = spread.album_slots || [];
+  if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
+    (function(fotoKey) {
+      var url = '/api/gallery-img?key=' + encodeURIComponent(fotoKey);
+      Konva.Image.fromURL(url, function(img) {
+        var sc = Math.max(W / img.width(), H / img.height());
+        img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
+        _layer.add(img);
+        _layer.batchDraw();
+      });
+    })(slots[0].foto_key);
+    renderizarTextos(spread._textos || []);
+    _layer.batchDraw();
+    atualizarUsadasNoPool();
+    return;
+  }
+
   var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
-  var W = _dimSpread.w;
-  var H = _dimSpread.h;
+  var margemPx = spread.margem_px != null ? spread.margem_px : 8;
+  var gutterPx = spread.gutter_px  != null ? spread.gutter_px  : 8;
+  var slotsAjust = aplicarEspacamento(tpl.slots, margemPx, gutterPx, W, H);
 
-  // Fundo branco do spread
-  _layer.add(new Konva.Rect({ x:0, y:0, width:W, height:H, fill:'#1e1b16' }));
-
-  tpl.slots.forEach(function(s, idx) {
+  slotsAjust.forEach(function(s, idx) {
     var x = s.x * W, y = s.y * H, w = s.w * W, h = s.h * H;
-    var slot = (spread.album_slots || [])[idx];
-    var grupo = new Konva.Group({ x:0, y:0 });
+    var slot = slots[idx];
+    var grupo = new Konva.Group({ x:0, y:0, name:'grupo-slot-'+idx });
 
     // Fundo do slot
-    grupo.add(new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'#2a2620', stroke:'#3a3530', strokeWidth:.5 }));
+    var bgSlot = new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'#2a2620', stroke:'rgba(255,255,255,0.06)', strokeWidth:.5, name:'bg-slot' });
+    grupo.add(bgSlot);
 
     // Foto, se houver
     if (slot && slot.foto_key) {
-      var url = '/api/gallery-img?key=' + encodeURIComponent(slot.foto_key);
-      Konva.Image.fromURL(url, function(img) {
-        var scaleX = w / img.width();
-        var scaleY = h / img.height();
-        var scale  = Math.max(scaleX, scaleY) * (slot.foto_escala || 1);
-        var imgW   = img.width()  * scale;
-        var imgH   = img.height() * scale;
-        img.setAttrs({
-          x: x + (slot.foto_x || 0) + (w - imgW) / 2,
-          y: y + (slot.foto_y || 0) + (h - imgH) / 2,
-          width: imgW, height: imgH,
+      (function(slotRef, gx, gy, gw, gh, grupoRef) {
+        var url = '/api/gallery-img?key=' + encodeURIComponent(slotRef.foto_key);
+        Konva.Image.fromURL(url, function(img) {
+          var scMin = Math.max(gw / img.width(), gh / img.height());
+          var sc    = slotRef.foto_escala > 0 ? slotRef.foto_escala : scMin;
+          sc = Math.max(scMin, sc);
+          var imgX  = gx + (slotRef.foto_x || 0);
+          var imgY  = gy + (slotRef.foto_y || 0);
+          // centrar se offset padrão
+          if (slotRef.foto_x === 0 && slotRef.foto_y === 0) {
+            imgX = gx + (gw - img.width() * sc) / 2;
+            imgY = gy + (gh - img.height() * sc) / 2;
+          }
+          img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
+          grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
+          grupoRef.add(img);
+          _layer.batchDraw();
+
+          // Duplo clique ativa crop
+          img.on('dblclick dbltap', function() {
+            ativarModoEdicaoSlot(grupoRef, slotRef, { x: gx, y: gy, w: gw, h: gh });
+          });
         });
-        grupo.clipFunc(function(ctx) { ctx.rect(x, y, w, h); });
-        grupo.add(img);
-        _layer.batchDraw();
-      });
+      })(slot, x, y, w, h, grupo);
     }
 
-    // Rect transparente para drop
+    // HitRect para drop
     var hitRect = new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'transparent', name:'slot-'+idx });
     grupo.add(hitRect);
     _layer.add(grupo);
+  });
+
+  // Textos do spread
+  renderizarTextos(spread._textos || []);
+
+  // Botão de propriedades (clique no canvas fora dos slots)
+  _stage.off('click.props');
+  _stage.on('click.props', function(e) {
+    if (e.target === _stage || e.target.name() === 'bg') {
+      if (_slotEmEdicao) sairModoEdicaoSlot(false);
+    }
   });
 
   _layer.batchDraw();
@@ -996,11 +1098,16 @@ function renderThumbs() {
   }
 }
 
-function mudarSpread(idx) {
+async function mudarSpread(idx) {
   estado.spreadAtivo = idx;
+  var spread = estado.spreads[idx];
+  if (spread && !spread._textos) {
+    spread._textos = await carregarTextos(spread.id);
+  }
   renderThumbs();
   renderTemplates();
   renderSpread();
+  if (!document.getElementById('props-panel').classList.contains('hidden')) abrirPropsSpread();
 }
 
 // ── Adicionar / remover spreads ───────────────────────────────────────────────
@@ -1085,6 +1192,426 @@ function atualizarUsadasNoPool() {
     if (key) { if (estado.fotosUsadas.has(key)) el.classList.add('usada'); else el.classList.remove('usada'); }
   });
 }
+
+// ── Nível 4 — Histórico (desfazer/refazer) ───────────────────────────────────
+var historico = {
+  pilha:  [],
+  refeita: [],
+  limite: 50,
+  empurrar: function(tipo, antes, depois) {
+    this.pilha.push({ tipo: tipo, antes: antes, depois: depois });
+    if (this.pilha.length > this.limite) this.pilha.shift();
+    this.refeita = [];
+    atualizarBotoesHistorico();
+  },
+  desfazer: async function() {
+    if (!this.pilha.length) return;
+    var entrada = this.pilha.pop();
+    this.refeita.push(entrada);
+    await restaurarEstadoHistorico(entrada.antes);
+    atualizarBotoesHistorico();
+  },
+  refazer: async function() {
+    if (!this.refeita.length) return;
+    var entrada = this.refeita.pop();
+    this.pilha.push(entrada);
+    await restaurarEstadoHistorico(entrada.depois);
+    atualizarBotoesHistorico();
+  }
+};
+
+function atualizarBotoesHistorico() {
+  var u = document.getElementById('btn-undo');
+  var r = document.getElementById('btn-redo');
+  if (u) { if (historico.pilha.length) u.classList.add('ativo'); else u.classList.remove('ativo'); }
+  if (r) { if (historico.refeita.length) r.classList.add('ativo'); else r.classList.remove('ativo'); }
+}
+
+async function restaurarEstadoHistorico(snap) {
+  if (!snap) return;
+  if (snap.tipo === 'slot') {
+    var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
+    if (!spread) return;
+    var slot = (spread.album_slots || []).find(function(sl) { return sl.id === snap.slotId; });
+    if (!slot) return;
+    slot.foto_key   = snap.foto_key;
+    slot.foto_x     = snap.foto_x;
+    slot.foto_y     = snap.foto_y;
+    slot.foto_escala = snap.foto_escala;
+    await _sb.from('album_slots').update({ foto_key: snap.foto_key, foto_x: snap.foto_x, foto_y: snap.foto_y, foto_escala: snap.foto_escala, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
+  } else if (snap.tipo === 'spread-bg') {
+    var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
+    if (!spread) return;
+    spread.background_color = snap.background_color;
+    spread.margem_px = snap.margem_px;
+    spread.gutter_px = snap.gutter_px;
+    await _sb.from('album_spreads').update({ background_color: snap.background_color, margem_px: snap.margem_px, gutter_px: snap.gutter_px }).eq('id', snap.spreadId).eq('user_id', _userId);
+  } else if (snap.tipo === 'texto') {
+    // Re-render basta; dados já estão em snap
+    var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
+    if (spread) { spread._textos = snap.textos; }
+  }
+  // Reconstruir fotosUsadas
+  estado.fotosUsadas = new Set();
+  estado.spreads.forEach(function(s) { (s.album_slots || []).forEach(function(sl) { if (sl.foto_key) estado.fotosUsadas.add(sl.foto_key); }); });
+  renderSpread();
+  renderThumbs();
+  atualizarUsadasNoPool();
+  if (document.getElementById('props-panel') && !document.getElementById('props-panel').classList.contains('hidden')) {
+    abrirPropsSpread();
+  }
+}
+
+// ── Nível 4 — Crop interativo ────────────────────────────────────────────────
+var _slotEmEdicao = null; // { grupo, slot, dimSlot, imgNode, snapAntes }
+
+function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
+  if (_slotEmEdicao) sairModoEdicaoSlot(true);
+  var imgNode = grupo.findOne('Image');
+  if (!imgNode) return;
+
+  _slotEmEdicao = {
+    grupo: grupo, slot: slot, dimSlot: dimSlot, imgNode: imgNode,
+    snapAntes: { tipo:'slot', spreadId: estado.spreads[estado.spreadAtivo].id, slotId: slot.id,
+      foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala }
+  };
+
+  // Borda amber no slot
+  var bg = grupo.findOne('Rect');
+  if (bg) bg.stroke('var(--amber)') && bg.strokeWidth(2);
+
+  imgNode.draggable(true);
+  imgNode.dragBoundFunc(function(pos) {
+    return limitarDragFoto(pos, imgNode, dimSlot);
+  });
+  imgNode.on('dragend.crop', function() { salvarCropAtual(); });
+
+  // Scroll para zoom
+  _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
+  _layer.batchDraw();
+}
+
+function _wheelCropHandler(e) {
+  if (!_slotEmEdicao) return;
+  var pos = _stage.getPointerPosition();
+  if (!pos) return;
+  var ds = _slotEmEdicao.dimSlot;
+  if (pos.x < ds.x || pos.x > ds.x + ds.w || pos.y < ds.y || pos.y > ds.y + ds.h) return;
+  e.preventDefault();
+  var imgNode = _slotEmEdicao.imgNode;
+  var fator = e.deltaY > 0 ? 0.92 : 1.08;
+  var escalaMin = escalaMinCover(imgNode, _slotEmEdicao.dimSlot);
+  var novaSc = Math.max(escalaMin, Math.min(imgNode.scaleX() * fator, escalaMin * 3));
+  imgNode.scaleX(novaSc); imgNode.scaleY(novaSc);
+  var posAjust = limitarDragFoto(imgNode.position(), imgNode, _slotEmEdicao.dimSlot);
+  imgNode.position(posAjust);
+  _layer.batchDraw();
+  salvarCropAtual();
+}
+
+function escalaMinCover(imgNode, ds) {
+  return Math.max(ds.w / imgNode.width(), ds.h / imgNode.height());
+}
+
+function limitarDragFoto(pos, imgNode, ds) {
+  var sc = imgNode.scaleX();
+  var iw = imgNode.width() * sc, ih = imgNode.height() * sc;
+  var minX = ds.x + ds.w - iw, maxX = ds.x;
+  var minY = ds.y + ds.h - ih, maxY = ds.y;
+  return {
+    x: Math.max(minX, Math.min(maxX, pos.x)),
+    y: Math.max(minY, Math.min(maxY, pos.y))
+  };
+}
+
+function salvarCropAtual() {
+  if (!_slotEmEdicao) return;
+  var imgNode = _slotEmEdicao.imgNode;
+  var ds = _slotEmEdicao.dimSlot;
+  var slot = _slotEmEdicao.slot;
+  slot.foto_x     = imgNode.x() - ds.x;
+  slot.foto_y     = imgNode.y() - ds.y;
+  slot.foto_escala = imgNode.scaleX();
+  setSaveStatus('Salvando…');
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function() {
+    _sb.from('album_slots').update({ foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId).then(function() { setSaveStatus('Salvo ✓'); });
+  }, 600);
+}
+
+function sairModoEdicaoSlot(silencioso) {
+  if (!_slotEmEdicao) return;
+  var snap = _slotEmEdicao.snapAntes;
+  var slot = _slotEmEdicao.slot;
+  if (!silencioso) {
+    var snapDepois = { tipo:'slot', spreadId: snap.spreadId, slotId: slot.id, foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala };
+    if (snap.foto_x !== snapDepois.foto_x || snap.foto_y !== snapDepois.foto_y || snap.foto_escala !== snapDepois.foto_escala) {
+      historico.empurrar('crop', snap, snapDepois);
+    }
+  }
+  _slotEmEdicao.imgNode.off('dragend.crop');
+  _slotEmEdicao.imgNode.draggable(false);
+  _stage.container().removeEventListener('wheel', _wheelCropHandler);
+  _slotEmEdicao = null;
+  renderSpread();
+}
+
+// ── Nível 4 — Propriedades do spread ────────────────────────────────────────
+var CORES_FUNDO = [
+  { label: 'Branco',       value: '#FFFFFF' },
+  { label: 'Off-white',    value: '#F5F2ED' },
+  { label: 'Creme',        value: '#EDE8DF' },
+  { label: 'Cinza claro',  value: '#D8D5D0' },
+  { label: 'Cinza médio',  value: '#8A8680' },
+  { label: 'Quase preto',  value: '#211E18' },
+  { label: 'Preto',        value: '#111009' },
+  { label: 'Escuro Kelvn', value: '#1e1b16' },
+  { label: 'Âmbar Kelvn',  value: '#D4902A' },
+];
+
+function abrirPropsSpread() {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+  document.getElementById('props-panel').classList.remove('hidden');
+  document.getElementById('templates-panel').style.display = 'none';
+
+  var body = document.getElementById('props-body');
+  body.innerHTML = '';
+
+  // Cor de fundo
+  var secBg = criarPropsSection('Fundo');
+  var swatches = document.createElement('div');
+  swatches.className = 'swatches';
+  CORES_FUNDO.forEach(function(c) {
+    var sw = document.createElement('div');
+    sw.className = 'swatch' + ((spread.background_color || '#1e1b16') === c.value ? ' sel' : '');
+    sw.style.background = c.value;
+    sw.title = c.label;
+    sw.addEventListener('click', function() {
+      var snapAntes = { tipo:'spread-bg', spreadId: spread.id, background_color: spread.background_color, margem_px: spread.margem_px, gutter_px: spread.gutter_px };
+      spread.background_color = c.value;
+      historico.empurrar('fundo', snapAntes, { tipo:'spread-bg', spreadId: spread.id, background_color: c.value, margem_px: spread.margem_px, gutter_px: spread.gutter_px });
+      _sb.from('album_spreads').update({ background_color: c.value }).eq('id', spread.id).eq('user_id', _userId).then(function(){});
+      renderSpread();
+      abrirPropsSpread();
+    });
+    swatches.appendChild(sw);
+  });
+  secBg.appendChild(swatches);
+  body.appendChild(secBg);
+
+  // Margem
+  var secMargem = criarPropsSection('Margem (' + (spread.margem_px || 8) + 'px)');
+  var slMargem = document.createElement('input');
+  slMargem.type = 'range'; slMargem.min = 0; slMargem.max = 30; slMargem.value = spread.margem_px || 8;
+  slMargem.className = 'props-slider';
+  slMargem.addEventListener('input', function() {
+    secMargem.querySelector('.props-label').textContent = 'Margem (' + this.value + 'px)';
+    spread.margem_px = parseInt(this.value);
+    renderSpread();
+  });
+  slMargem.addEventListener('change', function() {
+    var v = parseInt(this.value);
+    historico.empurrar('margem', { tipo:'spread-bg', spreadId: spread.id, background_color: spread.background_color, margem_px: spread.margem_px, gutter_px: spread.gutter_px }, { tipo:'spread-bg', spreadId: spread.id, background_color: spread.background_color, margem_px: v, gutter_px: spread.gutter_px });
+    _sb.from('album_spreads').update({ margem_px: v }).eq('id', spread.id).eq('user_id', _userId).then(function(){});
+  });
+  secMargem.appendChild(slMargem);
+  body.appendChild(secMargem);
+
+  // Gutter
+  var secGutter = criarPropsSection('Gutter (' + (spread.gutter_px || 8) + 'px)');
+  var slGutter = document.createElement('input');
+  slGutter.type = 'range'; slGutter.min = 0; slGutter.max = 20; slGutter.value = spread.gutter_px || 8;
+  slGutter.className = 'props-slider';
+  slGutter.addEventListener('input', function() {
+    secGutter.querySelector('.props-label').textContent = 'Gutter (' + this.value + 'px)';
+    spread.gutter_px = parseInt(this.value);
+    renderSpread();
+  });
+  slGutter.addEventListener('change', function() {
+    var v = parseInt(this.value);
+    _sb.from('album_spreads').update({ gutter_px: v }).eq('id', spread.id).eq('user_id', _userId).then(function(){});
+  });
+  secGutter.appendChild(slGutter);
+  body.appendChild(secGutter);
+
+  // Texto
+  var secTexto = criarPropsSection('Texto');
+  var btnTexto = document.createElement('button');
+  btnTexto.className = 'props-btn';
+  btnTexto.textContent = '+ Adicionar texto';
+  btnTexto.addEventListener('click', function() { adicionarTexto(); });
+  secTexto.appendChild(btnTexto);
+  body.appendChild(secTexto);
+
+  // Full-bleed (só para spreads com exatamente 1 foto)
+  var slots = spread.album_slots || [];
+  var fotosNoSpread = slots.filter(function(sl) { return sl.foto_key; }).length;
+  if (fotosNoSpread === 1) {
+    var secFB = criarPropsSection('Full-bleed');
+    var lblFB = document.createElement('label');
+    lblFB.className = 'toggle-wrap';
+    var cbFB = document.createElement('input');
+    cbFB.type = 'checkbox'; cbFB.checked = !!spread.full_bleed;
+    cbFB.addEventListener('change', function() {
+      spread.full_bleed = this.checked;
+      _sb.from('album_spreads').update({ full_bleed: this.checked }).eq('id', spread.id).eq('user_id', _userId).then(function(){});
+      renderSpread();
+    });
+    lblFB.appendChild(cbFB);
+    lblFB.appendChild(document.createTextNode(' Foto sangra a página toda'));
+    secFB.appendChild(lblFB);
+    body.appendChild(secFB);
+  }
+
+  // Botão fechar
+  var btnFechar = document.createElement('button');
+  btnFechar.className = 'props-btn';
+  btnFechar.textContent = '← Voltar a templates';
+  btnFechar.style.marginTop = '.5rem';
+  btnFechar.addEventListener('click', fecharProps);
+  body.appendChild(btnFechar);
+}
+
+function fecharProps() {
+  document.getElementById('props-panel').classList.add('hidden');
+  document.getElementById('templates-panel').style.display = '';
+}
+
+function criarPropsSection(label) {
+  var sec = document.createElement('div');
+  sec.className = 'props-section';
+  var lbl = document.createElement('span');
+  lbl.className = 'props-label';
+  lbl.textContent = label;
+  sec.appendChild(lbl);
+  return sec;
+}
+
+// ── Nível 4 — Textos no spread ───────────────────────────────────────────────
+async function carregarTextos(spreadId) {
+  var { data } = await _sb.from('album_textos').select('*').eq('spread_id', spreadId).eq('user_id', _userId);
+  return data || [];
+}
+
+async function adicionarTexto() {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+  var { data: texto } = await _sb.from('album_textos').insert({
+    spread_id: spread.id, user_id: _userId,
+    conteudo: 'Texto', x_prop: 0.1, y_prop: 0.4, largura_prop: 0.8,
+    fonte: 'Playfair Display', tamanho: 24, cor: '#FFFFFF', alinhamento: 'center'
+  }).select().single();
+  if (!texto) return;
+  if (!spread._textos) spread._textos = [];
+  spread._textos.push(texto);
+  renderSpread();
+}
+
+async function salvarTexto(textoId, campos) {
+  campos.atualizado_em = new Date().toISOString();
+  await _sb.from('album_textos').update(campos).eq('id', textoId).eq('user_id', _userId);
+}
+
+async function removerTexto(textoId) {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread || !spread._textos) return;
+  var snap = JSON.parse(JSON.stringify(spread._textos));
+  spread._textos = spread._textos.filter(function(t) { return t.id !== textoId; });
+  historico.empurrar('texto', { tipo:'texto', spreadId: spread.id, textos: snap }, { tipo:'texto', spreadId: spread.id, textos: JSON.parse(JSON.stringify(spread._textos)) });
+  await _sb.from('album_textos').delete().eq('id', textoId).eq('user_id', _userId);
+  renderSpread();
+}
+
+function renderizarTextos(textos) {
+  (textos || []).forEach(function(td) {
+    var x = td.x_prop * _dimSpread.w;
+    var y = td.y_prop * _dimSpread.h;
+    var larg = td.largura_prop * _dimSpread.w;
+    var tam  = Math.max(8, (td.tamanho / 72) * _dimSpread.h * 0.4);
+
+    var kt = new Konva.Text({
+      x: x, y: y, width: larg,
+      text: td.conteudo,
+      fontFamily: td.fonte,
+      fontSize: tam,
+      fill: td.cor,
+      align: td.alinhamento,
+      draggable: true,
+      name: 'texto-' + td.id,
+    });
+
+    kt.on('dragend', function() {
+      td.x_prop = Math.max(0, Math.min(0.95, kt.x() / _dimSpread.w));
+      td.y_prop = Math.max(0, Math.min(0.95, kt.y() / _dimSpread.h));
+      salvarTexto(td.id, { x_prop: td.x_prop, y_prop: td.y_prop });
+    });
+
+    kt.on('dblclick dbltap', function() { abrirEdicaoTextoInline(kt, td); });
+
+    _layer.add(kt);
+  });
+}
+
+function abrirEdicaoTextoInline(kt, td) {
+  var container = _stage.container();
+  var pos = kt.getAbsolutePosition();
+  kt.hide(); _layer.batchDraw();
+
+  var ta = document.createElement('textarea');
+  ta.className = 'texto-inline-edit';
+  ta.style.left   = pos.x + 'px';
+  ta.style.top    = pos.y + 'px';
+  ta.style.width  = (kt.width()) + 'px';
+  ta.style.fontSize = kt.fontSize() + 'px';
+  ta.style.fontFamily = kt.fontFamily();
+  ta.style.color  = kt.fill();
+  ta.style.textAlign = kt.align();
+  ta.value = kt.text();
+  container.style.position = 'relative';
+  container.appendChild(ta);
+  ta.focus(); ta.select();
+
+  function fechar() {
+    var antes = td.conteudo;
+    var novo = ta.value.trim() || 'Texto';
+    kt.text(novo); kt.show(); _layer.batchDraw();
+    container.removeChild(ta);
+    if (novo !== antes) {
+      historico.empurrar('editar-texto', { tipo:'texto', spreadId: estado.spreads[estado.spreadAtivo].id, textos: [Object.assign({}, td, { conteudo: antes })] }, { tipo:'texto', spreadId: estado.spreads[estado.spreadAtivo].id, textos: [Object.assign({}, td, { conteudo: novo })] });
+      td.conteudo = novo;
+      salvarTexto(td.id, { conteudo: novo });
+    }
+  }
+  ta.addEventListener('blur', fechar);
+  ta.addEventListener('keydown', function(e) { if (e.key === 'Escape') { ta.blur(); } });
+}
+
+// ── Nível 4 — Aplicar espaçamento (margem + gutter) nos slots ────────────────
+function aplicarEspacamento(slots, margemPx, gutterPx, W, H) {
+  var mx = margemPx / W, my = margemPx / H;
+  var gx = (gutterPx / 2) / W, gy = (gutterPx / 2) / H;
+  return slots.map(function(s) {
+    var leftEdge = s.x < 0.01;
+    var topEdge  = s.y < 0.01;
+    var rightEdge  = (s.x + s.w) > 0.99;
+    var bottomEdge = (s.y + s.h) > 0.99;
+    return {
+      x: s.x + mx + (!leftEdge ? gx : 0),
+      y: s.y + my + (!topEdge ? gy : 0),
+      w: s.w - mx * 2 - (!leftEdge ? gx : 0) - (!rightEdge ? gx : 0),
+      h: s.h - my * 2 - (!topEdge ? gy : 0) - (!bottomEdge ? gy : 0),
+    };
+  });
+}
+
+// ── Nível 4 — Atalhos de teclado ─────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  var ctrl = e.ctrlKey || e.metaKey;
+  if (ctrl && e.key === 'z' && !e.shiftKey) { e.preventDefault(); historico.desfazer(); return; }
+  if ((ctrl && e.key === 'y') || (ctrl && e.shiftKey && e.key === 'z')) { e.preventDefault(); historico.refazer(); return; }
+  if (e.key === 'Escape') { sairModoEdicaoSlot(false); }
+});
 
 // ── Nível 3 — Auto-layout ────────────────────────────────────────────────────
 
