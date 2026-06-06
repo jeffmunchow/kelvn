@@ -22,6 +22,11 @@
       "dest": "/api/$1"
     },
     {
+      "src": "/album.html",
+      "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
+      "dest": "/app/album.html"
+    },
+    {
       "src": "/galeria/(.*)",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
       "dest": "/app/galeria.html"

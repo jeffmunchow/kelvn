@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor de Álbuns — Kelvn</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>k</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/konva/9.3.6/konva.min.js"></script>
+<style>
+:root,[data-theme="dark"]{
+  --bg:#111009;--surface:#1A1814;--surface2:#211E18;--surface3:#2A2620;
+  --border:rgba(255,255,255,.07);--border-strong:rgba(255,255,255,.13);
+  --text:#F0EDE6;--text-muted:#9A9590;--text-hint:#5C5854;
+  --amber:#D4902A;--amber-light:rgba(212,144,42,.12);
+  --teal:#0A7864;--teal-light:rgba(10,120,100,.18);
+  --coral:#C43A1A;--radius:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;}
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+#sidebar{width:56px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:.75rem 0;gap:.25rem;z-index:10;}
+.snav-logo{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--amber);margin-bottom:.5rem;cursor:pointer;text-decoration:none;}
+.snav-btn{width:36px;height:36px;border-radius:8px;border:none;background:transparent;color:var(--text-hint);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,color .15s;text-decoration:none;}
+.snav-btn:hover{background:var(--surface2);color:var(--text-muted);}
+.snav-btn.active{background:var(--amber-light);color:var(--amber);}
+.snav-spacer{flex:1;}
+.snav-sep{width:24px;height:.5px;background:var(--border);margin:.25rem 0;}
+
+/* ── Main ────────────────────────────────────────────────────────── */
+#main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+
+/* ── Estado: Lista de álbuns ─────────────────────────────────────── */
+#view-lista{flex:1;overflow-y:auto;padding:2rem 2.5rem 4rem;}
+.view-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;}
+.view-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--text);}
+.btn{display:inline-flex;align-items:center;gap:.4rem;background:var(--text);color:var(--bg);border:.5px solid var(--text);border-radius:8px;padding:6px 15px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.btn:hover{opacity:.85;}
+.btn-sec{background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);}
+.btn-sec:hover{color:var(--text);opacity:1;}
+#albuns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.album-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:1.1rem 1.25rem;cursor:pointer;transition:border-color .15s;}
+.album-card:hover{border-color:var(--border-strong);}
+.album-card-nome{font-size:.88rem;font-weight:500;color:var(--text);margin-bottom:.35rem;}
+.album-card-sub{font-size:.68rem;color:var(--text-hint);}
+.album-card-badge{display:inline-block;font-size:.58rem;padding:2px 8px;border-radius:20px;margin-top:.5rem;}
+.badge-rascunho{background:var(--surface2);color:var(--text-hint);}
+.badge-finalizado{background:var(--teal-light);color:var(--teal);}
+#albuns-empty{padding:4rem 0;text-align:center;color:var(--text-hint);font-size:.85rem;display:none;}
+
+/* ── Estado: Novo álbum ──────────────────────────────────────────── */
+#view-novo{flex:1;overflow-y:auto;padding:2rem 2.5rem;}
+.form-group{margin-bottom:1.1rem;}
+.form-label{font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;display:block;}
+.form-input{width:100%;max-width:440px;padding:8px 12px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;transition:border-color .15s;}
+.form-input:focus{border-color:var(--amber);}
+.formato-grid{display:flex;gap:.6rem;flex-wrap:wrap;}
+.formato-opt{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.6rem .8rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;transition:border-color .15s,background .15s;}
+.formato-opt:hover{border-color:var(--border-strong);background:var(--surface2);}
+.formato-opt.sel{border-color:var(--amber);background:var(--amber-light);}
+.formato-preview{background:var(--surface2);border-radius:3px;}
+.formato-label{font-size:.65rem;color:var(--text-hint);}
+
+/* ── Estado: Editor ──────────────────────────────────────────────── */
+#view-editor{flex:1;display:flex;overflow:hidden;}
+
+/* Pool esquerdo */
+#pool-panel{width:220px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#pool-header{padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+#pool-titulo{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);}
+#pool-count{font-size:.65rem;color:var(--text-hint);}
+#pool-grid{flex:1;overflow-y:auto;padding:.5rem;display:grid;grid-template-columns:1fr 1fr;gap:.35rem;}
+.pool-foto{aspect-ratio:1;border-radius:5px;overflow:hidden;cursor:grab;position:relative;background:var(--surface2);}
+.pool-foto img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
+.pool-foto.usada::after{content:'✓';position:absolute;inset:0;background:rgba(10,120,100,.55);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;pointer-events:none;}
+.pool-foto.usada{opacity:.5;}
+#pool-empty{padding:2rem 1rem;text-align:center;font-size:.72rem;color:var(--text-hint);display:none;}
+#pool-loading{padding:2rem 1rem;text-align:center;font-size:.72rem;color:var(--text-hint);}
+
+/* Área central do canvas */
+#canvas-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+#canvas-topbar{padding:.5rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;background:var(--surface);}
+#album-nome-topbar{font-size:.82rem;font-weight:500;color:var(--text);}
+#save-status{font-size:.65rem;color:var(--text-hint);margin-left:auto;}
+#canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem;overflow:hidden;}
+#thumbs-bar{height:88px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;overflow-x:auto;flex-shrink:0;}
+.thumb-item{height:64px;flex-shrink:0;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
+.thumb-item.ativo{border-color:var(--amber);}
+.thumb-item canvas{height:100%;width:auto;display:block;}
+.thumb-add{height:64px;width:44px;flex-shrink:0;border:.5px dashed var(--border-strong);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);font-size:1.1rem;transition:color .15s,border-color .15s;}
+.thumb-add:hover{color:var(--amber);border-color:var(--amber);}
+.thumb-remove{position:absolute;top:2px;right:2px;width:14px;height:14px;background:rgba(196,58,26,.8);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:.55rem;color:#fff;cursor:pointer;line-height:1;}
+.thumb-item:hover .thumb-remove{display:flex;}
+
+/* Painel de templates */
+#templates-panel{width:188px;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#tpl-header{padding:.75rem 1rem;border-bottom:.5px solid var(--border);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);}
+#tpl-grid{flex:1;overflow-y:auto;padding:.5rem;display:grid;grid-template-columns:1fr 1fr;gap:.4rem;}
+.tpl-card{border:.5px solid var(--border);border-radius:6px;cursor:pointer;padding:.4rem;transition:border-color .15s,background .15s;}
+.tpl-card:hover{border-color:var(--border-strong);background:var(--surface2);}
+.tpl-card.ativo{border-color:var(--amber);background:var(--amber-light);}
+.tpl-preview{width:100%;aspect-ratio:2;background:var(--surface2);border-radius:3px;margin-bottom:.3rem;position:relative;overflow:hidden;}
+.tpl-slot{position:absolute;background:var(--surface3);border:.5px solid var(--border-strong);}
+.tpl-nome{font-size:.58rem;color:var(--text-hint);text-align:center;}
+
+/* ── Utilitários ─────────────────────────────────────────────────── */
+.hidden{display:none!important;}
+.drop-over{outline:2px solid var(--amber)!important;outline-offset:-2px;}
+#overlay-auth{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;font-size:.85rem;color:var(--text-hint);}
+</style>
+</head>
+<body>
+
+<div id="overlay-auth">Verificando sessão…</div>
+
+<!-- ── Sidebar ── -->
+<nav id="sidebar">
+  <a href="/kelvn.html" class="snav-logo" title="Kelvn">k</a>
+  <a href="/kelvn.html" class="snav-btn" title="Dashboard">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+  </a>
+  <a href="/kelvn.html#clientes" class="snav-btn" title="Clientes">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  </a>
+  <a href="/kelvn.html#agenda" class="snav-btn" title="Agenda">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+  </a>
+  <!-- Álbuns — ativo -->
+  <a href="/album.html" class="snav-btn active" title="Álbuns">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+  </a>
+  <a href="/kelvn.html#galerias" class="snav-btn" title="Galerias">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+  </a>
+  <div class="snav-spacer"></div>
+  <div class="snav-sep"></div>
+  <a href="/kelvn.html#ajustes" class="snav-btn" title="Ajustes">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </a>
+</nav>
+
+<!-- ── Área principal ── -->
+<div id="main">
+
+  <!-- Lista de álbuns -->
+  <div id="view-lista" class="hidden">
+    <div class="view-header">
+      <div class="view-title">Álbuns</div>
+      <button class="btn" onclick="irParaNovo()">+ Novo álbum</button>
+    </div>
+    <div id="albuns-empty">
+      <div style="font-size:1.5rem;margin-bottom:.75rem;opacity:.3;">📖</div>
+      <div style="margin-bottom:.4rem;">Nenhum álbum ainda.</div>
+      <div style="font-size:.75rem;">Crie o primeiro para começar a diagramar.</div>
+    </div>
+    <div id="albuns-grid"></div>
+  </div>
+
+  <!-- Novo álbum -->
+  <div id="view-novo" class="hidden">
+    <div class="view-header" style="margin-bottom:1.5rem;">
+      <div style="display:flex;align-items:center;gap:.75rem;">
+        <button class="btn btn-sec" onclick="irParaLista()" style="padding:5px 10px;">← Voltar</button>
+        <div class="view-title">Novo álbum</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nome do álbum</label>
+      <input class="form-input" id="novo-nome" placeholder="ex: Álbum Ana & Lucas" type="text">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Galeria vinculada <span style="color:var(--text-hint);font-size:.65rem;">(as fotos favoritadas pelo casal virão desta galeria)</span></label>
+      <select class="form-input" id="novo-galeria">
+        <option value="">Selecionar galeria…</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Formato</label>
+      <div class="formato-grid" id="formato-grid">
+        <div class="formato-opt sel" data-formato="paisagem" onclick="selFormato(this)">
+          <div class="formato-preview" style="width:64px;height:40px;"></div>
+          <div class="formato-label">Paisagem</div>
+        </div>
+        <div class="formato-opt" data-formato="quadrado" onclick="selFormato(this)">
+          <div class="formato-preview" style="width:44px;height:44px;"></div>
+          <div class="formato-label">Quadrado</div>
+        </div>
+        <div class="formato-opt" data-formato="retrato" onclick="selFormato(this)">
+          <div class="formato-preview" style="width:38px;height:54px;"></div>
+          <div class="formato-label">Retrato</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.6rem;margin-top:1.5rem;">
+      <button class="btn" onclick="criarAlbum()">Criar álbum</button>
+      <button class="btn btn-sec" onclick="irParaLista()">Cancelar</button>
+    </div>
+    <div id="novo-erro" style="margin-top:.75rem;font-size:.75rem;color:var(--coral);display:none;"></div>
+  </div>
+
+  <!-- Editor -->
+  <div id="view-editor" class="hidden">
+    <!-- Topbar -->
+    <div id="canvas-topbar">
+      <button class="btn btn-sec" onclick="irParaLista()" style="padding:4px 10px;font-size:.72rem;">← Álbuns</button>
+      <div id="album-nome-topbar"></div>
+      <div id="save-status">—</div>
+    </div>
+    <!-- Corpo do editor -->
+    <div style="flex:1;display:flex;overflow:hidden;">
+
+      <!-- Pool de fotos -->
+      <div id="pool-panel">
+        <div id="pool-header">
+          <div id="pool-titulo">Favoritos</div>
+          <div id="pool-count"></div>
+        </div>
+        <div id="pool-loading">Carregando fotos…</div>
+        <div id="pool-empty">Nenhum favorito nesta galeria ainda.</div>
+        <div id="pool-grid"></div>
+      </div>
+
+      <!-- Canvas central -->
+      <div id="canvas-panel">
+        <div id="canvas-area">
+          <div id="konva-wrap">
+            <div id="konva-container"></div>
+          </div>
+        </div>
+        <!-- Barra de miniaturas -->
+        <div id="thumbs-bar">
+          <div class="thumb-add" onclick="adicionarSpread()" title="Adicionar spread">+</div>
+        </div>
+      </div>
+
+      <!-- Templates -->
+      <div id="templates-panel">
+        <div id="tpl-header">Templates</div>
+        <div id="tpl-grid"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+// ── Constantes ────────────────────────────────────────────────────────────────
+var SUPABASE_URL = 'https://lbsepogmbusfkdgnencb.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_ETRT-8mRm7AXdgaKyn_DgQ_Whq5sxav';
+var _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var _userId = null;
+var _session = null;
+
+// ── Templates de layout ───────────────────────────────────────────────────────
+var TEMPLATES = [
+  { id:'uma-foto',       nome:'Uma foto',
+    slots:[{x:.02,y:.02,w:.96,h:.96}] },
+  { id:'full-bleed',     nome:'Sangria',
+    slots:[{x:0,y:0,w:1,h:1}] },
+  { id:'duas-lado',      nome:'Duas lado a lado',
+    slots:[{x:.01,y:.02,w:.485,h:.96},{x:.505,y:.02,w:.485,h:.96}] },
+  { id:'tres-direita',   nome:'Grande + duas',
+    slots:[{x:.01,y:.02,w:.63,h:.96},{x:.65,y:.02,w:.335,h:.47},{x:.65,y:.51,w:.335,h:.47}] },
+  { id:'tres-esquerda',  nome:'Duas + grande',
+    slots:[{x:.01,y:.02,w:.335,h:.47},{x:.01,y:.51,w:.335,h:.47},{x:.36,y:.02,w:.63,h:.96}] },
+  { id:'quatro-grid',    nome:'Grade de quatro',
+    slots:[{x:.01,y:.02,w:.485,h:.47},{x:.505,y:.02,w:.485,h:.47},{x:.01,y:.51,w:.485,h:.47},{x:.505,y:.51,w:.485,h:.47}] },
+  { id:'tira-topo',      nome:'Tira + grande',
+    slots:[{x:.01,y:.02,w:.32,h:.96},{x:.34,y:.02,w:.32,h:.96},{x:.67,y:.02,w:.32,h:.96}] },
+  { id:'panorama',       nome:'Panorama',
+    slots:[{x:.01,y:.02,w:.96,h:.45},{x:.01,y:.52,w:.475,h:.46},{x:.505,y:.52,w:.475,h:.46}] },
+  { id:'destaque-topo',  nome:'Destaque + linha',
+    slots:[{x:.01,y:.02,w:.96,h:.55},{x:.01,y:.59,w:.31,h:.39},{x:.345,y:.59,w:.31,h:.39},{x:.68,y:.59,w:.305,h:.39}] },
+];
+
+// ── Estado ────────────────────────────────────────────────────────────────────
+var estado = {
+  album:        null,
+  spreads:      [],
+  spreadAtivo:  0,
+  pool:         [],
+  fotosUsadas:  new Set(),
+  formato:      'paisagem',
+};
+
+// ── Konva ─────────────────────────────────────────────────────────────────────
+var _stage = null;
+var _layer = null;
+var _dimSpread = { w: 800, h: 300 };
+
+// ── Debounce de salvamento ────────────────────────────────────────────────────
+var _saveTimer = null;
+function salvarDebounced() {
+  setSaveStatus('Salvando…');
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(salvarEstadoAtual, 800);
+}
+
+function setSaveStatus(txt) {
+  var el = document.getElementById('save-status');
+  if (el) el.textContent = txt;
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    var res = await _sb.auth.getSession();
+    _session = res.data.session;
+    if (!_session) { window.location.href = '/'; return; }
+    _userId = _session.user.id;
+    document.getElementById('overlay-auth').style.display = 'none';
+    await carregarGalerias();
+    await irParaLista();
+  } catch(e) {
+    document.getElementById('overlay-auth').textContent = 'Erro ao verificar sessão. Recarregue a página.';
+  }
+}
+
+// ── Galerias (para o select do formulário) ────────────────────────────────────
+var _galerias = [];
+async function carregarGalerias() {
+  try {
+    var { data, error } = await _sb.from('galerias').select('data').eq('user_id', _userId).single();
+    if (error || !data) return;
+    _galerias = Array.isArray(data.data) ? data.data : [];
+  } catch(e) { _galerias = []; }
+}
+
+function popularSelectGalerias() {
+  var sel = document.getElementById('novo-galeria');
+  sel.innerHTML = '<option value="">Selecionar galeria…</option>';
+  _galerias.forEach(function(g) {
+    if (!g.slug) return;
+    var opt = document.createElement('option');
+    opt.value = g.slug;
+    opt.textContent = g.nomeCliente || g.slug;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Navegação ─────────────────────────────────────────────────────────────────
+function mostrar(id) {
+  ['view-lista','view-novo','view-editor'].forEach(function(v) {
+    document.getElementById(v).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+}
+
+async function irParaLista() {
+  mostrar('view-lista');
+  await renderLista();
+}
+
+function irParaNovo() {
+  popularSelectGalerias();
+  document.getElementById('novo-nome').value = '';
+  document.getElementById('novo-erro').style.display = 'none';
+  var fmts = document.querySelectorAll('.formato-opt');
+  fmts.forEach(function(f) { f.classList.remove('sel'); });
+  document.querySelector('[data-formato="paisagem"]').classList.add('sel');
+  mostrar('view-novo');
+}
+
+// ── Lista de álbuns ───────────────────────────────────────────────────────────
+async function renderLista() {
+  var grid = document.getElementById('albuns-grid');
+  var empty = document.getElementById('albuns-empty');
+  grid.innerHTML = '<div style="color:var(--text-hint);font-size:.78rem;">Carregando…</div>';
+  empty.style.display = 'none';
+
+  var { data: rows, error } = await _sb.from('albuns').select('*').eq('user_id', _userId).order('criado_em', { ascending: false });
+  if (error || !rows || !rows.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  grid.innerHTML = '';
+  rows.forEach(function(a) {
+    var card = document.createElement('div');
+    card.className = 'album-card';
+    card.innerHTML =
+      '<div class="album-card-nome">' + esc(a.nome) + '</div>' +
+      '<div class="album-card-sub">' + esc(a.formato) + (a.galeria_slug ? ' · ' + esc(a.galeria_slug) : '') + '</div>' +
+      '<span class="album-card-badge ' + (a.status === 'finalizado' ? 'badge-finalizado' : 'badge-rascunho') + '">' + esc(a.status) + '</span>';
+    card.addEventListener('click', function() { abrirAlbum(a); });
+    grid.appendChild(card);
+  });
+}
+
+// ── Criar álbum ───────────────────────────────────────────────────────────────
+function selFormato(el) {
+  document.querySelectorAll('.formato-opt').forEach(function(f) { f.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+
+async function criarAlbum() {
+  var nome = document.getElementById('novo-nome').value.trim();
+  var galeriaSlug = document.getElementById('novo-galeria').value;
+  var formato = document.querySelector('.formato-opt.sel')?.dataset.formato || 'paisagem';
+  var erro = document.getElementById('novo-erro');
+  erro.style.display = 'none';
+
+  if (!nome) { erro.textContent = 'Dá um nome para o álbum.'; erro.style.display = 'block'; return; }
+
+  // Dimensões por formato
+  var dims = { paisagem: [30,20], quadrado: [25,25], retrato: [20,28] };
+  var d = dims[formato] || [30,20];
+
+  var { data: album, error: e1 } = await _sb.from('albuns').insert({
+    user_id: _userId, nome, formato, galeria_slug: galeriaSlug || null,
+    largura_cm: d[0], altura_cm: d[1], status: 'rascunho', total_spreads: 3
+  }).select().single();
+
+  if (e1) { erro.textContent = 'Erro ao criar álbum. Tente novamente.'; erro.style.display = 'block'; return; }
+
+  // Criar capa, 1 spread e contracapa
+  var tipos = ['capa','spread','contracapa'];
+  for (var i = 0; i < tipos.length; i++) {
+    var tplId = i === 0 || i === 2 ? 'uma-foto' : 'duas-lado';
+    var { data: spread } = await _sb.from('album_spreads').insert({
+      album_id: album.id, user_id: _userId, posicao: i,
+      tipo: tipos[i], template_id: tplId
+    }).select().single();
+    if (!spread) continue;
+    var tpl = TEMPLATES.find(function(t) { return t.id === tplId; });
+    if (!tpl) continue;
+    var slots = tpl.slots.map(function(_, idx) {
+      return { spread_id: spread.id, user_id: _userId, slot_index: idx };
+    });
+    if (slots.length) await _sb.from('album_slots').insert(slots);
+  }
+
+  await abrirAlbum(album);
+}
+
+// ── Abrir álbum ───────────────────────────────────────────────────────────────
+async function abrirAlbum(albumObj) {
+  estado.album = albumObj;
+  estado.spreadAtivo = 0;
+  mostrar('view-editor');
+  document.getElementById('album-nome-topbar').textContent = albumObj.nome;
+  setSaveStatus('—');
+
+  await Promise.all([
+    carregarSpreads(),
+    carregarPool(albumObj.galeria_slug),
+  ]);
+
+  renderTemplates();
+  iniciarKonva();
+  renderThumbs();
+  renderSpread();
+}
+
+// ── Carregar spreads + slots ──────────────────────────────────────────────────
+async function carregarSpreads() {
+  var { data: spreads } = await _sb.from('album_spreads')
+    .select('*, album_slots(*)')
+    .eq('album_id', estado.album.id)
+    .eq('user_id', _userId)
+    .order('posicao', { ascending: true });
+
+  estado.spreads = (spreads || []).map(function(s) {
+    s.album_slots = (s.album_slots || []).sort(function(a,b){ return a.slot_index - b.slot_index; });
+    return s;
+  });
+
+  // Reconstruir fotosUsadas
+  estado.fotosUsadas = new Set();
+  estado.spreads.forEach(function(s) {
+    (s.album_slots || []).forEach(function(slot) {
+      if (slot.foto_key) estado.fotosUsadas.add(slot.foto_key);
+    });
+  });
+}
+
+// ── Pool de fotos favoritadas ─────────────────────────────────────────────────
+async function carregarPool(galeriaSlug) {
+  var loading = document.getElementById('pool-loading');
+  var empty   = document.getElementById('pool-empty');
+  var grid    = document.getElementById('pool-grid');
+  var count   = document.getElementById('pool-count');
+
+  grid.innerHTML = '';
+  loading.style.display = 'block';
+  empty.style.display   = 'none';
+
+  if (!galeriaSlug) {
+    loading.style.display = 'none';
+    empty.style.display   = 'block';
+    empty.textContent     = 'Este álbum não tem galeria vinculada.';
+    return;
+  }
+
+  var { data: rows } = await _sb.from('galeria_favoritos')
+    .select('foto_ids')
+    .eq('galeria_slug', galeriaSlug);
+
+  // Agregar todas as foto_ids de todas as listas/emails
+  var todas = new Set();
+  (rows || []).forEach(function(r) {
+    (r.foto_ids || []).forEach(function(k) { todas.add(k); });
+  });
+
+  estado.pool = Array.from(todas);
+  loading.style.display = 'none';
+
+  if (!estado.pool.length) {
+    empty.style.display = 'block';
+    count.textContent   = '';
+    return;
+  }
+
+  count.textContent = estado.pool.length + ' fotos';
+  renderPool();
+}
+
+function renderPool() {
+  var grid = document.getElementById('pool-grid');
+  grid.innerHTML = '';
+  estado.pool.forEach(function(key) {
+    var div = document.createElement('div');
+    div.className = 'pool-foto' + (estado.fotosUsadas.has(key) ? ' usada' : '');
+    div.draggable = true;
+    div.dataset.key = key;
+
+    var img = document.createElement('img');
+    img.src = '/api/gallery-img?key=' + encodeURIComponent(key);
+    img.loading = 'lazy';
+    img.alt = '';
+    div.appendChild(img);
+
+    div.addEventListener('dragstart', function(e) {
+      e.dataTransfer.setData('text/plain', key);
+      e.dataTransfer.effectAllowed = 'copy';
+    });
+
+    grid.appendChild(div);
+  });
+}
+
+// ── Konva — inicialização ─────────────────────────────────────────────────────
+function calcDims() {
+  var wrap = document.getElementById('konva-wrap');
+  var aw = wrap.offsetWidth  - 48;
+  var ah = wrap.offsetHeight - 48;
+  var album = estado.album;
+  var ratio = album.formato === 'quadrado' ? 2 : album.formato === 'retrato' ? 1.4 : 2.8;
+  var w = aw;
+  var h = w / ratio;
+  if (h > ah) { h = ah; w = h * ratio; }
+  _dimSpread = { w: Math.floor(w), h: Math.floor(h) };
+}
+
+function iniciarKonva() {
+  calcDims();
+  var container = document.getElementById('konva-container');
+  container.innerHTML = '';
+  container.style.width  = _dimSpread.w + 'px';
+  container.style.height = _dimSpread.h + 'px';
+
+  _stage = new Konva.Stage({ container: 'konva-container', width: _dimSpread.w, height: _dimSpread.h });
+  _layer = new Konva.Layer();
+  _stage.add(_layer);
+
+  // Drop no canvas
+  var domEl = _stage.container();
+  domEl.addEventListener('dragover', function(e) { e.preventDefault(); });
+  domEl.addEventListener('drop', function(e) {
+    e.preventDefault();
+    var key = e.dataTransfer.getData('text/plain');
+    if (!key) return;
+    var pos = _stage.getPointerPosition() || { x: e.offsetX, y: e.offsetY };
+    var slotIdx = encontrarSlotNaPosicao(pos.x, pos.y);
+    if (slotIdx < 0) return;
+    salvarFotoNoSlot(slotIdx, key);
+  });
+}
+
+// ── Renderizar spread no canvas ───────────────────────────────────────────────
+function renderSpread() {
+  if (!_stage || !_layer) return;
+  _layer.destroyChildren();
+
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+
+  var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+  var W = _dimSpread.w;
+  var H = _dimSpread.h;
+
+  // Fundo branco do spread
+  _layer.add(new Konva.Rect({ x:0, y:0, width:W, height:H, fill:'#1e1b16' }));
+
+  tpl.slots.forEach(function(s, idx) {
+    var x = s.x * W, y = s.y * H, w = s.w * W, h = s.h * H;
+    var slot = (spread.album_slots || [])[idx];
+    var grupo = new Konva.Group({ x:0, y:0 });
+
+    // Fundo do slot
+    grupo.add(new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'#2a2620', stroke:'#3a3530', strokeWidth:.5 }));
+
+    // Foto, se houver
+    if (slot && slot.foto_key) {
+      var url = '/api/gallery-img?key=' + encodeURIComponent(slot.foto_key);
+      Konva.Image.fromURL(url, function(img) {
+        var scaleX = w / img.width();
+        var scaleY = h / img.height();
+        var scale  = Math.max(scaleX, scaleY) * (slot.foto_escala || 1);
+        var imgW   = img.width()  * scale;
+        var imgH   = img.height() * scale;
+        img.setAttrs({
+          x: x + (slot.foto_x || 0) + (w - imgW) / 2,
+          y: y + (slot.foto_y || 0) + (h - imgH) / 2,
+          width: imgW, height: imgH,
+        });
+        grupo.clipFunc(function(ctx) { ctx.rect(x, y, w, h); });
+        grupo.add(img);
+        _layer.batchDraw();
+      });
+    }
+
+    // Rect transparente para drop
+    var hitRect = new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'transparent', name:'slot-'+idx });
+    grupo.add(hitRect);
+    _layer.add(grupo);
+  });
+
+  _layer.batchDraw();
+  atualizarUsadasNoPool();
+}
+
+function encontrarSlotNaPosicao(px, py) {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return -1;
+  var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+  var W = _dimSpread.w, H = _dimSpread.h;
+  for (var i = 0; i < tpl.slots.length; i++) {
+    var s = tpl.slots[i];
+    if (px >= s.x*W && px <= (s.x+s.w)*W && py >= s.y*H && py <= (s.y+s.h)*H) return i;
+  }
+  return -1;
+}
+
+// ── Salvar foto no slot ───────────────────────────────────────────────────────
+async function salvarFotoNoSlot(slotIdx, fotoKey) {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+  var slot = (spread.album_slots || [])[slotIdx];
+  if (!slot) return;
+
+  slot.foto_key = fotoKey;
+  estado.fotosUsadas.add(fotoKey);
+  renderSpread();
+  renderThumbs();
+
+  salvarDebounced();
+}
+
+async function salvarEstadoAtual() {
+  if (!estado.album) return;
+  var promessas = [];
+  estado.spreads.forEach(function(spread) {
+    (spread.album_slots || []).forEach(function(slot) {
+      promessas.push(
+        _sb.from('album_slots').update({
+          foto_key: slot.foto_key || null,
+          foto_x: slot.foto_x || 0,
+          foto_y: slot.foto_y || 0,
+          foto_escala: slot.foto_escala || 1,
+          atualizado_em: new Date().toISOString(),
+        }).eq('id', slot.id).eq('user_id', _userId)
+      );
+    });
+  });
+  await Promise.all(promessas);
+  setSaveStatus('Salvo ✓');
+}
+
+// ── Templates panel ───────────────────────────────────────────────────────────
+function renderTemplates() {
+  var grid = document.getElementById('tpl-grid');
+  var spread = estado.spreads[estado.spreadAtivo];
+  var tplAtivo = spread ? spread.template_id : null;
+  grid.innerHTML = '';
+  TEMPLATES.forEach(function(tpl) {
+    var card = document.createElement('div');
+    card.className = 'tpl-card' + (tpl.id === tplAtivo ? ' ativo' : '');
+
+    var preview = document.createElement('div');
+    preview.className = 'tpl-preview';
+    tpl.slots.forEach(function(s) {
+      var slot = document.createElement('div');
+      slot.className = 'tpl-slot';
+      slot.style.left   = (s.x * 100).toFixed(1) + '%';
+      slot.style.top    = (s.y * 100).toFixed(1) + '%';
+      slot.style.width  = (s.w * 100).toFixed(1) + '%';
+      slot.style.height = (s.h * 100).toFixed(1) + '%';
+      preview.appendChild(slot);
+    });
+
+    var nome = document.createElement('div');
+    nome.className = 'tpl-nome';
+    nome.textContent = tpl.nome;
+
+    card.appendChild(preview);
+    card.appendChild(nome);
+    card.addEventListener('click', function() { aplicarTemplate(tpl.id); });
+    grid.appendChild(card);
+  });
+}
+
+async function aplicarTemplate(tplId) {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+
+  var tplAnterior = TEMPLATES.find(function(t) { return t.id === spread.template_id; });
+  var tplNovo     = TEMPLATES.find(function(t) { return t.id === tplId; });
+  if (!tplNovo || spread.template_id === tplId) return;
+
+  spread.template_id = tplId;
+
+  // Ajustar slots: preservar fotos existentes, criar/remover conforme necessário
+  var slotsAtuais = spread.album_slots || [];
+  var qtdNova = tplNovo.slots.length;
+
+  // Remover slots extras
+  for (var i = qtdNova; i < slotsAtuais.length; i++) {
+    await _sb.from('album_slots').delete().eq('id', slotsAtuais[i].id).eq('user_id', _userId);
+  }
+  spread.album_slots = slotsAtuais.slice(0, qtdNova);
+
+  // Criar slots faltando
+  for (var j = slotsAtuais.length; j < qtdNova; j++) {
+    var { data: novoSlot } = await _sb.from('album_slots').insert({
+      spread_id: spread.id, user_id: _userId, slot_index: j
+    }).select().single();
+    if (novoSlot) spread.album_slots.push(novoSlot);
+  }
+
+  // Atualizar template_id no banco
+  await _sb.from('album_spreads').update({ template_id: tplId }).eq('id', spread.id).eq('user_id', _userId);
+
+  renderTemplates();
+  renderSpread();
+  salvarDebounced();
+}
+
+// ── Barra de miniaturas ───────────────────────────────────────────────────────
+function renderThumbs() {
+  var bar = document.getElementById('thumbs-bar');
+  // Preservar botão de adicionar
+  var btn = bar.querySelector('.thumb-add');
+  bar.innerHTML = '';
+
+  estado.spreads.forEach(function(spread, idx) {
+    var item = document.createElement('div');
+    item.className = 'thumb-item' + (idx === estado.spreadAtivo ? ' ativo' : '');
+
+    // Mini canvas para a miniatura
+    var mini = document.createElement('canvas');
+    var SCALE = 0.08;
+    mini.width  = Math.floor(_dimSpread.w * SCALE);
+    mini.height = Math.floor(_dimSpread.h * SCALE);
+    var ctx = mini.getContext('2d');
+    ctx.fillStyle = '#1e1b16';
+    ctx.fillRect(0, 0, mini.width, mini.height);
+
+    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+    tpl.slots.forEach(function(s, si) {
+      var slot = (spread.album_slots || [])[si];
+      var x = s.x * mini.width, y = s.y * mini.height;
+      var w = s.w * mini.width, h = s.h * mini.height;
+      ctx.fillStyle = slot && slot.foto_key ? '#5a4a2a' : '#2a2620';
+      ctx.fillRect(x, y, w, h);
+    });
+
+    // Label tipo
+    var label = document.createElement('div');
+    label.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:.48rem;color:rgba(255,255,255,.4);font-family:DM Sans,sans-serif;';
+    label.textContent = spread.tipo === 'capa' ? 'capa' : spread.tipo === 'contracapa' ? 'fim' : idx;
+
+    // Botão remover (exceto capa e contracapa)
+    if (spread.tipo === 'spread') {
+      var rmBtn = document.createElement('div');
+      rmBtn.className = 'thumb-remove';
+      rmBtn.textContent = '×';
+      rmBtn.addEventListener('click', function(e) { e.stopPropagation(); removerSpread(spread.id); });
+      item.appendChild(rmBtn);
+    }
+
+    item.appendChild(mini);
+    item.appendChild(label);
+    item.addEventListener('click', function() { mudarSpread(idx); });
+    bar.appendChild(item);
+  });
+
+  if (btn) bar.appendChild(btn); else {
+    var add = document.createElement('div');
+    add.className = 'thumb-add';
+    add.textContent = '+';
+    add.title = 'Adicionar spread';
+    add.addEventListener('click', adicionarSpread);
+    bar.appendChild(add);
+  }
+}
+
+function mudarSpread(idx) {
+  estado.spreadAtivo = idx;
+  renderThumbs();
+  renderTemplates();
+  renderSpread();
+}
+
+// ── Adicionar / remover spreads ───────────────────────────────────────────────
+async function adicionarSpread() {
+  // Insere antes da contracapa
+  var posContracapa = estado.spreads.findIndex(function(s) { return s.tipo === 'contracapa'; });
+  var novaPos = posContracapa >= 0 ? posContracapa : estado.spreads.length;
+
+  // Atualiza posições dos spreads seguintes
+  for (var i = novaPos; i < estado.spreads.length; i++) {
+    await _sb.from('album_spreads').update({ posicao: i + 1 }).eq('id', estado.spreads[i].id).eq('user_id', _userId);
+    estado.spreads[i].posicao = i + 1;
+  }
+
+  var tplId = 'duas-lado';
+  var { data: spread } = await _sb.from('album_spreads').insert({
+    album_id: estado.album.id, user_id: _userId, posicao: novaPos,
+    tipo: 'spread', template_id: tplId
+  }).select().single();
+
+  if (!spread) return;
+  var tpl = TEMPLATES.find(function(t) { return t.id === tplId; });
+  var slotsData = tpl.slots.map(function(_, idx) { return { spread_id: spread.id, user_id: _userId, slot_index: idx }; });
+  var { data: slots } = await _sb.from('album_slots').insert(slotsData).select();
+  spread.album_slots = slots || [];
+  estado.spreads.splice(novaPos, 0, spread);
+  estado.spreadAtivo = novaPos;
+
+  renderThumbs();
+  renderTemplates();
+  renderSpread();
+}
+
+async function removerSpread(spreadId) {
+  var idx = estado.spreads.findIndex(function(s) { return s.id === spreadId; });
+  if (idx < 0) return;
+  if (estado.spreads[idx].tipo !== 'spread') return;
+
+  await _sb.from('album_spreads').delete().eq('id', spreadId).eq('user_id', _userId);
+  estado.spreads.splice(idx, 1);
+  if (estado.spreadAtivo >= estado.spreads.length) estado.spreadAtivo = Math.max(0, estado.spreads.length - 1);
+
+  renderThumbs();
+  renderTemplates();
+  renderSpread();
+}
+
+// ── Atualizar pool visual após mudanças ──────────────────────────────────────
+function atualizarUsadasNoPool() {
+  document.querySelectorAll('.pool-foto').forEach(function(el) {
+    var key = el.dataset.key;
+    if (estado.fotosUsadas.has(key)) el.classList.add('usada'); else el.classList.remove('usada');
+  });
+}
+
+// ── Utilitários ───────────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
