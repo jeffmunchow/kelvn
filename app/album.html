@@ -180,9 +180,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
   <div class="snav-bottom">
     <div class="snav-sep"></div>
-    <a href="/#resumo" class="snav-btn" title="Ocultar valores">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-    </a>
+    <button class="snav-btn" id="sn-privacidade" onclick="togglePrivacidade()" title="Ocultar valores">
+      <svg id="priv-icon-eye" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg id="priv-icon-eye-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+    </button>
     <button class="snav-btn" onclick="toggleTheme()" title="Alternar tema">
       <svg id="snav-theme-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>
       <svg id="snav-theme-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -360,6 +361,14 @@ function setSaveStatus(txt) {
 
 // ── Tema (fonte da verdade: Supabase em configuracoes.sd; localStorage é cache) ─
 var _sd = {};
+var _privacidade = false;
+function togglePrivacidade() {
+  _privacidade = !_privacidade;
+  document.getElementById('priv-icon-eye').style.display = _privacidade ? 'none' : '';
+  document.getElementById('priv-icon-eye-off').style.display = _privacidade ? '' : 'none';
+  document.getElementById('sn-privacidade').style.opacity = _privacidade ? '1' : '';
+  document.body.classList.toggle('kv-hide', _privacidade);
+}
 function syncThemeIcons() {
   var t = document.documentElement.getAttribute('data-theme');
   var sun = document.getElementById('snav-theme-sun');
