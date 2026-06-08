@@ -87,8 +87,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #editor-body{flex:1;display:flex;overflow:hidden;position:relative;}
 
 /* Pool esquerdo — desliza da esquerda */
-#pool-panel{width:260px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s,opacity .22s,border .22s;}
-#pool-panel.fechado{width:0;opacity:0;border-right:none;}
+#pool-wrap{display:flex;flex-direction:row;flex-shrink:0;position:relative;}
+#pool-panel{width:260px;flex-shrink:0;background:var(--surface);border-right:none;display:flex;flex-direction:column;overflow:hidden;transition:width .22s,opacity .22s;max-width:260px;}
+#pool-panel.fechado{width:0;opacity:0;}
+#pool-toggle-tab{width:14px;background:var(--surface);border-right:.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);transition:color .15s,background .15s;flex-shrink:0;}
+#pool-toggle-tab:hover{color:var(--text);background:var(--surface2);}
+#pool-toggle-tab svg{transition:transform .22s;}
+#pool-panel.fechado ~ #pool-toggle-tab svg{transform:rotate(180deg);}
 #pool-header{padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 #pool-titulo{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);}
 #pool-count{font-size:.65rem;color:var(--text-hint);}
@@ -442,14 +447,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <div id="editor-body">
 
       <!-- Pool de fotos (esquerda, toggle) -->
-      <div id="pool-panel">
-        <div id="pool-header">
-          <div id="pool-titulo">Favoritos</div>
-          <div id="pool-count"></div>
+      <div id="pool-wrap">
+        <div id="pool-panel">
+          <div id="pool-header">
+            <div id="pool-titulo">Favoritos</div>
+            <div id="pool-count"></div>
+          </div>
+          <div id="pool-loading">Carregando fotos…</div>
+          <div id="pool-empty">O casal ainda não selecionou fotos para o álbum.</div>
+          <div id="pool-grid"></div>
         </div>
-        <div id="pool-loading">Carregando fotos…</div>
-        <div id="pool-empty">O casal ainda não selecionou fotos para o álbum.</div>
-        <div id="pool-grid"></div>
+        <div id="pool-toggle-tab" onclick="togglePool()" title="Mostrar/ocultar fotos">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
       </div>
 
       <!-- Canvas central -->
@@ -1677,10 +1687,14 @@ var CORES_FUNDO = [
 
 /* ── Toggles de painel ────────────────────────────────────── */
 function togglePool() {
-  var p = document.getElementById('pool-panel');
+  var p   = document.getElementById('pool-panel');
   var btn = document.getElementById('btn-toggle-pool');
+  var tab = document.getElementById('pool-toggle-tab');
   var fechado = p.classList.toggle('fechado');
   btn.classList.toggle('ativo', !fechado);
+  // Gira a seta da aba lateral: aponta esquerda (recolher) ou direita (expandir)
+  var svg = tab && tab.querySelector('svg');
+  if (svg) svg.style.transform = fechado ? 'rotate(180deg)' : '';
 }
 
 function toggleThumbs() {
