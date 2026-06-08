@@ -7117,7 +7117,6 @@ async function galDefinirCapa(idx){
   // Otimização de capa: gera versão 2000px no servidor (sobrescreve covers/{userId}/{slug}.jpg)
   if(fotoKey && slug){
     try {
-      notify('Gerando capa otimizada…');
       var sessionRes=await _sb.auth.getSession();
       var token=sessionRes?.data?.session?.access_token;
       var resp=await fetch('/api/gallery-cover',{
