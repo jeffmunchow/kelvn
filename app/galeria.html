@@ -282,11 +282,11 @@ html,body{
 
 /* Botão "para o álbum" em cada foto */
 .btn-album-foto{position:absolute;top:.5rem;left:.5rem;z-index:3;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;cursor:pointer;color:#fff;opacity:0;transition:opacity .2s;padding:0;}
-.btn-album-foto svg{fill:none;stroke:#fff;stroke-width:2;width:16px;height:16px;}
+.btn-album-foto svg{fill:none;stroke:#fff;stroke-width:2;width:15px;height:15px;transition:fill .15s;}
 .gal-foto-wrap:hover .btn-album-foto{opacity:.75;}
 .btn-album-foto:hover{opacity:1!important;}
 .btn-album-foto.ativo{opacity:1;}
-.btn-album-foto.ativo svg{fill:rgba(255,255,255,.85);stroke:#fff;}
+.btn-album-foto.ativo svg{fill:#fff;stroke:#fff;}
 @media(hover:none){ .btn-album-foto{opacity:.6;} }
 
 /* Modal de email */
@@ -327,7 +327,7 @@ html,body{
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       </button>
       <button class="lb-icon-btn" id="lb-album-btn" onclick="event.stopPropagation();toggleAlbumLb()" title="Selecionar para o álbum">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
       <button class="lb-icon-btn" id="lb-dl-btn-single" onclick="event.stopPropagation();abrirModalDownloadFoto()" title="Baixar foto">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -646,7 +646,7 @@ function renderizarGaleria(){
     +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
     +'</button>'
     +'<button class="gal-fav-btn" id="gal-album-btn" onclick="abrirViewAlbum()" title="Ver seleção do álbum" style="position:relative;">'
-    +'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+    +'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
     +'<span class="gal-fav-count" id="gal-album-count" style="display:none;">0</span>'
     +'</button>';
   if(_downloads){
@@ -912,7 +912,7 @@ function fotoCell(foto, i, classExtra){
     +_favHeartSvg+'</button>';
   var albumBtn = '<button class="btn-album-foto'+(_albumIds.indexOf(favKey)>-1?' ativo':'')+'" '
     +'data-album-key="'+favKey+'" onclick="event.stopPropagation();toggleAlbum(\''+favKey+'\')" title="Selecionar para o álbum">'
-    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
     +'</button>';
   return '<div class="gal-foto-wrap'+(classExtra||'')+'" onclick="openLb('+i+')">'
     +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
