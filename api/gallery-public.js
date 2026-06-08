@@ -46,12 +46,21 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Assina a cover_url extraindo a key do formato pub-xxx.r2.dev/{key}
+    // Assina a cover_url extraindo a key. Formatos possíveis:
+    //   1. Proxy autenticado:  /api/gallery-img?key={keyEncodada}  (capa otimizada)
+    //   2. R2 público:         pub-xxx.r2.dev/{key}
+    //   3. R2 direto:          xxx.r2.cloudflarestorage.com/{bucket}/{key}
     let signedCover = null;
     if (g.cover_url) {
-      const m = g.cover_url.match(/r2\.dev\/([^?]+)/)
-             || g.cover_url.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+)/);
-      const coverKey = m ? m[1] : null;
+      let coverKey = null;
+      const proxyMatch = g.cover_url.match(/[?&]key=([^&]+)/);
+      if (proxyMatch) {
+        coverKey = decodeURIComponent(proxyMatch[1]);
+      } else {
+        const m = g.cover_url.match(/r2\.dev\/([^?]+)/)
+               || g.cover_url.match(/r2\.cloudflarestorage\.com\/[^/]+\/([^?]+)/);
+        coverKey = m ? m[1] : null;
+      }
       if (coverKey) {
         try { signedCover = await signKey(coverKey); }
         catch(e) { console.error('cover sign error:', e.message); }

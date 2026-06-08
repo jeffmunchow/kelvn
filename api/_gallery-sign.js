@@ -39,6 +39,9 @@ async function signKey(key, filename) {
  */
 function keyFromUrl(url) {
   if (!url || typeof url !== 'string') return null;
+  // Formato proxy autenticado: /api/gallery-img?key={keyEncodada}
+  const proxyMatch = url.match(/[?&]key=([^&]+)/);
+  if (proxyMatch) return decodeURIComponent(proxyMatch[1]);
   // Formato pub-xxx.r2.dev (Public Development URL)
   const devMatch = url.match(/r2\.dev\/(.+)/);
   if (devMatch) return devMatch[1].split('?')[0];
