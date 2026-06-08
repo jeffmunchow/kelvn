@@ -47,23 +47,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
 /* ── Estado: Lista de álbuns ─────────────────────────────────────── */
 #view-lista{flex:1;overflow-y:auto;padding:2rem 2.5rem 4rem;}
+.sh{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+.st{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;}
 .view-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;}
 .view-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
-.btn{display:inline-flex;align-items:center;gap:.4rem;background:var(--text);color:var(--bg);border:.5px solid var(--text);border-radius:8px;padding:6px 15px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:opacity .15s;}
+.btn{display:inline-flex;align-items:center;gap:.4rem;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:6px 15px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:opacity .15s;}
 .btn:hover{opacity:.85;}
 .btn-sec{background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);}
 .btn-sec:hover{color:var(--text);opacity:1;}
+.gal-sort-opt{display:block;width:100%;text-align:left;background:none;border:none;padding:.45rem 1rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;}
+.gal-sort-opt:hover{background:var(--surface2);color:var(--text);}
+.gal-sort-opt.active{color:var(--text);font-weight:500;}
 #albuns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;}
 .album-card{background:var(--surface);border-radius:0;overflow:hidden;cursor:pointer;transition:opacity .15s;}
 .album-card:hover{opacity:.88;}
 .album-card-capa{aspect-ratio:3/2;background:var(--surface2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
-.album-card-capa.fmt-quadrado{aspect-ratio:4/3;}
-.album-card-capa.fmt-retrato{aspect-ratio:4/3;}
-.album-card-capa-shape{border:.5px solid var(--border-strong);background:var(--surface);border-radius:2px;opacity:.55;}
-.album-card-info{padding:.75rem 1rem;}
-.album-card-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;}
-.album-card-nome{font-size:.88rem;font-weight:500;color:var(--text);margin-bottom:.2rem;}
-.album-card-sub{font-size:.67rem;color:var(--text-hint);margin-top:2px;}
 .album-card-badge{display:inline-block;font-size:.6rem;padding:2px 8px;border-radius:20px;flex-shrink:0;margin-top:.1rem;}
 .badge-rascunho{background:var(--surface2);color:var(--text-hint);}
 .badge-revisao{background:var(--amber-light);color:var(--amber-deep);}
@@ -326,28 +324,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
   <!-- Lista de álbuns -->
   <div id="view-lista" class="hidden">
-    <div class="view-header">
-      <div class="view-title">Álbuns</div>
+    <div class="sh">
+      <div class="st">Álbuns</div>
       <div style="display:flex;align-items:center;gap:.6rem;">
         <!-- Ordenar -->
         <div style="position:relative;" id="alb-sort-wrap">
-          <button class="btn btn-sec" onclick="albToggleSort()" id="alb-sort-btn" style="display:flex;align-items:center;gap:.4rem;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/></svg>
+          <button class="btn" onclick="albToggleSort()" id="alb-sort-btn" style="display:flex;align-items:center;gap:.4rem;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
             Ordenar
           </button>
-          <div id="alb-sort-menu" style="display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:50;min-width:220px;padding:.35rem 0;">
-            <button onclick="albSetSort('nome_asc')"     class="gal-sort-opt">Nome: A–Z</button>
-            <button onclick="albSetSort('nome_desc')"    class="gal-sort-opt">Nome: Z–A</button>
-            <button onclick="albSetSort('created_desc')" class="gal-sort-opt">Criados: Recentes → Antigas</button>
-            <button onclick="albSetSort('created_asc')"  class="gal-sort-opt">Criados: Antigos → Recentes</button>
+          <div id="alb-sort-menu" style="display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:50;min-width:240px;padding:.35rem 0;">
+            <button onclick="albSetSort('nome_asc')"     class="gal-sort-opt">Nome: A-Z</button>
+            <button onclick="albSetSort('nome_desc')"    class="gal-sort-opt">Nome: Z-A</button>
+            <button onclick="albSetSort('created_desc')" class="gal-sort-opt">Criadas: Recentes → Antigas</button>
+            <button onclick="albSetSort('created_asc')"  class="gal-sort-opt">Criadas: Antigas → Recentes</button>
           </div>
         </div>
         <!-- Busca -->
         <div style="position:relative;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="alb-busca" placeholder="Buscar álbum…" oninput="renderLista()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:180px;">
+          <input type="text" id="alb-busca" placeholder="Buscar álbum…" oninput="renderLista()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:200px;">
         </div>
-        <button class="btn btn-sec" style="color:var(--text);" onclick="irParaNovo()">+ Novo álbum</button>
+        <button class="btn" style="color:var(--text);" onclick="irParaNovo()">+ Novo álbum</button>
       </div>
     </div>
     <div id="albuns-empty">
@@ -839,12 +837,6 @@ async function renderLista() {
   rows.forEach(function(a) {
     var fmt = a.formato || 'paisagem';
 
-    // Shape da capa proporcional ao formato
-    var shapeW, shapeH;
-    if (fmt === 'paisagem') { shapeW = 72; shapeH = 48; }
-    else if (fmt === 'quadrado') { shapeW = 54; shapeH = 54; }
-    else { shapeW = 44; shapeH = 62; } // retrato
-
     // Status
     var statusMap = {
       rascunho:   { cls: 'badge-rascunho',  label: 'Rascunho' },
@@ -855,25 +847,23 @@ async function renderLista() {
     var st = statusMap[a.status] || statusMap['rascunho'];
     if (a.aprovado && a.status === 'rascunho') { st = statusMap['aprovado']; }
 
-    // Ícone de livro SVG para a capa
-    var icone = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".45"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
-
-    var fmtCapaClass = fmt === 'paisagem' ? '' : 'fmt-' + fmt;
     var fmtLabel = { paisagem: 'Paisagem', quadrado: 'Quadrado', retrato: 'Retrato' }[fmt] || fmt;
     var sub = fmtLabel + (a.galeria_slug ? ' · ' + esc(a.galeria_slug) : '');
+    var icone = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
 
     var card = document.createElement('div');
-    card.className = 'album-card';
+    card.style.cssText = 'background:var(--surface);border-radius:0;overflow:hidden;cursor:pointer;transition:opacity .15s;';
+    card.onmouseenter = function(){ this.style.opacity='.88'; };
+    card.onmouseleave = function(){ this.style.opacity='1'; };
     card.innerHTML =
-      '<div class="album-card-capa ' + fmtCapaClass + '">' +
-        '<div class="album-card-capa-shape" style="width:' + shapeW + 'px;height:' + shapeH + 'px;"></div>' +
-        '<div style="position:absolute;">' + icone + '</div>' +
+      '<div style="aspect-ratio:3/2;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;">'
+        + icone +
       '</div>' +
-      '<div class="album-card-info">' +
-        '<div class="album-card-row">' +
+      '<div style="padding:.75rem 1rem;">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">' +
           '<div>' +
-            '<div class="album-card-nome">' + esc(a.nome) + '</div>' +
-            '<div class="album-card-sub">' + sub + '</div>' +
+            '<div style="font-size:.88rem;font-weight:500;margin-bottom:.2rem;">' + esc(a.nome) + '</div>' +
+            '<div style="font-size:.67rem;color:var(--text-hint);margin-top:2px;">' + sub + '</div>' +
           '</div>' +
           '<span class="album-card-badge ' + st.cls + '">' + st.label + '</span>' +
         '</div>' +
