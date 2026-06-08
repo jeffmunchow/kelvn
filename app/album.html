@@ -328,7 +328,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
   <div id="view-lista" class="hidden">
     <div class="view-header">
       <div class="view-title">Álbuns</div>
-      <button class="btn btn-sec" style="color:var(--text);" onclick="irParaNovo()">+ Novo álbum</button>
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <!-- Ordenar -->
+        <div style="position:relative;" id="alb-sort-wrap">
+          <button class="btn btn-sec" onclick="albToggleSort()" id="alb-sort-btn" style="display:flex;align-items:center;gap:.4rem;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="9" y2="18"/></svg>
+            Ordenar
+          </button>
+          <div id="alb-sort-menu" style="display:none;position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:50;min-width:220px;padding:.35rem 0;">
+            <button onclick="albSetSort('nome_asc')"     class="gal-sort-opt">Nome: A–Z</button>
+            <button onclick="albSetSort('nome_desc')"    class="gal-sort-opt">Nome: Z–A</button>
+            <button onclick="albSetSort('created_desc')" class="gal-sort-opt">Criados: Recentes → Antigas</button>
+            <button onclick="albSetSort('created_asc')"  class="gal-sort-opt">Criados: Antigos → Recentes</button>
+          </div>
+        </div>
+        <!-- Busca -->
+        <div style="position:relative;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="alb-busca" placeholder="Buscar álbum…" oninput="renderLista()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:180px;">
+        </div>
+        <button class="btn btn-sec" style="color:var(--text);" onclick="irParaNovo()">+ Novo álbum</button>
+      </div>
     </div>
     <div id="albuns-empty">
       <div style="font-size:1.5rem;margin-bottom:.75rem;opacity:.3;">📖</div>
@@ -763,14 +783,53 @@ function irParaNovo() {
 }
 
 // ── Lista de álbuns ───────────────────────────────────────────────────────────
+var _albSort = 'created_desc';
+
+function albToggleSort(){
+  var m = document.getElementById('alb-sort-menu');
+  if (!m) return;
+  var open = m.style.display === 'block';
+  m.style.display = open ? 'none' : 'block';
+  if (!open) {
+    m.querySelectorAll('.gal-sort-opt').forEach(function(b){ b.classList.remove('active'); });
+    var active = m.querySelector('[onclick="albSetSort(\''+_albSort+'\')"]');
+    if (active) active.classList.add('active');
+    setTimeout(function(){ document.addEventListener('click', albCloseSort, { once: true }); }, 0);
+  }
+}
+function albCloseSort(e){
+  var w = document.getElementById('alb-sort-wrap');
+  if (w && !w.contains(e.target)){ var m = document.getElementById('alb-sort-menu'); if(m) m.style.display = 'none'; }
+}
+function albSetSort(val){
+  _albSort = val;
+  var m = document.getElementById('alb-sort-menu'); if(m) m.style.display = 'none';
+  renderLista();
+}
+
 async function renderLista() {
   var grid = document.getElementById('albuns-grid');
   var empty = document.getElementById('albuns-empty');
   grid.innerHTML = '<div style="color:var(--text-hint);font-size:.78rem;">Carregando…</div>';
   empty.style.display = 'none';
 
-  var { data: rows, error } = await _sb.from('albuns').select('*').eq('user_id', _userId).order('criado_em', { ascending: false });
-  if (error || !rows || !rows.length) {
+  var { data: allRows, error } = await _sb.from('albuns').select('*').eq('user_id', _userId);
+  if (error) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+
+  var busca = ((document.getElementById('alb-busca') || {}).value || '').trim().toLowerCase();
+  var rows = (allRows || []).filter(function(a){
+    return !busca || (a.nome_cliente || '').toLowerCase().includes(busca) || (a.galeria_slug || '').toLowerCase().includes(busca);
+  });
+
+  rows = rows.slice().sort(function(a, b){
+    var ca = new Date(a.criado_em || 0).getTime(), cb = new Date(b.criado_em || 0).getTime();
+    if (_albSort === 'created_asc')  return ca - cb;
+    if (_albSort === 'nome_asc')     return (a.nome_cliente||'').localeCompare(b.nome_cliente||'', 'pt');
+    if (_albSort === 'nome_desc')    return (b.nome_cliente||'').localeCompare(a.nome_cliente||'', 'pt');
+    return cb - ca; // created_desc default
+  });
+
+  if (!rows.length) {
     grid.innerHTML = '';
     empty.style.display = 'block';
     return;
