@@ -443,7 +443,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           <div id="pool-count"></div>
         </div>
         <div id="pool-loading">Carregando fotos…</div>
-        <div id="pool-empty">Nenhum favorito nesta galeria ainda.</div>
+        <div id="pool-empty">O casal ainda não selecionou fotos para o álbum.</div>
         <div id="pool-grid"></div>
       </div>
 
@@ -959,9 +959,10 @@ async function carregarPool(galeriaSlug) {
 
   var { data: rows } = await _sb.from('galeria_favoritos')
     .select('foto_ids')
-    .eq('galeria_slug', galeriaSlug);
+    .eq('galeria_slug', galeriaSlug)
+    .eq('lista', '_album');
 
-  // Agregar todas as foto_ids de todas as listas/emails
+  // Agregar foto_ids de todas as seleções de álbum (todos os emails)
   var todas = new Set();
   (rows || []).forEach(function(r) {
     (r.foto_ids || []).forEach(function(k) { todas.add(k); });
