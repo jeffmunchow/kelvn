@@ -102,7 +102,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
 /* Área central do canvas */
 #canvas-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
-#canvas-topbar{padding:.75rem 2rem;display:flex;align-items:center;gap:.5rem;background:var(--bg);}
+#canvas-topbar{padding:1.15rem 2rem .75rem;display:flex;align-items:center;gap:.5rem;background:var(--bg);}
 #btn-voltar-albuns{display:flex;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;}
 #btn-voltar-albuns:hover{color:var(--text);}
 #album-nome-topbar{font-size:.78rem;color:var(--text-muted);}
@@ -144,9 +144,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* Conteúdo: propriedades */
 #props-body{flex:1;overflow-y:auto;padding:.75rem;}
 
-/* Botões de toggle ativos no topbar */
+/* Botões de toggle ativos no topbar — sem borda destacada, só cor do texto */
 .topbar-toggle-btn{color:var(--text-muted);}
-.topbar-toggle-btn.ativo{color:var(--text);border-color:var(--text);}
+.topbar-toggle-btn.ativo{color:var(--text);}
 
 /* ── Nível 4 — Refinamento visual ───────────────────────────────── */
 #props-panel{display:none;}/* legado — mantido para compatibilidade de JS */
