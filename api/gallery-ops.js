@@ -170,7 +170,7 @@ async function acCover(req, res) {
     }));
 
     const coverUrl = `${process.env.R2_PUBLIC_URL}/${coverKey}`;
-    return res.status(200).json({ cover_url: coverUrl });
+    return res.status(200).json({ cover_url: coverUrl, cover_key: coverKey });
   } catch (err) {
     console.error('gallery-ops/cover error:', err);
     if (err.name === 'NoSuchKey') return res.status(404).json({ error: 'Foto não encontrada' });

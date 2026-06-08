@@ -6816,8 +6816,11 @@ function rGal(manter){
     var statusColor=isPub?'var(--teal)':'var(--text-hint)';
     var statusLabel=isPub?'Publicada':'Rascunho';
     // Busca pelo cover_url casando url, webUrl ou thumbUrl (cover pode ter sido salvo como qualquer variante)
-    var capaFoto=(gal.fotos||[]).find(function(f){return f.url===gal.cover_url||f.webUrl===gal.cover_url||f.thumbUrl===gal.cover_url;})||null;
-    var capaImg=r2proxy(capaFoto?(capaFoto.thumbUrl||capaFoto.url):(gal.cover_url||''));
+    // cover_foto_url: URL original da foto escolhida (para buscar thumb local)
+    // cover_url: pode ser URL de proxy otimizada — usada direto se não achar foto local
+    var _coverMatch=gal.cover_foto_url||gal.cover_url||'';
+    var capaFoto=(gal.fotos||[]).find(function(f){return f.url===_coverMatch||f.webUrl===_coverMatch||f.thumbUrl===_coverMatch;})||null;
+    var capaImg=capaFoto?r2proxy(capaFoto.thumbUrl||capaFoto.url):(gal.cover_url?r2proxy(gal.cover_url):'');
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border-radius:0;overflow:hidden;">'
       +'<div style="aspect-ratio:3/2;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;" onclick="entrarGaleria(\''+gal.id+'\')">'
@@ -7088,7 +7091,10 @@ function _atualizarBadgesCapa(coverUrl, fotos){
     var ri=parseInt(el.id.replace('gf-',''),10);
     var foto=fotos&&fotos[ri];
     var badge=el.querySelector('.gf-capa-badge');
-    var isCapa=foto&&foto.url===coverUrl;
+    var gals2=g('galerias')||[];
+    var galAtual=gals2.find(function(x){return x.id===_galAtualId;})||{};
+    var _capaRef=galAtual.cover_foto_url||coverUrl;
+    var isCapa=foto&&foto.url===_capaRef;
     if(isCapa&&!badge){
       var d=document.createElement('div');
       d.className='gf-capa-badge';
@@ -7120,8 +7126,11 @@ async function galDefinirCapa(idx){
         body:JSON.stringify({key:fotoKey, slug:slug})
       });
       var data=await resp.json();
-      if(resp.ok && data.cover_url){
-        gal.cover_url=data.cover_url;
+      if(resp.ok && data.cover_key){
+        // Salva como URL de proxy — funciona independente do domínio R2_PUBLIC_URL
+        gal.cover_url='/api/gallery-img?key='+encodeURIComponent(data.cover_key);
+        // Guarda a foto original para manter o badge correto no grid
+        gal.cover_foto_url=foto.url;
         s('galerias',gals);
         rGalDetalhe();
         rGal(true);
