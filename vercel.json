@@ -35,6 +35,10 @@
       "dest": "/api/gallery-ops?action=download"
     },
     {
+      "src": "/api/gallery-cover",
+      "dest": "/api/gallery-ops?action=cover"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },

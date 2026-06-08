@@ -7100,11 +7100,40 @@ function _atualizarBadgesCapa(coverUrl, fotos){
     }
   });
 }
-function galDefinirCapa(idx){
+async function galDefinirCapa(idx){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal||!gal.fotos[idx]) return;
-  gal.cover_url=gal.fotos[idx].url;
+  var foto=gal.fotos[idx];
+  var fotoKey=foto.key||foto.webKey||null;
+  var slug=gal.slug||'';
+
+  // Otimização de capa: gera versão 2000px no servidor (sobrescreve covers/{userId}/{slug}.jpg)
+  if(fotoKey && slug){
+    try {
+      notify('Gerando capa otimizada…');
+      var sessionRes=await _sb.auth.getSession();
+      var token=sessionRes?.data?.session?.access_token;
+      var resp=await fetch('/api/gallery-cover',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({key:fotoKey, slug:slug})
+      });
+      var data=await resp.json();
+      if(resp.ok && data.cover_url){
+        gal.cover_url=data.cover_url;
+        s('galerias',gals);
+        rGalDetalhe();
+        rGal(true);
+        _atualizarBadgesCapa(foto.url, gal.fotos);
+        notify('Foto de capa definida.');
+        return;
+      }
+    } catch(err){ console.warn('galDefinirCapa API error:', err); }
+  }
+
+  // Fallback: usa URL original se a API falhar ou foto não tiver key
+  gal.cover_url=foto.url;
   s('galerias',gals);
   rGalDetalhe();
   rGal(true);
