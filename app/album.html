@@ -53,13 +53,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .btn:hover{opacity:.85;}
 .btn-sec{background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);}
 .btn-sec:hover{color:var(--text);opacity:1;}
-#albuns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
-.album-card{background:var(--surface);border:.5px solid var(--border);border-radius:10px;padding:1.1rem 1.25rem;cursor:pointer;transition:border-color .15s;}
-.album-card:hover{border-color:var(--border-strong);}
-.album-card-nome{font-size:.88rem;font-weight:500;color:var(--text);margin-bottom:.35rem;}
-.album-card-sub{font-size:.68rem;color:var(--text-hint);}
-.album-card-badge{display:inline-block;font-size:.58rem;padding:2px 8px;border-radius:20px;margin-top:.5rem;}
+#albuns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;}
+.album-card{background:var(--surface);border-radius:0;overflow:hidden;cursor:pointer;transition:opacity .15s;}
+.album-card:hover{opacity:.88;}
+.album-card-capa{aspect-ratio:3/2;background:var(--surface2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.album-card-capa.fmt-quadrado{aspect-ratio:4/3;}
+.album-card-capa.fmt-retrato{aspect-ratio:4/3;}
+.album-card-capa-shape{border:.5px solid var(--border-strong);background:var(--surface);border-radius:2px;opacity:.55;}
+.album-card-info{padding:.75rem 1rem;}
+.album-card-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;}
+.album-card-nome{font-size:.88rem;font-weight:500;color:var(--text);margin-bottom:.2rem;}
+.album-card-sub{font-size:.67rem;color:var(--text-hint);margin-top:2px;}
+.album-card-badge{display:inline-block;font-size:.6rem;padding:2px 8px;border-radius:20px;flex-shrink:0;margin-top:.1rem;}
 .badge-rascunho{background:var(--surface2);color:var(--text-hint);}
+.badge-revisao{background:var(--amber-light);color:var(--amber-deep);}
+.badge-aprovado{background:var(--teal-light);color:var(--teal);}
 .badge-finalizado{background:var(--teal-light);color:var(--teal);}
 #albuns-empty{padding:4rem 0;text-align:center;color:var(--text-hint);font-size:.85rem;display:none;}
 
@@ -737,12 +745,47 @@ async function renderLista() {
 
   grid.innerHTML = '';
   rows.forEach(function(a) {
+    var fmt = a.formato || 'paisagem';
+
+    // Shape da capa proporcional ao formato
+    var shapeW, shapeH;
+    if (fmt === 'paisagem') { shapeW = 72; shapeH = 48; }
+    else if (fmt === 'quadrado') { shapeW = 54; shapeH = 54; }
+    else { shapeW = 44; shapeH = 62; } // retrato
+
+    // Status
+    var statusMap = {
+      rascunho:   { cls: 'badge-rascunho',  label: 'Rascunho' },
+      em_revisao: { cls: 'badge-revisao',   label: 'Em revisão' },
+      aprovado:   { cls: 'badge-aprovado',  label: 'Aprovado' },
+      finalizado: { cls: 'badge-finalizado', label: 'Finalizado' },
+    };
+    var st = statusMap[a.status] || statusMap['rascunho'];
+    if (a.aprovado && a.status === 'rascunho') { st = statusMap['aprovado']; }
+
+    // Ícone de livro SVG para a capa
+    var icone = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".45"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
+
+    var fmtCapaClass = fmt === 'paisagem' ? '' : 'fmt-' + fmt;
+    var fmtLabel = { paisagem: 'Paisagem', quadrado: 'Quadrado', retrato: 'Retrato' }[fmt] || fmt;
+    var sub = fmtLabel + (a.galeria_slug ? ' · ' + esc(a.galeria_slug) : '');
+
     var card = document.createElement('div');
     card.className = 'album-card';
     card.innerHTML =
-      '<div class="album-card-nome">' + esc(a.nome) + '</div>' +
-      '<div class="album-card-sub">' + esc(a.formato) + (a.galeria_slug ? ' · ' + esc(a.galeria_slug) : '') + '</div>' +
-      '<span class="album-card-badge ' + (a.status === 'finalizado' ? 'badge-finalizado' : 'badge-rascunho') + '">' + esc(a.status) + '</span>';
+      '<div class="album-card-capa ' + fmtCapaClass + '">' +
+        '<div class="album-card-capa-shape" style="width:' + shapeW + 'px;height:' + shapeH + 'px;"></div>' +
+        '<div style="position:absolute;">' + icone + '</div>' +
+      '</div>' +
+      '<div class="album-card-info">' +
+        '<div class="album-card-row">' +
+          '<div>' +
+            '<div class="album-card-nome">' + esc(a.nome) + '</div>' +
+            '<div class="album-card-sub">' + sub + '</div>' +
+          '</div>' +
+          '<span class="album-card-badge ' + st.cls + '">' + st.label + '</span>' +
+        '</div>' +
+      '</div>';
     card.addEventListener('click', function() { abrirAlbum(a); });
     grid.appendChild(card);
   });
