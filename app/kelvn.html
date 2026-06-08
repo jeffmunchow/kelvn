@@ -8508,8 +8508,24 @@ async function initUserData(){
 
 async function onLogin(user){
   _currentUser = user;
+
+  // Deep-link por hash (ex.: vindo do album.html via /#galerias)
+  // Detectado ANTES de hideAuthScreen para que o painel correto já esteja
+  // ativo quando o app se tornar visível — evita o flash do dashboard.
+  var _h=(window.location.hash||'').replace('#','');
+  var _secoes=['resumo','clientes','agenda','posproducao','galerias','questionarios','financeiro','analises','educacao','ajustes'];
+  var _deepLink=_secoes.indexOf(_h)>-1 && _h!=='resumo' ? _h : null;
+  if(_deepLink){
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    var _dp=document.getElementById('p-'+_deepLink);if(_dp)_dp.classList.add('active');
+    document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
+    var _db=document.getElementById('sn-'+_deepLink);if(_db)_db.classList.add('active');
+    _curSection=_deepLink; _curTab=_deepLink;
+  }
+
   hideAuthScreen();
   await initUserData();
+
   // Tema: configuracoes.sd.theme (Supabase) é a fonte da verdade; reconcilia o cache
   var _sdTheme=(g('sd')||{}).theme;
   if(_sdTheme && _sdTheme!==document.documentElement.getAttribute('data-theme')){
@@ -8519,14 +8535,16 @@ async function onLogin(user){
     if(_ts)_ts.style.display=_sdTheme==='dark'?'none':'block';
     if(_tm)_tm.style.display=_sdTheme==='dark'?'block':'none';
   }
-  rR();
+
   var nome = user.user_metadata && user.user_metadata.nome ? user.user_metadata.nome : user.email;
   var el = document.getElementById('userNameDisplay');
   if(el) el.textContent = nome;
-  // Deep-link por hash (ex.: vindo do album.html via /#galerias)
-  var _h=(window.location.hash||'').replace('#','');
-  var _secoes=['resumo','clientes','agenda','posproducao','galerias','questionarios','financeiro','analises','educacao','ajustes'];
-  if(_secoes.indexOf(_h)>-1) goDirecto(_h);
+
+  if(_deepLink){
+    goDirecto(_deepLink); // carrega dados da seção alvo (já no painel correto)
+  } else {
+    rR(); // sem deep-link: renderiza o dashboard normalmente
+  }
 }
 
 async function doLogout(){
