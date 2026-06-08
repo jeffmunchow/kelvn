@@ -103,8 +103,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* Área central do canvas */
 #canvas-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
 #canvas-topbar{padding:.5rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;background:var(--surface);}
+#btn-voltar-albuns{display:flex;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:0;margin-right:.5rem;}
+#btn-voltar-albuns:hover{color:var(--text);}
 #album-nome-topbar{font-size:.82rem;font-weight:500;color:var(--text);}
-#save-status{font-size:.65rem;color:var(--text-hint);margin-left:auto;}
+#save-status{font-size:.65rem;color:var(--text-hint);margin-left:.4rem;}
 #canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem;overflow:hidden;}
 
@@ -402,8 +404,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
   <div id="view-editor" class="hidden">
     <!-- Topbar -->
     <div id="canvas-topbar">
-      <button class="btn btn-sec" onclick="irParaLista()" style="padding:4px 10px;font-size:.72rem;">← Álbuns</button>
+      <button id="btn-voltar-albuns" onclick="irParaLista()" title="Voltar aos álbuns">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Álbuns
+      </button>
       <div id="album-nome-topbar"></div>
+      <!-- Spacer: empurra ações para a direita (igual layout de Galerias) -->
+      <div style="flex:1;"></div>
       <button id="btn-undo" class="btn btn-sec" onclick="historico.desfazer()" title="Desfazer (Ctrl+Z)">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
       </button>
