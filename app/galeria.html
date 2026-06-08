@@ -811,6 +811,8 @@ function galGridRenderLote(grid, d){
     // Reutiliza colunas já existentes ou cria novas
     var cols = Array.from(grid.querySelectorAll('.masonry-col'));
     if(!cols.length){
+      // Limpa skeletons e qualquer lixo antes de criar as colunas
+      grid.innerHTML = '';
       for(var c=0;c<nCols;c++){
         var col=document.createElement('div');
         col.className='masonry-col';
