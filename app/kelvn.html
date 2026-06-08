@@ -6837,16 +6837,24 @@ function rGal(manter){
       +'</div>';
   }).join('');
 }
+var _galIsNova=false;
 function abrirNovaGaleria(){
-  var id='gal_'+Date.now();
-  var _dpRaw = localStorage.getItem(_lsKey('design_padrao'));
-  var designPadrao = _dpRaw ? JSON.parse(_dpRaw) : null;
-  var nova={id:id,nomeCliente:'',dataEvento:'',slug:'',senha:'',status:'rascunho',fotos:[],cover_url:'',total_fotos:0,downloads_liberados:false,created_at:new Date().toISOString(),design:designPadrao};
-  var gals=g('galerias')||[];
-  gals.unshift(nova);
-  s('galerias',gals);
-  rGal();
-  abrirGaleria(id, true);
+  _galIsNova=true;
+  _galAtualId=null;
+  _galStatus='rascunho';
+  document.getElementById('mgal-titulo').textContent='Nova Galeria';
+  document.getElementById('mgal-nome').value='';
+  document.getElementById('mgal-data').value='';
+  document.getElementById('mgal-slug').value='';
+  document.getElementById('mgal-senha').value='';
+  var dlRow=document.getElementById('mgal-downloads-row');
+  if(dlRow) dlRow.style.display='none';
+  var delBtn=document.getElementById('mgal-del');
+  if(delBtn) delBtn.style.display='none';
+  var sd=g('sd')||{};
+  var hint=document.getElementById('mgal-pro-hint');
+  if(hint) hint.style.display=sd['studio-dominio-galeria']?'none':'flex';
+  document.getElementById('ov-gal').classList.add('open');
 }
 function gerarSlug(nome){
   return nome.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').substring(0,60);
@@ -6863,6 +6871,9 @@ function abrirGaleria(id, isNova){
   document.getElementById('mgal-slug').value=gal.slug||'';
   _galStatus=gal.status||'rascunho';
   document.getElementById('mgal-senha').value=gal.senha||'';
+  _galIsNova=false;
+  var delBtn=document.getElementById('mgal-del');
+  if(delBtn) delBtn.style.display='';
   var dlRow=document.getElementById('mgal-downloads-row');
   var dlChk=document.getElementById('mgal-downloads');
   if(dlRow) dlRow.style.display=isNova?'none':'';
@@ -6949,12 +6960,42 @@ function mgalEscolherCapa(){
   notify('Capa definida.');
 }
 function saveGal(){
+  var nome=document.getElementById('mgal-nome').value.trim();
+  if(!nome){document.getElementById('mgal-nome').focus();notify('Informe o nome do cliente ou casal.');return;}
+
   cov('ov-gal');
   var gals=g('galerias')||[];
+
+  if(_galIsNova){
+    // Criar galeria somente agora
+    var _dpRaw=localStorage.getItem(_lsKey('design_padrao'));
+    var designPadrao=_dpRaw?JSON.parse(_dpRaw):null;
+    var id='gal_'+Date.now();
+    var nova={
+      id:id,
+      nomeCliente:nome,
+      dataEvento:document.getElementById('mgal-data').value.trim(),
+      slug:document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,''),
+      senha:document.getElementById('mgal-senha').value.trim(),
+      status:'rascunho',
+      fotos:[],cover_url:'',total_fotos:0,
+      downloads_liberados:false,
+      created_at:new Date().toISOString(),
+      design:designPadrao
+    };
+    _galAtualId=id;
+    _galIsNova=false;
+    gals.unshift(nova);
+    s('galerias',gals);
+    rGal();
+    notify('Galeria criada.');
+    return;
+  }
+
   var idx=gals.findIndex(function(x){return x.id===_galAtualId;});
   if(idx===-1){notify('Galeria salva.');return;}
   var gal=gals[idx];
-  gal.nomeCliente=document.getElementById('mgal-nome').value.trim();
+  gal.nomeCliente=nome;
   gal.dataEvento=document.getElementById('mgal-data').value.trim();
   gal.total_fotos=(gal.fotos||[]).length;
   gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
