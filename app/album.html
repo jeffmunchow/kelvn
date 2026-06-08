@@ -1002,8 +1002,11 @@ async function carregarPool(galeriaSlug) {
     return;
   }
 
-  // Verificar posse da galeria antes de carregar favoritos
-  var { data: galeria } = await _sb.from('galerias').select('slug').eq('slug', galeriaSlug).eq('user_id', _userId).maybeSingle();
+  // Verificar posse da galeria antes de carregar favoritos.
+  // A tabela `galerias` tem 1 linha por usuário com a coluna JSONB `data`
+  // contendo o array de galerias — não há coluna `slug` no nível da tabela.
+  // Por isso buscamos no array _galerias (já carregado e escopado ao usuário).
+  var galeria = (_galerias || []).find(function(g) { return g.slug === galeriaSlug; });
   if (!galeria) {
     loading.style.display = 'none';
     empty.style.display   = 'block';
