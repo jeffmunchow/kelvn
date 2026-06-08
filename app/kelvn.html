@@ -6839,7 +6839,7 @@ function rGal(manter){
 }
 function abrirNovaGaleria(){
   var id='gal_'+Date.now();
-  var _dpRaw = localStorage.getItem(getUserPrefix()+'design_padrao');
+  var _dpRaw = localStorage.getItem(_lsKey('design_padrao'));
   var designPadrao = _dpRaw ? JSON.parse(_dpRaw) : null;
   var nova={id:id,nomeCliente:'',dataEvento:'',slug:'',senha:'',status:'rascunho',fotos:[],cover_url:'',total_fotos:0,downloads_liberados:false,created_at:new Date().toISOString(),design:designPadrao};
   var gals=g('galerias')||[];
