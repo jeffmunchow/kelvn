@@ -8664,6 +8664,11 @@ _sb.auth.onAuthStateChange(function(event, session){
     document.getElementById('appMain').style.display='none';
   } else if(event==='SIGNED_IN' && session){
     if(!document.getElementById('resetScreen').classList.contains('visible')){
+      // O Supabase reemite SIGNED_IN ao focar a aba (não é login novo).
+      // Re-inicializar aqui reseta o painel ativo (ex.: detalhe da galeria
+      // volta para o grid ao fechar a aba de preview). Só roda onLogin se
+      // for realmente outro usuário / primeiro login desta sessão.
+      if(_currentUser && _currentUser.id===session.user.id) return;
       onLogin(session.user);
     }
   } else if(event==='SIGNED_OUT' || event==='TOKEN_REFRESHED' && !session){
