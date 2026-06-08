@@ -46,7 +46,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #main{flex:1;margin-left:56px;min-width:0;overflow:hidden;display:flex;flex-direction:column;}
 
 /* ── Estado: Lista de álbuns ─────────────────────────────────────── */
-#view-lista{flex:1;overflow-y:auto;padding:2rem 2.5rem 4rem;}
+#view-lista{flex:1;overflow-y:auto;padding:1rem 2rem 4rem;}
 .sh{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
 .st{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;}
 .view-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;}
@@ -848,8 +848,18 @@ async function renderLista() {
     if (a.aprovado && a.status === 'rascunho') { st = statusMap['aprovado']; }
 
     var fmtLabel = { paisagem: 'Paisagem', quadrado: 'Quadrado', retrato: 'Retrato' }[fmt] || fmt;
-    var sub = fmtLabel + (a.galeria_slug ? ' · ' + esc(a.galeria_slug) : '');
+    // Data do evento formatada
+    var dataStr = (function(s){
+      if (!s) return '';
+      if (s.includes('/')) return s;
+      var d = new Date(s); return isNaN(d) ? s : d.toLocaleDateString('pt-BR');
+    })(a.data_evento);
+    var sub = dataStr + (dataStr ? ' · ' : '') + fmtLabel;
+    var titulo = esc(a.nome_cliente || a.nome || '—');
     var icone = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
+    // Botão de status igual ao de Galerias
+    var statusBtnColor = (a.status === 'aprovado' || a.status === 'finalizado') ? 'var(--text)' : 'var(--text-muted)';
+    var statusBtn = '<button onclick="event.stopPropagation()" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 8px;cursor:default;font-family:\'DM Sans\',sans-serif;font-size:.68rem;color:'+statusBtnColor+';">'+st.label+'</button>';
 
     var card = document.createElement('div');
     card.style.cssText = 'background:var(--surface);border-radius:0;overflow:hidden;cursor:pointer;transition:opacity .15s;';
@@ -862,10 +872,12 @@ async function renderLista() {
       '<div style="padding:.75rem 1rem;">' +
         '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">' +
           '<div>' +
-            '<div style="font-size:.88rem;font-weight:500;margin-bottom:.2rem;">' + esc(a.nome) + '</div>' +
+            '<div style="font-size:.88rem;font-weight:500;margin-bottom:.2rem;">' + titulo + '</div>' +
             '<div style="font-size:.67rem;color:var(--text-hint);margin-top:2px;">' + sub + '</div>' +
           '</div>' +
-          '<span class="album-card-badge ' + st.cls + '">' + st.label + '</span>' +
+          '<div style="display:flex;gap:.35rem;align-items:center;flex-shrink:0;margin-top:.1rem;">' +
+            statusBtn +
+          '</div>' +
         '</div>' +
       '</div>';
     card.addEventListener('click', function() { abrirAlbum(a); });
@@ -892,8 +904,14 @@ async function criarAlbum() {
   var dims = { paisagem: [30,20], quadrado: [25,25], retrato: [20,28] };
   var d = dims[formato] || [30,20];
 
+  // Pega nome do casal e data do evento da galeria vinculada
+  var galVinculada = galeriaSlug ? _galerias.find(function(g){ return g.slug === galeriaSlug; }) : null;
+  var nomeCliente = galVinculada ? (galVinculada.nomeCliente || '') : '';
+  var dataEvento  = galVinculada ? (galVinculada.dataEvento  || '') : '';
+
   var { data: album, error: e1 } = await _sb.from('albuns').insert({
     user_id: _userId, nome, formato, galeria_slug: galeriaSlug || null,
+    nome_cliente: nomeCliente, data_evento: dataEvento,
     largura_cm: d[0], altura_cm: d[1], status: 'rascunho', total_spreads: 3
   }).select().single();
 
