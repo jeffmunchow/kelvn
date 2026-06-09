@@ -108,11 +108,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #album-nome-topbar{font-size:.78rem;color:var(--text-muted);}
 #save-status{display:none;font-size:.65rem;color:var(--text-hint);margin-left:.4rem;}
 #canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:.35rem;overflow:hidden;}
+#konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:.35rem .35rem 0;overflow:hidden;}
 
 /* Barra de spreads — com toggle */
 #thumbs-wrap{flex-shrink:0;}
-#thumbs-toggle-btn{width:100%;height:22px;background:var(--surface);border-top:.5px solid var(--border);border-bottom:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);transition:color .15s,background .15s;}
+#thumbs-toggle-btn{width:100%;height:16px;background:var(--surface);border-top:.5px solid var(--border);border-bottom:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);transition:color .15s,background .15s;}
 #thumbs-toggle-btn:hover{color:var(--text);background:var(--surface2);}
 #thumbs-toggle-btn svg{transition:transform .22s;}
 #thumbs-toggle-btn.fechado svg{transform:rotate(180deg);}
@@ -946,11 +946,12 @@ async function abrirAlbum(albumObj) {
   fecharProps();
 
   renderTemplates();
-  renderThumbs();
-  // Adia iniciarKonva para o próximo frame — garante que o DOM calculou
+  // Adia iniciarKonva + renderThumbs para o próximo frame — garante que o DOM calculou
   // as dimensões reais do #konva-wrap antes de calcDims() rodar.
+  // renderThumbs precisa vir DEPOIS de iniciarKonva para usar _dimSpread correto.
   requestAnimationFrame(function() {
     iniciarKonva();
+    renderThumbs();
     renderSpread();
   });
 
