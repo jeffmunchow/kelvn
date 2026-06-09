@@ -1068,8 +1068,8 @@ function renderPool() {
 // ── Konva — inicialização ─────────────────────────────────────────────────────
 function calcDims() {
   var wrap = document.getElementById('konva-wrap');
-  var aw = wrap.offsetWidth  - 48;
-  var ah = wrap.offsetHeight - 48;
+  var aw = wrap.offsetWidth  - 8;
+  var ah = wrap.offsetHeight - 8;
   var album = estado.album;
   var ratio = album.formato === 'quadrado' ? 2 : album.formato === 'retrato' ? 1.4 : 2.8;
   var w = aw;
