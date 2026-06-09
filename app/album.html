@@ -949,6 +949,7 @@ async function abrirAlbum(albumObj) {
   // ResizeObserver garante que iniciarKonva só roda quando o #konva-wrap
   // tem dimensões reais — e recalcula sempre que o tamanho muda.
   observarKonvaWrap();
+  setupSwipeNav();
 
   // Nível 5: verificar aprovado + carregar comentários pendentes
   if (albumObj.aprovado) {
@@ -1086,6 +1087,32 @@ function observarKonvaWrap() {
     renderSpread();
   });
   _konvaRO.observe(wrap);
+}
+
+// Navegação por gesto horizontal do trackpad: deslizar para o lado troca de spread.
+var _swipeNavSetup = false;
+var _swipeLock = false;
+var _swipeEndTimer = null;
+function setupSwipeNav() {
+  if (_swipeNavSetup) return;
+  var wrap = document.getElementById('konva-wrap');
+  if (!wrap) return;
+  _swipeNavSetup = true;
+  wrap.addEventListener('wheel', function(e) {
+    // Só reage a gestos predominantemente horizontais
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    e.preventDefault(); // evita o "voltar/avançar" do navegador
+    // Detecta o fim do gesto (incluindo a inércia): libera o lock quando os eventos param.
+    clearTimeout(_swipeEndTimer);
+    _swipeEndTimer = setTimeout(function() { _swipeLock = false; }, 140);
+    if (_swipeLock) return;                 // já navegou neste gesto
+    if (Math.abs(e.deltaX) < 30) return;    // ignora micro-movimentos
+    var dir = e.deltaX > 0 ? 1 : -1;        // direita = próximo, esquerda = anterior
+    var alvo = estado.spreadAtivo + dir;
+    if (alvo < 0 || alvo >= estado.spreads.length) return;
+    _swipeLock = true;
+    mudarSpread(alvo);
+  }, { passive: false });
 }
 
 function calcDims() {
