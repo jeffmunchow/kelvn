@@ -440,12 +440,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <div id="album-nome-topbar" style="display:none;"></div>
       <!-- Spacer: empurra ações para a direita (igual layout de Galerias) -->
       <div style="flex:1;"></div>
-      <button id="btn-undo" class="btn" onclick="historico.desfazer()" title="Desfazer (Ctrl+Z)" style="padding:6px 10px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-      </button>
-      <button id="btn-redo" class="btn" onclick="historico.refazer()" title="Refazer (Ctrl+Y)" style="padding:6px 10px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
-      </button>
+      <button id="btn-undo" class="btn" onclick="historico.desfazer()" title="Desfazer (Ctrl+Z)" style="display:none;"></button>
+      <button id="btn-redo" class="btn" onclick="historico.refazer()" title="Refazer (Ctrl+Y)" style="display:none;"></button>
       <button id="btn-autolayout" class="btn" onclick="abrirModalAutoLayout()" style="display:none;">Montar</button>
       <div id="btn-revisao-wrap" style="position:relative;">
         <button class="btn" id="btn-revisao" onclick="abrirModalRevisao()" style="display:none;" title="Comentários do casal">Revisão</button>
