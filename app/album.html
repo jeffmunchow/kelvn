@@ -123,12 +123,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #thumbs-toggle-btn:hover{color:var(--text);background:var(--surface2);}
 #thumbs-toggle-btn svg{transition:transform .22s;}
 #thumbs-toggle-btn.fechado svg{transform:rotate(180deg);}
-#thumbs-bar{height:112px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;overflow-x:auto;flex-shrink:0;transition:height .22s,opacity .22s;overflow:hidden;}
+#thumbs-bar{height:132px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;overflow-x:auto;flex-shrink:0;transition:height .22s,opacity .22s;overflow:hidden;}
 #thumbs-bar.fechado{height:0;opacity:0;}
-.thumb-item{height:84px;flex-shrink:0;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
+.thumb-item{height:100px;flex-shrink:0;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
 .thumb-item.ativo{border-color:var(--amber);}
 .thumb-item canvas{height:100%;width:auto;display:block;}
-.thumb-add{height:84px;width:56px;flex-shrink:0;border:.5px dashed var(--border-strong);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);font-size:1.1rem;transition:color .15s,border-color .15s;}
+.thumb-add{height:100px;width:56px;flex-shrink:0;border:.5px dashed var(--border-strong);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);font-size:1.1rem;transition:color .15s,border-color .15s;}
 .thumb-add:hover{color:var(--amber);border-color:var(--amber);}
 .thumb-remove{position:absolute;top:2px;right:2px;width:14px;height:14px;background:rgba(196,58,26,.8);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:.55rem;color:#fff;cursor:pointer;line-height:1;}
 .thumb-item:hover .thumb-remove{display:flex;}
