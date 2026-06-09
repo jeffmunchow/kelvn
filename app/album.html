@@ -1163,7 +1163,7 @@ function finalizarPan() {
       renderSpread();
       renderThumbs();
       renderTemplates();
-      if (!document.getElementById('props-panel').classList.contains('hidden')) abrirPropsSpread();
+      atualizarPropsSeAberto();
     }
     track.style.transition = 'none';
     track.style.transform  = 'translateX(0)';
@@ -1660,7 +1660,7 @@ async function mudarSpread(idx) {
   renderThumbs();
   renderTemplates();
   renderSpread();
-  if (!document.getElementById('props-panel').classList.contains('hidden')) abrirPropsSpread();
+  atualizarPropsSeAberto();
 }
 
 // ── Adicionar / remover spreads ───────────────────────────────────────────────
@@ -1810,9 +1810,7 @@ async function restaurarEstadoHistorico(snap) {
   renderSpread();
   renderThumbs();
   atualizarUsadasNoPool();
-  if (document.getElementById('props-panel') && !document.getElementById('props-panel').classList.contains('hidden')) {
-    abrirPropsSpread();
-  }
+  atualizarPropsSeAberto();
 }
 
 // ── Nível 4 — Crop interativo ────────────────────────────────────────────────
@@ -1969,6 +1967,16 @@ function carregarTemplates() {
   renderTemplates();
 }
 /* ── Fim Toggles ──────────────────────────────────────────── */
+
+// Reabre o painel de propriedades SÓ se ele já estiver aberto no modo "Spread".
+// (O #props-panel é legado e nunca tem a classe 'hidden' — checar 'aberto' do right-panel.)
+function atualizarPropsSeAberto() {
+  var rp = document.getElementById('right-panel');
+  var titulo = document.getElementById('right-panel-titulo');
+  if (rp && rp.classList.contains('aberto') && titulo && titulo.textContent === 'Spread') {
+    abrirPropsSpread();
+  }
+}
 
 function abrirPropsSpread() {
   var spread = estado.spreads[estado.spreadAtivo];
