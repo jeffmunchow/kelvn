@@ -83,7 +83,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .formato-label{font-size:.65rem;color:var(--text-hint);}
 
 /* ── Estado: Editor ──────────────────────────────────────────────── */
-#view-editor{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#view-editor{flex:1;display:flex;flex-direction:row;overflow:hidden;}
+#editor-left{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 #editor-body{flex:1;display:flex;overflow:hidden;position:relative;}
 
 /* Painel direito em acordeão — Favoritas, Templates, Spread */
@@ -102,6 +103,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .rpanel-sec-hdr-r{display:flex;align-items:center;gap:.4rem;}
 .rpanel-sec-chevron{width:12px;height:12px;transition:transform .18s;flex-shrink:0;}
 .rpanel-sec.expandido .rpanel-sec-chevron{transform:rotate(180deg);}
+/* Ação (Compartilhar) — header clicável sem corpo */
+.rpanel-action{padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:.68rem;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);user-select:none;transition:color .15s,background .15s;flex-shrink:0;border-bottom:.5px solid var(--border);}
+.rpanel-action:hover{color:var(--amber);background:var(--surface2);}
+.rpanel-action svg{width:13px;height:13px;flex-shrink:0;}
 .rpanel-sec-body{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
 .rpanel-sec.expandido>.rpanel-sec-body{display:flex;}
 /* Favoritas */
@@ -431,6 +436,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
   <!-- Editor -->
   <div id="view-editor" class="hidden">
+   <!-- Coluna esquerda: topbar + canvas -->
+   <div id="editor-left">
     <!-- Topbar -->
     <div id="canvas-topbar">
       <button id="btn-voltar-albuns" onclick="irParaLista()" title="Voltar aos álbuns">
@@ -447,8 +454,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <button class="btn" id="btn-revisao" onclick="abrirModalRevisao()" style="display:none;" title="Comentários do casal">Revisão</button>
         <span class="rev-badge hidden" id="rev-badge-count"></span>
       </div>
-      <!-- Toggles de painel -->
-      <button class="btn" id="btn-share" onclick="abrirModalShare()" title="Compartilhar para revisão do casal">Compartilhar</button>
       <button class="btn primary" id="btn-exportar" onclick="abrirModalExportar()" style="display:none;" title="Gerar PDF para gráfica">Exportar PDF</button>
       <div id="save-status">—</div>
     </div>
@@ -490,12 +495,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         </div>
       </div>
 
+      <!-- Legado: manter IDs para compatibilidade de JS existente -->
+      <div id="right-panel" style="display:none;"></div>
+      <div id="templates-panel" style="display:none;"></div>
+      <div id="props-panel" style="display:none;"></div>
+
+    </div>
+   </div><!-- /#editor-left -->
+
       <!-- Painel direito em acordeão -->
       <div id="right-panels-wrap">
         <div id="right-panels-toggle" onclick="toggleRightPanel()" title="Mostrar/ocultar painel">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </div>
         <div id="right-panels">
+        <!-- Compartilhar -->
+        <div class="rpanel-action" id="sec-share" onclick="abrirModalShare()" title="Compartilhar para revisão do casal">
+          <span>Compartilhar</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
         <!-- Favoritas -->
         <div class="rpanel-sec expandido" id="sec-favoritas">
           <div class="rpanel-sec-hdr" onclick="toggleSec('favoritas')">
@@ -534,12 +552,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         </div><!-- /#right-panels -->
       </div><!-- /#right-panels-wrap -->
 
-      <!-- Legado: manter IDs para compatibilidade de JS existente -->
-      <div id="right-panel" style="display:none;"></div>
-      <div id="templates-panel" style="display:none;"></div>
-      <div id="props-panel" style="display:none;"></div>
-
-    </div>
   </div>
 
 </div>
