@@ -2386,9 +2386,13 @@ function toggleSec(id) {
 }
 
 function sincronizarBotoesSec() {
-  document.getElementById('btn-toggle-pool').classList.toggle('ativo', document.getElementById('sec-favoritas').classList.contains('expandido'));
-  document.getElementById('btn-toggle-tpl').classList.toggle('ativo', document.getElementById('sec-templates').classList.contains('expandido'));
-  document.getElementById('btn-toggle-props').classList.toggle('ativo', document.getElementById('sec-spread').classList.contains('expandido'));
+  // botões da topbar foram removidos — ignorar silenciosamente se não existirem
+  var bp = document.getElementById('btn-toggle-pool');
+  var bt = document.getElementById('btn-toggle-tpl');
+  var bs = document.getElementById('btn-toggle-props');
+  if (bp) bp.classList.toggle('ativo', document.getElementById('sec-favoritas').classList.contains('expandido'));
+  if (bt) bt.classList.toggle('ativo', document.getElementById('sec-templates').classList.contains('expandido'));
+  if (bs) bs.classList.toggle('ativo', document.getElementById('sec-spread').classList.contains('expandido'));
 }
 
 function togglePool() { toggleSec('favoritas'); }
