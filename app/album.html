@@ -946,9 +946,13 @@ async function abrirAlbum(albumObj) {
   fecharProps();
 
   renderTemplates();
-  iniciarKonva();
   renderThumbs();
-  renderSpread();
+  // Adia iniciarKonva para o próximo frame — garante que o DOM calculou
+  // as dimensões reais do #konva-wrap antes de calcDims() rodar.
+  requestAnimationFrame(function() {
+    iniciarKonva();
+    renderSpread();
+  });
 
   // Nível 5: verificar aprovado + carregar comentários pendentes
   if (albumObj.aprovado) {
@@ -2781,6 +2785,13 @@ function esc(str) {
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 init();
+
+window.addEventListener('resize', function() {
+  if (_stage && estado.album) {
+    iniciarKonva();
+    renderSpread();
+  }
+});
 </script>
 </body>
 </html>
