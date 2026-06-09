@@ -108,7 +108,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #album-nome-topbar{font-size:.78rem;color:var(--text-muted);}
 #save-status{display:none;font-size:.65rem;color:var(--text-hint);margin-left:.4rem;}
 #canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:.15rem;overflow:hidden;box-sizing:border-box;}
+#konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem 3rem;overflow:hidden;box-sizing:border-box;}
 
 /* Barra de spreads — com toggle */
 #thumbs-wrap{flex-shrink:0;}
@@ -1090,8 +1090,13 @@ function observarKonvaWrap() {
 
 function calcDims() {
   var wrap = document.getElementById('konva-wrap');
-  var aw = wrap.clientWidth  - 2;
-  var ah = wrap.clientHeight - 2;
+  // clientWidth/Height incluem o padding — descontamos para usar a área de conteúdo,
+  // garantindo a margem definida no CSS ao redor do spread.
+  var cs = getComputedStyle(wrap);
+  var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+  var padY = parseFloat(cs.paddingTop)  + parseFloat(cs.paddingBottom);
+  var aw = wrap.clientWidth  - padX;
+  var ah = wrap.clientHeight - padY;
   var album = estado.album;
   var ratio = album.formato === 'quadrado' ? 2 : album.formato === 'retrato' ? 1.4 : 2.8;
   // Preenche a maior área possível mantendo a proporção:
