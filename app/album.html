@@ -83,9 +83,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .formato-label{font-size:.65rem;color:var(--text-hint);}
 
 /* ── Estado: Editor ──────────────────────────────────────────────── */
-#view-editor{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+#view-editor{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #editor-body{flex:1;display:flex;overflow:hidden;position:relative;}
-
 
 /* Pool esquerdo — desliza da esquerda */
 #pool-panel{width:260px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s,opacity .22s;}
@@ -103,7 +102,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
 /* Área central do canvas */
 #canvas-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
-#canvas-topbar{position:absolute;top:0;left:0;right:0;z-index:20;padding:.4rem 2rem .4rem;display:flex;align-items:center;gap:.5rem;background:rgba(14,12,10,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+#canvas-topbar{padding:.4rem 2rem .4rem;display:flex;align-items:center;gap:.5rem;background:var(--bg);}
 #btn-voltar-albuns{display:flex;align-items:center;gap:.4rem;background:none;border:none;cursor:pointer;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:.8rem;padding:0;margin-right:.75rem;}
 #btn-voltar-albuns:hover{color:var(--text);}
 #album-nome-topbar{font-size:.78rem;color:var(--text-muted);}
@@ -947,14 +946,9 @@ async function abrirAlbum(albumObj) {
   fecharProps();
 
   renderTemplates();
-  // Adia iniciarKonva + renderThumbs para o próximo frame — garante que o DOM calculou
-  // as dimensões reais do #konva-wrap antes de calcDims() rodar.
-  // renderThumbs precisa vir DEPOIS de iniciarKonva para usar _dimSpread correto.
-  requestAnimationFrame(function() {
-    iniciarKonva();
-    renderThumbs();
-    renderSpread();
-  });
+  // ResizeObserver garante que iniciarKonva só roda quando o #konva-wrap
+  // tem dimensões reais — e recalcula sempre que o tamanho muda.
+  observarKonvaWrap();
 
   // Nível 5: verificar aprovado + carregar comentários pendentes
   if (albumObj.aprovado) {
@@ -1072,16 +1066,36 @@ function renderPool() {
 }
 
 // ── Konva — inicialização ─────────────────────────────────────────────────────
+var _konvaRO = null;
+var _ultimoWrapW = 0, _ultimoWrapH = 0;
+// Observa o #konva-wrap: só (re)inicia o Konva quando ele tem tamanho real,
+// e recalcula sempre que o tamanho disponível muda (resize, abrir/fechar painéis).
+function observarKonvaWrap() {
+  var wrap = document.getElementById('konva-wrap');
+  if (!wrap) return;
+  if (_konvaRO) _konvaRO.disconnect();
+  _ultimoWrapW = 0; _ultimoWrapH = 0;
+  _konvaRO = new ResizeObserver(function() {
+    if (!estado.album) return;
+    var w = wrap.clientWidth, h = wrap.clientHeight;
+    if (w < 10 || h < 10) return;                 // ainda sem layout
+    if (w === _ultimoWrapW && h === _ultimoWrapH) return; // sem mudança real
+    _ultimoWrapW = w; _ultimoWrapH = h;
+    iniciarKonva();
+    renderThumbs();
+    renderSpread();
+  });
+  _konvaRO.observe(wrap);
+}
+
 function calcDims() {
   var wrap = document.getElementById('konva-wrap');
-  var topbar = document.getElementById('canvas-topbar');
-  var topbarH = topbar ? topbar.offsetHeight : 0;
-  // Padding-top dinâmico: empurra o canvas para baixo do topbar flutuante
-  wrap.style.paddingTop = topbarH + 'px';
-  var aw = wrap.offsetWidth  - 2;
-  var ah = wrap.offsetHeight - topbarH - 2;
+  var aw = wrap.clientWidth  - 2;
+  var ah = wrap.clientHeight - 2;
   var album = estado.album;
   var ratio = album.formato === 'quadrado' ? 2 : album.formato === 'retrato' ? 1.4 : 2.8;
+  // Preenche a maior área possível mantendo a proporção:
+  // testa encher a largura; se estourar a altura, encher a altura.
   var w = aw;
   var h = w / ratio;
   if (h > ah) { h = ah; w = h * ratio; }
@@ -2792,12 +2806,6 @@ function esc(str) {
 // ── Start ─────────────────────────────────────────────────────────────────────
 init();
 
-window.addEventListener('resize', function() {
-  if (_stage && estado.album) {
-    iniciarKonva();
-    renderSpread();
-  }
-});
 </script>
 </body>
 </html>
