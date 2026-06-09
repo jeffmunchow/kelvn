@@ -131,7 +131,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #thumbs-bar.fechado{height:0;opacity:0;}
 .thumb-item{height:100px;flex-shrink:0;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
 .thumb-item.ativo{border-color:var(--amber);}
-.thumb-item canvas{height:100%;width:auto;display:block;}
+.thumb-item canvas,.thumb-item img.thumb-snap{height:100%;width:auto;display:block;}
 .thumb-add{height:100px;width:56px;flex-shrink:0;border:.5px dashed var(--border-strong);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);font-size:1.1rem;transition:color .15s,border-color .15s;}
 .thumb-add:hover{color:var(--amber);border-color:var(--amber);}
 .thumb-remove{position:absolute;top:2px;right:2px;width:14px;height:14px;background:rgba(196,58,26,.8);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:.55rem;color:#fff;cursor:pointer;line-height:1;}
@@ -1445,7 +1445,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
 }
 
 // Gera um snapshot (dataURL) de um spread, renderizando-o num stage fora da tela.
-function gerarSnapshotSpread(spread, cb) {
+function gerarSnapshotSpread(spread, cb, pixelRatio) {
   if (!spread || !_dimSpread.w) { cb(null); return; }
   var holder = document.createElement('div');
   holder.style.cssText = 'position:fixed;left:-99999px;top:0;pointer-events:none;';
@@ -1456,7 +1456,7 @@ function gerarSnapshotSpread(spread, cb) {
   function capturar() {
     if (pronto) return; pronto = true;
     var url = null;
-    try { layer.batchDraw(); url = stage.toDataURL({ pixelRatio: 1 }); } catch (e) { url = null; }
+    try { layer.batchDraw(); url = stage.toDataURL({ pixelRatio: pixelRatio || 1 }); } catch (e) { url = null; }
     stage.destroy(); holder.remove();
     cb(url);
   }
@@ -1836,39 +1836,33 @@ async function aplicarTemplate(tplId) {
 // ── Barra de miniaturas ───────────────────────────────────────────────────────
 var _thumbsMode = 'spreads'; // 'spreads' | 'timeline'
 
-// Cache de imagens das miniaturas (evita recarregar a cada renderThumbs)
-var _thumbImgCache = {};
-function desenharFotoMini(ctx, slot, x, y, w, h, SCALE) {
-  var fotoKey = slot.foto_key;
-  var img = _thumbImgCache[fotoKey];
-  function pintar() {
-    var nw = img.naturalWidth, nh = img.naturalHeight;
-    if (!nw) return;
-    ctx.save();
-    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
-    // Mesma lógica do canvas central, escalada por SCALE → reflexo fiel
-    var scMin = Math.max(w / nw, h / nh);
-    var autoFit = (slot.foto_x || 0) === 0 && (slot.foto_y || 0) === 0;
-    var sc = (!autoFit && slot.foto_escala > 0) ? Math.max(scMin, slot.foto_escala * SCALE) : scMin;
-    var dw = nw * sc, dh = nh * sc;
-    var dx, dy;
-    if (autoFit) {
-      dx = x + (w - dw) / 2;
-      dy = y + (h - dh) / 2;
-    } else {
-      dx = x + (slot.foto_x || 0) * SCALE;
-      dy = y + (slot.foto_y || 0) * SCALE;
-    }
-    ctx.drawImage(img, dx, dy, dw, dh);
-    ctx.restore();
-  }
-  if (img && img.complete) { pintar(); return; }
-  if (!img) {
-    img = new Image();
-    _thumbImgCache[fotoKey] = img;
-    img.src = '/api/gallery-img?key=' + encodeURIComponent(fotoKey);
-  }
-  img.addEventListener('load', pintar, { once: true });
+// Miniatura do rodapé = snapshot do MESMO renderizador do centro (desenharSpreadEstatico).
+// Garante que o thumbnail seja idêntico à página central (geometria, recorte, sangria, fundo).
+// Cache por assinatura: só regenera quando o conteúdo da lâmina muda.
+var _thumbSnapCache = {}; // spreadId -> { sig, url }
+
+function assinaturaSpread(spread) {
+  var slots = (spread.album_slots || []).map(function(s) {
+    return [s.foto_key || '', s.foto_x || 0, s.foto_y || 0, s.foto_escala || 0].join(',');
+  }).join('|');
+  var txt = (spread._textos || []).map(function(t) {
+    return [t.conteudo, t.x_prop, t.y_prop, t.largura_prop, t.tamanho, t.cor, t.fonte, t.alinhamento].join(',');
+  }).join('~');
+  return [spread.template_id || '', spread.full_bleed ? 1 : 0, spread.background_color || '',
+          (spread.margem_px != null ? spread.margem_px : 8), (spread.gutter_px != null ? spread.gutter_px : 8),
+          slots, txt, _dimSpread.w].join('::');
+}
+
+function montarThumbSnapshot(spread, imgEl) {
+  var sig = assinaturaSpread(spread);
+  var cached = _thumbSnapCache[spread.id];
+  if (cached && cached.sig === sig && cached.url) { imgEl.src = cached.url; return; }
+  imgEl.style.background = spread.background_color || '#1e1b16';
+  gerarSnapshotSpread(spread, function(url) {
+    if (!url) return;
+    _thumbSnapCache[spread.id] = { sig: sig, url: url };
+    imgEl.src = url;
+  }, 0.45);
 }
 
 function setThumbsMode(mode) {
@@ -1895,28 +1889,13 @@ function renderThumbs() {
     var item = document.createElement('div');
     item.className = 'thumb-item' + (idx === estado.spreadAtivo ? ' ativo' : '');
 
-    // Mini canvas para a miniatura — desenha a foto real (cover-fit)
-    var mini = document.createElement('canvas');
-    var SCALE = 0.22;
-    mini.width  = Math.floor(_dimSpread.w * SCALE);
-    mini.height = Math.floor(_dimSpread.h * SCALE);
-    var ctx = mini.getContext('2d');
-    ctx.fillStyle = spread.background_color || '#1e1b16';
-    ctx.fillRect(0, 0, mini.width, mini.height);
-
-    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
-    var fullBleed = spread.full_bleed && (spread.album_slots || [])[0] && spread.album_slots[0].foto_key;
-    var slotsMini = fullBleed ? [{ x:0, y:0, w:1, h:1 }] : tpl.slots;
-    slotsMini.forEach(function(s, si) {
-      var slot = (spread.album_slots || [])[si];
-      var x = s.x * mini.width, y = s.y * mini.height;
-      var w = s.w * mini.width, h = s.h * mini.height;
-      ctx.fillStyle = '#2a2620';
-      ctx.fillRect(x, y, w, h);
-      if (slot && slot.foto_key) {
-        desenharFotoMini(ctx, slot, x, y, w, h, SCALE);
-      }
-    });
+    // Miniatura: snapshot do MESMO renderizador do centro → fidelidade garantida
+    var mini = document.createElement('img');
+    mini.className = 'thumb-snap';
+    mini.alt = '';
+    mini.draggable = false;
+    mini.style.aspectRatio = _dimSpread.w + ' / ' + _dimSpread.h;
+    montarThumbSnapshot(spread, mini);
 
     // Label tipo
     var label = document.createElement('div');
@@ -2302,6 +2281,7 @@ function sairModoEdicaoSlot(silencioso) {
   _stage.container().removeEventListener('wheel', _wheelCropHandler);
   _slotEmEdicao = null;
   renderSpread();
+  renderThumbs(); // reflete o recorte no thumbnail do rodapé
 }
 
 // ── Nível 4 — Propriedades do spread ────────────────────────────────────────
