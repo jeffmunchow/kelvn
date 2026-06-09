@@ -118,12 +118,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .konva-viz img{display:block;max-width:none;}
 
 /* Barra de spreads — com toggle */
-#thumbs-wrap{flex-shrink:0;}
+#thumbs-wrap{flex-shrink:0;position:relative;}
+#thumbs-modes{position:absolute;top:0;left:8px;height:22px;display:flex;align-items:center;gap:3px;z-index:3;}
+.thumb-mode-btn{width:26px;height:18px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text-hint);cursor:pointer;border-radius:5px;padding:0;transition:color .15s,background .15s;}
+.thumb-mode-btn:hover{color:var(--text);background:var(--surface2);}
+.thumb-mode-btn.ativo{color:var(--amber);background:var(--amber-light);}
 #thumbs-toggle-btn{width:100%;height:22px;background:var(--surface);border-top:.5px solid var(--border);border-bottom:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);transition:color .15s,background .15s;}
 #thumbs-toggle-btn:hover{color:var(--text);background:var(--surface2);}
 #thumbs-toggle-btn svg{transition:transform .22s;}
 #thumbs-toggle-btn.fechado svg{transform:rotate(180deg);}
-#thumbs-bar{height:132px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;overflow-x:auto;flex-shrink:0;transition:height .22s,opacity .22s;overflow:hidden;}
+#thumbs-bar{height:132px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;flex-shrink:0;transition:height .22s,opacity .22s;overflow-x:auto;overflow-y:hidden;}
 #thumbs-bar.fechado{height:0;opacity:0;}
 .thumb-item{height:100px;flex-shrink:0;border-radius:5px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
 .thumb-item.ativo{border-color:var(--amber);}
@@ -132,6 +136,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .thumb-add:hover{color:var(--amber);border-color:var(--amber);}
 .thumb-remove{position:absolute;top:2px;right:2px;width:14px;height:14px;background:rgba(196,58,26,.8);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:.55rem;color:#fff;cursor:pointer;line-height:1;}
 .thumb-item:hover .thumb-remove{display:flex;}
+/* Timeline de fotos — visão SmartAlbums */
+#thumbs-bar.timeline{align-items:center;gap:0;padding:0 1rem;}
+.tl-spread{display:flex;align-items:center;gap:5px;height:118px;padding:0 12px;border-radius:11px;flex-shrink:0;transition:background .15s;}
+.tl-spread.ativo{background:var(--surface2);}
+.tl-spread + .tl-spread{margin-left:2px;}
+.tl-photo{height:84px;width:auto;max-width:140px;object-fit:cover;border:3px solid #fff;border-radius:2px;box-shadow:0 1px 5px rgba(0,0,0,.16);cursor:pointer;display:block;background:var(--surface2);transition:transform .12s;}
+.tl-photo:hover{transform:translateY(-2px);}
+.tl-empty{height:84px;width:60px;flex-shrink:0;border:1px dashed var(--border-strong);border-radius:3px;cursor:pointer;background:var(--surface2);}
+.tl-num{font-family:'DM Sans',sans-serif;font-size:.55rem;color:var(--text-hint);align-self:flex-end;padding-bottom:4px;min-width:14px;text-align:center;}
 
 /* Painel direito deslizante — Templates e Propriedades */
 #right-panel{width:0;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s,opacity .22s;opacity:0;}
@@ -470,6 +483,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         </div>
         <!-- Toggle + barra de miniaturas -->
         <div id="thumbs-wrap">
+          <div id="thumbs-modes">
+            <button class="thumb-mode-btn ativo" id="mode-spreads-btn" onclick="setThumbsMode('spreads')" title="Spreads">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="8" height="12" rx="1"/><rect x="13" y="6" width="8" height="12" rx="1"/></svg>
+            </button>
+            <button class="thumb-mode-btn" id="mode-timeline-btn" onclick="setThumbsMode('timeline')" title="Timeline de fotos">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="5" height="10" rx="1"/><rect x="9.5" y="7" width="5" height="10" rx="1"/><rect x="17" y="7" width="5" height="10" rx="1"/></svg>
+            </button>
+          </div>
           <div id="thumbs-toggle-btn" onclick="toggleThumbs()" title="Mostrar/ocultar spreads">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
           </div>
@@ -1565,8 +1586,24 @@ async function aplicarTemplate(tplId) {
 }
 
 // ── Barra de miniaturas ───────────────────────────────────────────────────────
+var _thumbsMode = 'spreads'; // 'spreads' | 'timeline'
+
+function setThumbsMode(mode) {
+  if (_thumbsMode === mode) return;
+  _thumbsMode = mode;
+  document.getElementById('mode-spreads-btn').classList.toggle('ativo', mode === 'spreads');
+  document.getElementById('mode-timeline-btn').classList.toggle('ativo', mode === 'timeline');
+  // Garante a barra aberta ao trocar de modo
+  document.getElementById('thumbs-bar').classList.remove('fechado');
+  document.getElementById('thumbs-toggle-btn').classList.remove('fechado');
+  renderThumbs();
+}
+
 function renderThumbs() {
   var bar = document.getElementById('thumbs-bar');
+  bar.classList.toggle('timeline', _thumbsMode === 'timeline');
+  if (_thumbsMode === 'timeline') { renderTimeline(bar); return; }
+
   // Preservar botão de adicionar
   var btn = bar.querySelector('.thumb-add');
   bar.innerHTML = '';
@@ -1649,6 +1686,49 @@ function renderThumbs() {
     add.addEventListener('click', adicionarSpread);
     bar.appendChild(add);
   }
+}
+
+// Timeline: fotos individuais agrupadas por lâmina (estilo SmartAlbums)
+function renderTimeline(bar) {
+  bar.innerHTML = '';
+  var ativoEl = null;
+
+  estado.spreads.forEach(function(spread, idx) {
+    var grupo = document.createElement('div');
+    grupo.className = 'tl-spread' + (idx === estado.spreadAtivo ? ' ativo' : '');
+
+    // Número da lâmina (capa/fim para extremos)
+    var num = document.createElement('div');
+    num.className = 'tl-num';
+    num.textContent = spread.tipo === 'capa' ? 'capa' : spread.tipo === 'contracapa' ? 'fim' : idx;
+    grupo.appendChild(num);
+
+    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+    var slots = spread.album_slots || [];
+    var qtd = Math.max(slots.length, tpl.slots.length);
+
+    for (var si = 0; si < qtd; si++) {
+      var slot = slots[si];
+      if (slot && slot.foto_key) {
+        var img = document.createElement('img');
+        img.className = 'tl-photo';
+        img.loading = 'lazy';
+        img.alt = '';
+        img.src = '/api/gallery-img?key=' + encodeURIComponent(slot.foto_key);
+        grupo.appendChild(img);
+      } else {
+        var vazio = document.createElement('div');
+        vazio.className = 'tl-empty';
+        grupo.appendChild(vazio);
+      }
+    }
+
+    grupo.addEventListener('click', (function(i) { return function() { mudarSpread(i); }; })(idx));
+    bar.appendChild(grupo);
+    if (idx === estado.spreadAtivo) ativoEl = grupo;
+  });
+
+  if (ativoEl) ativoEl.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 
 async function mudarSpread(idx) {
