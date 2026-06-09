@@ -87,7 +87,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #editor-body{flex:1;display:flex;overflow:hidden;position:relative;}
 
 /* Painel direito em acordeão — Favoritas, Templates, Spread */
-#right-panels{width:240px;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#right-panels-wrap{display:flex;flex-shrink:0;position:relative;}
+#right-panels-toggle{width:14px;background:var(--surface);border-left:.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);transition:color .15s,background .15s;flex-shrink:0;}
+#right-panels-toggle:hover{color:var(--text);background:var(--surface2);}
+#right-panels-toggle svg{transition:transform .22s;}
+#right-panels-wrap.fechado #right-panels-toggle svg{transform:rotate(180deg);}
+#right-panels{width:240px;flex-shrink:0;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;transition:width .22s;}
+#right-panels-wrap.fechado #right-panels{width:0;}
 .rpanel-sec{display:flex;flex-direction:column;flex-shrink:0;border-bottom:.5px solid var(--border);order:0;}
 .rpanel-sec.expandido{flex:1;min-height:0;flex-shrink:1;order:1;}
 .rpanel-sec-hdr{padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:.68rem;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);user-select:none;transition:color .15s,background .15s;flex-shrink:0;}
@@ -492,7 +498,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       </div>
 
       <!-- Painel direito em acordeão -->
-      <div id="right-panels">
+      <div id="right-panels-wrap">
+        <div id="right-panels-toggle" onclick="toggleRightPanel()" title="Mostrar/ocultar painel">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </div>
+        <div id="right-panels">
         <!-- Favoritas -->
         <div class="rpanel-sec expandido" id="sec-favoritas">
           <div class="rpanel-sec-hdr" onclick="toggleSec('favoritas')">
@@ -528,7 +538,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
             <div id="props-body"></div>
           </div>
         </div>
-      </div>
+        </div><!-- /#right-panels -->
+      </div><!-- /#right-panels-wrap -->
 
       <!-- Legado: manter IDs para compatibilidade de JS existente -->
       <div id="right-panel" style="display:none;"></div>
@@ -2385,6 +2396,10 @@ function sincronizarBotoesSec() {
 
 function togglePool() { toggleSec('favoritas'); }
 
+function toggleRightPanel() {
+  document.getElementById('right-panels-wrap').classList.toggle('fechado');
+}
+
 function toggleThumbs() {
   var bar = document.getElementById('thumbs-bar');
   var btn = document.getElementById('thumbs-toggle-btn');
@@ -3249,7 +3264,7 @@ function aplicarModoAprovado() {
   if (btnRevisao)   btnRevisao.style.display = 'none';
   if (btnAutolayout) btnAutolayout.style.display = 'none';
   // Esconder painel lateral (casal não edita)
-  var rp = document.getElementById('right-panels');
+  var rp = document.getElementById('right-panels-wrap');
   if (rp) rp.style.display = 'none';
   // Mostrar botão de exportar PDF
   var btnExportar = document.getElementById('btn-exportar');
