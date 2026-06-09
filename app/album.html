@@ -982,6 +982,7 @@ async function abrirAlbum(albumObj) {
   // tem dimensões reais — e recalcula sempre que o tamanho muda.
   observarKonvaWrap();
   setupPanNav();
+  setupCanvasDrop();
 
   // Nível 5: verificar aprovado + carregar comentários pendentes
   if (albumObj.aprovado) {
@@ -1237,15 +1238,27 @@ function iniciarKonva() {
   _layer = new Konva.Layer();
   _stage.add(_layer);
 
-  // Drop no canvas
-  var domEl = _stage.container();
-  domEl.addEventListener('dragover', function(e) { e.preventDefault(); });
+  setupCanvasDrop();
+}
+
+// Drop no canvas — anexado UMA vez ao #konva-container (elemento estável).
+// Evita listeners duplicados/obsoletos a cada recriação do stage.
+var _dropSetup = false;
+function setupCanvasDrop() {
+  if (_dropSetup) return;
+  var domEl = document.getElementById('konva-container');
+  if (!domEl) return;
+  _dropSetup = true;
+  domEl.addEventListener('dragover', function(e) { e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; });
   domEl.addEventListener('drop', function(e) {
     e.preventDefault();
     var key = e.dataTransfer.getData('text/plain');
     if (!key) return;
-    var pos = _stage.getPointerPosition() || { x: e.offsetX, y: e.offsetY };
-    var slotIdx = encontrarSlotNaPosicao(pos.x, pos.y);
+    // Posição confiável durante drag nativo: clientX/Y relativo ao container
+    var rect = domEl.getBoundingClientRect();
+    var px = e.clientX - rect.left;
+    var py = e.clientY - rect.top;
+    var slotIdx = encontrarSlotNaPosicao(px, py); // sempre devolve um slot (mais próximo)
     if (slotIdx < 0) return;
     salvarFotoNoSlot(slotIdx, key);
   });
@@ -1474,24 +1487,44 @@ function encontrarSlotNaPosicao(px, py) {
   if (!spread) return -1;
   var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
   var W = _dimSpread.w, H = _dimSpread.h;
+  // 1) Hit direto: dentro de algum slot
   for (var i = 0; i < tpl.slots.length; i++) {
     var s = tpl.slots[i];
     if (px >= s.x*W && px <= (s.x+s.w)*W && py >= s.y*H && py <= (s.y+s.h)*H) return i;
   }
-  return -1;
+  // 2) Fallback: solto na calha/margem → escolhe o slot de centro mais próximo
+  var melhor = -1, menorDist = Infinity;
+  for (var j = 0; j < tpl.slots.length; j++) {
+    var sj = tpl.slots[j];
+    var cx = (sj.x + sj.w/2) * W, cy = (sj.y + sj.h/2) * H;
+    var d = (px-cx)*(px-cx) + (py-cy)*(py-cy);
+    if (d < menorDist) { menorDist = d; melhor = j; }
+  }
+  return melhor;
 }
 
 // ── Salvar foto no slot ───────────────────────────────────────────────────────
-async function salvarFotoNoSlot(slotIdx, fotoKey) {
-  var spread = estado.spreads[estado.spreadAtivo];
+async function salvarFotoNoSlot(slotIdx, fotoKey, spreadIdx) {
+  var alvo = spreadIdx != null ? spreadIdx : estado.spreadAtivo;
+  var spread = estado.spreads[alvo];
   if (!spread) return;
   var slot = (spread.album_slots || [])[slotIdx];
   if (!slot) return;
 
   slot.foto_key = fotoKey;
+  // Foto nova entra cover-fit, centralizada — sem herdar recorte/escala da anterior
+  slot.foto_x = 0;
+  slot.foto_y = 0;
+  slot.foto_escala = 0;
   estado.fotosUsadas.add(fotoKey);
-  renderSpread();
-  renderThumbs();
+
+  // Se soltou numa lâmina diferente da ativa, navega até ela para mostrar o resultado
+  if (alvo !== estado.spreadAtivo) {
+    await mudarSpread(alvo);
+  } else {
+    renderSpread();
+    renderThumbs();
+  }
 
   salvarDebounced();
 }
@@ -1588,6 +1621,28 @@ async function aplicarTemplate(tplId) {
 // ── Barra de miniaturas ───────────────────────────────────────────────────────
 var _thumbsMode = 'spreads'; // 'spreads' | 'timeline'
 
+// Cache de imagens das miniaturas (evita recarregar a cada renderThumbs)
+var _thumbImgCache = {};
+function desenharFotoMini(ctx, fotoKey, x, y, w, h) {
+  var img = _thumbImgCache[fotoKey];
+  function pintar() {
+    if (!img.naturalWidth) return;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    var sc = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+    var dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+    ctx.restore();
+  }
+  if (img && img.complete) { pintar(); return; }
+  if (!img) {
+    img = new Image();
+    _thumbImgCache[fotoKey] = img;
+    img.src = '/api/gallery-img?key=' + encodeURIComponent(fotoKey);
+  }
+  img.addEventListener('load', pintar, { once: true });
+}
+
 function setThumbsMode(mode) {
   if (_thumbsMode === mode) return;
   _thumbsMode = mode;
@@ -1612,22 +1667,27 @@ function renderThumbs() {
     var item = document.createElement('div');
     item.className = 'thumb-item' + (idx === estado.spreadAtivo ? ' ativo' : '');
 
-    // Mini canvas para a miniatura
+    // Mini canvas para a miniatura — desenha a foto real (cover-fit)
     var mini = document.createElement('canvas');
-    var SCALE = 0.08;
+    var SCALE = 0.22;
     mini.width  = Math.floor(_dimSpread.w * SCALE);
     mini.height = Math.floor(_dimSpread.h * SCALE);
     var ctx = mini.getContext('2d');
-    ctx.fillStyle = '#1e1b16';
+    ctx.fillStyle = spread.background_color || '#1e1b16';
     ctx.fillRect(0, 0, mini.width, mini.height);
 
     var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
-    tpl.slots.forEach(function(s, si) {
+    var fullBleed = spread.full_bleed && (spread.album_slots || [])[0] && spread.album_slots[0].foto_key;
+    var slotsMini = fullBleed ? [{ x:0, y:0, w:1, h:1 }] : tpl.slots;
+    slotsMini.forEach(function(s, si) {
       var slot = (spread.album_slots || [])[si];
       var x = s.x * mini.width, y = s.y * mini.height;
       var w = s.w * mini.width, h = s.h * mini.height;
-      ctx.fillStyle = slot && slot.foto_key ? '#5a4a2a' : '#2a2620';
+      ctx.fillStyle = '#2a2620';
       ctx.fillRect(x, y, w, h);
+      if (slot && slot.foto_key) {
+        desenharFotoMini(ctx, slot.foto_key, x, y, w, h);
+      }
     });
 
     // Label tipo
@@ -1688,6 +1748,25 @@ function renderThumbs() {
   }
 }
 
+// Liga o alvo da timeline (foto ou slot vazio) para receber foto arrastada
+function ligarDropSlotTimeline(el, spreadIdx, slotIdx) {
+  el.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    el.classList.add('drop-over');
+  });
+  el.addEventListener('dragleave', function() { el.classList.remove('drop-over'); });
+  el.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.remove('drop-over');
+    var key = e.dataTransfer.getData('text/plain');
+    if (!key) return;
+    salvarFotoNoSlot(slotIdx, key, spreadIdx);
+  });
+}
+
 // Timeline: fotos individuais agrupadas por lâmina (estilo SmartAlbums)
 function renderTimeline(bar) {
   bar.innerHTML = '';
@@ -1709,18 +1788,20 @@ function renderTimeline(bar) {
 
     for (var si = 0; si < qtd; si++) {
       var slot = slots[si];
+      var alvo;
       if (slot && slot.foto_key) {
-        var img = document.createElement('img');
-        img.className = 'tl-photo';
-        img.loading = 'lazy';
-        img.alt = '';
-        img.src = '/api/gallery-img?key=' + encodeURIComponent(slot.foto_key);
-        grupo.appendChild(img);
+        alvo = document.createElement('img');
+        alvo.className = 'tl-photo';
+        alvo.loading = 'lazy';
+        alvo.alt = '';
+        alvo.src = '/api/gallery-img?key=' + encodeURIComponent(slot.foto_key);
       } else {
-        var vazio = document.createElement('div');
-        vazio.className = 'tl-empty';
-        grupo.appendChild(vazio);
+        alvo = document.createElement('div');
+        alvo.className = 'tl-empty';
       }
+      // Aceita foto arrastada do pool de favoritas
+      ligarDropSlotTimeline(alvo, idx, si);
+      grupo.appendChild(alvo);
     }
 
     grupo.addEventListener('click', (function(i) { return function() { mudarSpread(i); }; })(idx));
