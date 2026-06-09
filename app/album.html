@@ -86,12 +86,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #view-editor{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #editor-body{flex:1;display:flex;overflow:hidden;position:relative;}
 
-/* Pool esquerdo — desliza da esquerda */
-#pool-panel{width:260px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s,opacity .22s;}
-#pool-panel.fechado{width:0;opacity:0;}
-#pool-header{padding:.75rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-#pool-titulo{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);}
-#pool-count{font-size:.65rem;color:var(--text-hint);}
+/* Painel direito em acordeão — Favoritas, Templates, Spread */
+#right-panels{width:0;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s;}
+#right-panels.aberto{width:240px;}
+.rpanel-sec{display:flex;flex-direction:column;flex-shrink:0;border-bottom:.5px solid var(--border);}
+.rpanel-sec.expandido{flex:1;min-height:0;flex-shrink:1;}
+.rpanel-sec-hdr{padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:.68rem;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);user-select:none;transition:color .15s,background .15s;flex-shrink:0;}
+.rpanel-sec-hdr:hover{color:var(--text);background:var(--surface2);}
+.rpanel-sec.expandido>.rpanel-sec-hdr{color:var(--amber);}
+.rpanel-sec-hdr-r{display:flex;align-items:center;gap:.4rem;}
+.rpanel-sec-chevron{width:12px;height:12px;transition:transform .18s;flex-shrink:0;}
+.rpanel-sec.expandido .rpanel-sec-chevron{transform:rotate(180deg);}
+.rpanel-sec-body{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.rpanel-sec.expandido>.rpanel-sec-body{display:flex;}
+/* Favoritas */
+#pool-count{font-size:.62rem;color:var(--text-hint);}
 #pool-grid{flex:1;overflow-y:auto;padding:.4rem;display:grid;grid-template-columns:1fr 1fr;gap:.25rem;align-content:start;}
 .pool-foto{position:relative;width:100%;padding-top:100%;border-radius:0;overflow:hidden;cursor:grab;background:var(--surface2);}
 .pool-foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;}
@@ -146,14 +155,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .tl-empty{height:84px;width:60px;flex-shrink:0;border:1px dashed var(--border-strong);border-radius:3px;cursor:pointer;background:var(--surface2);}
 .tl-num{font-family:'DM Sans',sans-serif;font-size:.55rem;color:var(--text-hint);align-self:flex-end;padding-bottom:4px;min-width:14px;text-align:center;}
 
-/* Painel direito deslizante — Templates e Propriedades */
-#right-panel{width:0;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s,opacity .22s;opacity:0;}
-#right-panel.aberto{width:200px;opacity:1;}
-#right-panel-header{padding:.65rem 1rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-#right-panel-titulo{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);}
-#right-panel-close{background:none;border:none;cursor:pointer;color:var(--text-hint);padding:2px;line-height:1;font-size:.8rem;transition:color .15s;}
-#right-panel-close:hover{color:var(--text);}
-/* Conteúdo: templates */
+/* Templates grid (dentro da seção acordeão) */
 #tpl-grid{flex:1;overflow-y:auto;padding:.5rem;display:grid;grid-template-columns:1fr 1fr;gap:.4rem;}
 .tpl-card{border:.5px solid var(--border);border-radius:6px;cursor:pointer;padding:.4rem;transition:border-color .15s,background .15s;}
 .tpl-card:hover{border-color:var(--border-strong);background:var(--surface2);}
@@ -161,7 +163,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .tpl-preview{width:100%;aspect-ratio:2;background:var(--surface2);border-radius:3px;margin-bottom:.3rem;position:relative;overflow:hidden;}
 .tpl-slot{position:absolute;background:var(--surface3);border:.5px solid var(--border-strong);}
 .tpl-nome{font-size:.58rem;color:var(--text-hint);text-align:center;}
-/* Conteúdo: propriedades */
+/* Propriedades do spread (dentro da seção acordeão) */
 #props-body{flex:1;overflow-y:auto;padding:.75rem;}
 
 /* Botões de toggle ativos no topbar — sem borda destacada, só cor do texto */
@@ -460,17 +462,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <!-- Corpo do editor -->
     <div id="editor-body">
 
-      <!-- Pool de fotos (esquerda, toggle) -->
-      <div id="pool-panel">
-        <div id="pool-header">
-          <div id="pool-titulo">Favoritas</div>
-          <div id="pool-count"></div>
-        </div>
-        <div id="pool-loading">Carregando fotos…</div>
-        <div id="pool-empty">O casal ainda não selecionou fotos para o álbum.</div>
-        <div id="pool-grid"></div>
-      </div>
-
       <!-- Canvas central -->
       <div id="canvas-panel">
         <div id="canvas-area">
@@ -501,19 +492,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         </div>
       </div>
 
-      <!-- Painel direito deslizante (templates + props) -->
-      <div id="right-panel">
-        <div id="right-panel-header">
-          <div id="right-panel-titulo">Templates</div>
-          <button id="right-panel-close" onclick="fecharRightPanel()">✕</button>
+      <!-- Painel direito em acordeão -->
+      <div id="right-panels" class="aberto">
+        <!-- Favoritas -->
+        <div class="rpanel-sec expandido" id="sec-favoritas">
+          <div class="rpanel-sec-hdr" onclick="toggleSec('favoritas')">
+            <span>Favoritas</span>
+            <div class="rpanel-sec-hdr-r">
+              <span id="pool-count"></span>
+              <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+            </div>
+          </div>
+          <div class="rpanel-sec-body">
+            <div id="pool-loading">Carregando fotos…</div>
+            <div id="pool-empty">O casal ainda não selecionou fotos para o álbum.</div>
+            <div id="pool-grid"></div>
+          </div>
         </div>
-        <!-- Conteúdo: templates -->
-        <div id="tpl-grid"></div>
-        <!-- Conteúdo: propriedades -->
-        <div id="props-body" style="display:none;"></div>
+        <!-- Templates -->
+        <div class="rpanel-sec" id="sec-templates">
+          <div class="rpanel-sec-hdr" onclick="toggleSec('templates')">
+            <span>Templates</span>
+            <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          </div>
+          <div class="rpanel-sec-body">
+            <div id="tpl-grid"></div>
+          </div>
+        </div>
+        <!-- Spread -->
+        <div class="rpanel-sec" id="sec-spread">
+          <div class="rpanel-sec-hdr" onclick="toggleSec('spread')">
+            <span>Spread</span>
+            <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          </div>
+          <div class="rpanel-sec-body">
+            <div id="props-body"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Legado: manter IDs para compatibilidade de JS existente -->
+      <div id="right-panel" style="display:none;"></div>
       <div id="templates-panel" style="display:none;"></div>
       <div id="props-panel" style="display:none;"></div>
 
@@ -2345,12 +2364,27 @@ var CORES_FUNDO = [
 ];
 
 /* ── Toggles de painel ────────────────────────────────────── */
-function togglePool() {
-  var p = document.getElementById('pool-panel');
-  var btn = document.getElementById('btn-toggle-pool');
-  var fechado = p.classList.toggle('fechado');
-  btn.classList.toggle('ativo', !fechado);
+// ── Acordeão do painel direito ────────────────────────────────────────────────
+var _SECS = ['favoritas', 'templates', 'spread'];
+function toggleSec(id) {
+  var target = document.getElementById('sec-' + id);
+  var jaAberto = target.classList.contains('expandido');
+  // Fechar todas
+  _SECS.forEach(function(s) { document.getElementById('sec-' + s).classList.remove('expandido'); });
+  // Se não estava aberto, abrir; se estava, fechar (toggle)
+  if (!jaAberto) target.classList.add('expandido');
+  // Sincronizar estado do painel e botões
+  var algumAberto = _SECS.some(function(s) { return document.getElementById('sec-' + s).classList.contains('expandido'); });
+  document.getElementById('right-panels').classList.toggle('aberto', algumAberto);
+  document.getElementById('btn-toggle-pool').classList.toggle('ativo', document.getElementById('sec-favoritas').classList.contains('expandido'));
+  document.getElementById('btn-toggle-tpl').classList.toggle('ativo', document.getElementById('sec-templates').classList.contains('expandido'));
+  document.getElementById('btn-toggle-props').classList.toggle('ativo', document.getElementById('sec-spread').classList.contains('expandido'));
+  // Ações secundárias ao abrir
+  if (!jaAberto && id === 'templates') renderTemplates();
+  if (!jaAberto && id === 'spread') renderPropsSpreadBody();
 }
+
+function togglePool() { toggleSec('favoritas'); }
 
 function toggleThumbs() {
   var bar = document.getElementById('thumbs-bar');
@@ -2359,70 +2393,38 @@ function toggleThumbs() {
   btn.classList.toggle('fechado');
 }
 
-function toggleTemplates() {
-  var rp = document.getElementById('right-panel');
-  var btn = document.getElementById('btn-toggle-tpl');
-  var propsBtn = document.getElementById('btn-toggle-props');
-  var tplGrid = document.getElementById('tpl-grid');
-  var propsBody = document.getElementById('props-body');
-
-  if (rp.classList.contains('aberto') && tplGrid.style.display !== 'none') {
-    // painel aberto em modo templates → fechar
-    fecharRightPanel();
-    return;
-  }
-  // mostrar templates
-  tplGrid.style.display = '';
-  propsBody.style.display = 'none';
-  document.getElementById('right-panel-titulo').textContent = 'Templates';
-  btn.classList.add('ativo');
-  propsBtn.classList.remove('ativo');
-  rp.classList.add('aberto');
-  carregarTemplates();
-}
+function toggleTemplates() { toggleSec('templates'); }
 
 function fecharRightPanel() {
-  document.getElementById('right-panel').classList.remove('aberto');
-  document.getElementById('btn-toggle-tpl').classList.remove('ativo');
-  document.getElementById('btn-toggle-props').classList.remove('ativo');
+  _SECS.forEach(function(s) { document.getElementById('sec-' + s).classList.remove('expandido'); });
+  document.getElementById('right-panels').classList.remove('aberto');
+  ['btn-toggle-pool','btn-toggle-tpl','btn-toggle-props'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.classList.remove('ativo');
+  });
 }
 
-function carregarTemplates() {
-  renderTemplates();
-}
+function carregarTemplates() { renderTemplates(); }
 /* ── Fim Toggles ──────────────────────────────────────────── */
 
-// Reabre o painel de propriedades SÓ se ele já estiver aberto no modo "Spread".
-// (O #props-panel é legado e nunca tem a classe 'hidden' — checar 'aberto' do right-panel.)
 function atualizarPropsSeAberto() {
-  var rp = document.getElementById('right-panel');
-  var titulo = document.getElementById('right-panel-titulo');
-  if (rp && rp.classList.contains('aberto') && titulo && titulo.textContent === 'Spread') {
-    abrirPropsSpread();
+  if (document.getElementById('sec-spread').classList.contains('expandido')) {
+    renderPropsSpreadBody();
   }
 }
 
 function abrirPropsSpread() {
+  // Abre a seção spread (sem fechar as outras — mantém acordeão atual)
+  var secSpread = document.getElementById('sec-spread');
+  if (!secSpread.classList.contains('expandido')) {
+    toggleSec('spread');
+  } else {
+    renderPropsSpreadBody();
+  }
+}
+
+function renderPropsSpreadBody() {
   var spread = estado.spreads[estado.spreadAtivo];
   if (!spread) return;
-  var rp = document.getElementById('right-panel');
-  var tplGrid = document.getElementById('tpl-grid');
-  var propsBody = document.getElementById('props-body');
-  var tplBtn = document.getElementById('btn-toggle-tpl');
-  var propsBtn = document.getElementById('btn-toggle-props');
-
-  // mostrar props
-  tplGrid.style.display = 'none';
-  propsBody.style.display = '';
-  document.getElementById('right-panel-titulo').textContent = 'Spread';
-  tplBtn.classList.remove('ativo');
-  propsBtn.classList.add('ativo');
-  rp.classList.add('aberto');
-
-  // legado — garante que props-panel oculto não interfere
-  document.getElementById('props-panel').style.display = 'none';
-  document.getElementById('templates-panel').style.display = 'none';
-
   var body = document.getElementById('props-body');
   body.innerHTML = '';
 
@@ -2513,16 +2515,6 @@ function abrirPropsSpread() {
   }
 
   // Botão fechar
-  var btnFechar = document.createElement('button');
-  btnFechar.className = 'props-btn';
-  btnFechar.textContent = '← Voltar a templates';
-  btnFechar.style.marginTop = '.5rem';
-  btnFechar.addEventListener('click', fecharProps);
-  body.appendChild(btnFechar);
-}
-
-function fecharProps() {
-  fecharRightPanel();
 }
 
 function criarPropsSection(label) {
@@ -3253,9 +3245,9 @@ function aplicarModoAprovado() {
   if (btnShare)     btnShare.style.display = 'none';
   if (btnRevisao)   btnRevisao.style.display = 'none';
   if (btnAutolayout) btnAutolayout.style.display = 'none';
-  // Esconder pool (casal não edita)
-  var pool = document.getElementById('pool-panel');
-  if (pool) pool.style.display = 'none';
+  // Esconder painel lateral (casal não edita)
+  var rp = document.getElementById('right-panels');
+  if (rp) rp.style.display = 'none';
   // Mostrar botão de exportar PDF
   var btnExportar = document.getElementById('btn-exportar');
   if (btnExportar) btnExportar.style.display = 'inline-flex';
