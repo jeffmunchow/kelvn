@@ -1318,14 +1318,17 @@ function renderSpread() {
         var url = '/api/gallery-img?key=' + encodeURIComponent(slotRef.foto_key);
         Konva.Image.fromURL(url, function(img) {
           var scMin = Math.max(gw / img.width(), gh / img.height());
-          var sc    = slotRef.foto_escala > 0 ? slotRef.foto_escala : scMin;
-          sc = Math.max(scMin, sc);
-          var imgX  = gx + (slotRef.foto_x || 0);
-          var imgY  = gy + (slotRef.foto_y || 0);
-          // centrar se offset padrão
-          if (slotRef.foto_x === 0 && slotRef.foto_y === 0) {
+          // autoFit: foto nunca recortada manualmente (sem offset) → cover-fit centralizado,
+          // ignorando escala persistida (corrige dados antigos salvos como nativo 1).
+          var autoFit = (slotRef.foto_x || 0) === 0 && (slotRef.foto_y || 0) === 0;
+          var sc = (!autoFit && slotRef.foto_escala > 0) ? Math.max(scMin, slotRef.foto_escala) : scMin;
+          var imgX, imgY;
+          if (autoFit) {
             imgX = gx + (gw - img.width() * sc) / 2;
             imgY = gy + (gh - img.height() * sc) / 2;
+          } else {
+            imgX = gx + (slotRef.foto_x || 0);
+            imgY = gy + (slotRef.foto_y || 0);
           }
           img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
           grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
@@ -1403,12 +1406,15 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
           var url = '/api/gallery-img?key=' + encodeURIComponent(slotRef.foto_key);
           Konva.Image.fromURL(url, function(img) {
             var scMin = Math.max(gw / img.width(), gh / img.height());
-            var sc = slotRef.foto_escala > 0 ? Math.max(scMin, slotRef.foto_escala) : scMin;
-            var imgX = gx + (slotRef.foto_x || 0);
-            var imgY = gy + (slotRef.foto_y || 0);
-            if (slotRef.foto_x === 0 && slotRef.foto_y === 0) {
+            var autoFit = (slotRef.foto_x || 0) === 0 && (slotRef.foto_y || 0) === 0;
+            var sc = (!autoFit && slotRef.foto_escala > 0) ? Math.max(scMin, slotRef.foto_escala) : scMin;
+            var imgX, imgY;
+            if (autoFit) {
               imgX = gx + (gw - img.width()*sc)/2;
               imgY = gy + (gh - img.height()*sc)/2;
+            } else {
+              imgX = gx + (slotRef.foto_x || 0);
+              imgY = gy + (slotRef.foto_y || 0);
             }
             img.setAttrs({ x:imgX, y:imgY, scaleX:sc, scaleY:sc });
             grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
@@ -1539,7 +1545,7 @@ async function salvarEstadoAtual() {
           foto_key: slot.foto_key || null,
           foto_x: slot.foto_x || 0,
           foto_y: slot.foto_y || 0,
-          foto_escala: slot.foto_escala || 1,
+          foto_escala: slot.foto_escala || 0, // 0 = cover-fit automático (não forçar nativo 1)
           atualizado_em: new Date().toISOString(),
         }).eq('id', slot.id).eq('user_id', _userId)
       );
@@ -1623,15 +1629,28 @@ var _thumbsMode = 'spreads'; // 'spreads' | 'timeline'
 
 // Cache de imagens das miniaturas (evita recarregar a cada renderThumbs)
 var _thumbImgCache = {};
-function desenharFotoMini(ctx, fotoKey, x, y, w, h) {
+function desenharFotoMini(ctx, slot, x, y, w, h, SCALE) {
+  var fotoKey = slot.foto_key;
   var img = _thumbImgCache[fotoKey];
   function pintar() {
-    if (!img.naturalWidth) return;
+    var nw = img.naturalWidth, nh = img.naturalHeight;
+    if (!nw) return;
     ctx.save();
     ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
-    var sc = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-    var dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
-    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+    // Mesma lógica do canvas central, escalada por SCALE → reflexo fiel
+    var scMin = Math.max(w / nw, h / nh);
+    var autoFit = (slot.foto_x || 0) === 0 && (slot.foto_y || 0) === 0;
+    var sc = (!autoFit && slot.foto_escala > 0) ? Math.max(scMin, slot.foto_escala * SCALE) : scMin;
+    var dw = nw * sc, dh = nh * sc;
+    var dx, dy;
+    if (autoFit) {
+      dx = x + (w - dw) / 2;
+      dy = y + (h - dh) / 2;
+    } else {
+      dx = x + (slot.foto_x || 0) * SCALE;
+      dy = y + (slot.foto_y || 0) * SCALE;
+    }
+    ctx.drawImage(img, dx, dy, dw, dh);
     ctx.restore();
   }
   if (img && img.complete) { pintar(); return; }
@@ -1686,7 +1705,7 @@ function renderThumbs() {
       ctx.fillStyle = '#2a2620';
       ctx.fillRect(x, y, w, h);
       if (slot && slot.foto_key) {
-        desenharFotoMini(ctx, slot.foto_key, x, y, w, h);
+        desenharFotoMini(ctx, slot, x, y, w, h, SCALE);
       }
     });
 
@@ -2648,7 +2667,7 @@ async function aplicarAutoLayout() {
 
     // Garante slots suficientes no estado
     while ((spread.album_slots || []).length < tpl.slots.length) {
-      var novoSlot = { spread_id: spread.id, user_id: _userId, slot_index: spread.album_slots.length, foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 1 };
+      var novoSlot = { spread_id: spread.id, user_id: _userId, slot_index: spread.album_slots.length, foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0 };
       var { data: slotCriado } = await _sb.from('album_slots').insert(novoSlot).select().single();
       if (slotCriado) spread.album_slots.push(slotCriado);
     }
