@@ -140,7 +140,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #thumbs-bar.timeline{align-items:center;gap:0;padding:0 1rem;}
 .tl-spread{display:flex;align-items:center;gap:5px;height:118px;padding:0 12px;border-radius:11px;flex-shrink:0;transition:background .15s;}
 .tl-spread.ativo{background:var(--surface2);}
-.tl-spread + .tl-spread{margin-left:2px;}
+.tl-divisor{width:1px;height:74px;flex-shrink:0;background:var(--border-strong);margin:0 6px;align-self:center;}
 .tl-photo{height:84px;width:auto;max-width:140px;object-fit:cover;border:3px solid #fff;border-radius:2px;box-shadow:0 1px 5px rgba(0,0,0,.16);cursor:pointer;display:block;background:var(--surface2);transition:transform .12s;}
 .tl-photo:hover{transform:translateY(-2px);}
 .tl-empty{height:84px;width:60px;flex-shrink:0;border:1px dashed var(--border-strong);border-radius:3px;cursor:pointer;background:var(--surface2);}
@@ -1255,12 +1255,8 @@ function setupCanvasDrop() {
     var key = e.dataTransfer.getData('text/plain');
     if (!key) return;
     // Posição confiável durante drag nativo: clientX/Y relativo ao container
-    var rect = domEl.getBoundingClientRect();
-    var px = e.clientX - rect.left;
-    var py = e.clientY - rect.top;
-    var slotIdx = encontrarSlotNaPosicao(px, py); // sempre devolve um slot (mais próximo)
-    if (slotIdx < 0) return;
-    salvarFotoNoSlot(slotIdx, key);
+    // Acrescenta a foto na lâmina ativa e redistribui o layout (não substitui)
+    adicionarFotoNaLamina(estado.spreadAtivo, key);
   });
 }
 
@@ -1535,6 +1531,103 @@ async function salvarFotoNoSlot(slotIdx, fotoKey, spreadIdx) {
   salvarDebounced();
 }
 
+// Template ideal para uma quantidade exata de fotos numa lâmina
+function templateIdealParaQtd(n) {
+  if (n <= 1) return 'uma-foto';
+  if (n === 2) return 'duas-lado';
+  if (n === 3) return 'tres-direita';
+  return 'quatro-grid'; // 4+
+}
+
+// Acrescenta uma foto à lâmina (sem substituir as existentes) e redistribui
+// todas com o layout ideal para a nova quantidade. Limite de 4 fotos por lâmina.
+var MAX_FOTOS_LAMINA = 4;
+async function adicionarFotoNaLamina(spreadIdx, fotoKey) {
+  var spread = estado.spreads[spreadIdx];
+  if (!spread) return;
+
+  // Capa e contracapa são foto única → apenas troca a foto (sem redistribuir)
+  if (spread.tipo !== 'spread') {
+    if (spreadIdx !== estado.spreadAtivo) estado.spreadAtivo = spreadIdx;
+    await aplicarTemplateComFotos(spread, spread.template_id || 'uma-foto', [fotoKey]);
+    estado.fotosUsadas.add(fotoKey);
+    renderSpread(); renderThumbs();
+    salvarDebounced();
+    return;
+  }
+
+  // Fotos já presentes (na ordem dos slots) + a nova ao final
+  var atuais = (spread.album_slots || [])
+    .map(function(s) { return s.foto_key; })
+    .filter(Boolean);
+
+  // Evita duplicar a mesma foto na lâmina
+  if (atuais.indexOf(fotoKey) !== -1) {
+    if (spreadIdx !== estado.spreadAtivo) await mudarSpread(spreadIdx);
+    return;
+  }
+  if (atuais.length >= MAX_FOTOS_LAMINA) {
+    setSaveStatus('Lâmina cheia (máx. ' + MAX_FOTOS_LAMINA + ')');
+    if (spreadIdx !== estado.spreadAtivo) await mudarSpread(spreadIdx);
+    return;
+  }
+
+  var fotos = atuais.concat([fotoKey]);
+  var tplId = templateIdealParaQtd(fotos.length);
+  await aplicarTemplateComFotos(spread, tplId, fotos);
+
+  fotos.forEach(function(k) { estado.fotosUsadas.add(k); });
+
+  if (spreadIdx !== estado.spreadAtivo) {
+    await mudarSpread(spreadIdx);
+  } else {
+    renderSpread();
+    renderThumbs();
+  }
+  salvarDebounced();
+}
+
+// Aplica um template a uma lâmina e distribui as fotos (cover-fit) por índice
+async function aplicarTemplateComFotos(spread, tplId, fotoKeys) {
+  var tplNovo = TEMPLATES.find(function(t) { return t.id === tplId; });
+  if (!tplNovo) return;
+  spread.template_id = tplId;
+  // Desliga full-bleed ao redistribuir (a não ser que o template seja Sangria)
+  if (spread.full_bleed && tplId !== 'full-bleed') {
+    spread.full_bleed = false;
+    await _sb.from('album_spreads').update({ full_bleed: false }).eq('id', spread.id).eq('user_id', _userId);
+  }
+  var qtdNova = tplNovo.slots.length;
+  var slotsAtuais = spread.album_slots || [];
+
+  // Remover slots extras
+  for (var i = qtdNova; i < slotsAtuais.length; i++) {
+    await _sb.from('album_slots').delete().eq('id', slotsAtuais[i].id).eq('user_id', _userId);
+  }
+  spread.album_slots = slotsAtuais.slice(0, qtdNova);
+
+  // Criar slots faltando
+  for (var j = spread.album_slots.length; j < qtdNova; j++) {
+    var { data: novoSlot } = await _sb.from('album_slots').insert({
+      spread_id: spread.id, user_id: _userId, slot_index: j
+    }).select().single();
+    if (novoSlot) spread.album_slots.push(novoSlot);
+  }
+
+  // Atribuir fotos por índice (cover-fit limpo)
+  for (var k = 0; k < spread.album_slots.length; k++) {
+    var slot = spread.album_slots[k];
+    slot.foto_key = fotoKeys[k] || null;
+    slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
+    await _sb.from('album_slots').update({
+      foto_key: slot.foto_key, foto_x: 0, foto_y: 0, foto_escala: 0,
+      atualizado_em: new Date().toISOString()
+    }).eq('id', slot.id).eq('user_id', _userId);
+  }
+
+  await _sb.from('album_spreads').update({ template_id: tplId }).eq('id', spread.id).eq('user_id', _userId);
+}
+
 async function salvarEstadoAtual() {
   if (!estado.album) return;
   var promessas = [];
@@ -1767,7 +1860,8 @@ function renderThumbs() {
   }
 }
 
-// Liga o alvo da timeline (foto ou slot vazio) para receber foto arrastada
+// Liga o alvo da timeline (foto ou slot vazio) para receber foto arrastada:
+// soltar acrescenta a foto na lâmina e redistribui o layout (não substitui).
 function ligarDropSlotTimeline(el, spreadIdx, slotIdx) {
   el.addEventListener('dragover', function(e) {
     e.preventDefault();
@@ -1782,7 +1876,7 @@ function ligarDropSlotTimeline(el, spreadIdx, slotIdx) {
     el.classList.remove('drop-over');
     var key = e.dataTransfer.getData('text/plain');
     if (!key) return;
-    salvarFotoNoSlot(slotIdx, key, spreadIdx);
+    adicionarFotoNaLamina(spreadIdx, key);
   });
 }
 
@@ -1792,6 +1886,13 @@ function renderTimeline(bar) {
   var ativoEl = null;
 
   estado.spreads.forEach(function(spread, idx) {
+    // Divisória entre lâminas (capa | 1 | 2 | … | fim)
+    if (idx > 0) {
+      var div = document.createElement('div');
+      div.className = 'tl-divisor';
+      bar.appendChild(div);
+    }
+
     var grupo = document.createElement('div');
     grupo.className = 'tl-spread' + (idx === estado.spreadAtivo ? ' ativo' : '');
 
