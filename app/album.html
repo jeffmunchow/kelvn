@@ -1286,6 +1286,7 @@ function renderSpread() {
         img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
         _layer.add(img);
         _layer.batchDraw();
+        agendarCapturaThumbAtivo();
       });
     })(slots[0].foto_key);
     renderizarTextos(spread._textos || []);
@@ -1331,6 +1332,7 @@ function renderSpread() {
           grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
           grupoRef.add(img);
           _layer.batchDraw();
+          agendarCapturaThumbAtivo();
 
           // Duplo clique ativa crop
           img.on('dblclick dbltap', function() {
@@ -1368,6 +1370,7 @@ function renderSpread() {
   _layer.batchDraw();
   atualizarUsadasNoPool();
   atualizarVizinhos();
+  agendarCapturaThumbAtivo(); // captura thumbnail do spread ativo após imagens carregarem
 }
 
 // ── Renderizador estático (para snapshots dos spreads vizinhos) ───────────────
@@ -1392,7 +1395,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
         var sc = Math.max(W / img.width(), H / img.height());
         img.setAttrs({ x:(W - img.width()*sc)/2, y:(H - img.height()*sc)/2, width:img.width()*sc, height:img.height()*sc });
         layer.add(img); aoCarregar();
-      });
+      }, function() { aoCarregar(); });
     })(slots[0].foto_key);
   } else {
     var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
@@ -1424,7 +1427,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
             img.setAttrs({ x:imgX, y:imgY, scaleX:sc, scaleY:sc });
             grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
             grupoRef.add(img); aoCarregar();
-          });
+          }, function() { aoCarregar(); }); // erro de carga: avança sem bloquear
         })(slot, x, y, w, h, grupo);
       }
       layer.add(grupo);
@@ -1461,7 +1464,7 @@ function gerarSnapshotSpread(spread, cb, pixelRatio) {
     cb(url);
   }
   desenharSpreadEstatico(layer, spread, _dimSpread.w, _dimSpread.h, capturar);
-  setTimeout(capturar, 1500); // fallback se alguma imagem não carregar
+  setTimeout(capturar, 8000); // fallback se alguma imagem demorar muito
 }
 
 // Atualiza tamanho e snapshots dos spreads vizinhos (esquerda/direita).
@@ -1837,6 +1840,29 @@ async function aplicarTemplate(tplId) {
 var _thumbsMode = 'spreads'; // 'spreads' | 'timeline'
 
 // Miniatura do rodapé = snapshot do MESMO renderizador do centro (desenharSpreadEstatico).
+// ── Captura thumbnail do spread ativo direto do _stage principal ─────────────
+// (as fotos já estão carregadas no stage — não há risco de captura em branco)
+var _captureThumbTimer = null;
+function agendarCapturaThumbAtivo() {
+  clearTimeout(_captureThumbTimer);
+  _captureThumbTimer = setTimeout(function() {
+    if (!_stage) return;
+    var spread = estado.spreads[estado.spreadAtivo];
+    if (!spread) return;
+    try {
+      var url = _stage.toDataURL({ pixelRatio: 0.45 });
+      var sig = assinaturaSpread(spread);
+      _thumbSnapCache[spread.id] = { sig: sig, url: url };
+      // Atualiza só o thumb ativo sem re-renderizar a barra inteira
+      var bar = document.getElementById('thumbs-bar');
+      if (!bar || _thumbsMode !== 'spreads') return;
+      var items = bar.querySelectorAll('.thumb-item');
+      var item = items[estado.spreadAtivo];
+      if (item) { var img = item.querySelector('img.thumb-snap'); if (img) img.src = url; }
+    } catch(e) {}
+  }, 250);
+}
+
 // Garante que o thumbnail seja idêntico à página central (geometria, recorte, sangria, fundo).
 // Cache por assinatura: só regenera quando o conteúdo da lâmina muda.
 var _thumbSnapCache = {}; // spreadId -> { sig, url }
@@ -1858,6 +1884,13 @@ function montarThumbSnapshot(spread, imgEl) {
   var cached = _thumbSnapCache[spread.id];
   if (cached && cached.sig === sig && cached.url) { imgEl.src = cached.url; return; }
   imgEl.style.background = spread.background_color || '#1e1b16';
+  // Spread ativo: capturar direto do _stage (fotos já carregadas, sem risco de branco)
+  var eAtivo = spread.id === (estado.spreads[estado.spreadAtivo] || {}).id;
+  if (eAtivo && _stage) {
+    agendarCapturaThumbAtivo();
+    return; // agendarCapturaThumbAtivo() alimentará o cache e atualizará o imgEl
+  }
+  // Spreads inativos: geração off-screen (usará cache quando tiver sido ativo antes)
   gerarSnapshotSpread(spread, function(url) {
     if (!url) return;
     _thumbSnapCache[spread.id] = { sig: sig, url: url };
