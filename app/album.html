@@ -87,10 +87,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #editor-body{flex:1;display:flex;overflow:hidden;position:relative;}
 
 /* Painel direito em acordeão — Favoritas, Templates, Spread */
-#right-panels{width:0;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .22s;}
-#right-panels.aberto{width:240px;}
-.rpanel-sec{display:flex;flex-direction:column;flex-shrink:0;border-bottom:.5px solid var(--border);}
-.rpanel-sec.expandido{flex:1;min-height:0;flex-shrink:1;}
+#right-panels{width:240px;flex-shrink:0;background:var(--surface);border-left:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.rpanel-sec{display:flex;flex-direction:column;flex-shrink:0;border-bottom:.5px solid var(--border);order:0;}
+.rpanel-sec.expandido{flex:1;min-height:0;flex-shrink:1;order:1;}
 .rpanel-sec-hdr{padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:.68rem;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--text-hint);user-select:none;transition:color .15s,background .15s;flex-shrink:0;}
 .rpanel-sec-hdr:hover{color:var(--text);background:var(--surface2);}
 .rpanel-sec.expandido>.rpanel-sec-hdr{color:var(--amber);}
@@ -493,7 +492,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       </div>
 
       <!-- Painel direito em acordeão -->
-      <div id="right-panels" class="aberto">
+      <div id="right-panels">
         <!-- Favoritas -->
         <div class="rpanel-sec expandido" id="sec-favoritas">
           <div class="rpanel-sec-hdr" onclick="toggleSec('favoritas')">
@@ -2365,23 +2364,23 @@ var CORES_FUNDO = [
 
 /* ── Toggles de painel ────────────────────────────────────── */
 // ── Acordeão do painel direito ────────────────────────────────────────────────
+// O painel fica sempre visível; as seções recolhidas ficam no topo e a
+// expandida ocupa o restante (via CSS order). Abrir uma fecha as outras.
 var _SECS = ['favoritas', 'templates', 'spread'];
 function toggleSec(id) {
   var target = document.getElementById('sec-' + id);
   var jaAberto = target.classList.contains('expandido');
-  // Fechar todas
   _SECS.forEach(function(s) { document.getElementById('sec-' + s).classList.remove('expandido'); });
-  // Se não estava aberto, abrir; se estava, fechar (toggle)
   if (!jaAberto) target.classList.add('expandido');
-  // Sincronizar estado do painel e botões
-  var algumAberto = _SECS.some(function(s) { return document.getElementById('sec-' + s).classList.contains('expandido'); });
-  document.getElementById('right-panels').classList.toggle('aberto', algumAberto);
+  sincronizarBotoesSec();
+  if (!jaAberto && id === 'templates') renderTemplates();
+  if (!jaAberto && id === 'spread') renderPropsSpreadBody();
+}
+
+function sincronizarBotoesSec() {
   document.getElementById('btn-toggle-pool').classList.toggle('ativo', document.getElementById('sec-favoritas').classList.contains('expandido'));
   document.getElementById('btn-toggle-tpl').classList.toggle('ativo', document.getElementById('sec-templates').classList.contains('expandido'));
   document.getElementById('btn-toggle-props').classList.toggle('ativo', document.getElementById('sec-spread').classList.contains('expandido'));
-  // Ações secundárias ao abrir
-  if (!jaAberto && id === 'templates') renderTemplates();
-  if (!jaAberto && id === 'spread') renderPropsSpreadBody();
 }
 
 function togglePool() { toggleSec('favoritas'); }
@@ -2395,12 +2394,16 @@ function toggleThumbs() {
 
 function toggleTemplates() { toggleSec('templates'); }
 
+// Estado padrão ao abrir um álbum: só Favoritas expandida.
+function fecharProps() {
+  _SECS.forEach(function(s) { document.getElementById('sec-' + s).classList.remove('expandido'); });
+  document.getElementById('sec-favoritas').classList.add('expandido');
+  sincronizarBotoesSec();
+}
+
 function fecharRightPanel() {
   _SECS.forEach(function(s) { document.getElementById('sec-' + s).classList.remove('expandido'); });
-  document.getElementById('right-panels').classList.remove('aberto');
-  ['btn-toggle-pool','btn-toggle-tpl','btn-toggle-props'].forEach(function(id) {
-    var el = document.getElementById(id); if (el) el.classList.remove('ativo');
-  });
+  sincronizarBotoesSec();
 }
 
 function carregarTemplates() { renderTemplates(); }
