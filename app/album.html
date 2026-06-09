@@ -270,6 +270,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* ── Utilitários ─────────────────────────────────────────────────── */
 .hidden{display:none!important;}
 .drop-over{outline:2px solid var(--amber)!important;outline-offset:-2px;}
+.swap-ghost{position:fixed;z-index:9999;width:130px;height:auto;max-height:170px;object-fit:cover;border:3px solid #fff;border-radius:3px;box-shadow:0 8px 24px rgba(0,0,0,.45);pointer-events:none;transform:translate(-50%,-50%);opacity:.92;}
 #overlay-auth{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;font-size:.85rem;color:var(--text-hint);}
 </style>
 </head>
@@ -1310,7 +1311,7 @@ function renderSpread() {
 
     // Foto, se houver
     if (slot && slot.foto_key) {
-      (function(slotRef, gx, gy, gw, gh, grupoRef) {
+      (function(slotRef, gx, gy, gw, gh, grupoRef, idxLocal) {
         var url = '/api/gallery-img?key=' + encodeURIComponent(slotRef.foto_key);
         Konva.Image.fromURL(url, function(img) {
           var scMin = Math.max(gw / img.width(), gh / img.height());
@@ -1335,8 +1336,16 @@ function renderSpread() {
           img.on('dblclick dbltap', function() {
             ativarModoEdicaoSlot(grupoRef, slotRef, { x: gx, y: gy, w: gw, h: gh });
           });
+
+          // Arrastar para outro slot troca as fotos de lugar
+          img.on('mousedown touchstart', function(e) {
+            if (_slotEmEdicao || !slotRef.foto_key) return;
+            iniciarSwapDrag(e.evt || e, idxLocal, slotRef.foto_key);
+          });
+          img.on('mouseenter', function() { if (!_slotEmEdicao && _stage) _stage.container().style.cursor = 'grab'; });
+          img.on('mouseleave', function() { if (!_slotEmEdicao && _stage) _stage.container().style.cursor = ''; });
         });
-      })(slot, x, y, w, h, grupo);
+      })(slot, x, y, w, h, grupo, idx);
     }
 
     // HitRect para drop
@@ -1484,7 +1493,7 @@ function definirVizinho(el, spread, tk) {
   });
 }
 
-function encontrarSlotNaPosicao(px, py) {
+function encontrarSlotNaPosicao(px, py, exato) {
   var spread = estado.spreads[estado.spreadAtivo];
   if (!spread) return -1;
   var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
@@ -1494,6 +1503,7 @@ function encontrarSlotNaPosicao(px, py) {
     var s = tpl.slots[i];
     if (px >= s.x*W && px <= (s.x+s.w)*W && py >= s.y*H && py <= (s.y+s.h)*H) return i;
   }
+  if (exato) return -1; // modo exato: fora de qualquer slot → nenhum
   // 2) Fallback: solto na calha/margem → escolhe o slot de centro mais próximo
   var melhor = -1, menorDist = Infinity;
   for (var j = 0; j < tpl.slots.length; j++) {
@@ -1503,6 +1513,112 @@ function encontrarSlotNaPosicao(px, py) {
     if (d < menorDist) { menorDist = d; melhor = j; }
   }
   return melhor;
+}
+
+// ── Trocar fotos de slot (arrastar de um slot para outro dentro da lâmina) ─────
+var _swapDrag = null;     // { sourceIdx, fotoKey, startX, startY, ghost, ativo }
+var _slotDestacado = -1;
+
+function _swapXY(ev) {
+  if (ev.touches && ev.touches[0]) return { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+  if (ev.changedTouches && ev.changedTouches[0]) return { x: ev.changedTouches[0].clientX, y: ev.changedTouches[0].clientY };
+  return { x: ev.clientX, y: ev.clientY };
+}
+
+function slotSobPonteiro(cx, cy) {
+  var domEl = document.getElementById('konva-container');
+  if (!domEl) return -1;
+  var rect = domEl.getBoundingClientRect();
+  return encontrarSlotNaPosicao(cx - rect.left, cy - rect.top, true);
+}
+
+function iniciarSwapDrag(ev, sourceIdx, fotoKey) {
+  if (_slotEmEdicao) return;
+  var p = _swapXY(ev);
+  _swapDrag = { sourceIdx: sourceIdx, fotoKey: fotoKey, startX: p.x, startY: p.y, ghost: null, ativo: false };
+  document.addEventListener('mousemove', _onSwapMove);
+  document.addEventListener('mouseup', _onSwapUp);
+  document.addEventListener('touchmove', _onSwapMove, { passive: false });
+  document.addEventListener('touchend', _onSwapUp);
+}
+
+function _onSwapMove(ev) {
+  if (!_swapDrag) return;
+  var p = _swapXY(ev);
+  if (!_swapDrag.ativo) {
+    if (Math.abs(p.x - _swapDrag.startX) < 5 && Math.abs(p.y - _swapDrag.startY) < 5) return;
+    _swapDrag.ativo = true;
+    var g = document.createElement('img');
+    g.src = '/api/gallery-img?key=' + encodeURIComponent(_swapDrag.fotoKey);
+    g.className = 'swap-ghost';
+    document.body.appendChild(g);
+    _swapDrag.ghost = g;
+    document.body.style.cursor = 'grabbing';
+  }
+  if (ev.cancelable) ev.preventDefault();
+  if (_swapDrag.ghost) {
+    _swapDrag.ghost.style.left = p.x + 'px';
+    _swapDrag.ghost.style.top  = p.y + 'px';
+  }
+  destacarSlotAlvo(p.x, p.y);
+}
+
+function _onSwapUp(ev) {
+  document.removeEventListener('mousemove', _onSwapMove);
+  document.removeEventListener('mouseup', _onSwapUp);
+  document.removeEventListener('touchmove', _onSwapMove);
+  document.removeEventListener('touchend', _onSwapUp);
+  document.body.style.cursor = '';
+  var sd = _swapDrag; _swapDrag = null;
+  limparDestaqueSlots();
+  if (!sd) return;
+  if (sd.ghost) sd.ghost.remove();
+  if (!sd.ativo) return; // foi clique/duplo-clique, não arraste
+  var p = _swapXY(ev);
+  var alvo = slotSobPonteiro(p.x, p.y);
+  if (alvo < 0 || alvo === sd.sourceIdx) { renderSpread(); return; }
+  trocarFotosEntreSlots(sd.sourceIdx, alvo);
+}
+
+function destacarSlotAlvo(cx, cy) {
+  if (!_swapDrag || !_layer) return;
+  var idx = slotSobPonteiro(cx, cy);
+  if (idx === _slotDestacado) return;
+  limparDestaqueSlots();
+  if (idx < 0 || idx === _swapDrag.sourceIdx) return;
+  var grupo = _layer.findOne('.grupo-slot-' + idx);
+  var bg = grupo && grupo.findOne('.bg-slot');
+  if (bg) { bg.stroke('#C4780A'); bg.strokeWidth(3); _slotDestacado = idx; _layer.batchDraw(); }
+}
+
+function limparDestaqueSlots() {
+  if (_slotDestacado < 0 || !_layer) { _slotDestacado = -1; return; }
+  var grupo = _layer.findOne('.grupo-slot-' + _slotDestacado);
+  var bg = grupo && grupo.findOne('.bg-slot');
+  if (bg) { bg.stroke('rgba(255,255,255,0.06)'); bg.strokeWidth(.5); }
+  _slotDestacado = -1;
+  _layer.batchDraw();
+}
+
+async function trocarFotosEntreSlots(ia, ib) {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+  var slots = spread.album_slots || [];
+  var A = slots[ia], B = slots[ib];
+  if (!A || !B) { renderSpread(); return; }
+
+  // Troca as fotos e zera o recorte (cada foto entra cover-fit no novo slot)
+  var tmp = A.foto_key;
+  A.foto_key = B.foto_key; B.foto_key = tmp;
+  A.foto_x = 0; A.foto_y = 0; A.foto_escala = 0;
+  B.foto_x = 0; B.foto_y = 0; B.foto_escala = 0;
+
+  renderSpread();
+  renderThumbs();
+
+  await _sb.from('album_slots').update({ foto_key: A.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em:new Date().toISOString() }).eq('id', A.id).eq('user_id', _userId);
+  await _sb.from('album_slots').update({ foto_key: B.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em:new Date().toISOString() }).eq('id', B.id).eq('user_id', _userId);
+  setSaveStatus('Salvo ✓');
 }
 
 // ── Salvar foto no slot ───────────────────────────────────────────────────────
