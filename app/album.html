@@ -109,6 +109,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #save-status{display:none;font-size:.65rem;color:var(--text-hint);margin-left:.4rem;}
 #canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem 3rem;overflow:hidden;box-sizing:border-box;}
+/* Track horizontal: spread atual ao centro, vizinhos (snapshots) nas laterais.
+   O gap (48px) é igual ao padding horizontal do wrap, então os vizinhos ficam
+   exatamente fora da área visível enquanto em repouso (sem "espiar"). */
+#konva-track{display:flex;align-items:center;gap:48px;will-change:transform;}
+#konva-container{flex:none;}
+.konva-viz{flex:none;display:flex;align-items:center;justify-content:center;background:transparent;}
+.konva-viz img{display:block;max-width:none;}
 
 /* Barra de spreads — com toggle */
 #thumbs-wrap{flex-shrink:0;}
@@ -454,7 +461,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <div id="canvas-panel">
         <div id="canvas-area">
           <div id="konva-wrap">
-            <div id="konva-container"></div>
+            <div id="konva-track">
+              <div class="konva-viz" id="konva-prev"><img alt=""></div>
+              <div id="konva-container"></div>
+              <div class="konva-viz" id="konva-next"><img alt=""></div>
+            </div>
           </div>
         </div>
         <!-- Toggle + barra de miniaturas -->
@@ -949,7 +960,7 @@ async function abrirAlbum(albumObj) {
   // ResizeObserver garante que iniciarKonva só roda quando o #konva-wrap
   // tem dimensões reais — e recalcula sempre que o tamanho muda.
   observarKonvaWrap();
-  setupSwipeNav();
+  setupPanNav();
 
   // Nível 5: verificar aprovado + carregar comentários pendentes
   if (albumObj.aprovado) {
@@ -1089,30 +1100,78 @@ function observarKonvaWrap() {
   _konvaRO.observe(wrap);
 }
 
-// Navegação por gesto horizontal do trackpad: deslizar para o lado troca de spread.
-var _swipeNavSetup = false;
-var _swipeLock = false;
-var _swipeEndTimer = null;
-function setupSwipeNav() {
-  if (_swipeNavSetup) return;
-  var wrap = document.getElementById('konva-wrap');
-  if (!wrap) return;
-  _swipeNavSetup = true;
+// Navegação por pan horizontal do trackpad: o spread acompanha o dedo e o vizinho
+// entra pela lateral; ao soltar, encaixa no spread mais próximo.
+var PAN_GAP = 48;            // px entre spreads no track (igual ao gap do CSS)
+var _panSetup = false;
+var _panOffset = 0;          // deslocamento atual do track (px)
+var _panAnimating = false;
+var _panEndTimer = null;
+function setupPanNav() {
+  if (_panSetup) return;
+  var wrap  = document.getElementById('konva-wrap');
+  var track = document.getElementById('konva-track');
+  if (!wrap || !track) return;
+  _panSetup = true;
   wrap.addEventListener('wheel', function(e) {
-    // Só reage a gestos predominantemente horizontais
-    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-    e.preventDefault(); // evita o "voltar/avançar" do navegador
-    // Detecta o fim do gesto (incluindo a inércia): libera o lock quando os eventos param.
-    clearTimeout(_swipeEndTimer);
-    _swipeEndTimer = setTimeout(function() { _swipeLock = false; }, 140);
-    if (_swipeLock) return;                 // já navegou neste gesto
-    if (Math.abs(e.deltaX) < 30) return;    // ignora micro-movimentos
-    var dir = e.deltaX > 0 ? 1 : -1;        // direita = próximo, esquerda = anterior
-    var alvo = estado.spreadAtivo + dir;
-    if (alvo < 0 || alvo >= estado.spreads.length) return;
-    _swipeLock = true;
-    mudarSpread(alvo);
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; // só gestos horizontais
+    if (_slotEmEdicao) return;                            // não navega durante crop
+    e.preventDefault();                                   // evita voltar/avançar do navegador
+    if (_panAnimating) return;
+
+    var idx = estado.spreadAtivo;
+    var pitch = _dimSpread.w + PAN_GAP;
+    track.style.transition = 'none';
+    _panOffset -= e.deltaX;                               // segue o dedo
+
+    // Resistência (rubber-band) quando não há vizinho daquele lado
+    if ((_panOffset > 0 && idx === 0) ||
+        (_panOffset < 0 && idx >= estado.spreads.length - 1)) {
+      _panOffset *= 0.35;
+    }
+    _panOffset = Math.max(-pitch * 1.15, Math.min(pitch * 1.15, _panOffset));
+    track.style.transform = 'translateX(' + _panOffset + 'px)';
+
+    // Fim do gesto: dispara o snap quando os eventos param (inclui a inércia)
+    clearTimeout(_panEndTimer);
+    _panEndTimer = setTimeout(finalizarPan, 110);
   }, { passive: false });
+}
+
+function finalizarPan() {
+  if (_panAnimating) return;
+  var track = document.getElementById('konva-track');
+  if (!track) return;
+  var idx   = estado.spreadAtivo;
+  var pitch = _dimSpread.w + PAN_GAP;
+  var limiar = pitch * 0.22;
+  var destino = 0, novoIdx = idx;
+  if (_panOffset < -limiar && idx < estado.spreads.length - 1) { destino = -pitch; novoIdx = idx + 1; }
+  else if (_panOffset > limiar && idx > 0)                     { destino =  pitch; novoIdx = idx - 1; }
+
+  _panAnimating = true;
+  track.style.transition = 'transform .2s ease-out';
+  track.style.transform  = 'translateX(' + destino + 'px)';
+
+  var concluido = false;
+  function concluir() {
+    if (concluido) return; concluido = true;
+    track.removeEventListener('transitionend', concluir);
+    if (novoIdx !== idx) {
+      // Renderiza o novo spread no centro ANTES de resetar o track (sem flash)
+      estado.spreadAtivo = novoIdx;
+      renderSpread();
+      renderThumbs();
+      renderTemplates();
+      if (!document.getElementById('props-panel').classList.contains('hidden')) abrirPropsSpread();
+    }
+    track.style.transition = 'none';
+    track.style.transform  = 'translateX(0)';
+    _panOffset = 0;
+    _panAnimating = false;
+  }
+  track.addEventListener('transitionend', concluir, { once: true });
+  setTimeout(concluir, 280); // fallback se o transitionend não disparar
 }
 
 function calcDims() {
@@ -1140,6 +1199,18 @@ function iniciarKonva() {
   container.innerHTML = '';
   container.style.width  = _dimSpread.w + 'px';
   container.style.height = _dimSpread.h + 'px';
+
+  // Reseta a posição do track de pan e ajusta o gap para que os vizinhos fiquem
+  // exatamente fora da área visível em repouso (sem "espiar").
+  var track = document.getElementById('konva-track');
+  var wrap  = document.getElementById('konva-wrap');
+  if (track && wrap) {
+    PAN_GAP = Math.max(48, Math.round((wrap.clientWidth - _dimSpread.w) / 2));
+    track.style.gap = PAN_GAP + 'px';
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+  }
+  _panOffset = 0; _panAnimating = false;
 
   _stage = new Konva.Stage({ container: 'konva-container', width: _dimSpread.w, height: _dimSpread.h });
   _layer = new Konva.Layer();
@@ -1189,6 +1260,7 @@ function renderSpread() {
     renderizarTextos(spread._textos || []);
     _layer.batchDraw();
     atualizarUsadasNoPool();
+    atualizarVizinhos();
     return;
   }
 
@@ -1253,6 +1325,127 @@ function renderSpread() {
 
   _layer.batchDraw();
   atualizarUsadasNoPool();
+  atualizarVizinhos();
+}
+
+// ── Renderizador estático (para snapshots dos spreads vizinhos) ───────────────
+// Desenha um spread qualquer numa layer, sem hooks de edição, e chama onReady
+// quando todas as imagens carregaram (para capturar o snapshot).
+function desenharSpreadEstatico(layer, spread, W, H, onReady) {
+  var pend = 0, finalizou = false;
+  function aoCarregar() { pend--; if (pend <= 0 && !finalizou) { finalizou = true; onReady(); } }
+  function aguardar() { pend++; }
+
+  var bgColor = spread.background_color || '#1e1b16';
+  layer.add(new Konva.Rect({ x:0, y:0, width:W, height:H, fill:bgColor }));
+
+  var slots = spread.album_slots || [];
+
+  // Full-bleed
+  if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
+    aguardar();
+    (function(fotoKey) {
+      var url = '/api/gallery-img?key=' + encodeURIComponent(fotoKey);
+      Konva.Image.fromURL(url, function(img) {
+        var sc = Math.max(W / img.width(), H / img.height());
+        img.setAttrs({ x:(W - img.width()*sc)/2, y:(H - img.height()*sc)/2, width:img.width()*sc, height:img.height()*sc });
+        layer.add(img); aoCarregar();
+      });
+    })(slots[0].foto_key);
+  } else {
+    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+    var margemPx = spread.margem_px != null ? spread.margem_px : 8;
+    var gutterPx = spread.gutter_px  != null ? spread.gutter_px  : 8;
+    var slotsAjust = aplicarEspacamento(tpl.slots, margemPx, gutterPx, W, H);
+
+    slotsAjust.forEach(function(s, idx) {
+      var x = s.x * W, y = s.y * H, w = s.w * W, h = s.h * H;
+      var slot = slots[idx];
+      var grupo = new Konva.Group({ x:0, y:0 });
+      grupo.add(new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'#2a2620', stroke:'rgba(255,255,255,0.06)', strokeWidth:.5 }));
+      if (slot && slot.foto_key) {
+        aguardar();
+        (function(slotRef, gx, gy, gw, gh, grupoRef) {
+          var url = '/api/gallery-img?key=' + encodeURIComponent(slotRef.foto_key);
+          Konva.Image.fromURL(url, function(img) {
+            var scMin = Math.max(gw / img.width(), gh / img.height());
+            var sc = slotRef.foto_escala > 0 ? Math.max(scMin, slotRef.foto_escala) : scMin;
+            var imgX = gx + (slotRef.foto_x || 0);
+            var imgY = gy + (slotRef.foto_y || 0);
+            if (slotRef.foto_x === 0 && slotRef.foto_y === 0) {
+              imgX = gx + (gw - img.width()*sc)/2;
+              imgY = gy + (gh - img.height()*sc)/2;
+            }
+            img.setAttrs({ x:imgX, y:imgY, scaleX:sc, scaleY:sc });
+            grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
+            grupoRef.add(img); aoCarregar();
+          });
+        })(slot, x, y, w, h, grupo);
+      }
+      layer.add(grupo);
+    });
+  }
+
+  // Textos (estáticos, sem interação)
+  (spread._textos || []).forEach(function(td) {
+    layer.add(new Konva.Text({
+      x: td.x_prop * W, y: td.y_prop * H, width: td.largura_prop * W,
+      text: td.conteudo, fontFamily: td.fonte,
+      fontSize: Math.max(8, (td.tamanho / 72) * H * 0.4),
+      fill: td.cor, align: td.alinhamento,
+    }));
+  });
+
+  if (!finalizou && pend === 0) { finalizou = true; onReady(); }
+}
+
+// Gera um snapshot (dataURL) de um spread, renderizando-o num stage fora da tela.
+function gerarSnapshotSpread(spread, cb) {
+  if (!spread || !_dimSpread.w) { cb(null); return; }
+  var holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed;left:-99999px;top:0;pointer-events:none;';
+  document.body.appendChild(holder);
+  var stage = new Konva.Stage({ container: holder, width: _dimSpread.w, height: _dimSpread.h });
+  var layer = new Konva.Layer(); stage.add(layer);
+  var pronto = false;
+  function capturar() {
+    if (pronto) return; pronto = true;
+    var url = null;
+    try { layer.batchDraw(); url = stage.toDataURL({ pixelRatio: 1 }); } catch (e) { url = null; }
+    stage.destroy(); holder.remove();
+    cb(url);
+  }
+  desenharSpreadEstatico(layer, spread, _dimSpread.w, _dimSpread.h, capturar);
+  setTimeout(capturar, 1500); // fallback se alguma imagem não carregar
+}
+
+// Atualiza tamanho e snapshots dos spreads vizinhos (esquerda/direita).
+var _vizToken = 0;
+function atualizarVizinhos() {
+  var prevEl = document.getElementById('konva-prev');
+  var nextEl = document.getElementById('konva-next');
+  if (!prevEl || !nextEl) return;
+  [prevEl, nextEl].forEach(function(el) {
+    el.style.width  = _dimSpread.w + 'px';
+    el.style.height = _dimSpread.h + 'px';
+  });
+  var idx = estado.spreadAtivo;
+  _vizToken++;
+  var tk = _vizToken;
+  definirVizinho(prevEl, estado.spreads[idx - 1], tk);
+  definirVizinho(nextEl, estado.spreads[idx + 1], tk);
+}
+function definirVizinho(el, spread, tk) {
+  var img = el.querySelector('img');
+  if (!img) return;
+  if (!spread) { img.style.visibility = 'hidden'; img.removeAttribute('src'); return; }
+  gerarSnapshotSpread(spread, function(url) {
+    if (tk !== _vizToken) return;       // resultado obsoleto
+    img.style.width  = _dimSpread.w + 'px';
+    img.style.height = _dimSpread.h + 'px';
+    if (url) { img.src = url; img.style.visibility = 'visible'; }
+    else { img.style.visibility = 'hidden'; }
+  });
 }
 
 function encontrarSlotNaPosicao(px, py) {
