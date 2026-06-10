@@ -1363,6 +1363,7 @@ function calcDims() {
 }
 
 function iniciarKonva() {
+  _thumbSnapCache = {}; // dimensões mudaram → invalida todos os snapshots
   calcDims();
   var container = document.getElementById('konva-container');
   container.innerHTML = '';
@@ -2192,9 +2193,10 @@ function assinaturaSpread(spread) {
   var txt = (spread._textos || []).map(function(t) {
     return [t.conteudo, t.x_prop, t.y_prop, t.largura_prop, t.tamanho, t.cor, t.fonte, t.alinhamento].join(',');
   }).join('~');
+  var dim = dimParaSpread(spread);
   return [spread.template_id || '', spread.full_bleed ? 1 : 0, spread.background_color || '',
           (spread.margem_px != null ? spread.margem_px : 8), (spread.gutter_px != null ? spread.gutter_px : 8),
-          slots, txt, _dimSpread.w].join('::');
+          slots, txt, dim.w, dim.h].join('::');
 }
 
 function montarThumbSnapshot(spread, imgEl) {
