@@ -1331,24 +1331,35 @@ function finalizarPan() {
   setTimeout(concluir, 280); // fallback se o transitionend não disparar
 }
 
-function calcDims() {
+// Razão W/H para um spread específico (considera formato e tipo capa/spread).
+function ratioParaSpread(spread) {
+  var fmt = estado.album ? estado.album.formato : 'paisagem';
+  if (fmt === 'quadrado') {
+    var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
+    return isCapa ? 1 : 2;
+  }
+  return fmt === 'retrato' ? 1.4 : 2.8;
+}
+
+// Dimensões do canvas para um spread específico, calculadas a partir do wrapper.
+function dimParaSpread(spread) {
   var wrap = document.getElementById('konva-wrap');
+  if (!wrap) return _dimSpread;
   var cs = getComputedStyle(wrap);
   var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
   var padY = parseFloat(cs.paddingTop)  + parseFloat(cs.paddingBottom);
   var aw = wrap.clientWidth  - padX;
   var ah = wrap.clientHeight - padY;
-  var album = estado.album;
-  var spread = estado.spreads[estado.spreadAtivo];
-  var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
-  // Quadrado: capa/contracapa = 1 página (1:1); spread interno = 2 páginas (2:1)
-  var ratio = album.formato === 'quadrado'
-    ? (isCapa ? 1 : 2)
-    : album.formato === 'retrato' ? 1.4 : 2.8;
-  var w = aw;
-  var h = w / ratio;
+  var ratio = ratioParaSpread(spread);
+  var w = aw, h = w / ratio;
   if (h > ah) { h = ah; w = h * ratio; }
-  _dimSpread = { w: Math.floor(w), h: Math.floor(h) };
+  return { w: Math.floor(w), h: Math.floor(h) };
+}
+
+function calcDims() {
+  var spread = estado.spreads[estado.spreadAtivo];
+  var d = dimParaSpread(spread);
+  _dimSpread = d;
 }
 
 function iniciarKonva() {
@@ -1621,11 +1632,13 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
 
 // Gera um snapshot (dataURL) de um spread, renderizando-o num stage fora da tela.
 function gerarSnapshotSpread(spread, cb, pixelRatio) {
-  if (!spread || !_dimSpread.w) { cb(null); return; }
+  if (!spread) { cb(null); return; }
+  var dim = dimParaSpread(spread);
+  if (!dim.w) { cb(null); return; }
   var holder = document.createElement('div');
   holder.style.cssText = 'position:fixed;left:-99999px;top:0;pointer-events:none;';
   document.body.appendChild(holder);
-  var stage = new Konva.Stage({ container: holder, width: _dimSpread.w, height: _dimSpread.h });
+  var stage = new Konva.Stage({ container: holder, width: dim.w, height: dim.h });
   var layer = new Konva.Layer(); stage.add(layer);
   var pronto = false;
   function capturar() {
@@ -1635,8 +1648,8 @@ function gerarSnapshotSpread(spread, cb, pixelRatio) {
     stage.destroy(); holder.remove();
     cb(url);
   }
-  desenharSpreadEstatico(layer, spread, _dimSpread.w, _dimSpread.h, capturar);
-  setTimeout(capturar, 8000); // fallback se alguma imagem demorar muito
+  desenharSpreadEstatico(layer, spread, dim.w, dim.h, capturar);
+  setTimeout(capturar, 8000);
 }
 
 // Atualiza tamanho e snapshots dos spreads vizinhos (esquerda/direita).
@@ -1645,6 +1658,7 @@ function atualizarVizinhos() {
   var prevEl = document.getElementById('konva-prev');
   var nextEl = document.getElementById('konva-next');
   if (!prevEl || !nextEl) return;
+  // Vizinhos usam dimensões do spread ativo (ficam fora da área visível com mesmo tamanho)
   [prevEl, nextEl].forEach(function(el) {
     el.style.width  = _dimSpread.w + 'px';
     el.style.height = _dimSpread.h + 'px';
@@ -1659,10 +1673,11 @@ function definirVizinho(el, spread, tk) {
   var img = el.querySelector('img');
   if (!img) return;
   if (!spread) { img.style.visibility = 'hidden'; img.removeAttribute('src'); return; }
+  var dim = dimParaSpread(spread);
   gerarSnapshotSpread(spread, function(url) {
-    if (tk !== _vizToken) return;       // resultado obsoleto
-    img.style.width  = _dimSpread.w + 'px';
-    img.style.height = _dimSpread.h + 'px';
+    if (tk !== _vizToken) return;
+    img.style.width  = dim.w + 'px';
+    img.style.height = dim.h + 'px';
     if (url) { img.src = url; img.style.visibility = 'visible'; }
     else { img.style.visibility = 'hidden'; }
   });
@@ -2230,7 +2245,8 @@ function renderThumbs() {
     mini.className = 'thumb-snap';
     mini.alt = '';
     mini.draggable = false;
-    mini.style.aspectRatio = _dimSpread.w + ' / ' + _dimSpread.h;
+    var dimMini = dimParaSpread(spread);
+    mini.style.aspectRatio = dimMini.w + ' / ' + dimMini.h;
     montarThumbSnapshot(spread, mini);
 
     // Label tipo
