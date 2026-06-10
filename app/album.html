@@ -1237,6 +1237,7 @@ function renderPool() {
 // ── Konva — inicialização ─────────────────────────────────────────────────────
 var _konvaRO = null;
 var _ultimoWrapW = 0, _ultimoWrapH = 0;
+var _ignorarRO = false;
 // Observa o #konva-wrap: só (re)inicia o Konva quando ele tem tamanho real,
 // e recalcula sempre que o tamanho disponível muda (resize, abrir/fechar painéis).
 function observarKonvaWrap() {
@@ -1246,6 +1247,7 @@ function observarKonvaWrap() {
   _ultimoWrapW = 0; _ultimoWrapH = 0;
   _konvaRO = new ResizeObserver(function() {
     if (!estado.album) return;
+    if (_ignorarRO) return;                        // mudança causada pelo próprio iniciarKonva
     var w = wrap.clientWidth, h = wrap.clientHeight;
     if (w < 10 || h < 10) return;                 // ainda sem layout
     if (w === _ultimoWrapW && h === _ultimoWrapH) return; // sem mudança real
@@ -1316,7 +1318,16 @@ function finalizarPan() {
     track.removeEventListener('transitionend', concluir);
     if (novoIdx !== idx) {
       // Renderiza o novo spread no centro ANTES de resetar o track (sem flash)
+      var spreadAntesPan = estado.spreads[idx];
+      var spreadDepoisPan = estado.spreads[novoIdx];
       estado.spreadAtivo = novoIdx;
+      if (estado.album && estado.album.formato === 'quadrado') {
+        var tipoAP = spreadAntesPan ? spreadAntesPan.tipo : '';
+        var tipoDP = spreadDepoisPan ? spreadDepoisPan.tipo : '';
+        var eraCapaP = tipoAP === 'capa' || tipoAP === 'contracapa';
+        var eCapaP   = tipoDP === 'capa' || tipoDP === 'contracapa';
+        if (eraCapaP !== eCapaP) iniciarKonva();
+      }
       renderSpread();
       renderThumbs();
       renderTemplates();
@@ -1363,6 +1374,7 @@ function calcDims() {
 }
 
 function iniciarKonva() {
+  _ignorarRO = true;
   _thumbSnapCache = {}; // dimensões mudaram → invalida todos os snapshots
   calcDims();
   var container = document.getElementById('konva-container');
@@ -1389,6 +1401,10 @@ function iniciarKonva() {
   _stage.add(_guideLayer);
 
   setupCanvasDrop();
+  // Atualiza referência do wrap para que a próxima observação legítima passe no guard
+  var _wrapAgora = document.getElementById('konva-wrap');
+  if (_wrapAgora) { _ultimoWrapW = _wrapAgora.clientWidth; _ultimoWrapH = _wrapAgora.clientHeight; }
+  requestAnimationFrame(function() { _ignorarRO = false; });
 }
 
 // Drop no canvas — anexado UMA vez ao #konva-container (elemento estável).
