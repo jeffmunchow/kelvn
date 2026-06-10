@@ -2406,6 +2406,14 @@ async function restaurarEstadoHistorico(snap) {
     spread.margem_px = snap.margem_px;
     spread.gutter_px = snap.gutter_px;
     await _sb.from('album_spreads').update({ background_color: snap.background_color, margem_px: snap.margem_px, gutter_px: snap.gutter_px }).eq('id', snap.spreadId).eq('user_id', _userId);
+  } else if (snap.tipo === 'geom') {
+    var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
+    if (!spread) return;
+    var slot = (spread.album_slots || []).find(function(sl) { return sl.id === snap.slotId; });
+    if (!slot) return;
+    slot.geom = snap.geom;
+    slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
+    await _sb.from('album_slots').update({ geom: snap.geom, foto_x: 0, foto_y: 0, foto_escala: 0, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
   } else if (snap.tipo === 'texto') {
     // Re-render basta; dados já estão em snap
     var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
@@ -2587,8 +2595,15 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   function commitGeom() {
     var sc = proxyRect.scaleX();
     var nx = proxyRect.x(), ny = proxyRect.y();
-    slot.geom = { x: nx / W, y: ny / H, w: (dimSlot.w * sc) / W, h: (dimSlot.h * sc) / H };
+    var geomAntes = slot.geom ? Object.assign({}, slot.geom) : null;
+    var geomDepois = { x: nx / W, y: ny / H, w: (dimSlot.w * sc) / W, h: (dimSlot.h * sc) / H };
+    slot.geom = geomDepois;
     slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
+    var spreadId = estado.spreads[estado.spreadAtivo].id;
+    historico.empurrar('geom',
+      { tipo: 'geom', spreadId: spreadId, slotId: slot.id, geom: geomAntes },
+      { tipo: 'geom', spreadId: spreadId, slotId: slot.id, geom: geomDepois }
+    );
     salvarGeomSlot(slot);
     sairModoEdicaoSlot(true);
   }
