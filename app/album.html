@@ -1333,17 +1333,18 @@ function finalizarPan() {
 
 function calcDims() {
   var wrap = document.getElementById('konva-wrap');
-  // clientWidth/Height incluem o padding — descontamos para usar a área de conteúdo,
-  // garantindo a margem definida no CSS ao redor do spread.
   var cs = getComputedStyle(wrap);
   var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
   var padY = parseFloat(cs.paddingTop)  + parseFloat(cs.paddingBottom);
   var aw = wrap.clientWidth  - padX;
   var ah = wrap.clientHeight - padY;
   var album = estado.album;
-  var ratio = album.formato === 'quadrado' ? 2 : album.formato === 'retrato' ? 1.4 : 2.8;
-  // Preenche a maior área possível mantendo a proporção:
-  // testa encher a largura; se estourar a altura, encher a altura.
+  var spread = estado.spreads[estado.spreadAtivo];
+  var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
+  // Quadrado: capa/contracapa = 1 página (1:1); spread interno = 2 páginas (2:1)
+  var ratio = album.formato === 'quadrado'
+    ? (isCapa ? 1 : 2)
+    : album.formato === 'retrato' ? 1.4 : 2.8;
   var w = aw;
   var h = w / ratio;
   if (h > ah) { h = ah; w = h * ratio; }
@@ -1512,6 +1513,18 @@ function renderSpread() {
 
   // Textos do spread
   renderizarTextos(spread._textos || []);
+
+  // Formato quadrado, lâmina interna: guia de separação de páginas no centro
+  if (estado.album && estado.album.formato === 'quadrado' && spread.tipo === 'spread') {
+    _layer.add(new Konva.Line({
+      points: [W / 2, 0, W / 2, H],
+      stroke: 'rgba(128,118,100,0.35)',
+      strokeWidth: 1,
+      dash: [6, 5],
+      listening: false,
+      name: 'guia-pagina',
+    }));
+  }
 
   // Botão de propriedades (clique no canvas fora dos slots)
   _stage.off('click.props');
@@ -2366,10 +2379,19 @@ function renderTimeline(bar) {
 }
 
 async function mudarSpread(idx) {
+  var spreadAnterior = estado.spreads[estado.spreadAtivo];
   estado.spreadAtivo = idx;
   var spread = estado.spreads[idx];
   if (spread && !spread._textos) {
     spread._textos = await carregarTextos(spread.id);
+  }
+  // Formato quadrado: capa tem 1 página, spread tem 2 → recalcular dimensões ao trocar tipo
+  if (estado.album && estado.album.formato === 'quadrado') {
+    var tipoAntes = spreadAnterior ? spreadAnterior.tipo : '';
+    var tipoDepois = spread ? spread.tipo : '';
+    var eraCapaTipo = tipoAntes === 'capa' || tipoAntes === 'contracapa';
+    var eCapaTipo   = tipoDepois === 'capa' || tipoDepois === 'contracapa';
+    if (eraCapaTipo !== eCapaTipo) iniciarKonva();
   }
   renderThumbs();
   renderTemplates();
