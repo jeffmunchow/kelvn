@@ -1897,9 +1897,30 @@ async function adicionarFotoNaLamina(spreadIdx, fotoKey) {
     return;
   }
 
+  // Se o template atual tem um slot vazio, preenche apenas esse slot (preserva o template)
+  var tplAtual = buscarTemplate(spread.template_id);
+  var slotVazio = tplAtual ? (spread.album_slots || []).find(function(s) { return !s.foto_key; }) : null;
+
+  if (slotVazio) {
+    var snapAntes = { tipo:'slot', spreadId: spread.id, slotId: slotVazio.id,
+      foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0 };
+    slotVazio.foto_key = fotoKey;
+    slotVazio.foto_x = 0; slotVazio.foto_y = 0; slotVazio.foto_escala = 0;
+    historico.empurrar('slot', snapAntes,
+      { tipo:'slot', spreadId: spread.id, slotId: slotVazio.id, foto_key: fotoKey, foto_x: 0, foto_y: 0, foto_escala: 0 });
+    estado.fotosUsadas.add(fotoKey);
+    await _sb.from('album_slots').update({ foto_key: fotoKey, foto_x: 0, foto_y: 0, foto_escala: 0,
+      atualizado_em: new Date().toISOString() }).eq('id', slotVazio.id).eq('user_id', _userId);
+    if (spreadIdx !== estado.spreadAtivo) { await mudarSpread(spreadIdx); } else { renderSpread(); renderThumbs(); renderTemplates(); }
+    return;
+  }
+
+  // Nenhum slot vazio no template atual → novo template para a quantidade total de fotos
+  var snapLaminaAntes = tirarSnapLamina(spread);
   var fotos = atuais.concat([fotoKey]);
   var tplId = templateIdealParaQtd(fotos.length);
   await aplicarTemplateComFotos(spread, tplId, fotos);
+  historico.empurrar('lamina-fotos', snapLaminaAntes, tirarSnapLamina(spread));
 
   fotos.forEach(function(k) { estado.fotosUsadas.add(k); });
 
@@ -1908,8 +1929,20 @@ async function adicionarFotoNaLamina(spreadIdx, fotoKey) {
   } else {
     renderSpread();
     renderThumbs();
+    renderTemplates();
   }
   salvarDebounced();
+}
+
+function tirarSnapLamina(spread) {
+  return {
+    tipo: 'lamina-fotos',
+    spreadId: spread.id,
+    template_id: spread.template_id,
+    slots: (spread.album_slots || []).map(function(s) {
+      return { id: s.id, foto_key: s.foto_key || null, foto_x: s.foto_x || 0, foto_y: s.foto_y || 0, foto_escala: s.foto_escala || 0 };
+    })
+  };
 }
 
 // Aplica um template a uma lâmina e distribui as fotos (cover-fit) por índice
@@ -2639,6 +2672,18 @@ async function restaurarEstadoHistorico(snap) {
     slot.foto_x = snap.foto_x; slot.foto_y = snap.foto_y; slot.foto_escala = snap.foto_escala;
     slot.geom = snap.geom;
     await _sb.from('album_slots').update({ foto_key: snap.foto_key, foto_x: snap.foto_x, foto_y: snap.foto_y, foto_escala: snap.foto_escala, geom: snap.geom, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
+  } else if (snap.tipo === 'lamina-fotos') {
+    var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
+    if (!spread) return;
+    spread.template_id = snap.template_id;
+    await _sb.from('album_spreads').update({ template_id: snap.template_id }).eq('id', snap.spreadId).eq('user_id', _userId);
+    snap.slots.forEach(function(snapSlot) {
+      var slot = (spread.album_slots || []).find(function(sl) { return sl.id === snapSlot.id; });
+      if (!slot) return;
+      slot.foto_key = snapSlot.foto_key;
+      slot.foto_x = snapSlot.foto_x; slot.foto_y = snapSlot.foto_y; slot.foto_escala = snapSlot.foto_escala;
+      _sb.from('album_slots').update({ foto_key: snapSlot.foto_key, foto_x: snapSlot.foto_x, foto_y: snapSlot.foto_y, foto_escala: snapSlot.foto_escala, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId).then(function(){}, function(){});
+    });
   } else if (snap.tipo === 'texto') {
     // Re-render basta; dados já estão em snap
     var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
