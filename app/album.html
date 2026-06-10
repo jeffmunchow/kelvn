@@ -2532,7 +2532,7 @@ function atualizarGuias(bx, by, bw, bh) {
 // 1 clique — edita a CAIXA do slot: move e redimensiona livremente
 // (largura e altura independentes, sem trava de proporção).
 function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
-  if (_slotEmEdicao) sairModoEdicaoSlot(true, true);
+  if (_slotEmEdicao) sairModoEdicaoSlot(true);
   var imgNode = grupo.findOne('Image');
   if (!imgNode) return;
   var W = _dimSpread.w, H = _dimSpread.h;
@@ -2614,6 +2614,15 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   proxyRect.on('dragend.box', commitGeom);
   proxyRect.on('transformend.box', commitGeom);
 
+  // Duplo clique no proxyRect (que fica sobre a imagem) troca para modo foto
+  proxyRect.on('dblclick dbltap', function() {
+    var g = _slotEmEdicao ? _slotEmEdicao.grupo : grupo;
+    var s = _slotEmEdicao ? _slotEmEdicao.slot : slot;
+    var ds = _slotEmEdicao ? _slotEmEdicao.dimSlot : dimSlot;
+    sairModoEdicaoSlot(true, true); // destrói proxyRect sem re-renderizar
+    ativarModoEdicaoFoto(g, s, ds);
+  });
+
   _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
   _layer.batchDraw();
 }
@@ -2621,12 +2630,13 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
 // 2 cliques — edita a FOTO dentro do slot: arrasta e redimensiona mantendo
 // a proporção original da foto (nunca menor que o cover-fit do slot).
 function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
-  if (_slotEmEdicao) sairModoEdicaoSlot(true, true);
-  var imgNode = grupo.findOne('Image');
-  if (!imgNode) return;
+  // grupo pode ter sido re-renderizado; tenta achar o grupo atual pelo nome
+  var grupoAtual = _layer.findOne('.grupo-slot-' + (grupo.name() || '').replace('grupo-slot-', '')) || grupo;
+  var imgNode = grupoAtual.findOne('Image');
+  if (!imgNode) return; // slot sem foto: nada a editar
 
   _slotEmEdicao = {
-    grupo: grupo, slot: slot, dimSlot: dimSlot, imgNode: imgNode, modo: 'foto',
+    grupo: grupoAtual, slot: slot, dimSlot: dimSlot, imgNode: imgNode, modo: 'foto',
     snapAntes: { tipo:'slot', spreadId: estado.spreads[estado.spreadAtivo].id, slotId: slot.id,
       foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala }
   };
@@ -2635,6 +2645,8 @@ function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
   var minW = imgNode.width() * escalaMin;
   var maxW = imgNode.width() * escalaMin * 3;
 
+  // Transformer envolvendo a FOTO (pode estar além da borda do slot — normal,
+  // é o que fica clipeado pelo grupo). Borda tracejada diferencia do modo caixa.
   var tr = new Konva.Transformer({
     nodes: [imgNode],
     rotateEnabled: false,
@@ -2647,7 +2659,7 @@ function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
     anchorFill: '#ffffff',
     borderStroke: '#C4780A',
     borderStrokeWidth: 1.5,
-    borderDash: [5, 4],
+    borderDash: [6, 4],
     boundBoxFunc: function(oldBox, newBox) {
       if (newBox.width < minW - 0.5 || newBox.width > maxW + 0.5) return oldBox;
       return newBox;
