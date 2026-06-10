@@ -164,14 +164,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .tl-empty{height:84px;width:60px;flex-shrink:0;border:1px dashed var(--border-strong);border-radius:3px;cursor:pointer;background:var(--surface2);}
 .tl-num{font-family:'DM Sans',sans-serif;font-size:.55rem;color:var(--text-hint);align-self:flex-end;padding-bottom:4px;min-width:14px;text-align:center;}
 
-/* Templates grid (dentro da seção acordeão) */
-#tpl-grid{flex:1;overflow-y:auto;padding:.5rem;display:grid;grid-template-columns:1fr 1fr;gap:.4rem;}
-.tpl-card{border:.5px solid var(--border);border-radius:6px;cursor:pointer;padding:.4rem;transition:border-color .15s,background .15s;}
-.tpl-card:hover{border-color:var(--border-strong);background:var(--surface2);}
-.tpl-card.ativo{border-color:var(--amber);background:var(--amber-light);}
-.tpl-preview{width:100%;aspect-ratio:2;background:var(--surface2);border-radius:3px;margin-bottom:.3rem;position:relative;overflow:hidden;}
-.tpl-slot{position:absolute;background:var(--surface3);border:.5px solid var(--border-strong);}
-.tpl-nome{font-size:.58rem;color:var(--text-hint);text-align:center;}
+/* Templates grid (dentro da seção acordeão) — estilo Pixieset */
+#tpl-grid{flex:1;overflow-y:auto;padding:.5rem;display:grid;grid-template-columns:1fr 1fr;gap:5px;align-content:start;grid-auto-rows:min-content;}
+.tpl-card{border:1px solid var(--border);border-radius:3px;cursor:pointer;overflow:hidden;transition:border-color .15s,box-shadow .15s;background:#f2efe9;}
+.tpl-card:hover{border-color:var(--border-strong);}
+.tpl-card.ativo{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber);}
+.tpl-preview{width:100%;background:#fff;position:relative;overflow:hidden;display:block;}
+.tpl-slot{position:absolute;background:#cdc8be;border-radius:1px;}
+.tpl-grp-label{grid-column:1 / -1;font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);padding:.5rem .15rem .15rem;font-family:'DM Sans',sans-serif;}
+.tpl-grp-label:first-child{padding-top:.1rem;}
+.tpl-grp-label.sug{color:var(--amber);}
 /* Propriedades do spread (dentro da seção acordeão) */
 #props-body{flex:1;overflow-y:auto;padding:.75rem;}
 
@@ -677,19 +679,62 @@ var _userId = null;
 var _session = null;
 
 // ── Templates de layout ───────────────────────────────────────────────────────
+// Templates de lâmina. Coordenadas normalizadas (0..1) sobre o spread inteiro (2 páginas).
+// A orientação ideal de cada slot é derivada da geometria (ver slotOrient()).
 var TEMPLATES = [
+  // ── 1 foto ──────────────────────────────────────────────
   { id:'uma-foto',       nome:'Uma foto',
     slots:[{x:.02,y:.02,w:.96,h:.96}] },
   { id:'full-bleed',     nome:'Sangria',
     slots:[{x:0,y:0,w:1,h:1}] },
+  { id:'uma-retrato',    nome:'Retrato centro',
+    slots:[{x:.37,y:.05,w:.26,h:.9}] },
+  { id:'uma-paisagem',   nome:'Paisagem centro',
+    slots:[{x:.13,y:.22,w:.74,h:.56}] },
+
+  // ── 2 fotos ─────────────────────────────────────────────
   { id:'duas-lado',      nome:'Duas lado a lado',
-    slots:[{x:.01,y:.02,w:.485,h:.96},{x:.505,y:.02,w:.485,h:.96}] },
+    slots:[{x:.02,y:.02,w:.47,h:.96},{x:.51,y:.02,w:.47,h:.96}] },
+  { id:'duas-empilhadas',nome:'Duas empilhadas',
+    slots:[{x:.08,y:.04,w:.84,h:.45},{x:.08,y:.51,w:.84,h:.45}] },
+  { id:'duas-retrato',   nome:'Dois retratos',
+    slots:[{x:.15,y:.06,w:.32,h:.88},{x:.53,y:.06,w:.32,h:.88}] },
+  { id:'duas-paisagem',  nome:'Duas paisagens',
+    slots:[{x:.05,y:.28,w:.43,h:.44},{x:.52,y:.28,w:.43,h:.44}] },
+
+  // ── 3 fotos ─────────────────────────────────────────────
   { id:'tres-direita',   nome:'Grande + duas',
-    slots:[{x:.01,y:.02,w:.63,h:.96},{x:.65,y:.02,w:.335,h:.47},{x:.65,y:.51,w:.335,h:.47}] },
+    slots:[{x:.02,y:.02,w:.62,h:.96},{x:.66,y:.02,w:.32,h:.47},{x:.66,y:.51,w:.32,h:.47}] },
   { id:'tres-esquerda',  nome:'Duas + grande',
-    slots:[{x:.01,y:.02,w:.335,h:.47},{x:.01,y:.51,w:.335,h:.47},{x:.36,y:.02,w:.63,h:.96}] },
+    slots:[{x:.02,y:.02,w:.32,h:.47},{x:.02,y:.51,w:.32,h:.47},{x:.36,y:.02,w:.62,h:.96}] },
+  { id:'tres-colunas',   nome:'Três colunas',
+    slots:[{x:.02,y:.06,w:.31,h:.88},{x:.345,y:.06,w:.31,h:.88},{x:.67,y:.06,w:.31,h:.88}] },
+  { id:'tres-topo-larga',nome:'Larga + duas',
+    slots:[{x:.04,y:.03,w:.92,h:.5},{x:.04,y:.56,w:.45,h:.41},{x:.51,y:.56,w:.45,h:.41}] },
+  { id:'tres-base-larga',nome:'Duas + larga',
+    slots:[{x:.04,y:.03,w:.45,h:.41},{x:.51,y:.03,w:.45,h:.41},{x:.04,y:.47,w:.92,h:.5}] },
+
+  // ── 4 fotos ─────────────────────────────────────────────
   { id:'quatro-grid',    nome:'Grade de quatro',
-    slots:[{x:.01,y:.02,w:.485,h:.47},{x:.505,y:.02,w:.485,h:.47},{x:.01,y:.51,w:.485,h:.47},{x:.505,y:.51,w:.485,h:.47}] },
+    slots:[{x:.02,y:.02,w:.47,h:.47},{x:.51,y:.02,w:.47,h:.47},{x:.02,y:.51,w:.47,h:.47},{x:.51,y:.51,w:.47,h:.47}] },
+  { id:'quatro-linha',   nome:'Quatro colunas',
+    slots:[{x:.015,y:.12,w:.235,h:.76},{x:.265,y:.12,w:.235,h:.76},{x:.515,y:.12,w:.235,h:.76},{x:.765,y:.12,w:.22,h:.76}] },
+  { id:'quatro-destaque',nome:'Destaque + três',
+    slots:[{x:.02,y:.02,w:.55,h:.96},{x:.59,y:.02,w:.39,h:.305},{x:.59,y:.345,w:.39,h:.305},{x:.59,y:.67,w:.39,h:.31}] },
+  { id:'quatro-destaque-dir',nome:'Três + destaque',
+    slots:[{x:.02,y:.02,w:.39,h:.305},{x:.02,y:.345,w:.39,h:.305},{x:.02,y:.67,w:.39,h:.31},{x:.43,y:.02,w:.55,h:.96}] },
+
+  // ── 5 fotos ─────────────────────────────────────────────
+  { id:'cinco-destaque', nome:'Destaque + quatro',
+    slots:[{x:.02,y:.02,w:.55,h:.96},{x:.59,y:.02,w:.195,h:.47},{x:.795,y:.02,w:.19,h:.47},{x:.59,y:.51,w:.195,h:.47},{x:.795,y:.51,w:.19,h:.47}] },
+  { id:'cinco-mix',      nome:'Duas + três',
+    slots:[{x:.04,y:.03,w:.45,h:.46},{x:.51,y:.03,w:.45,h:.46},{x:.04,y:.52,w:.30,h:.45},{x:.355,y:.52,w:.29,h:.45},{x:.66,y:.52,w:.30,h:.45}] },
+
+  // ── 6 fotos ─────────────────────────────────────────────
+  { id:'seis-grid',      nome:'Grade de seis',
+    slots:[{x:.02,y:.02,w:.31,h:.47},{x:.345,y:.02,w:.31,h:.47},{x:.67,y:.02,w:.31,h:.47},{x:.02,y:.51,w:.31,h:.47},{x:.345,y:.51,w:.31,h:.47},{x:.67,y:.51,w:.31,h:.47}] },
+
+  // ── Layouts especiais (mantidos) ────────────────────────
   { id:'tira-topo',      nome:'Tira + grande',
     slots:[{x:.01,y:.02,w:.32,h:.96},{x:.34,y:.02,w:.32,h:.96},{x:.67,y:.02,w:.32,h:.96}] },
   { id:'panorama',       nome:'Panorama',
@@ -697,6 +742,34 @@ var TEMPLATES = [
   { id:'destaque-topo',  nome:'Destaque + linha',
     slots:[{x:.01,y:.02,w:.96,h:.55},{x:.01,y:.59,w:.31,h:.39},{x:.345,y:.59,w:.31,h:.39},{x:.68,y:.59,w:.305,h:.39}] },
 ];
+
+// Aspecto real do spread (2 páginas) conforme o formato do álbum.
+function spreadAspectRatio() {
+  var f = estado.album ? estado.album.formato : 'paisagem';
+  return f === 'quadrado' ? 2 : f === 'retrato' ? 1.4 : 2.8;
+}
+
+// Orientação ideal de um slot, derivada da geometria + aspecto do spread.
+function slotOrient(s, aspect) {
+  var a = (s.w / s.h) * aspect; // aspecto real do slot em pixels
+  if (a > 1.25) return 'l'; // paisagem
+  if (a < 0.8)  return 'p'; // retrato
+  return 's';               // quadrado-ish
+}
+
+// Cache de orientação das fotos (carrega dimensões naturais sob demanda).
+var _orientCache = {}; // fotoKey -> 'p' | 'l' | 's'
+function carregarOrient(key, cb) {
+  if (_orientCache[key]) { cb(_orientCache[key]); return; }
+  var img = new Image();
+  img.onload = function() {
+    var a = img.naturalWidth / img.naturalHeight;
+    _orientCache[key] = a > 1.25 ? 'l' : a < 0.8 ? 'p' : 's';
+    cb(_orientCache[key]);
+  };
+  img.onerror = function() { _orientCache[key] = 's'; cb('s'); };
+  img.src = '/api/gallery-img?key=' + encodeURIComponent(key);
+}
 
 // ── Estado ────────────────────────────────────────────────────────────────────
 var estado = {
@@ -1688,12 +1761,14 @@ function templateIdealParaQtd(n) {
   if (n <= 1) return 'uma-foto';
   if (n === 2) return 'duas-lado';
   if (n === 3) return 'tres-direita';
-  return 'quatro-grid'; // 4+
+  if (n === 4) return 'quatro-grid';
+  if (n === 5) return 'cinco-destaque';
+  return 'seis-grid'; // 6+
 }
 
 // Acrescenta uma foto à lâmina (sem substituir as existentes) e redistribui
 // todas com o layout ideal para a nova quantidade. Limite de 4 fotos por lâmina.
-var MAX_FOTOS_LAMINA = 4;
+var MAX_FOTOS_LAMINA = 6;
 async function adicionarFotoNaLamina(spreadIdx, fotoKey) {
   var spread = estado.spreads[spreadIdx];
   if (!spread) return;
@@ -1802,35 +1877,84 @@ async function salvarEstadoAtual() {
 
 // ── Templates panel ───────────────────────────────────────────────────────────
 function renderTemplates() {
+  var spread = estado.spreads[estado.spreadAtivo];
+  // Garante as orientações das fotos da lâmina ativa; re-renderiza quando chegarem.
+  var keys = spread ? (spread.album_slots || []).map(function(s){ return s.foto_key; }).filter(Boolean) : [];
+  var pendentes = keys.filter(function(k){ return !_orientCache[k]; });
+  if (pendentes.length) {
+    var restante = pendentes.length;
+    pendentes.forEach(function(k){ carregarOrient(k, function(){ if (--restante === 0) renderTemplatesAgora(); }); });
+  }
+  renderTemplatesAgora();
+}
+
+function renderTemplatesAgora() {
   var grid = document.getElementById('tpl-grid');
+  if (!grid) return;
   var spread = estado.spreads[estado.spreadAtivo];
   var tplAtivo = spread ? spread.template_id : null;
-  grid.innerHTML = '';
-  TEMPLATES.forEach(function(tpl) {
-    var card = document.createElement('div');
-    card.className = 'tpl-card' + (tpl.id === tplAtivo ? ' ativo' : '');
+  var aspect = spreadAspectRatio();
 
-    var preview = document.createElement('div');
-    preview.className = 'tpl-preview';
-    tpl.slots.forEach(function(s) {
-      var slot = document.createElement('div');
-      slot.className = 'tpl-slot';
-      slot.style.left   = (s.x * 100).toFixed(1) + '%';
-      slot.style.top    = (s.y * 100).toFixed(1) + '%';
-      slot.style.width  = (s.w * 100).toFixed(1) + '%';
-      slot.style.height = (s.h * 100).toFixed(1) + '%';
-      preview.appendChild(slot);
-    });
+  // Fotos da lâmina e suas orientações
+  var keys = spread ? (spread.album_slots || []).map(function(s){ return s.foto_key; }).filter(Boolean) : [];
+  var nFotos = keys.length;
+  var fotoOrients = keys.map(function(k){ return _orientCache[k] || 's'; });
 
-    var nome = document.createElement('div');
-    nome.className = 'tpl-nome';
-    nome.textContent = tpl.nome;
-
-    card.appendChild(preview);
-    card.appendChild(nome);
-    card.addEventListener('click', function() { aplicarTemplate(tpl.id); });
-    grid.appendChild(card);
+  // Pontua cada template: +100 se bate a quantidade de fotos, +pontos por orientação
+  var scored = TEMPLATES.map(function(tpl) {
+    var slotOrients = tpl.slots.map(function(s){ return slotOrient(s, aspect); });
+    var score = 0;
+    if (nFotos > 0 && tpl.slots.length === nFotos) {
+      score = 100;
+      // casa orientações de forma gulosa
+      var disp = slotOrients.slice();
+      fotoOrients.forEach(function(o){ var i = disp.indexOf(o); if (i >= 0) { disp.splice(i, 1); score += 12; } });
+    }
+    return { tpl: tpl, score: score, n: tpl.slots.length };
   });
+
+  var sugeridos = scored.filter(function(x){ return x.score >= 100; })
+                        .sort(function(a,b){ return b.score - a.score; });
+  var resto = scored.filter(function(x){ return x.score < 100; })
+                    .sort(function(a,b){ return a.n - b.n; });
+
+  grid.innerHTML = '';
+  if (sugeridos.length) {
+    grid.appendChild(criarLabelGrupo('Sugeridos para esta lâmina', true));
+    sugeridos.forEach(function(x){ grid.appendChild(criarCardTemplate(x.tpl, tplAtivo, aspect)); });
+    grid.appendChild(criarLabelGrupo('Todos os layouts', false));
+  }
+  resto.forEach(function(x){ grid.appendChild(criarCardTemplate(x.tpl, tplAtivo, aspect)); });
+}
+
+function criarLabelGrupo(texto, sugerido) {
+  var lbl = document.createElement('div');
+  lbl.className = 'tpl-grp-label' + (sugerido ? ' sug' : '');
+  lbl.textContent = texto;
+  return lbl;
+}
+
+function criarCardTemplate(tpl, tplAtivo, aspect) {
+  var card = document.createElement('div');
+  card.className = 'tpl-card' + (tpl.id === tplAtivo ? ' ativo' : '');
+
+  var preview = document.createElement('div');
+  preview.className = 'tpl-preview';
+  preview.style.aspectRatio = aspect; // preview no formato real do spread
+  tpl.slots.forEach(function(s) {
+    var slot = document.createElement('div');
+    slot.className = 'tpl-slot';
+    slot.style.left   = (s.x * 100).toFixed(1) + '%';
+    slot.style.top    = (s.y * 100).toFixed(1) + '%';
+    slot.style.width  = (s.w * 100).toFixed(1) + '%';
+    slot.style.height = (s.h * 100).toFixed(1) + '%';
+    preview.appendChild(slot);
+  });
+
+  card.title = tpl.nome;
+  card.appendChild(preview);
+  card.addEventListener('click', function() { aplicarTemplate(tpl.id); });
+  return card;
 }
 
 async function aplicarTemplate(tplId) {
