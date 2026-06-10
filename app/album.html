@@ -69,8 +69,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .badge-finalizado{background:var(--teal-light);color:var(--teal);}
 #albuns-empty{padding:4rem 0;text-align:center;color:var(--text-hint);font-size:.85rem;display:none;}
 
-/* ── Estado: Novo álbum ──────────────────────────────────────────── */
-#view-novo{flex:1;overflow-y:auto;padding:2rem 2.5rem;}
+/* ── Modal: Novo álbum ───────────────────────────────────────────── */
+#modal-novo{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:900;}
+#modal-novo.hidden{display:none;}
+#modal-novo-box{background:var(--surface);border:.5px solid var(--border-strong);border-radius:12px;padding:1.75rem 2rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
 .form-group{margin-bottom:1.1rem;}
 .form-label{font-size:.72rem;color:var(--text-muted);margin-bottom:.4rem;display:block;}
 .form-input{width:100%;max-width:440px;padding:8px 12px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;transition:border-color .15s;}
@@ -400,46 +402,46 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <div id="albuns-grid"></div>
   </div>
 
-  <!-- Novo álbum -->
-  <div id="view-novo" class="hidden">
-    <div class="view-header" style="margin-bottom:1.5rem;">
-      <div style="display:flex;align-items:center;gap:.75rem;">
-        <button class="btn btn-sec" onclick="irParaLista()" style="padding:5px 10px;">← Voltar</button>
-        <div class="view-title">Novo álbum</div>
+  <!-- Modal: Novo álbum -->
+  <div id="modal-novo" class="hidden">
+    <div id="modal-novo-box">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <div class="view-title" style="margin:0;">Novo álbum</div>
+        <button class="btn btn-sec" onclick="fecharModalNovo()" style="padding:4px 10px;font-size:.75rem;">✕</button>
       </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Nome do álbum</label>
-      <input class="form-input" id="novo-nome" placeholder="ex: Álbum Ana & Lucas" type="text">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Galeria vinculada <span style="color:var(--text-hint);font-size:.65rem;">(as fotos favoritadas pelo casal virão desta galeria)</span></label>
-      <select class="form-input" id="novo-galeria">
-        <option value="">Selecionar galeria…</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Formato</label>
-      <div class="formato-grid" id="formato-grid">
-        <div class="formato-opt sel" data-formato="paisagem" onclick="selFormato(this)">
-          <div class="formato-preview" style="width:64px;height:40px;"></div>
-          <div class="formato-label">Paisagem</div>
-        </div>
-        <div class="formato-opt" data-formato="quadrado" onclick="selFormato(this)">
-          <div class="formato-preview" style="width:44px;height:44px;"></div>
-          <div class="formato-label">Quadrado</div>
-        </div>
-        <div class="formato-opt" data-formato="retrato" onclick="selFormato(this)">
-          <div class="formato-preview" style="width:38px;height:54px;"></div>
-          <div class="formato-label">Retrato</div>
+      <div class="form-group">
+        <label class="form-label">Nome do álbum</label>
+        <input class="form-input" id="novo-nome" placeholder="ex: Álbum Ana & Lucas" type="text">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Galeria vinculada <span style="color:var(--text-hint);font-size:.65rem;">(as fotos favoritadas pelo casal virão desta galeria)</span></label>
+        <select class="form-input" id="novo-galeria">
+          <option value="">Selecionar galeria…</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Formato</label>
+        <div class="formato-grid" id="formato-grid">
+          <div class="formato-opt sel" data-formato="paisagem" onclick="selFormato(this)">
+            <div class="formato-preview" style="width:64px;height:40px;"></div>
+            <div class="formato-label">Paisagem</div>
+          </div>
+          <div class="formato-opt" data-formato="quadrado" onclick="selFormato(this)">
+            <div class="formato-preview" style="width:44px;height:44px;"></div>
+            <div class="formato-label">Quadrado</div>
+          </div>
+          <div class="formato-opt" data-formato="retrato" onclick="selFormato(this)">
+            <div class="formato-preview" style="width:38px;height:54px;"></div>
+            <div class="formato-label">Retrato</div>
+          </div>
         </div>
       </div>
+      <div style="display:flex;gap:.6rem;margin-top:1.5rem;">
+        <button class="btn" onclick="criarAlbum()">Criar álbum</button>
+        <button class="btn btn-sec" onclick="fecharModalNovo()">Cancelar</button>
+      </div>
+      <div id="novo-erro" style="margin-top:.75rem;font-size:.75rem;color:var(--coral);display:none;"></div>
     </div>
-    <div style="display:flex;gap:.6rem;margin-top:1.5rem;">
-      <button class="btn" onclick="criarAlbum()">Criar álbum</button>
-      <button class="btn btn-sec" onclick="irParaLista()">Cancelar</button>
-    </div>
-    <div id="novo-erro" style="margin-top:.75rem;font-size:.75rem;color:var(--coral);display:none;"></div>
   </div>
 
   <!-- Editor -->
@@ -913,7 +915,7 @@ function popularSelectGalerias() {
 
 // ── Navegação ─────────────────────────────────────────────────────────────────
 function mostrar(id) {
-  ['view-lista','view-novo','view-editor'].forEach(function(v) {
+  ['view-lista','view-editor'].forEach(function(v) {
     document.getElementById(v).classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
@@ -931,7 +933,13 @@ function irParaNovo() {
   var fmts = document.querySelectorAll('.formato-opt');
   fmts.forEach(function(f) { f.classList.remove('sel'); });
   document.querySelector('[data-formato="paisagem"]').classList.add('sel');
-  mostrar('view-novo');
+  var m = document.getElementById('modal-novo');
+  m.classList.remove('hidden');
+  m.onclick = function(e) { if (e.target === m) fecharModalNovo(); };
+}
+
+function fecharModalNovo() {
+  document.getElementById('modal-novo').classList.add('hidden');
 }
 
 // ── Lista de álbuns ───────────────────────────────────────────────────────────
@@ -1088,6 +1096,7 @@ async function criarAlbum() {
     if (slots.length) await _sb.from('album_slots').insert(slots);
   }
 
+  fecharModalNovo();
   await abrirAlbum(album);
 }
 
