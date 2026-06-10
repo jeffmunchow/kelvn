@@ -534,6 +534,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           <div class="rpanel-sec-body">
             <div id="pool-loading">Carregando fotos…</div>
             <div id="pool-empty">O casal ainda não selecionou fotos para o álbum.</div>
+            <button id="btn-add-fotos" class="btn btn-sec" onclick="abrirSeletorFotos()" style="width:100%;margin-bottom:.5rem;font-size:.75rem;">+ Adicionar fotos</button>
+            <input type="file" id="input-fotos-extras" accept="image/*" multiple style="display:none" onchange="uploadFotosExtras(this.files)">
             <div id="pool-grid"></div>
           </div>
         </div>
@@ -1193,6 +1195,13 @@ async function carregarPool(galeriaSlug) {
   });
 
   estado.pool = Array.from(todas).map(function(k) { return { key: k, w: 0, h: 0 }; });
+
+  // Adicionar fotos extras do fotógrafo (não são favoritos do cliente)
+  var extras = estado.album && estado.album.fotos_extras ? estado.album.fotos_extras : [];
+  extras.forEach(function(k) {
+    if (!todas.has(k)) estado.pool.push({ key: k, w: 0, h: 0, extra: true });
+  });
+
   loading.style.display = 'none';
 
   if (!estado.pool.length) {
@@ -1232,6 +1241,50 @@ function renderPool() {
 
     grid.appendChild(div);
   });
+}
+
+// ── Fotos extras (adicionadas pelo fotógrafo) ─────────────────────────────────
+function abrirSeletorFotos() {
+  document.getElementById('input-fotos-extras').value = '';
+  document.getElementById('input-fotos-extras').click();
+}
+
+async function uploadFotosExtras(files) {
+  if (!files || !files.length || !estado.album) return;
+  var token = (await _sb.auth.getSession()).data.session?.access_token;
+  if (!token) return;
+  setSaveStatus('Enviando fotos…');
+  var novasKeys = [];
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    try {
+      // Obter presigned URL
+      var res = await fetch('/api/album-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ album_id: estado.album.id, filename: file.name, content_type: file.type, tamanho_bytes: file.size })
+      });
+      if (!res.ok) { console.warn('album-upload init:', await res.text()); continue; }
+      var { key, url } = await res.json();
+      // Upload direto para R2
+      var put = await fetch(url, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      if (!put.ok) { console.warn('R2 PUT falhou'); continue; }
+      novasKeys.push(key);
+    } catch(e) { console.warn('upload erro:', e); }
+  }
+  if (!novasKeys.length) { setSaveStatus('Erro no upload'); return; }
+  // Persistir no álbum
+  var extras = (estado.album.fotos_extras || []).concat(novasKeys);
+  estado.album.fotos_extras = extras;
+  await _sb.from('albuns').update({ fotos_extras: extras }).eq('id', estado.album.id).eq('user_id', _userId);
+  // Adicionar ao pool sem recarregar tudo
+  novasKeys.forEach(function(k) { estado.pool.push({ key: k, w: 0, h: 0, extra: true }); });
+  var countEl = document.getElementById('pool-count');
+  if (countEl) countEl.textContent = estado.pool.length + ' fotos';
+  document.getElementById('pool-empty').style.display = 'none';
+  document.getElementById('btn-autolayout').style.display = '';
+  renderPool();
+  setSaveStatus('Fotos adicionadas ✓');
 }
 
 // ── Konva — inicialização ─────────────────────────────────────────────────────
