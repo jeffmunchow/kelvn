@@ -2459,16 +2459,11 @@ function limparGuias() {
   _guideLayer.batchDraw();
 }
 
-function atualizarGuias(grupo, dimSlot) {
+function atualizarGuias(bx, by, bw, bh) {
   if (!_guideLayer || !_slotEmEdicao) return;
   _guideLayer.destroyChildren();
 
   var W = _dimSpread.w, H = _dimSpread.h;
-  var sc = grupo.scaleX();
-  var bx = grupo.x() + dimSlot.x * sc;
-  var by = grupo.y() + dimSlot.y * sc;
-  var bw = dimSlot.w * sc;
-  var bh = dimSlot.h * sc;
   var bcx = bx + bw / 2;
   var bcy = by + bh / 2;
 
@@ -2527,16 +2522,26 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   if (!imgNode) return;
   var W = _dimSpread.w, H = _dimSpread.h;
 
+  // proxyRect: retângulo invisível posicionado exatamente no slot.
+  // O Transformer é anexado a ele — assim a caixa tem o tamanho e formato
+  // corretos, independente de onde o grupo tem seu origin.
+  var proxyRect = new Konva.Rect({
+    x: dimSlot.x, y: dimSlot.y,
+    width: dimSlot.w, height: dimSlot.h,
+    fill: 'rgba(0,0,0,0)',
+    draggable: true,
+    name: 'proxy-slot',
+  });
+  _layer.add(proxyRect);
+
   _slotEmEdicao = {
-    grupo: grupo, slot: slot, dimSlot: dimSlot, imgNode: imgNode,
+    grupo: grupo, slot: slot, dimSlot: dimSlot, imgNode: imgNode, proxyRect: proxyRect,
     snapAntes: { tipo:'slot', spreadId: estado.spreads[estado.spreadAtivo].id, slotId: slot.id,
       foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala }
   };
 
-  // Caixa de transformação ao redor do SLOT: pontos nos cantos e laterais.
-  // Redimensiona a própria caixa na página, mantendo a proporção original dela.
   var tr = new Konva.Transformer({
-    nodes: [grupo],
+    nodes: [proxyRect],
     rotateEnabled: false,
     flipEnabled: false,
     keepRatio: true,
@@ -2548,8 +2553,8 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     borderStroke: '#C4780A',
     borderStrokeWidth: 1.5,
     boundBoxFunc: function(oldBox, newBox) {
-      if (newBox.width < 36 || newBox.height < 36) return oldBox;    // mínimo
-      if (newBox.x < -0.5 || newBox.y < -0.5) return oldBox;          // dentro do spread
+      if (newBox.width < 36 || newBox.height < 36) return oldBox;
+      if (newBox.x < -0.5 || newBox.y < -0.5) return oldBox;
       if (newBox.x + newBox.width  > W + 0.5) return oldBox;
       if (newBox.y + newBox.height > H + 0.5) return oldBox;
       return newBox;
@@ -2558,39 +2563,38 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   _layer.add(tr);
   _slotEmEdicao.tr = tr;
 
-  // Arrastar move a caixa pela página (limitada ao spread, com snap a guias)
-  grupo.draggable(true);
-  grupo.dragBoundFunc(function(pos) {
-    var sc = grupo.scaleX();
+  // Snap ao arrastar
+  proxyRect.dragBoundFunc(function(pos) {
+    var sc = proxyRect.scaleX();
     var bw = dimSlot.w * sc, bh = dimSlot.h * sc;
-    var ox = dimSlot.x * sc, oy = dimSlot.y * sc;
-    var x = Math.max(-ox, Math.min(pos.x, W - bw - ox));
-    var y = Math.max(-oy, Math.min(pos.y, H - bh - oy));
-    var bx = x + ox, by = y + oy;
+    var x = Math.max(0, Math.min(pos.x, W - bw));
+    var y = Math.max(0, Math.min(pos.y, H - bh));
     var st = calcSnapTargets(slot.id);
-    var dx = findSnap([bx, bx + bw / 2, bx + bw], st.vT);
-    var dy = findSnap([by, by + bh / 2, by + bh], st.hT);
-    if (dx !== null) x = Math.max(-ox, Math.min(x + dx, W - bw - ox));
-    if (dy !== null) y = Math.max(-oy, Math.min(y + dy, H - bh - oy));
+    var dx = findSnap([x, x + bw / 2, x + bw], st.vT);
+    var dy = findSnap([y, y + bh / 2, y + bh], st.hT);
+    if (dx !== null) x = Math.max(0, Math.min(x + dx, W - bw));
+    if (dy !== null) y = Math.max(0, Math.min(y + dy, H - bh));
     return { x: x, y: y };
   });
 
+  function getGuiaBounds() {
+    var sc = proxyRect.scaleX();
+    return { bx: proxyRect.x(), by: proxyRect.y(), bw: dimSlot.w * sc, bh: dimSlot.h * sc };
+  }
+  proxyRect.on('dragmove.guides', function() { var b = getGuiaBounds(); atualizarGuias(b.bx, b.by, b.bw, b.bh); });
+  proxyRect.on('transform.guides', function() { var b = getGuiaBounds(); atualizarGuias(b.bx, b.by, b.bw, b.bh); });
+
   function commitGeom() {
-    var sc = grupo.scaleX();
-    var nx = grupo.x() + dimSlot.x * sc;
-    var ny = grupo.y() + dimSlot.y * sc;
+    var sc = proxyRect.scaleX();
+    var nx = proxyRect.x(), ny = proxyRect.y();
     slot.geom = { x: nx / W, y: ny / H, w: (dimSlot.w * sc) / W, h: (dimSlot.h * sc) / H };
-    // Caixa mudou → recorte da foto volta ao cover-fit automático
     slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
     salvarGeomSlot(slot);
-    sairModoEdicaoSlot(true); // re-renderiza com a nova geometria
+    sairModoEdicaoSlot(true);
   }
-  grupo.on('dragmove.guides', function() { atualizarGuias(grupo, dimSlot); });
-  grupo.on('transform.guides', function() { atualizarGuias(grupo, dimSlot); });
-  grupo.on('dragend.box', commitGeom);
-  grupo.on('transformend.box', commitGeom);
+  proxyRect.on('dragend.box', commitGeom);
+  proxyRect.on('transformend.box', commitGeom);
 
-  // Scroll continua ajustando o zoom da foto dentro da caixa
   _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
   _layer.batchDraw();
 }
@@ -2671,8 +2675,10 @@ function sairModoEdicaoSlot(silencioso) {
       historico.empurrar('crop', snap, snapDepois);
     }
   }
-  _slotEmEdicao.grupo.off('dragend.box transformend.box dragmove.guides transform.guides');
-  _slotEmEdicao.grupo.draggable(false);
+  if (_slotEmEdicao.proxyRect) {
+    _slotEmEdicao.proxyRect.off('dragend.box transformend.box dragmove.guides transform.guides');
+    _slotEmEdicao.proxyRect.destroy();
+  }
   if (_slotEmEdicao.tr) _slotEmEdicao.tr.destroy();
   _stage.container().removeEventListener('wheel', _wheelCropHandler);
   limparGuias();
