@@ -176,6 +176,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .tpl-grp-label{grid-column:1 / -1;font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);padding:.5rem .15rem .15rem;font-family:'DM Sans',sans-serif;}
 .tpl-grp-label:first-child{padding-top:.1rem;}
 .tpl-grp-label.sug{color:var(--amber);}
+/* Layout atual da lâmina (slots editados) + salvar como template */
+.tpl-card.wide{grid-column:1 / -1;position:relative;cursor:default;}
+.tpl-badge-novo{position:absolute;top:4px;right:4px;font-size:.52rem;letter-spacing:.08em;text-transform:uppercase;background:var(--amber);color:#fff;padding:1px 7px;border-radius:20px;font-family:'DM Sans',sans-serif;}
+.btn-salvar-tpl{grid-column:1 / -1;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;transition:color .15s,border-color .15s;margin-bottom:.25rem;}
+.btn-salvar-tpl:hover{color:var(--text);border-color:var(--text-muted);}
 /* Propriedades do spread (dentro da seção acordeão) */
 #props-body{flex:1;overflow-y:auto;padding:.75rem;}
 
@@ -745,6 +750,25 @@ var TEMPLATES = [
     slots:[{x:.01,y:.02,w:.96,h:.55},{x:.01,y:.59,w:.31,h:.39},{x:.345,y:.59,w:.31,h:.39},{x:.68,y:.59,w:.305,h:.39}] },
 ];
 
+// Templates criados pelo próprio fotógrafo (tabela album_templates, por user_id).
+// `raw: true` indica que os slots já incluem margens — não reaplicar espaçamento.
+var TEMPLATES_USUARIO = [];
+
+function buscarTemplate(id) {
+  return TEMPLATES.find(function(t){ return t.id === id; }) ||
+         TEMPLATES_USUARIO.find(function(t){ return t.id === id; }) || null;
+}
+
+async function carregarTemplatesUsuario() {
+  try {
+    var { data, error } = await _sb.from('album_templates').select('*').eq('user_id', _userId).order('criado_em');
+    if (error || !data) return;
+    TEMPLATES_USUARIO = data.map(function(t) {
+      return { id: 'user-' + t.id, dbId: t.id, nome: t.nome || 'Meu layout', slots: t.slots, custom: true, raw: true };
+    });
+  } catch(e) {}
+}
+
 // Aspecto real do spread (2 páginas) conforme o formato do álbum.
 function spreadAspectRatio() {
   var f = estado.album ? estado.album.formato : 'paisagem';
@@ -856,6 +880,7 @@ async function init() {
     document.getElementById('overlay-auth').style.display = 'none';
     await carregarSd();
     await carregarGalerias();
+    await carregarTemplatesUsuario();
     await irParaLista();
   } catch(e) {
     document.getElementById('overlay-auth').textContent = 'Erro ao verificar sessão. Recarregue a página.';
@@ -1053,7 +1078,7 @@ async function criarAlbum() {
       tipo: tipos[i], template_id: tplId
     }).select().single();
     if (!spread) continue;
-    var tpl = TEMPLATES.find(function(t) { return t.id === tplId; });
+    var tpl = buscarTemplate(tplId);
     if (!tpl) continue;
     var slots = tpl.slots.map(function(_, idx) {
       return { spread_id: spread.id, user_id: _userId, slot_index: idx };
@@ -1375,10 +1400,11 @@ function setupCanvasDrop() {
 // Geometria efetiva dos slots: template + espaçamento, com override por slot
 // (slot.geom = {x,y,w,h} normalizado, salvo quando o usuário redimensiona a caixa).
 function slotsEfetivos(spread, W, H) {
-  var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+  var tpl = buscarTemplate(spread.template_id) || TEMPLATES[0];
   var margemPx = spread.margem_px != null ? spread.margem_px : 8;
   var gutterPx = spread.gutter_px  != null ? spread.gutter_px  : 8;
-  var slotsAjust = aplicarEspacamento(tpl.slots, margemPx, gutterPx, W, H);
+  // Templates do fotógrafo já trazem as margens embutidas (raw)
+  var slotsAjust = tpl.raw ? tpl.slots : aplicarEspacamento(tpl.slots, margemPx, gutterPx, W, H);
   var slots = spread.album_slots || [];
   return slotsAjust.map(function(s, i) {
     var g = slots[i] && slots[i].geom;
@@ -1424,6 +1450,7 @@ function renderSpread() {
   var slotsAjust = slotsEfetivos(spread, W, H);
 
   slotsAjust.forEach(function(s, idx) {
+    if (s.w < 0.0001 || s.h < 0.0001) return; // slot excluído (caixa zero)
     var x = s.x * W, y = s.y * H, w = s.w * W, h = s.h * H;
     var slot = slots[idx];
     var grupo = new Konva.Group({ x:0, y:0, name:'grupo-slot-'+idx });
@@ -1535,6 +1562,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
     var slotsAjust = slotsEfetivos(spread, W, H);
 
     slotsAjust.forEach(function(s, idx) {
+      if (s.w < 0.0001 || s.h < 0.0001) return; // slot excluído (caixa zero)
       var x = s.x * W, y = s.y * H, w = s.w * W, h = s.h * H;
       var slot = slots[idx];
       var grupo = new Konva.Group({ x:0, y:0 });
@@ -1841,7 +1869,7 @@ async function adicionarFotoNaLamina(spreadIdx, fotoKey) {
 
 // Aplica um template a uma lâmina e distribui as fotos (cover-fit) por índice
 async function aplicarTemplateComFotos(spread, tplId, fotoKeys) {
-  var tplNovo = TEMPLATES.find(function(t) { return t.id === tplId; });
+  var tplNovo = buscarTemplate(tplId);
   if (!tplNovo) return;
   spread.template_id = tplId;
   // Desliga full-bleed ao redistribuir (a não ser que o template seja Sangria)
@@ -1927,7 +1955,7 @@ function renderTemplatesAgora() {
   var fotoOrients = keys.map(function(k){ return _orientCache[k] || 's'; });
 
   // Pontua cada template: +100 se bate a quantidade de fotos, +pontos por orientação
-  var scored = TEMPLATES.map(function(tpl) {
+  var scored = TEMPLATES.concat(TEMPLATES_USUARIO).map(function(tpl) {
     var slotOrients = tpl.slots.map(function(s){ return slotOrient(s, aspect); });
     var score = 0;
     if (nFotos > 0 && tpl.slots.length === nFotos) {
@@ -1945,12 +1973,78 @@ function renderTemplatesAgora() {
                     .sort(function(a,b){ return a.n - b.n; });
 
   grid.innerHTML = '';
+
+  // Lâmina com slots editados manualmente → preview do layout atual + salvar
+  var temGeom = spread && (spread.album_slots || []).some(function(s){ return s.geom; });
+  if (temGeom) {
+    grid.appendChild(criarCardLayoutAtual(spread, aspect));
+    var btnSalvar = document.createElement('button');
+    btnSalvar.className = 'btn-salvar-tpl';
+    btnSalvar.textContent = 'Salvar como novo template';
+    btnSalvar.addEventListener('click', salvarComoNovoTemplate);
+    grid.appendChild(btnSalvar);
+  }
+
   if (sugeridos.length) {
     grid.appendChild(criarLabelGrupo('Sugeridos para esta lâmina', true));
     sugeridos.forEach(function(x){ grid.appendChild(criarCardTemplate(x.tpl, tplAtivo, aspect)); });
     grid.appendChild(criarLabelGrupo('Todos os layouts', false));
   }
   resto.forEach(function(x){ grid.appendChild(criarCardTemplate(x.tpl, tplAtivo, aspect)); });
+}
+
+// Card largo (2 colunas) com o layout atual da lâmina — slots na posição
+// efetiva (geometrias customizadas incluídas).
+function criarCardLayoutAtual(spread, aspect) {
+  var card = document.createElement('div');
+  card.className = 'tpl-card wide ativo';
+  card.title = 'Layout atual desta lâmina';
+
+  var preview = document.createElement('div');
+  preview.className = 'tpl-preview';
+  preview.style.aspectRatio = aspect;
+  slotsEfetivos(spread, _dimSpread.w, _dimSpread.h).forEach(function(s) {
+    var slot = document.createElement('div');
+    slot.className = 'tpl-slot';
+    slot.style.left   = (s.x * 100).toFixed(1) + '%';
+    slot.style.top    = (s.y * 100).toFixed(1) + '%';
+    slot.style.width  = (s.w * 100).toFixed(1) + '%';
+    slot.style.height = (s.h * 100).toFixed(1) + '%';
+    preview.appendChild(slot);
+  });
+
+  var badge = document.createElement('div');
+  badge.className = 'tpl-badge-novo';
+  badge.textContent = 'novo';
+
+  card.appendChild(preview);
+  card.appendChild(badge);
+  return card;
+}
+
+// Salva o layout atual da lâmina como template do fotógrafo (só dele).
+async function salvarComoNovoTemplate() {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+  var slots = slotsEfetivos(spread, _dimSpread.w, _dimSpread.h)
+    .filter(function(s) { return s.w > 0.0001 && s.h > 0.0001; }) // ignora slots excluídos
+    .map(function(s) {
+      return { x: +s.x.toFixed(4), y: +s.y.toFixed(4), w: +s.w.toFixed(4), h: +s.h.toFixed(4) };
+    });
+  setSaveStatus('Salvando…');
+  var { data, error } = await _sb.from('album_templates').insert({
+    user_id: _userId,
+    nome: 'Meu layout ' + (TEMPLATES_USUARIO.length + 1),
+    slots: slots
+  }).select().single();
+  if (error || !data) {
+    console.warn('template:', error && error.message);
+    setSaveStatus('Erro ao salvar template');
+    return;
+  }
+  TEMPLATES_USUARIO.push({ id: 'user-' + data.id, dbId: data.id, nome: data.nome, slots: data.slots, custom: true, raw: true });
+  setSaveStatus('Salvo ✓');
+  renderTemplates();
 }
 
 function criarLabelGrupo(texto, sugerido) {
@@ -1987,8 +2081,8 @@ async function aplicarTemplate(tplId) {
   var spread = estado.spreads[estado.spreadAtivo];
   if (!spread) return;
 
-  var tplAnterior = TEMPLATES.find(function(t) { return t.id === spread.template_id; });
-  var tplNovo     = TEMPLATES.find(function(t) { return t.id === tplId; });
+  var tplAnterior = buscarTemplate(spread.template_id);
+  var tplNovo     = buscarTemplate(tplId);
   if (!tplNovo || spread.template_id === tplId) return;
 
   spread.template_id = tplId;
@@ -2240,12 +2334,13 @@ function renderTimeline(bar) {
     num.textContent = spread.tipo === 'capa' ? 'capa' : spread.tipo === 'contracapa' ? 'fim' : idx;
     grupo.appendChild(num);
 
-    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+    var tpl = buscarTemplate(spread.template_id) || TEMPLATES[0];
     var slots = spread.album_slots || [];
     var qtd = Math.max(slots.length, tpl.slots.length);
 
     for (var si = 0; si < qtd; si++) {
       var slot = slots[si];
+      if (slot && slot.geom && slot.geom.w === 0 && slot.geom.h === 0) continue; // slot excluído
       var alvo;
       if (slot && slot.foto_key) {
         alvo = document.createElement('img');
@@ -2301,7 +2396,7 @@ async function adicionarSpread() {
   }).select().single();
 
   if (!spread) return;
-  var tpl = TEMPLATES.find(function(t) { return t.id === tplId; });
+  var tpl = buscarTemplate(tplId);
   var slotsData = tpl.slots.map(function(_, idx) { return { spread_id: spread.id, user_id: _userId, slot_index: idx }; });
   var { data: slots } = await _sb.from('album_slots').insert(slotsData).select();
   spread.album_slots = slots || [];
@@ -2426,6 +2521,15 @@ async function restaurarEstadoHistorico(snap) {
     slot.geom = snap.geom;
     slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
     await _sb.from('album_slots').update({ geom: snap.geom, foto_x: 0, foto_y: 0, foto_escala: 0, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
+  } else if (snap.tipo === 'slot-del') {
+    var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
+    if (!spread) return;
+    var slot = (spread.album_slots || []).find(function(sl) { return sl.id === snap.slotId; });
+    if (!slot) return;
+    slot.foto_key = snap.foto_key;
+    slot.foto_x = snap.foto_x; slot.foto_y = snap.foto_y; slot.foto_escala = snap.foto_escala;
+    slot.geom = snap.geom;
+    await _sb.from('album_slots').update({ foto_key: snap.foto_key, foto_x: snap.foto_x, foto_y: snap.foto_y, foto_escala: snap.foto_escala, geom: snap.geom, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
   } else if (snap.tipo === 'texto') {
     // Re-render basta; dados já estão em snap
     var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
@@ -2436,6 +2540,7 @@ async function restaurarEstadoHistorico(snap) {
   estado.spreads.forEach(function(s) { (s.album_slots || []).forEach(function(sl) { if (sl.foto_key) estado.fotosUsadas.add(sl.foto_key); }); });
   renderSpread();
   renderThumbs();
+  renderTemplates();
   atualizarUsadasNoPool();
   atualizarPropsSeAberto();
 }
@@ -2454,6 +2559,7 @@ function calcSnapTargets(meuSlotId) {
   slotsEfetivos(spread, W, H).forEach(function(s, i) {
     var sl = spread.album_slots && spread.album_slots[i];
     if (sl && sl.id === meuSlotId) return;
+    if (s.w < 0.0001 || s.h < 0.0001) return; // slot excluído
     var sx = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
     vT.push(sx, sx + sw / 2, sx + sw);
     hT.push(sy, sy + sh / 2, sy + sh);
@@ -2508,6 +2614,7 @@ function atualizarGuias(bx, by, bw, bh) {
   efetivos.forEach(function(s, i) {
     var sl = spread.album_slots && spread.album_slots[i];
     if (sl && sl.id === meuId) return;
+    if (s.w < 0.0001 || s.h < 0.0001) return; // slot excluído
     var sx = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
     var scx = sx + sw / 2, scy = sy + sh / 2;
     // centro vs centro
@@ -2617,6 +2724,7 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     );
     salvarGeomSlot(slot);
     sairModoEdicaoSlot(true);
+    renderTemplates(); // mostra o card "novo" com o layout atual
   }
   proxyRect.on('dragend.box', commitGeom);
   proxyRect.on('transformend.box', commitGeom);
@@ -2782,6 +2890,61 @@ function sairModoEdicaoSlot(silencioso, semRender) {
   if (semRender) { _layer.batchDraw(); return; } // troca de modo: mantém os nós atuais
   renderSpread();
   renderThumbs(); // reflete o recorte no thumbnail do rodapé
+}
+
+function reconstruirFotosUsadas() {
+  estado.fotosUsadas = new Set();
+  estado.spreads.forEach(function(s) { (s.album_slots || []).forEach(function(sl) { if (sl.foto_key) estado.fotosUsadas.add(sl.foto_key); }); });
+}
+
+// Delete com a CAIXA selecionada — remove o slot da lâmina (caixa some,
+// foto sai do álbum e da linha do tempo; nas Favoritas volta à opacidade normal).
+async function excluirSlotEmEdicao() {
+  if (!_slotEmEdicao) return;
+  var slot = _slotEmEdicao.slot;
+  var spreadId = estado.spreads[estado.spreadAtivo].id;
+  var antes = { tipo:'slot-del', spreadId: spreadId, slotId: slot.id,
+    foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala,
+    geom: slot.geom ? Object.assign({}, slot.geom) : null };
+
+  slot.foto_key = null; slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
+  slot.geom = { x: 0, y: 0, w: 0, h: 0 }; // caixa de tamanho zero = slot oculto
+
+  historico.empurrar('slot-del', antes,
+    { tipo:'slot-del', spreadId: spreadId, slotId: slot.id, foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0, geom: Object.assign({}, slot.geom) });
+
+  reconstruirFotosUsadas();
+  sairModoEdicaoSlot(true); // re-renderiza spread + thumbs (e atualiza o pool)
+  renderTemplates();
+
+  setSaveStatus('Salvando…');
+  var res = await _sb.from('album_slots').update({
+    foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0, geom: slot.geom,
+    atualizado_em: new Date().toISOString()
+  }).eq('id', slot.id).eq('user_id', _userId);
+  setSaveStatus(res.error ? 'Erro ao excluir slot' : 'Salvo ✓');
+}
+
+// Delete com a FOTO selecionada — só esvazia o slot (a caixa permanece).
+async function removerFotoDoSlot() {
+  if (!_slotEmEdicao) return;
+  var slot = _slotEmEdicao.slot;
+  var snapAntes = _slotEmEdicao.snapAntes;
+
+  slot.foto_key = null; slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
+
+  historico.empurrar('remover-foto', snapAntes,
+    { tipo:'slot', spreadId: snapAntes.spreadId, slotId: slot.id, foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0 });
+
+  reconstruirFotosUsadas();
+  sairModoEdicaoSlot(true);
+
+  setSaveStatus('Salvando…');
+  var res = await _sb.from('album_slots').update({
+    foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0,
+    atualizado_em: new Date().toISOString()
+  }).eq('id', slot.id).eq('user_id', _userId);
+  setSaveStatus(res.error ? 'Erro ao remover foto' : 'Salvo ✓');
 }
 
 // ── Nível 4 — Propriedades do spread ────────────────────────────────────────
@@ -3095,7 +3258,14 @@ document.addEventListener('keydown', function(e) {
   var ctrl = e.ctrlKey || e.metaKey;
   if (ctrl && e.key === 'z' && !e.shiftKey) { e.preventDefault(); historico.desfazer(); return; }
   if ((ctrl && e.key === 'y') || (ctrl && e.shiftKey && e.key === 'z')) { e.preventDefault(); historico.refazer(); return; }
-  if (e.key === 'Escape') { sairModoEdicaoSlot(false); }
+  if (e.key === 'Escape') { sairModoEdicaoSlot(false); return; }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && _slotEmEdicao) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    e.preventDefault();
+    if (_slotEmEdicao.modo === 'foto') removerFotoDoSlot();
+    else excluirSlotEmEdicao();
+  }
 });
 
 // ── Nível 3 — Auto-layout ────────────────────────────────────────────────────
@@ -3280,7 +3450,7 @@ async function gerarPreviewAutoLayout() {
 
     var label = document.createElement('div');
     label.className = 'modal-spread-label';
-    var tplObj = TEMPLATES.find(function(t) { return t.id === item.template_id; });
+    var tplObj = buscarTemplate(item.template_id);
     label.textContent = (tplObj ? tplObj.nome : item.template_id) + ' · ' + item.fotos.length + ' foto' + (item.fotos.length !== 1 ? 's' : '');
     wrap.appendChild(label);
 
@@ -3297,7 +3467,7 @@ function renderizarMiniaturaMod(cnv, item) {
   ctx.fillStyle = '#1A1814';
   ctx.fillRect(0, 0, W, H);
 
-  var tpl = TEMPLATES.find(function(t) { return t.id === item.template_id; });
+  var tpl = buscarTemplate(item.template_id);
   if (!tpl) return;
 
   tpl.slots.forEach(function(s, i) {
@@ -3340,7 +3510,7 @@ async function aplicarAutoLayout() {
   for (var i = 0; i < spreadsAlvo.length && i < resultado.length; i++) {
     var spread = spreadsAlvo[i];
     var item   = resultado[i];
-    var tpl    = TEMPLATES.find(function(t) { return t.id === item.template_id; });
+    var tpl    = buscarTemplate(item.template_id);
     if (!tpl) continue;
 
     // Atualiza template_id no spread (estado + Supabase)
@@ -3484,7 +3654,7 @@ function validarResolucao(perfil) {
   var CM2PX = dpi / 2.54;
 
   estado.spreads.forEach(function(spread) {
-    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; });
+    var tpl = buscarTemplate(spread.template_id);
     if (!tpl) return;
     var slots = (spread.album_slots || []).sort(function(a,b) { return a.slot_index - b.slot_index; });
     slots.forEach(function(slot, idx) {
