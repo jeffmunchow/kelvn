@@ -104,6 +104,47 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // ── POST album-init: presigned URL para foto extra de álbum ─────────────────
+  // Fotos adicionadas pelo fotógrafo no editor de álbuns, fora dos favoritos.
+  // Key: {userId}/album-extras/{albumId}/{ts}_{filename} (compatível com gallery-img).
+  if (req.method === 'POST' && action === 'album-init') {
+    const user = await getAuthUser(supabase, auth);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { album_id, filename, content_type, tamanho_bytes } = req.body || {};
+    if (!album_id || !filename || !content_type || !tamanho_bytes)
+      return res.status(400).json({ error: 'Missing required fields' });
+
+    // Valida que o álbum pertence a este usuário
+    const { data: album } = await supabase
+      .from('albuns').select('id').eq('id', album_id).eq('user_id', user.id).single();
+    if (!album) return res.status(403).json({ error: 'Álbum não encontrado' });
+
+    // Verifica quota (bytes_cota NULL = ilimitado)
+    const { data: profile } = await supabase
+      .from('profiles').select('bytes_usados, bytes_cota').eq('id', user.id).single();
+    if (profile?.bytes_cota !== null && profile?.bytes_cota !== undefined) {
+      if ((profile.bytes_usados || 0) + Number(tamanho_bytes) > profile.bytes_cota)
+        return res.status(400).json({ error: 'Cota de armazenamento atingida' });
+    }
+
+    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key = `${user.id}/album-extras/${album_id}/${Date.now()}_${safeName}`;
+
+    try {
+      const cmd = new PutObjectCommand({
+        Bucket:      process.env.R2_BUCKET_NAME,
+        Key:         key,
+        ContentType: content_type,
+      });
+      const url = await getSignedUrl(s3, cmd, { expiresIn: 300 });
+      return res.status(200).json({ key, url });
+    } catch (err) {
+      console.error('gallery-upload album-init presign error:', err);
+      return res.status(500).json({ error: 'Erro ao gerar URL de upload' });
+    }
+  }
+
   // ── POST complete: marca upload_ok=true ─────────────────────────────────────
   if (req.method === 'POST' && action === 'complete') {
     const user = await getAuthUser(supabase, auth);

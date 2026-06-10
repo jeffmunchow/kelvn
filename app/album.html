@@ -1259,10 +1259,10 @@ async function uploadFotosExtras(files) {
     var file = files[i];
     try {
       // Obter presigned URL
-      var res = await fetch('/api/album-upload', {
+      var res = await fetch('/api/gallery-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ album_id: estado.album.id, filename: file.name, content_type: file.type, tamanho_bytes: file.size })
+        body: JSON.stringify({ action: 'album-init', album_id: estado.album.id, filename: file.name, content_type: file.type, tamanho_bytes: file.size })
       });
       if (!res.ok) { console.warn('album-upload init:', await res.text()); continue; }
       var { key, url } = await res.json();
