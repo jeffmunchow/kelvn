@@ -1110,8 +1110,32 @@ function inserirCapaAlbum(albumId) {
   input.click();
 }
 
+// Modal de confirmação no padrão do sistema — retorna Promise<boolean>
+function confirmarKelvn(titulo, msg, txtConfirmar) {
+  return new Promise(function(resolve) {
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:960;';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:var(--surface);border-radius:12px;padding:1.5rem 1.75rem;width:100%;max-width:400px;font-family:\'DM Sans\',sans-serif;';
+    box.innerHTML =
+      '<div style="font-family:\'Playfair Display\',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.6rem;">' + titulo + '</div>' +
+      '<div style="font-size:.8rem;color:var(--text-muted);line-height:1.5;margin-bottom:1.25rem;">' + msg + '</div>' +
+      '<div style="display:flex;gap:.6rem;justify-content:flex-end;">' +
+        '<button id="ck-cancelar" class="btn btn-sec">Cancelar</button>' +
+        '<button id="ck-ok" style="background:var(--coral);color:#fff;border:.5px solid var(--coral);border-radius:8px;padding:6px 15px;font-family:\'DM Sans\',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;">' + (txtConfirmar || 'Excluir') + '</button>' +
+      '</div>';
+    ov.appendChild(box);
+    document.body.appendChild(ov);
+    function fechar(v) { ov.remove(); resolve(v); }
+    box.querySelector('#ck-cancelar').onclick = function(){ fechar(false); };
+    box.querySelector('#ck-ok').onclick = function(){ fechar(true); };
+    ov.onclick = function(e){ if (e.target === ov) fechar(false); };
+  });
+}
+
 async function excluirProjetoAlbum(albumId) {
-  if (!confirm('Excluir este projeto de álbum? Essa ação não pode ser desfeita.')) return;
+  var ok = await confirmarKelvn('Excluir projeto', 'Esse álbum e todas as lâminas dele vão embora. Essa ação não pode ser desfeita.', 'Excluir projeto');
+  if (!ok) return;
   var { data: spreads } = await _sb.from('album_spreads').select('id').eq('album_id', albumId).eq('user_id', _userId);
   var ids = (spreads || []).map(function(s){ return s.id; });
   if (ids.length) await _sb.from('album_slots').delete().in('spread_id', ids).eq('user_id', _userId);
