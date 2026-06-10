@@ -771,8 +771,8 @@ async function carregarTemplatesUsuario() {
 
 // Aspecto real do spread (2 páginas) conforme o formato do álbum.
 function spreadAspectRatio() {
-  var f = estado.album ? estado.album.formato : 'paisagem';
-  return f === 'quadrado' ? 2 : f === 'retrato' ? 1.4 : 2.8;
+  var spread = estado.spreads ? estado.spreads[estado.spreadAtivo] : null;
+  return ratioParaSpread(spread);
 }
 
 // Orientação ideal de um slot, derivada da geometria + aspecto do spread.
@@ -2001,8 +2001,13 @@ function renderTemplatesAgora() {
 
   // Pontua cada template: +100 se bate a quantidade de fotos, +pontos por orientação
   var ocultos = (_sd && _sd.tpl_ocultos) ? _sd.tpl_ocultos : [];
+  // Filtra templates cujos slots ficariam distorcidos demais no formato atual
   var scored = TEMPLATES.concat(TEMPLATES_USUARIO).filter(function(tpl) {
-    return ocultos.indexOf(tpl.id) < 0;
+    if (ocultos.indexOf(tpl.id) >= 0) return false;
+    return tpl.slots.every(function(s) {
+      var a = (s.w / s.h) * aspect;
+      return a >= 0.28 && a <= 6.0;
+    });
   }).map(function(tpl) {
     var slotOrients = tpl.slots.map(function(s){ return slotOrient(s, aspect); });
     var score = 0;
