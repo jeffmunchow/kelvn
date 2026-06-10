@@ -1002,7 +1002,7 @@ async function renderLista() {
     // Status — ciclo: rascunho → enviado → aprovado → finalizado → rascunho
     var STATUS_CICLO = ['rascunho','enviado','aprovado','finalizado'];
     var STATUS_LABEL = { rascunho:'Rascunho', enviado:'Enviado', aprovado:'Aprovado', finalizado:'Finalizado' };
-    var STATUS_COLOR = { rascunho:'var(--coral)', enviado:'var(--amber)', aprovado:'var(--teal)', finalizado:'var(--text-muted)' };
+    var STATUS_COLOR = { rascunho:'var(--coral)', enviado:'var(--amber)', aprovado:'var(--teal)', finalizado:'var(--text-hint)' };
     var statusAtual = STATUS_CICLO.indexOf(a.status) >= 0 ? a.status : 'rascunho';
 
     var fmtLabel = { paisagem: 'Paisagem', quadrado: 'Quadrado', retrato: 'Retrato' }[fmt] || fmt;
@@ -1049,7 +1049,7 @@ function selFormato(el) {
 
 async function ciclarStatusAlbum(btn) {
   var ciclo = ['rascunho','enviado','aprovado','finalizado'];
-  var cores  = { rascunho:'var(--coral)', enviado:'var(--amber)', aprovado:'var(--teal)', finalizado:'var(--text-muted)' };
+  var cores  = { rascunho:'var(--coral)', enviado:'var(--amber)', aprovado:'var(--teal)', finalizado:'var(--text-hint)' };
   var labels = { rascunho:'Rascunho', enviado:'Enviado', aprovado:'Aprovado', finalizado:'Finalizado' };
   var atual = btn.dataset.status;
   var proximo = ciclo[(ciclo.indexOf(atual) + 1) % ciclo.length];
