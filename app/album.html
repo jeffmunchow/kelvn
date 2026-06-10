@@ -1024,7 +1024,7 @@ async function renderLista() {
     card.innerHTML =
       '<div style="aspect-ratio:3/2;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;">'
         + (a.capa_thumb ? '<img src="' + a.capa_thumb + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">' : icone) +
-        '<button onclick="event.stopPropagation();abrirMenuAlbum(event, \'' + a.id + '\')" title="Opções" style="position:absolute;right:8px;bottom:8px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">' +
+        '<button onclick="event.stopPropagation();abrirMenuAlbum(event, \'' + a.id + '\')" title="Opções" style="position:absolute;right:8px;bottom:8px;width:26px;height:26px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;">' +
           '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>' +
         '</button>' +
       '</div>' +
