@@ -1136,6 +1136,25 @@ function confirmarKelvn(titulo, msg, txtConfirmar) {
 async function excluirProjetoAlbum(albumId) {
   var ok = await confirmarKelvn('Excluir projeto', 'Esse álbum e todas as lâminas dele vão embora. Essa ação não pode ser desfeita.', 'Excluir projeto');
   if (!ok) return;
+
+  // Fotos extras vivem em {userId}/album-extras/{albumId}/ — exclusivas deste
+  // álbum. Fotos da galeria do cliente ({userId}/{slug}/...) nunca entram aqui.
+  var { data: alb } = await _sb.from('albuns').select('fotos_extras').eq('id', albumId).eq('user_id', _userId).single();
+  var extras = (alb && Array.isArray(alb.fotos_extras)) ? alb.fotos_extras : [];
+  var soDoAlbum = extras.filter(function(k) {
+    return typeof k === 'string' && k.indexOf('/album-extras/' + albumId + '/') > 0;
+  });
+  if (soDoAlbum.length) {
+    var token = (await _sb.auth.getSession()).data.session.access_token;
+    await Promise.all(soDoAlbum.map(function(k) {
+      return fetch('/api/gallery-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ key: k })
+      }).catch(function(e){ console.warn('R2 delete:', k, e); });
+    }));
+  }
+
   var { data: spreads } = await _sb.from('album_spreads').select('id').eq('album_id', albumId).eq('user_id', _userId);
   var ids = (spreads || []).map(function(s){ return s.id; });
   if (ids.length) await _sb.from('album_slots').delete().in('spread_id', ids).eq('user_id', _userId);
