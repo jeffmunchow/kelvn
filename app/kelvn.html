@@ -1212,6 +1212,15 @@ select.aj-input{cursor:pointer;}
               </div>
             </div>
           </div>
+          <div class="aj-row" style="flex-direction:column;align-items:flex-start;gap:.55rem;">
+            <span class="aj-label">Armazenamento</span>
+            <div style="width:100%;max-width:340px;">
+              <div style="height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:.4rem;">
+                <div id="aj-quota-bar" style="height:100%;background:var(--teal);width:0%;border-radius:2px;transition:width .5s;"></div>
+              </div>
+              <span id="aj-quota-lbl" style="font-size:.74rem;color:var(--text-muted);">Carregando…</span>
+            </div>
+          </div>
           <div class="aj-row">
             <span class="aj-label">Sessão</span>
             <button onclick="doLogout()" style="background:transparent;border:.5px solid var(--border-strong);border-radius:8px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;">Sair da conta</button>
@@ -3084,7 +3093,7 @@ function switchAJ(name){
   });
   var ap=document.getElementById('aj-panel-'+name);if(ap)ap.style.display='';
   var ab=document.getElementById('aj-cat-'+name);if(ab)ab.classList.add('active');
-  if(name==='geral'){ _syncThemeUI(); _syncNewsletterToggle(); }
+  if(name==='geral'){ _syncThemeUI(); _syncNewsletterToggle(); _carregarCotaAjustes(); }
   if(name==='equipe'){_loadEqColW();rEQ();}
   if(name==='contratos') _syncTemplateStatus();
   if(name==='automacoes'){rAuto();_syncAutoFollowupUI();}
@@ -3252,6 +3261,7 @@ function rSD(){
   rFaqList();
   _syncAutoFollowupUI();
   _syncNewsletterToggle();
+  _carregarCotaAjustes();
 }
 function saveSD(){
   var sd=g('sd')||{};
@@ -6507,6 +6517,29 @@ async function _upUpdateQuota(){
       if(lbl) lbl.textContent = usadoGb+' GB usados';
     }
   }catch(e){}
+}
+
+async function _carregarCotaAjustes() {
+  try {
+    var bar = document.getElementById('aj-quota-bar');
+    var lbl = document.getElementById('aj-quota-lbl');
+    if (!bar || !lbl) return;
+    var { data: profile } = await _sb.from('profiles').select('bytes_usados,bytes_cota').eq('id', _currentUser.id).single();
+    if (!profile) return;
+    var usado = profile.bytes_usados || 0;
+    var cota  = profile.bytes_cota;
+    var usadoGb = (usado / (1024 * 1024 * 1024)).toFixed(2);
+    if (cota) {
+      var cotaGb = (cota / (1024 * 1024 * 1024)).toFixed(1);
+      var pct = Math.min(100, Math.round(usado / cota * 100));
+      bar.style.width = pct + '%';
+      bar.style.background = pct > 85 ? 'var(--coral)' : 'var(--teal)';
+      lbl.textContent = usadoGb + ' GB usados de ' + cotaGb + ' GB (' + pct + '%)';
+    } else {
+      bar.style.width = '0%';
+      lbl.textContent = usadoGb + ' GB usados';
+    }
+  } catch(e) {}
 }
 // ─────────────────────────────────────────────────────────────────────────────
 var _loteMenuAberto=false;
