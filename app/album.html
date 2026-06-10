@@ -1023,7 +1023,10 @@ async function renderLista() {
     card.onmouseleave = function(){ this.style.opacity='1'; };
     card.innerHTML =
       '<div style="aspect-ratio:3/2;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;">'
-        + icone +
+        + (a.capa_thumb ? '<img src="' + a.capa_thumb + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">' : icone) +
+        '<button onclick="event.stopPropagation();abrirMenuAlbum(event, \'' + a.id + '\')" title="Opções" style="position:absolute;right:8px;bottom:8px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>' +
+        '</button>' +
       '</div>' +
       '<div style="padding:.75rem 1rem;">' +
         '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">' +
@@ -1045,6 +1048,76 @@ async function renderLista() {
 function selFormato(el) {
   document.querySelectorAll('.formato-opt').forEach(function(f) { f.classList.remove('sel'); });
   el.classList.add('sel');
+}
+
+// ── Menu de opções do card de álbum (3 pontos) ───────────────────────────────
+function abrirMenuAlbum(ev, albumId) {
+  var antigo = document.getElementById('menu-album-card');
+  if (antigo) antigo.remove();
+
+  var menu = document.createElement('div');
+  menu.id = 'menu-album-card';
+  menu.style.cssText = 'position:fixed;z-index:950;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;padding:4px;min-width:150px;box-shadow:0 4px 16px rgba(0,0,0,.18);';
+
+  function item(txt, cor, fn) {
+    var b = document.createElement('button');
+    b.textContent = txt;
+    b.style.cssText = 'display:block;width:100%;text-align:left;background:none;border:none;border-radius:6px;padding:7px 10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.74rem;color:' + cor + ';';
+    b.onmouseenter = function(){ b.style.background = 'var(--surface2)'; };
+    b.onmouseleave = function(){ b.style.background = 'none'; };
+    b.onclick = function(){ menu.remove(); fn(); };
+    menu.appendChild(b);
+  }
+  item('Inserir capa', 'var(--text)', function(){ inserirCapaAlbum(albumId); });
+  item('Excluir projeto', 'var(--coral)', function(){ excluirProjetoAlbum(albumId); });
+
+  document.body.appendChild(menu);
+  var r = menu.getBoundingClientRect();
+  menu.style.left = Math.min(ev.clientX, window.innerWidth - r.width - 8) + 'px';
+  menu.style.top  = Math.min(ev.clientY, window.innerHeight - r.height - 8) + 'px';
+
+  setTimeout(function() {
+    document.addEventListener('mousedown', function fechar(e) {
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('mousedown', fechar); }
+    });
+  }, 0);
+}
+
+// Escolhe uma foto, reduz para thumb (máx. 640px, JPEG) e salva no álbum.
+function inserirCapaAlbum(albumId) {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = function() {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    var img = new Image();
+    img.onload = async function() {
+      URL.revokeObjectURL(img.src);
+      var MAX = 640;
+      var escala = Math.min(1, MAX / Math.max(img.width, img.height));
+      var cv = document.createElement('canvas');
+      cv.width  = Math.round(img.width  * escala);
+      cv.height = Math.round(img.height * escala);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      var thumb = cv.toDataURL('image/jpeg', 0.78);
+      var { error } = await _sb.from('albuns').update({ capa_thumb: thumb }).eq('id', albumId).eq('user_id', _userId);
+      if (error) { console.warn('capa:', error.message); setSaveStatus('Erro ao salvar capa'); return; }
+      renderLista();
+    };
+    img.src = URL.createObjectURL(file);
+  };
+  input.click();
+}
+
+async function excluirProjetoAlbum(albumId) {
+  if (!confirm('Excluir este projeto de álbum? Essa ação não pode ser desfeita.')) return;
+  var { data: spreads } = await _sb.from('album_spreads').select('id').eq('album_id', albumId).eq('user_id', _userId);
+  var ids = (spreads || []).map(function(s){ return s.id; });
+  if (ids.length) await _sb.from('album_slots').delete().in('spread_id', ids).eq('user_id', _userId);
+  await _sb.from('album_spreads').delete().eq('album_id', albumId).eq('user_id', _userId);
+  await _sb.from('albuns').delete().eq('id', albumId).eq('user_id', _userId);
+  renderLista();
 }
 
 async function ciclarStatusAlbum(btn) {
