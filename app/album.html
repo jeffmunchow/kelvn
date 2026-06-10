@@ -786,6 +786,7 @@ var estado = {
 // ── Konva ─────────────────────────────────────────────────────────────────────
 var _stage = null;
 var _layer = null;
+var _guideLayer = null;
 var _dimSpread = { w: 800, h: 300 };
 
 // ── Debounce de salvamento ────────────────────────────────────────────────────
@@ -1345,7 +1346,9 @@ function iniciarKonva() {
 
   _stage = new Konva.Stage({ container: 'konva-container', width: _dimSpread.w, height: _dimSpread.h });
   _layer = new Konva.Layer();
+  _guideLayer = new Konva.Layer({ listening: false });
   _stage.add(_layer);
+  _stage.add(_guideLayer);
 
   setupCanvasDrop();
 }
@@ -2420,6 +2423,75 @@ async function restaurarEstadoHistorico(snap) {
 // ── Nível 4 — Crop interativo ────────────────────────────────────────────────
 var _slotEmEdicao = null; // { grupo, slot, dimSlot, imgNode, snapAntes }
 
+// ── Smart guides ──────────────────────────────────────────────────────────────
+function limparGuias() {
+  if (!_guideLayer) return;
+  _guideLayer.destroyChildren();
+  _guideLayer.batchDraw();
+}
+
+function atualizarGuias(grupo, dimSlot) {
+  if (!_guideLayer || !_slotEmEdicao) return;
+  _guideLayer.destroyChildren();
+
+  var W = _dimSpread.w, H = _dimSpread.h;
+  var sc = grupo.scaleX();
+  var bx = grupo.x() + dimSlot.x * sc;
+  var by = grupo.y() + dimSlot.y * sc;
+  var bw = dimSlot.w * sc;
+  var bh = dimSlot.h * sc;
+  var bcx = bx + bw / 2;
+  var bcy = by + bh / 2;
+
+  var SNAP = 6;
+  var vLines = {}, hLines = {};
+
+  function addV(x) { vLines[Math.round(x)] = x; }
+  function addH(y) { hLines[Math.round(y)] = y; }
+
+  // Centro e bordas da página
+  if (Math.abs(bcx - W / 2) < SNAP) addV(W / 2);
+  if (Math.abs(bcy - H / 2) < SNAP) addH(H / 2);
+  if (Math.abs(bx) < SNAP)          addV(0);
+  if (Math.abs(bx + bw - W) < SNAP) addV(W);
+  if (Math.abs(by) < SNAP)          addH(0);
+  if (Math.abs(by + bh - H) < SNAP) addH(H);
+
+  // Alinhamento com outros slots
+  var spread = estado.spreads[estado.spreadAtivo];
+  var efetivos = slotsEfetivos(spread, W, H);
+  var meuId = _slotEmEdicao.slot.id;
+  efetivos.forEach(function(s, i) {
+    var sl = spread.album_slots && spread.album_slots[i];
+    if (sl && sl.id === meuId) return;
+    var sx = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
+    var scx = sx + sw / 2, scy = sy + sh / 2;
+    // centro vs centro
+    if (Math.abs(bcx - scx) < SNAP) addV(scx);
+    if (Math.abs(bcy - scy) < SNAP) addH(scy);
+    // bordas
+    [sx, sx + sw].forEach(function(ex) {
+      if (Math.abs(bx - ex) < SNAP || Math.abs(bx + bw - ex) < SNAP) addV(ex);
+    });
+    [sy, sy + sh].forEach(function(ey) {
+      if (Math.abs(by - ey) < SNAP || Math.abs(by + bh - ey) < SNAP) addH(ey);
+    });
+  });
+
+  Object.values(vLines).forEach(function(x) {
+    _guideLayer.add(new Konva.Line({
+      points: [x, 0, x, H], stroke: '#C4780A', strokeWidth: 1, dash: [5, 4], listening: false
+    }));
+  });
+  Object.values(hLines).forEach(function(y) {
+    _guideLayer.add(new Konva.Line({
+      points: [0, y, W, y], stroke: '#C4780A', strokeWidth: 1, dash: [5, 4], listening: false
+    }));
+  });
+
+  _guideLayer.batchDraw();
+}
+
 function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   if (_slotEmEdicao) sairModoEdicaoSlot(true);
   var imgNode = grupo.findOne('Image');
@@ -2478,6 +2550,8 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     salvarGeomSlot(slot);
     sairModoEdicaoSlot(true); // re-renderiza com a nova geometria
   }
+  grupo.on('dragmove.guides', function() { atualizarGuias(grupo, dimSlot); });
+  grupo.on('transform.guides', function() { atualizarGuias(grupo, dimSlot); });
   grupo.on('dragend.box', commitGeom);
   grupo.on('transformend.box', commitGeom);
 
@@ -2562,10 +2636,11 @@ function sairModoEdicaoSlot(silencioso) {
       historico.empurrar('crop', snap, snapDepois);
     }
   }
-  _slotEmEdicao.grupo.off('dragend.box transformend.box');
+  _slotEmEdicao.grupo.off('dragend.box transformend.box dragmove.guides transform.guides');
   _slotEmEdicao.grupo.draggable(false);
   if (_slotEmEdicao.tr) _slotEmEdicao.tr.destroy();
   _stage.container().removeEventListener('wheel', _wheelCropHandler);
+  limparGuias();
   _slotEmEdicao = null;
   renderSpread();
   renderThumbs(); // reflete o recorte no thumbnail do rodapé
