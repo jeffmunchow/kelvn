@@ -2545,15 +2545,6 @@ function renderThumbs() {
     label.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:.48rem;color:rgba(255,255,255,.4);font-family:DM Sans,sans-serif;';
     label.textContent = spread.tipo === 'capa' ? 'capa' : spread.tipo === 'contracapa' ? 'fim' : idx;
 
-    // Botão remover (exceto capa e contracapa)
-    if (spread.tipo === 'spread') {
-      var rmBtn = document.createElement('div');
-      rmBtn.className = 'thumb-remove';
-      rmBtn.textContent = '×';
-      rmBtn.addEventListener('click', function(e) { e.stopPropagation(); removerSpread(spread.id); });
-      item.appendChild(rmBtn);
-    }
-
     item.appendChild(mini);
     item.appendChild(label);
 
@@ -2802,7 +2793,7 @@ function mostrarMenuContextoSpread(cx, cy, idx) {
   document.body.appendChild(menu);
   var r = menu.getBoundingClientRect();
   menu.style.left = Math.min(cx, window.innerWidth - r.width - 8) + 'px';
-  menu.style.top  = Math.min(cy - r.height - 6, window.innerHeight - r.height - 8) + 'px';
+  menu.style.top  = Math.min(cy, window.innerHeight - r.height - 8) + 'px';
 
   setTimeout(function() {
     document.addEventListener('mousedown', function fechar(e) {
