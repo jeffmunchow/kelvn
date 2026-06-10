@@ -8632,6 +8632,8 @@ async function onLogin(user){
     document.querySelectorAll('.snav-btn').forEach(function(b){b.classList.remove('active');});
     var _db=document.getElementById('sn-'+_deepLink);if(_db)_db.classList.add('active');
     _curSection=_deepLink; _curTab=_deepLink;
+    // Limpa o hash JÁ — refresh deve voltar ao dashboard, não repetir o deep-link
+    history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 
   hideAuthScreen();
@@ -8653,8 +8655,6 @@ async function onLogin(user){
 
   if(_deepLink){
     goDirecto(_deepLink); // carrega dados da seção alvo (já no painel correto)
-    // Remove o hash da URL para que refresh volte ao dashboard
-    history.replaceState(null, '', window.location.pathname + window.location.search);
   } else {
     rR(); // sem deep-link: renderiza o dashboard normalmente
   }
