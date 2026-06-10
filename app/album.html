@@ -1456,9 +1456,14 @@ function renderSpread() {
           _layer.batchDraw();
           agendarCapturaThumbAtivo();
 
-          // Duplo clique ativa crop
-          img.on('dblclick dbltap', function() {
+          // 1 clique: seleciona a caixa do slot (tamanho e formato livres)
+          img.on('click tap', function() {
+            if (_slotEmEdicao && _slotEmEdicao.slot === slotRef) return;
             ativarModoEdicaoSlot(grupoRef, slotRef, { x: gx, y: gy, w: gw, h: gh });
+          });
+          // 2 cliques: seleciona a foto dentro do slot (proporção travada)
+          img.on('dblclick dbltap', function() {
+            ativarModoEdicaoFoto(grupoRef, slotRef, { x: gx, y: gy, w: gw, h: gh });
           });
 
           // Arrastar para outro slot troca as fotos de lugar
@@ -2524,8 +2529,10 @@ function atualizarGuias(bx, by, bw, bh) {
   _guideLayer.batchDraw();
 }
 
+// 1 clique — edita a CAIXA do slot: move e redimensiona livremente
+// (largura e altura independentes, sem trava de proporção).
 function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
-  if (_slotEmEdicao) sairModoEdicaoSlot(true);
+  if (_slotEmEdicao) sairModoEdicaoSlot(true, true);
   var imgNode = grupo.findOne('Image');
   if (!imgNode) return;
   var W = _dimSpread.w, H = _dimSpread.h;
@@ -2552,7 +2559,7 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     nodes: [proxyRect],
     rotateEnabled: false,
     flipEnabled: false,
-    keepRatio: true,
+    keepRatio: false,
     enabledAnchors: ['top-left','top-center','top-right','middle-left','middle-right','bottom-left','bottom-center','bottom-right'],
     anchorSize: 9,
     anchorCornerRadius: 4.5,
@@ -2573,8 +2580,7 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
 
   // Snap ao arrastar
   proxyRect.dragBoundFunc(function(pos) {
-    var sc = proxyRect.scaleX();
-    var bw = dimSlot.w * sc, bh = dimSlot.h * sc;
+    var bw = dimSlot.w * proxyRect.scaleX(), bh = dimSlot.h * proxyRect.scaleY();
     var x = Math.max(0, Math.min(pos.x, W - bw));
     var y = Math.max(0, Math.min(pos.y, H - bh));
     var st = calcSnapTargets(slot.id);
@@ -2586,17 +2592,15 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   });
 
   function getGuiaBounds() {
-    var sc = proxyRect.scaleX();
-    return { bx: proxyRect.x(), by: proxyRect.y(), bw: dimSlot.w * sc, bh: dimSlot.h * sc };
+    return { bx: proxyRect.x(), by: proxyRect.y(), bw: dimSlot.w * proxyRect.scaleX(), bh: dimSlot.h * proxyRect.scaleY() };
   }
   proxyRect.on('dragmove.guides', function() { var b = getGuiaBounds(); atualizarGuias(b.bx, b.by, b.bw, b.bh); });
   proxyRect.on('transform.guides', function() { var b = getGuiaBounds(); atualizarGuias(b.bx, b.by, b.bw, b.bh); });
 
   function commitGeom() {
-    var sc = proxyRect.scaleX();
     var nx = proxyRect.x(), ny = proxyRect.y();
     var geomAntes = slot.geom ? Object.assign({}, slot.geom) : null;
-    var geomDepois = { x: nx / W, y: ny / H, w: (dimSlot.w * sc) / W, h: (dimSlot.h * sc) / H };
+    var geomDepois = { x: nx / W, y: ny / H, w: (dimSlot.w * proxyRect.scaleX()) / W, h: (dimSlot.h * proxyRect.scaleY()) / H };
     slot.geom = geomDepois;
     slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
     var spreadId = estado.spreads[estado.spreadAtivo].id;
@@ -2609,6 +2613,60 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   }
   proxyRect.on('dragend.box', commitGeom);
   proxyRect.on('transformend.box', commitGeom);
+
+  _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
+  _layer.batchDraw();
+}
+
+// 2 cliques — edita a FOTO dentro do slot: arrasta e redimensiona mantendo
+// a proporção original da foto (nunca menor que o cover-fit do slot).
+function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
+  if (_slotEmEdicao) sairModoEdicaoSlot(true, true);
+  var imgNode = grupo.findOne('Image');
+  if (!imgNode) return;
+
+  _slotEmEdicao = {
+    grupo: grupo, slot: slot, dimSlot: dimSlot, imgNode: imgNode, modo: 'foto',
+    snapAntes: { tipo:'slot', spreadId: estado.spreads[estado.spreadAtivo].id, slotId: slot.id,
+      foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala }
+  };
+
+  var escalaMin = escalaMinCover(imgNode, dimSlot);
+  var minW = imgNode.width() * escalaMin;
+  var maxW = imgNode.width() * escalaMin * 3;
+
+  var tr = new Konva.Transformer({
+    nodes: [imgNode],
+    rotateEnabled: false,
+    flipEnabled: false,
+    keepRatio: true,
+    enabledAnchors: ['top-left','top-right','bottom-left','bottom-right'],
+    anchorSize: 9,
+    anchorCornerRadius: 4.5,
+    anchorStroke: '#C4780A',
+    anchorFill: '#ffffff',
+    borderStroke: '#C4780A',
+    borderStrokeWidth: 1.5,
+    borderDash: [5, 4],
+    boundBoxFunc: function(oldBox, newBox) {
+      if (newBox.width < minW - 0.5 || newBox.width > maxW + 0.5) return oldBox;
+      return newBox;
+    },
+  });
+  _layer.add(tr);
+  _slotEmEdicao.tr = tr;
+
+  imgNode.draggable(true);
+  imgNode.dragBoundFunc(function(pos) { return limitarDragFoto(pos, imgNode, dimSlot); });
+
+  function commitFoto() {
+    imgNode.position(limitarDragFoto(imgNode.position(), imgNode, dimSlot));
+    _layer.batchDraw();
+    salvarCropAtual();
+    agendarCapturaThumbAtivo();
+  }
+  imgNode.on('dragend.foto', commitFoto);
+  imgNode.on('transformend.foto', commitFoto);
 
   _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
   _layer.batchDraw();
@@ -2680,7 +2738,7 @@ function salvarCropAtual() {
   }, 600);
 }
 
-function sairModoEdicaoSlot(silencioso) {
+function sairModoEdicaoSlot(silencioso, semRender) {
   if (!_slotEmEdicao) return;
   var snap = _slotEmEdicao.snapAntes;
   var slot = _slotEmEdicao.slot;
@@ -2694,10 +2752,15 @@ function sairModoEdicaoSlot(silencioso) {
     _slotEmEdicao.proxyRect.off('dragend.box transformend.box dragmove.guides transform.guides');
     _slotEmEdicao.proxyRect.destroy();
   }
+  if (_slotEmEdicao.modo === 'foto' && _slotEmEdicao.imgNode) {
+    _slotEmEdicao.imgNode.off('.foto');
+    _slotEmEdicao.imgNode.draggable(false);
+  }
   if (_slotEmEdicao.tr) _slotEmEdicao.tr.destroy();
   _stage.container().removeEventListener('wheel', _wheelCropHandler);
   limparGuias();
   _slotEmEdicao = null;
+  if (semRender) { _layer.batchDraw(); return; } // troca de modo: mantém os nós atuais
   renderSpread();
   renderThumbs(); // reflete o recorte no thumbnail do rodapé
 }
