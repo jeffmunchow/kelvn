@@ -1636,7 +1636,7 @@ function renderSpread() {
   if (!spread) return;
 
   var W = _dimSpread.w, H = _dimSpread.h;
-  var bgColor = spread.background_color || '#1e1b16';
+  var bgColor = spread.background_color || '#ffffff';
 
   // Fundo do spread
   _layer.add(new Konva.Rect({ x:0, y:0, width:W, height:H, fill:bgColor }));
@@ -1768,7 +1768,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
   function aoCarregar() { pend--; if (pend <= 0 && !finalizou) { finalizou = true; onReady(); } }
   function aguardar() { pend++; }
 
-  var bgColor = spread.background_color || '#1e1b16';
+  var bgColor = spread.background_color || '#ffffff';
   layer.add(new Konva.Rect({ x:0, y:0, width:W, height:H, fill:bgColor }));
 
   var slots = spread.album_slots || [];
@@ -2492,7 +2492,7 @@ function montarThumbSnapshot(spread, imgEl) {
   var sig = assinaturaSpread(spread);
   var cached = _thumbSnapCache[spread.id];
   if (cached && cached.sig === sig && cached.url) { imgEl.src = cached.url; return; }
-  imgEl.style.background = spread.background_color || '#1e1b16';
+  imgEl.style.background = spread.background_color || '#ffffff';
   // Spread ativo: capturar direto do _stage (fotos já carregadas, sem risco de branco)
   var eAtivo = spread.id === (estado.spreads[estado.spreadAtivo] || {}).id;
   if (eAtivo && _stage) {
@@ -2815,7 +2815,11 @@ async function duplicarSpread(idx) {
 
   var { data: novo } = await _sb.from('album_spreads').insert({
     album_id: estado.album.id, user_id: _userId, posicao: novaPos,
-    tipo: 'spread', template_id: orig.template_id
+    tipo: 'spread', template_id: orig.template_id,
+    background_color: orig.background_color || null,
+    margem_px: orig.margem_px != null ? orig.margem_px : null,
+    gutter_px: orig.gutter_px != null ? orig.gutter_px : null,
+    full_bleed: orig.full_bleed || false
   }).select().single();
   if (!novo) return;
 
@@ -2829,6 +2833,19 @@ async function duplicarSpread(idx) {
   });
   var { data: slots } = slotsData.length ? await _sb.from('album_slots').insert(slotsData).select() : { data: [] };
   novo.album_slots = slots || [];
+
+  // Copia também os textos da lâmina original
+  var textosOrig = await carregarTextos(orig.id);
+  if (textosOrig && textosOrig.length) {
+    var textosData = textosOrig.map(function(t) {
+      var c = Object.assign({}, t);
+      delete c.id; delete c.criado_em; delete c.atualizado_em;
+      c.spread_id = novo.id; c.user_id = _userId;
+      return c;
+    });
+    var { data: novosTextos } = await _sb.from('album_textos').insert(textosData).select();
+    novo._textos = novosTextos || [];
+  }
 
   var ativoAntes = estado.spreadAtivo;
   estado.spreads.splice(novaPos, 0, novo);
@@ -3498,7 +3515,7 @@ function renderPropsSpreadBody() {
   swatches.className = 'swatches';
   CORES_FUNDO.forEach(function(c) {
     var sw = document.createElement('div');
-    sw.className = 'swatch' + ((spread.background_color || '#1e1b16') === c.value ? ' sel' : '');
+    sw.className = 'swatch' + ((spread.background_color || '#ffffff') === c.value ? ' sel' : '');
     sw.style.background = c.value;
     sw.title = c.label;
     sw.addEventListener('click', function() {
