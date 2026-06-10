@@ -2423,7 +2423,36 @@ async function restaurarEstadoHistorico(snap) {
 // ── Nível 4 — Crop interativo ────────────────────────────────────────────────
 var _slotEmEdicao = null; // { grupo, slot, dimSlot, imgNode, snapAntes }
 
-// ── Smart guides ──────────────────────────────────────────────────────────────
+// ── Smart guides + snap ───────────────────────────────────────────────────────
+var _SNAP_PX = 7;
+
+function calcSnapTargets(meuSlotId) {
+  var W = _dimSpread.w, H = _dimSpread.h;
+  var vT = [0, W / 2, W];
+  var hT = [0, H / 2, H];
+  var spread = estado.spreads[estado.spreadAtivo];
+  slotsEfetivos(spread, W, H).forEach(function(s, i) {
+    var sl = spread.album_slots && spread.album_slots[i];
+    if (sl && sl.id === meuSlotId) return;
+    var sx = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
+    vT.push(sx, sx + sw / 2, sx + sw);
+    hT.push(sy, sy + sh / 2, sy + sh);
+  });
+  return { vT: vT, hT: hT };
+}
+
+// Retorna o delta de snap (null se nenhum alvo dentro do threshold)
+function findSnap(edges, targets) {
+  var best = null, bestD = _SNAP_PX;
+  edges.forEach(function(edge) {
+    targets.forEach(function(t) {
+      var d = Math.abs(t - edge);
+      if (d < bestD) { bestD = d; best = t - edge; }
+    });
+  });
+  return best;
+}
+
 function limparGuias() {
   if (!_guideLayer) return;
   _guideLayer.destroyChildren();
@@ -2529,15 +2558,21 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   _layer.add(tr);
   _slotEmEdicao.tr = tr;
 
-  // Arrastar move a caixa pela página (limitada ao spread)
+  // Arrastar move a caixa pela página (limitada ao spread, com snap a guias)
   grupo.draggable(true);
   grupo.dragBoundFunc(function(pos) {
     var sc = grupo.scaleX();
     var bw = dimSlot.w * sc, bh = dimSlot.h * sc;
-    return {
-      x: Math.max(-dimSlot.x * sc, Math.min(pos.x, W - bw - dimSlot.x * sc)),
-      y: Math.max(-dimSlot.y * sc, Math.min(pos.y, H - bh - dimSlot.y * sc)),
-    };
+    var ox = dimSlot.x * sc, oy = dimSlot.y * sc;
+    var x = Math.max(-ox, Math.min(pos.x, W - bw - ox));
+    var y = Math.max(-oy, Math.min(pos.y, H - bh - oy));
+    var bx = x + ox, by = y + oy;
+    var st = calcSnapTargets(slot.id);
+    var dx = findSnap([bx, bx + bw / 2, bx + bw], st.vT);
+    var dy = findSnap([by, by + bh / 2, by + bh], st.hT);
+    if (dx !== null) x = Math.max(-ox, Math.min(x + dx, W - bw - ox));
+    if (dy !== null) y = Math.max(-oy, Math.min(y + dy, H - bh - oy));
+    return { x: x, y: y };
   });
 
   function commitGeom() {
