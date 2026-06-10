@@ -2678,6 +2678,11 @@ function renderTimeline(bar) {
     }
 
     grupo.addEventListener('click', (function(i) { return function() { mudarSpread(i); }; })(idx));
+    if (spread.tipo === 'spread') {
+      grupo.addEventListener('contextmenu', (function(i) {
+        return function(e) { e.preventDefault(); mostrarMenuContextoSpread(e.clientX, e.clientY, i); };
+      })(idx));
+    }
     bar.appendChild(grupo);
     if (idx === estado.spreadAtivo) ativoEl = grupo;
   });
@@ -2764,6 +2769,99 @@ async function reordenarSpreads(deIdx, paraIdx) {
   await Promise.all(updates);
 
   renderThumbs();
+  renderSpread();
+}
+
+// ── Menu de contexto da miniatura (duplicar / excluir) ────────────────────────
+function mostrarMenuContextoSpread(cx, cy, idx) {
+  var antigo = document.getElementById('menu-ctx-spread');
+  if (antigo) antigo.remove();
+
+  var menu = document.createElement('div');
+  menu.id = 'menu-ctx-spread';
+  menu.style.cssText = 'position:fixed;z-index:950;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;padding:4px;min-width:130px;box-shadow:0 4px 16px rgba(0,0,0,.18);';
+
+  function item(txt, cor, fn) {
+    var b = document.createElement('button');
+    b.textContent = txt;
+    b.style.cssText = 'display:block;width:100%;text-align:left;background:none;border:none;border-radius:6px;padding:7px 10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.74rem;color:' + cor + ';';
+    b.onmouseenter = function(){ b.style.background = 'var(--surface2)'; };
+    b.onmouseleave = function(){ b.style.background = 'none'; };
+    b.onclick = function(){ menu.remove(); fn(); };
+    menu.appendChild(b);
+  }
+  item('Duplicar', 'var(--text)', function(){ duplicarSpread(idx); });
+  item('Excluir', 'var(--coral)', function(){ excluirSpreadComFotos(idx); });
+
+  document.body.appendChild(menu);
+  var r = menu.getBoundingClientRect();
+  menu.style.left = Math.min(cx, window.innerWidth - r.width - 8) + 'px';
+  menu.style.top  = Math.min(cy - r.height - 6, window.innerHeight - r.height - 8) + 'px';
+
+  setTimeout(function() {
+    document.addEventListener('mousedown', function fechar(e) {
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('mousedown', fechar); }
+    });
+  }, 0);
+}
+
+async function duplicarSpread(idx) {
+  var orig = estado.spreads[idx];
+  if (!orig || orig.tipo !== 'spread') return;
+  var novaPos = idx + 1;
+
+  // Abre espaço nas posições seguintes
+  for (var i = novaPos; i < estado.spreads.length; i++) {
+    await _sb.from('album_spreads').update({ posicao: i + 1 }).eq('id', estado.spreads[i].id).eq('user_id', _userId);
+    estado.spreads[i].posicao = i + 1;
+  }
+
+  var { data: novo } = await _sb.from('album_spreads').insert({
+    album_id: estado.album.id, user_id: _userId, posicao: novaPos,
+    tipo: 'spread', template_id: orig.template_id
+  }).select().single();
+  if (!novo) return;
+
+  var slotsData = (orig.album_slots || []).map(function(s) {
+    return {
+      spread_id: novo.id, user_id: _userId, slot_index: s.slot_index,
+      foto_key: s.foto_key || null,
+      foto_x: s.foto_x || 0, foto_y: s.foto_y || 0, foto_escala: s.foto_escala || 0,
+      geom: s.geom || null
+    };
+  });
+  var { data: slots } = slotsData.length ? await _sb.from('album_slots').insert(slotsData).select() : { data: [] };
+  novo.album_slots = slots || [];
+
+  estado.spreads.splice(novaPos, 0, novo);
+  estado.spreadAtivo = novaPos;
+  (novo.album_slots || []).forEach(function(s){ if (s.foto_key) estado.fotosUsadas.add(s.foto_key); });
+
+  renderThumbs();
+  renderTemplates();
+  renderSpread();
+}
+
+async function excluirSpreadComFotos(idx) {
+  var spread = estado.spreads[idx];
+  if (!spread || spread.tipo !== 'spread') return;
+
+  await _sb.from('album_slots').delete().eq('spread_id', spread.id).eq('user_id', _userId);
+  await _sb.from('album_spreads').delete().eq('id', spread.id).eq('user_id', _userId);
+  estado.spreads.splice(idx, 1);
+  if (estado.spreadAtivo >= idx) estado.spreadAtivo = Math.max(0, estado.spreadAtivo - 1);
+
+  // Libera no pool as fotos que só existiam nesta lâmina
+  estado.fotosUsadas = new Set();
+  estado.spreads.forEach(function(s) {
+    (s.album_slots || []).forEach(function(slot) {
+      if (slot.foto_key) estado.fotosUsadas.add(slot.foto_key);
+    });
+  });
+  atualizarUsadasNoPool();
+
+  renderThumbs();
+  renderTemplates();
   renderSpread();
 }
 
