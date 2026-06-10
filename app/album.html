@@ -2599,6 +2599,12 @@ function renderThumbs() {
     });
 
     item.addEventListener('click', function() { mudarSpread(idx); });
+    if (spread.tipo === 'spread') {
+      item.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        mostrarMenuContextoSpread(e.clientX, e.clientY, idx);
+      });
+    }
     bar.appendChild(item);
   });
 
