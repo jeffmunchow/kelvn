@@ -2000,7 +2000,10 @@ function renderTemplatesAgora() {
   var fotoOrients = keys.map(function(k){ return _orientCache[k] || 's'; });
 
   // Pontua cada template: +100 se bate a quantidade de fotos, +pontos por orientação
-  var scored = TEMPLATES.concat(TEMPLATES_USUARIO).map(function(tpl) {
+  var ocultos = (_sd && _sd.tpl_ocultos) ? _sd.tpl_ocultos : [];
+  var scored = TEMPLATES.concat(TEMPLATES_USUARIO).filter(function(tpl) {
+    return ocultos.indexOf(tpl.id) < 0;
+  }).map(function(tpl) {
     var slotOrients = tpl.slots.map(function(s){ return slotOrient(s, aspect); });
     var score = 0;
     if (nFotos > 0 && tpl.slots.length === nFotos) {
@@ -2119,12 +2122,10 @@ function criarCardTemplate(tpl, tplAtivo, aspect) {
   card.title = tpl.nome;
   card.appendChild(preview);
   card.addEventListener('click', function() { aplicarTemplate(tpl.id); });
-  if (tpl.custom) {
-    card.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      mostrarMenuContextoTemplate(e.clientX, e.clientY, tpl);
-    });
-  }
+  card.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    mostrarMenuContextoTemplate(e.clientX, e.clientY, tpl);
+  });
   return card;
 }
 
@@ -2150,10 +2151,22 @@ function mostrarMenuContextoTemplate(cx, cy, tpl) {
 }
 
 async function excluirTemplateUsuario(tpl) {
-  if (!tpl.dbId) return;
-  var { error } = await _sb.from('album_templates').delete().eq('id', tpl.dbId).eq('user_id', _userId);
-  if (error) { console.warn('excluir template:', error.message); return; }
-  TEMPLATES_USUARIO = TEMPLATES_USUARIO.filter(function(t) { return t.id !== tpl.id; });
+  if (tpl.custom && tpl.dbId) {
+    // Template do próprio fotógrafo → apaga do banco
+    var { error } = await _sb.from('album_templates').delete().eq('id', tpl.dbId).eq('user_id', _userId);
+    if (error) { console.warn('excluir template:', error.message); return; }
+    TEMPLATES_USUARIO = TEMPLATES_USUARIO.filter(function(t) { return t.id !== tpl.id; });
+  } else {
+    // Template padrão → oculta só para este fotógrafo via _sd
+    if (!_sd.tpl_ocultos) _sd.tpl_ocultos = [];
+    if (_sd.tpl_ocultos.indexOf(tpl.id) < 0) _sd.tpl_ocultos.push(tpl.id);
+    if (_userId) {
+      _sb.from('configuracoes').upsert(
+        { user_id: _userId, sd: _sd, atualizado_em: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      ).then(function(){}, function(){});
+    }
+  }
   renderTemplates();
 }
 
