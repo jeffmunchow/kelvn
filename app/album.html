@@ -2611,7 +2611,10 @@ function calcSnapTargets(meuSlotId) {
   var W = _dimSpread.w, H = _dimSpread.h;
   var vT = [0, W / 2, W];
   var hT = [0, H / 2, H];
+  // Centros das páginas individuais (esquerda: W/4, direita: 3W/4)
   var spread = estado.spreads[estado.spreadAtivo];
+  var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
+  if (!isCapa) { vT.push(W / 4, W * 3 / 4); }
   slotsEfetivos(spread, W, H).forEach(function(s, i) {
     var sl = spread.album_slots && spread.album_slots[i];
     if (sl && sl.id === meuSlotId) return;
@@ -2655,16 +2658,22 @@ function atualizarGuias(bx, by, bw, bh) {
   function addV(x) { vLines[Math.round(x)] = x; }
   function addH(y) { hLines[Math.round(y)] = y; }
 
-  // Centro e bordas da página
+  // Centro do spread e bordas
   if (Math.abs(bcx - W / 2) < SNAP) addV(W / 2);
   if (Math.abs(bcy - H / 2) < SNAP) addH(H / 2);
+  // Centros das páginas individuais (só em spreads, não em capa/contracapa)
+  var spread = estado.spreads[estado.spreadAtivo];
+  var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
+  if (!isCapa) {
+    if (Math.abs(bcx - W / 4) < SNAP)     addV(W / 4);
+    if (Math.abs(bcx - W * 3 / 4) < SNAP) addV(W * 3 / 4);
+  }
   if (Math.abs(bx) < SNAP)          addV(0);
   if (Math.abs(bx + bw - W) < SNAP) addV(W);
   if (Math.abs(by) < SNAP)          addH(0);
   if (Math.abs(by + bh - H) < SNAP) addH(H);
 
   // Alinhamento com outros slots
-  var spread = estado.spreads[estado.spreadAtivo];
   var efetivos = slotsEfetivos(spread, W, H);
   var meuId = _slotEmEdicao.slot.id;
   efetivos.forEach(function(s, i) {
