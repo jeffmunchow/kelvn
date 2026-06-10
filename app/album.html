@@ -1369,6 +1369,20 @@ function setupCanvasDrop() {
   });
 }
 
+// Geometria efetiva dos slots: template + espaçamento, com override por slot
+// (slot.geom = {x,y,w,h} normalizado, salvo quando o usuário redimensiona a caixa).
+function slotsEfetivos(spread, W, H) {
+  var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
+  var margemPx = spread.margem_px != null ? spread.margem_px : 8;
+  var gutterPx = spread.gutter_px  != null ? spread.gutter_px  : 8;
+  var slotsAjust = aplicarEspacamento(tpl.slots, margemPx, gutterPx, W, H);
+  var slots = spread.album_slots || [];
+  return slotsAjust.map(function(s, i) {
+    var g = slots[i] && slots[i].geom;
+    return (g && typeof g.x === 'number') ? g : s;
+  });
+}
+
 // ── Renderizar spread no canvas ───────────────────────────────────────────────
 function renderSpread() {
   if (!_stage || !_layer) return;
@@ -1404,10 +1418,7 @@ function renderSpread() {
     return;
   }
 
-  var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
-  var margemPx = spread.margem_px != null ? spread.margem_px : 8;
-  var gutterPx = spread.gutter_px  != null ? spread.gutter_px  : 8;
-  var slotsAjust = aplicarEspacamento(tpl.slots, margemPx, gutterPx, W, H);
+  var slotsAjust = slotsEfetivos(spread, W, H);
 
   slotsAjust.forEach(function(s, idx) {
     var x = s.x * W, y = s.y * H, w = s.w * W, h = s.h * H;
@@ -1506,10 +1517,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
       }, function() { aoCarregar(); });
     })(slots[0].foto_key);
   } else {
-    var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
-    var margemPx = spread.margem_px != null ? spread.margem_px : 8;
-    var gutterPx = spread.gutter_px  != null ? spread.gutter_px  : 8;
-    var slotsAjust = aplicarEspacamento(tpl.slots, margemPx, gutterPx, W, H);
+    var slotsAjust = slotsEfetivos(spread, W, H);
 
     slotsAjust.forEach(function(s, idx) {
       var x = s.x * W, y = s.y * H, w = s.w * W, h = s.h * H;
@@ -1607,18 +1615,18 @@ function definirVizinho(el, spread, tk) {
 function encontrarSlotNaPosicao(px, py, exato) {
   var spread = estado.spreads[estado.spreadAtivo];
   if (!spread) return -1;
-  var tpl = TEMPLATES.find(function(t) { return t.id === spread.template_id; }) || TEMPLATES[0];
   var W = _dimSpread.w, H = _dimSpread.h;
+  var slots = slotsEfetivos(spread, W, H);
   // 1) Hit direto: dentro de algum slot
-  for (var i = 0; i < tpl.slots.length; i++) {
-    var s = tpl.slots[i];
+  for (var i = 0; i < slots.length; i++) {
+    var s = slots[i];
     if (px >= s.x*W && px <= (s.x+s.w)*W && py >= s.y*H && py <= (s.y+s.h)*H) return i;
   }
   if (exato) return -1; // modo exato: fora de qualquer slot → nenhum
   // 2) Fallback: solto na calha/margem → escolhe o slot de centro mais próximo
   var melhor = -1, menorDist = Infinity;
-  for (var j = 0; j < tpl.slots.length; j++) {
-    var sj = tpl.slots[j];
+  for (var j = 0; j < slots.length; j++) {
+    var sj = slots[j];
     var cx = (sj.x + sj.w/2) * W, cy = (sj.y + sj.h/2) * H;
     var d = (px-cx)*(px-cx) + (py-cy)*(py-cy);
     if (d < menorDist) { menorDist = d; melhor = j; }
@@ -1854,6 +1862,7 @@ async function aplicarTemplateComFotos(spread, tplId, fotoKeys) {
     }).eq('id', slot.id).eq('user_id', _userId);
   }
 
+  limparGeomCustom(spread);
   await _sb.from('album_spreads').update({ template_id: tplId }).eq('id', spread.id).eq('user_id', _userId);
 }
 
@@ -1987,12 +1996,24 @@ async function aplicarTemplate(tplId) {
     if (novoSlot) spread.album_slots.push(novoSlot);
   }
 
+  // Trocar de template descarta caixas redimensionadas manualmente
+  limparGeomCustom(spread);
+
   // Atualizar template_id no banco
   await _sb.from('album_spreads').update({ template_id: tplId }).eq('id', spread.id).eq('user_id', _userId);
 
   renderTemplates();
   renderSpread();
   salvarDebounced();
+}
+
+function limparGeomCustom(spread) {
+  (spread.album_slots || []).forEach(function(s) {
+    if (s.geom) {
+      s.geom = null;
+      _sb.from('album_slots').update({ geom: null }).eq('id', s.id).eq('user_id', _userId).then(function(){});
+    }
+  });
 }
 
 // ── Barra de miniaturas ───────────────────────────────────────────────────────
@@ -2028,7 +2049,8 @@ var _thumbSnapCache = {}; // spreadId -> { sig, url }
 
 function assinaturaSpread(spread) {
   var slots = (spread.album_slots || []).map(function(s) {
-    return [s.foto_key || '', s.foto_x || 0, s.foto_y || 0, s.foto_escala || 0].join(',');
+    var g = s.geom ? [s.geom.x, s.geom.y, s.geom.w, s.geom.h].join('/') : '';
+    return [s.foto_key || '', s.foto_x || 0, s.foto_y || 0, s.foto_escala || 0, g].join(',');
   }).join('|');
   var txt = (spread._textos || []).map(function(t) {
     return [t.conteudo, t.x_prop, t.y_prop, t.largura_prop, t.tamanho, t.cor, t.fonte, t.alinhamento].join(',');
@@ -2402,6 +2424,7 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   if (_slotEmEdicao) sairModoEdicaoSlot(true);
   var imgNode = grupo.findOne('Image');
   if (!imgNode) return;
+  var W = _dimSpread.w, H = _dimSpread.h;
 
   _slotEmEdicao = {
     grupo: grupo, slot: slot, dimSlot: dimSlot, imgNode: imgNode,
@@ -2409,21 +2432,10 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
       foto_key: slot.foto_key, foto_x: slot.foto_x, foto_y: slot.foto_y, foto_escala: slot.foto_escala }
   };
 
-  // Borda amber no slot
-  var bg = grupo.findOne('Rect');
-  if (bg) bg.stroke('var(--amber)') && bg.strokeWidth(2);
-
-  imgNode.draggable(true);
-  imgNode.dragBoundFunc(function(pos) {
-    return limitarDragFoto(pos, imgNode, dimSlot);
-  });
-  imgNode.on('dragend.crop', function() { salvarCropAtual(); });
-
-  // Caixa de transformação: pontos nos cantos e laterais, proporção travada.
-  // Redimensiona a foto livremente, nunca menor que o necessário para cobrir o slot.
-  var escalaMin = escalaMinCover(imgNode, dimSlot);
+  // Caixa de transformação ao redor do SLOT: pontos nos cantos e laterais.
+  // Redimensiona a própria caixa na página, mantendo a proporção original dela.
   var tr = new Konva.Transformer({
-    nodes: [imgNode],
+    nodes: [grupo],
     rotateEnabled: false,
     flipEnabled: false,
     keepRatio: true,
@@ -2435,26 +2447,56 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     borderStroke: '#C4780A',
     borderStrokeWidth: 1.5,
     boundBoxFunc: function(oldBox, newBox) {
-      var minW = imgNode.width() * escalaMin;       // cobre o slot
-      var maxW = imgNode.width() * escalaMin * 3;   // zoom máx 3x (igual ao wheel)
-      if (newBox.width < minW || newBox.width > maxW) return oldBox;
+      if (newBox.width < 36 || newBox.height < 36) return oldBox;    // mínimo
+      if (newBox.x < -0.5 || newBox.y < -0.5) return oldBox;          // dentro do spread
+      if (newBox.x + newBox.width  > W + 0.5) return oldBox;
+      if (newBox.y + newBox.height > H + 0.5) return oldBox;
       return newBox;
     },
   });
   _layer.add(tr);
   _slotEmEdicao.tr = tr;
 
-  imgNode.on('transform.crop', function() {
-    // escala uniforme + foto sempre cobrindo o slot
-    var sc = imgNode.scaleX();
-    imgNode.scaleY(sc);
-    imgNode.position(limitarDragFoto(imgNode.position(), imgNode, dimSlot));
+  // Arrastar move a caixa pela página (limitada ao spread)
+  grupo.draggable(true);
+  grupo.dragBoundFunc(function(pos) {
+    var sc = grupo.scaleX();
+    var bw = dimSlot.w * sc, bh = dimSlot.h * sc;
+    return {
+      x: Math.max(-dimSlot.x * sc, Math.min(pos.x, W - bw - dimSlot.x * sc)),
+      y: Math.max(-dimSlot.y * sc, Math.min(pos.y, H - bh - dimSlot.y * sc)),
+    };
   });
-  imgNode.on('transformend.crop', function() { salvarCropAtual(); });
 
-  // Scroll para zoom (alternativa aos pontos)
+  function commitGeom() {
+    var sc = grupo.scaleX();
+    var nx = grupo.x() + dimSlot.x * sc;
+    var ny = grupo.y() + dimSlot.y * sc;
+    slot.geom = { x: nx / W, y: ny / H, w: (dimSlot.w * sc) / W, h: (dimSlot.h * sc) / H };
+    // Caixa mudou → recorte da foto volta ao cover-fit automático
+    slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
+    salvarGeomSlot(slot);
+    sairModoEdicaoSlot(true); // re-renderiza com a nova geometria
+  }
+  grupo.on('dragend.box', commitGeom);
+  grupo.on('transformend.box', commitGeom);
+
+  // Scroll continua ajustando o zoom da foto dentro da caixa
   _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
   _layer.batchDraw();
+}
+
+// Persiste a geometria customizada do slot. Requer a coluna jsonb `geom`
+// em album_slots (alter table album_slots add column if not exists geom jsonb).
+function salvarGeomSlot(slot) {
+  setSaveStatus('Salvando…');
+  _sb.from('album_slots').update({
+    geom: slot.geom, foto_x: 0, foto_y: 0, foto_escala: 0,
+    atualizado_em: new Date().toISOString()
+  }).eq('id', slot.id).eq('user_id', _userId).then(function(res) {
+    if (res.error) { console.warn('geom:', res.error.message); setSaveStatus('Erro ao salvar caixa'); }
+    else setSaveStatus('Salvo ✓');
+  });
 }
 
 function _wheelCropHandler(e) {
@@ -2520,8 +2562,8 @@ function sairModoEdicaoSlot(silencioso) {
       historico.empurrar('crop', snap, snapDepois);
     }
   }
-  _slotEmEdicao.imgNode.off('dragend.crop transform.crop transformend.crop');
-  _slotEmEdicao.imgNode.draggable(false);
+  _slotEmEdicao.grupo.off('dragend.box transformend.box');
+  _slotEmEdicao.grupo.draggable(false);
   if (_slotEmEdicao.tr) _slotEmEdicao.tr.destroy();
   _stage.container().removeEventListener('wheel', _wheelCropHandler);
   _slotEmEdicao = null;
