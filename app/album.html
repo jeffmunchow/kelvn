@@ -2419,7 +2419,40 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   });
   imgNode.on('dragend.crop', function() { salvarCropAtual(); });
 
-  // Scroll para zoom
+  // Caixa de transformação: pontos nos cantos e laterais, proporção travada.
+  // Redimensiona a foto livremente, nunca menor que o necessário para cobrir o slot.
+  var escalaMin = escalaMinCover(imgNode, dimSlot);
+  var tr = new Konva.Transformer({
+    nodes: [imgNode],
+    rotateEnabled: false,
+    flipEnabled: false,
+    keepRatio: true,
+    enabledAnchors: ['top-left','top-center','top-right','middle-left','middle-right','bottom-left','bottom-center','bottom-right'],
+    anchorSize: 9,
+    anchorCornerRadius: 4.5,
+    anchorStroke: '#C4780A',
+    anchorFill: '#ffffff',
+    borderStroke: '#C4780A',
+    borderStrokeWidth: 1.5,
+    boundBoxFunc: function(oldBox, newBox) {
+      var minW = imgNode.width() * escalaMin;       // cobre o slot
+      var maxW = imgNode.width() * escalaMin * 3;   // zoom máx 3x (igual ao wheel)
+      if (newBox.width < minW || newBox.width > maxW) return oldBox;
+      return newBox;
+    },
+  });
+  _layer.add(tr);
+  _slotEmEdicao.tr = tr;
+
+  imgNode.on('transform.crop', function() {
+    // escala uniforme + foto sempre cobrindo o slot
+    var sc = imgNode.scaleX();
+    imgNode.scaleY(sc);
+    imgNode.position(limitarDragFoto(imgNode.position(), imgNode, dimSlot));
+  });
+  imgNode.on('transformend.crop', function() { salvarCropAtual(); });
+
+  // Scroll para zoom (alternativa aos pontos)
   _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
   _layer.batchDraw();
 }
@@ -2465,6 +2498,11 @@ function salvarCropAtual() {
   slot.foto_x     = imgNode.x() - ds.x;
   slot.foto_y     = imgNode.y() - ds.y;
   slot.foto_escala = imgNode.scaleX();
+  // x=0 e y=0 exatos disparariam a heurística de autoFit no render (que ignora
+  // a escala salva); um deslocamento de 1/100 px preserva o zoom sem efeito visual.
+  if (slot.foto_x === 0 && slot.foto_y === 0 && slot.foto_escala > escalaMinCover(imgNode, ds) + 1e-6) {
+    slot.foto_x = -0.01;
+  }
   setSaveStatus('Salvando…');
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(function() {
@@ -2482,8 +2520,9 @@ function sairModoEdicaoSlot(silencioso) {
       historico.empurrar('crop', snap, snapDepois);
     }
   }
-  _slotEmEdicao.imgNode.off('dragend.crop');
+  _slotEmEdicao.imgNode.off('dragend.crop transform.crop transformend.crop');
   _slotEmEdicao.imgNode.draggable(false);
+  if (_slotEmEdicao.tr) _slotEmEdicao.tr.destroy();
   _stage.container().removeEventListener('wheel', _wheelCropHandler);
   _slotEmEdicao = null;
   renderSpread();
