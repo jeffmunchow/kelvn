@@ -1489,9 +1489,16 @@ function renderSpread() {
   // Botão de propriedades (clique no canvas fora dos slots)
   _stage.off('click.props');
   _stage.on('click.props', function(e) {
-    if (e.target === _stage || e.target.name() === 'bg') {
-      if (_slotEmEdicao) sairModoEdicaoSlot(false);
-    }
+    if (!_slotEmEdicao) return;
+    // Clique no proxyRect ou na imagem do slot ativo → permanece selecionado
+    var alvo = e.target;
+    var proxyAtivo = _slotEmEdicao.proxyRect;
+    var imgAtivo   = _slotEmEdicao.imgNode;
+    if (alvo === proxyAtivo || alvo === imgAtivo) return;
+    // Clique numa âncora do Transformer → permanece
+    if (_slotEmEdicao.tr && _slotEmEdicao.tr.getChildren().indexOf(alvo) !== -1) return;
+    // Qualquer outra coisa (fundo, outro slot, hitRect) → desseleciona
+    sairModoEdicaoSlot(false);
   });
 
   _layer.batchDraw();
