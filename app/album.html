@@ -63,7 +63,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .album-card:hover{opacity:.88;}
 .album-card-capa{aspect-ratio:3/2;background:var(--surface2);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
 .album-card-badge{display:inline-block;font-size:.6rem;padding:2px 8px;border-radius:20px;flex-shrink:0;margin-top:.1rem;}
-.badge-rascunho{background:var(--surface2);color:var(--text-hint);}
+/* status colours — usados inline nos cards de álbum */
 .badge-revisao{background:var(--amber-light);color:var(--amber-deep);}
 .badge-aprovado{background:var(--teal-light);color:var(--teal);}
 .badge-finalizado{background:var(--teal-light);color:var(--teal);}
@@ -999,15 +999,11 @@ async function renderLista() {
   rows.forEach(function(a) {
     var fmt = a.formato || 'paisagem';
 
-    // Status
-    var statusMap = {
-      rascunho:   { cls: 'badge-rascunho',  label: 'Rascunho' },
-      em_revisao: { cls: 'badge-revisao',   label: 'Em revisão' },
-      aprovado:   { cls: 'badge-aprovado',  label: 'Aprovado' },
-      finalizado: { cls: 'badge-finalizado', label: 'Finalizado' },
-    };
-    var st = statusMap[a.status] || statusMap['rascunho'];
-    if (a.aprovado && a.status === 'rascunho') { st = statusMap['aprovado']; }
+    // Status — ciclo: rascunho → enviado → aprovado → finalizado → rascunho
+    var STATUS_CICLO = ['rascunho','enviado','aprovado','finalizado'];
+    var STATUS_LABEL = { rascunho:'Rascunho', enviado:'Enviado', aprovado:'Aprovado', finalizado:'Finalizado' };
+    var STATUS_COLOR = { rascunho:'var(--coral)', enviado:'var(--amber)', aprovado:'var(--teal)', finalizado:'var(--text-muted)' };
+    var statusAtual = STATUS_CICLO.indexOf(a.status) >= 0 ? a.status : 'rascunho';
 
     var fmtLabel = { paisagem: 'Paisagem', quadrado: 'Quadrado', retrato: 'Retrato' }[fmt] || fmt;
     // Data do evento formatada
@@ -1019,9 +1015,7 @@ async function renderLista() {
     var sub = dataStr + (dataStr ? ' · ' : '') + fmtLabel;
     var titulo = esc(a.nome_cliente || a.nome || '—');
     var icone = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
-    // Botão de status igual ao de Galerias
-    var statusBtnColor = (a.status === 'aprovado' || a.status === 'finalizado') ? 'var(--text)' : 'var(--text-muted)';
-    var statusBtn = '<button onclick="event.stopPropagation()" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 8px;cursor:default;font-family:\'DM Sans\',sans-serif;font-size:.68rem;color:'+statusBtnColor+';">'+st.label+'</button>';
+    var statusBtn = '<button class="alb-status-btn" data-album-id="'+a.id+'" data-status="'+statusAtual+'" onclick="event.stopPropagation();ciclarStatusAlbum(this)" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.68rem;color:'+STATUS_COLOR[statusAtual]+';">'+STATUS_LABEL[statusAtual]+'</button>';
 
     var card = document.createElement('div');
     card.style.cssText = 'background:var(--surface);border-radius:0;overflow:hidden;cursor:pointer;transition:opacity .15s;';
@@ -1051,6 +1045,19 @@ async function renderLista() {
 function selFormato(el) {
   document.querySelectorAll('.formato-opt').forEach(function(f) { f.classList.remove('sel'); });
   el.classList.add('sel');
+}
+
+async function ciclarStatusAlbum(btn) {
+  var ciclo = ['rascunho','enviado','aprovado','finalizado'];
+  var cores  = { rascunho:'var(--coral)', enviado:'var(--amber)', aprovado:'var(--teal)', finalizado:'var(--text-muted)' };
+  var labels = { rascunho:'Rascunho', enviado:'Enviado', aprovado:'Aprovado', finalizado:'Finalizado' };
+  var atual = btn.dataset.status;
+  var proximo = ciclo[(ciclo.indexOf(atual) + 1) % ciclo.length];
+  btn.dataset.status = proximo;
+  btn.textContent = labels[proximo];
+  btn.style.color = cores[proximo];
+  var albumId = btn.dataset.albumId;
+  await _sb.from('albuns').update({ status: proximo }).eq('id', albumId).eq('user_id', _userId);
 }
 
 async function criarAlbum() {
