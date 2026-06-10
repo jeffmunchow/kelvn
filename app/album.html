@@ -175,7 +175,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 [data-theme="dark"] .tpl-slot{background:#55504a;}
 .tpl-grp-label{grid-column:1 / -1;font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-hint);padding:.5rem .15rem .15rem;font-family:'DM Sans',sans-serif;}
 .tpl-grp-label:first-child{padding-top:.1rem;}
-.tpl-grp-label.sug{color:var(--amber);}
+.tpl-grp-label.sug{color:var(--text);}
 /* Layout atual da lâmina (slots editados) + salvar como template */
 .tpl-card.wide{grid-column:1 / -1;position:relative;cursor:default;}
 .tpl-badge-novo{position:absolute;top:4px;right:4px;font-size:.52rem;letter-spacing:.08em;text-transform:uppercase;background:var(--amber);color:#fff;padding:1px 7px;border-radius:20px;font-family:'DM Sans',sans-serif;}
@@ -2136,7 +2136,9 @@ function renderTemplatesAgora() {
 // efetiva (geometrias customizadas incluídas).
 function criarCardLayoutAtual(spread, aspect) {
   var card = document.createElement('div');
-  card.className = 'tpl-card wide ativo';
+  var spread = estado.spreads[estado.spreadAtivo];
+  var tplAtivo = spread ? spread.template_id : null;
+  card.className = 'tpl-card wide' + (!tplAtivo ? ' ativo' : '');
   card.title = 'Layout atual desta lâmina';
 
   var preview = document.createElement('div');
