@@ -2830,23 +2830,33 @@ async function duplicarSpread(idx) {
   var { data: slots } = slotsData.length ? await _sb.from('album_slots').insert(slotsData).select() : { data: [] };
   novo.album_slots = slots || [];
 
+  var ativoAntes = estado.spreadAtivo;
   estado.spreads.splice(novaPos, 0, novo);
-  estado.spreadAtivo = novaPos;
+  if (novaPos <= ativoAntes) estado.spreadAtivo = ativoAntes + 1;
   (novo.album_slots || []).forEach(function(s){ if (s.foto_key) estado.fotosUsadas.add(s.foto_key); });
 
-  renderThumbs();
-  renderTemplates();
-  renderSpread();
+  // mudarSpread cuida do recálculo do canvas (capa 1:1 vs spread 2:1) e dos textos
+  await mudarSpread(novaPos);
 }
 
 async function excluirSpreadComFotos(idx) {
   var spread = estado.spreads[idx];
   if (!spread || spread.tipo !== 'spread') return;
 
+  var tipoAtivoAntes = estado.spreads[estado.spreadAtivo] ? estado.spreads[estado.spreadAtivo].tipo : '';
+
   await _sb.from('album_slots').delete().eq('spread_id', spread.id).eq('user_id', _userId);
   await _sb.from('album_spreads').delete().eq('id', spread.id).eq('user_id', _userId);
   estado.spreads.splice(idx, 1);
   if (estado.spreadAtivo >= idx) estado.spreadAtivo = Math.max(0, estado.spreadAtivo - 1);
+
+  // Formato quadrado: se o tipo da lâmina ativa mudou (spread ↔ capa/fim), o canvas precisa de outras dimensões
+  if (estado.album && estado.album.formato === 'quadrado') {
+    var ativoAgora = estado.spreads[estado.spreadAtivo];
+    var eraCapa = tipoAtivoAntes === 'capa' || tipoAtivoAntes === 'contracapa';
+    var eCapa = ativoAgora && (ativoAgora.tipo === 'capa' || ativoAgora.tipo === 'contracapa');
+    if (eraCapa !== eCapa) iniciarKonva();
+  }
 
   // Libera no pool as fotos que só existiam nesta lâmina
   estado.fotosUsadas = new Set();
