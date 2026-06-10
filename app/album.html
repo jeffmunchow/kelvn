@@ -534,7 +534,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           <div class="rpanel-sec-body">
             <div id="pool-loading">Carregando fotos…</div>
             <div id="pool-empty">O casal ainda não selecionou fotos para o álbum.</div>
-            <button id="btn-add-fotos" class="btn btn-sec" onclick="abrirSeletorFotos()" style="width:100%;margin-bottom:.5rem;font-size:.75rem;">+ Adicionar fotos</button>
+            <button id="btn-add-fotos" onclick="abrirSeletorFotos()" style="display:block;width:100%;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;text-align:center;margin-bottom:.5rem;transition:color .15s,border-color .15s;" onmouseover="this.style.color='var(--text)';this.style.borderColor='var(--text-muted)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border-strong)'">+ Adicionar fotos</button>
             <input type="file" id="input-fotos-extras" accept="image/*" multiple style="display:none" onchange="uploadFotosExtras(this.files)">
             <div id="pool-grid"></div>
           </div>
