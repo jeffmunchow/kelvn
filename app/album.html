@@ -2006,11 +2006,15 @@ async function trocarFotosEntreSlots(ia, ib) {
   var A = slots[ia], B = slots[ib];
   if (!A || !B) { renderSpread(); return; }
 
+  var snapAntes = tirarSnapLamina(spread);
+
   // Troca as fotos e zera o recorte (cada foto entra cover-fit no novo slot)
   var tmp = A.foto_key;
   A.foto_key = B.foto_key; B.foto_key = tmp;
   A.foto_x = 0; A.foto_y = 0; A.foto_escala = 0;
   B.foto_x = 0; B.foto_y = 0; B.foto_escala = 0;
+
+  historico.empurrar('lamina-fotos', snapAntes, tirarSnapLamina(spread));
 
   renderSpread();
   renderThumbs();
