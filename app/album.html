@@ -802,6 +802,48 @@ function slotOrient(s, aspect) {
 
 // Cache de orientação das fotos (carrega dimensões naturais sob demanda).
 var _orientCache = {}; // fotoKey -> 'p' | 'l' | 's'
+// ── Variantes de imagem (thumb/web) ──────────────────────────────────────────
+// A galeria gera thumb (~400px) e web (~1080px) no upload. O editor usa:
+//   thumb → grade de favoritas, miniaturas, ghost de arraste, orientação
+//   web   → snapshots de lâminas sem crop manual
+//   original → canvas principal (foto_escala é salvo em px do original e a
+//              exportação PDF usa o original; trocar quebraria crops antigos)
+var _variantes = {}; // key original -> { web, thumb }
+
+function indexarVariantes(galeria) {
+  _variantes = {};
+  ((galeria && galeria.fotos) || []).forEach(function(f) {
+    if (f.key) _variantes[f.key] = { web: f.webKey || null, thumb: f.thumbKey || f.webKey || null };
+  });
+}
+function urlFotoOriginal(key) { return '/api/gallery-img?key=' + encodeURIComponent(key); }
+function urlFotoWeb(key)   { var v = _variantes[key]; return urlFotoOriginal((v && v.web)   || key); }
+function urlFotoThumb(key) { var v = _variantes[key]; return urlFotoOriginal((v && v.thumb) || key); }
+
+// Cache de elementos de imagem decodificados — re-renderizações reutilizam o
+// mesmo HTMLImageElement em vez de baixar/decodificar de novo.
+var _imgElCache = {}; // url -> HTMLImageElement
+
+function carregarKonvaImg(url, cb, errCb) {
+  var el = _imgElCache[url];
+  if (el && el.complete && el.naturalWidth) { cb(new Konva.Image({ image: el })); return; }
+  if (!el) {
+    el = new Image();
+    el.crossOrigin = 'anonymous';
+    el.src = url;
+    _imgElCache[url] = el;
+  }
+  el.addEventListener('load', function onl() {
+    el.removeEventListener('load', onl);
+    cb(new Konva.Image({ image: el }));
+  });
+  el.addEventListener('error', function one() {
+    el.removeEventListener('error', one);
+    delete _imgElCache[url];
+    if (errCb) errCb();
+  });
+}
+
 function carregarOrient(key, cb) {
   if (_orientCache[key]) { cb(_orientCache[key]); return; }
   var img = new Image();
@@ -811,7 +853,7 @@ function carregarOrient(key, cb) {
     cb(_orientCache[key]);
   };
   img.onerror = function() { _orientCache[key] = 's'; cb('s'); };
-  img.src = '/api/gallery-img?key=' + encodeURIComponent(key);
+  img.src = urlFotoThumb(key);
 }
 
 // ── Estado ────────────────────────────────────────────────────────────────────
@@ -1321,6 +1363,7 @@ async function carregarPool(galeriaSlug) {
   // contendo o array de galerias — não há coluna `slug` no nível da tabela.
   // Por isso buscamos no array _galerias (já carregado e escopado ao usuário).
   var galeria = (_galerias || []).find(function(g) { return g.slug === galeriaSlug; });
+  indexarVariantes(galeria);
   if (!galeria) {
     loading.style.display = 'none';
     empty.style.display   = 'block';
@@ -1372,11 +1415,11 @@ function renderPool() {
     div.dataset.key = key;
 
     var img = document.createElement('img');
-    img.src = '/api/gallery-img?key=' + encodeURIComponent(key);
+    // Thumb na grade — as dimensões reais (p/ DPI e auto-layout) vêm de
+    // medirDimensoesPool(), que mede o arquivo original.
+    img.src = urlFotoThumb(key);
     img.loading = 'lazy';
     img.alt = '';
-    // Captura dimensões ao carregar (para auto-layout sem fetch extra)
-    img.onload = function() { if (!foto.w) { foto.w = img.naturalWidth; foto.h = img.naturalHeight; } };
     div.appendChild(img);
 
     div.addEventListener('dragstart', function(e) {
@@ -1658,8 +1701,7 @@ function renderSpread() {
   var slots = spread.album_slots || [];
   if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
     (function(fotoKey) {
-      var url = '/api/gallery-img?key=' + encodeURIComponent(fotoKey);
-      Konva.Image.fromURL(url, function(img) {
+      carregarKonvaImg(urlFotoOriginal(fotoKey), function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
         img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
         _layer.add(img);
@@ -1682,15 +1724,14 @@ function renderSpread() {
     var slot = slots[idx];
     var grupo = new Konva.Group({ x:0, y:0, name:'grupo-slot-'+idx });
 
-    // Fundo do slot
-    var bgSlot = new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'#2a2620', stroke:'rgba(255,255,255,0.06)', strokeWidth:.5, name:'bg-slot' });
+    // Fundo do slot (listening:false — eventos ficam no hitRect/imagem)
+    var bgSlot = new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'#2a2620', stroke:'rgba(255,255,255,0.06)', strokeWidth:.5, name:'bg-slot', listening:false });
     grupo.add(bgSlot);
 
     // Foto, se houver
     if (slot && slot.foto_key) {
       (function(slotRef, gx, gy, gw, gh, grupoRef, idxLocal) {
-        var url = '/api/gallery-img?key=' + encodeURIComponent(slotRef.foto_key);
-        Konva.Image.fromURL(url, function(img) {
+        carregarKonvaImg(urlFotoOriginal(slotRef.foto_key), function(img) {
           var scMin = Math.max(gw / img.width(), gh / img.height());
           // autoFit: foto nunca recortada manualmente (sem offset) → cover-fit centralizado,
           // ignorando escala persistida (corrige dados antigos salvos como nativo 1).
@@ -1705,6 +1746,10 @@ function renderSpread() {
             imgY = gy + (slotRef.foto_y || 0);
           }
           img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
+          // Rasteriza no tamanho de exibição: o redraw durante drags blita um
+          // bitmap pequeno em vez de reescalar o original gigante a cada frame.
+          var pr = Math.min(1, sc * (window.devicePixelRatio || 1) * 1.4);
+          if (pr < 1) img.cache({ pixelRatio: pr });
           grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
           grupoRef.add(img);
           _layer.batchDraw();
@@ -1790,8 +1835,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
   if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
     aguardar();
     (function(fotoKey) {
-      var url = '/api/gallery-img?key=' + encodeURIComponent(fotoKey);
-      Konva.Image.fromURL(url, function(img) {
+      carregarKonvaImg(urlFotoWeb(fotoKey), function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
         img.setAttrs({ x:(W - img.width()*sc)/2, y:(H - img.height()*sc)/2, width:img.width()*sc, height:img.height()*sc });
         layer.add(img); aoCarregar();
@@ -1809,8 +1853,11 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
       if (slot && slot.foto_key) {
         aguardar();
         (function(slotRef, gx, gy, gw, gh, grupoRef) {
-          var url = '/api/gallery-img?key=' + encodeURIComponent(slotRef.foto_key);
-          Konva.Image.fromURL(url, function(img) {
+          // Crop manual: foto_escala é relativo ao original → precisa dele.
+          // Cover-fit automático funciona com a variante web (10x mais leve).
+          var temCrop = (slotRef.foto_x || 0) !== 0 || (slotRef.foto_y || 0) !== 0;
+          var url = temCrop ? urlFotoOriginal(slotRef.foto_key) : urlFotoWeb(slotRef.foto_key);
+          carregarKonvaImg(url, function(img) {
             var scMin = Math.max(gw / img.width(), gh / img.height());
             var autoFit = (slotRef.foto_x || 0) === 0 && (slotRef.foto_y || 0) === 0;
             var sc = (!autoFit && slotRef.foto_escala > 0) ? Math.max(scMin, slotRef.foto_escala) : scMin;
@@ -1954,7 +2001,7 @@ function _onSwapMove(ev) {
     if (Math.abs(p.x - _swapDrag.startX) < 5 && Math.abs(p.y - _swapDrag.startY) < 5) return;
     _swapDrag.ativo = true;
     var g = document.createElement('img');
-    g.src = '/api/gallery-img?key=' + encodeURIComponent(_swapDrag.fotoKey);
+    g.src = urlFotoThumb(_swapDrag.fotoKey);
     g.className = 'swap-ghost';
     document.body.appendChild(g);
     _swapDrag.ghost = g;
@@ -2723,7 +2770,7 @@ function renderTimeline(bar) {
         alvo.className = 'tl-photo';
         alvo.loading = 'lazy';
         alvo.alt = '';
-        alvo.src = '/api/gallery-img?key=' + encodeURIComponent(slot.foto_key);
+        alvo.src = urlFotoThumb(slot.foto_key);
       } else {
         alvo = document.createElement('div');
         alvo.className = 'tl-empty';
@@ -3290,6 +3337,7 @@ function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
   var grupoAtual = _layer.findOne('.grupo-slot-' + (grupo.name() || '').replace('grupo-slot-', '')) || grupo;
   var imgNode = grupoAtual.findOne('Image');
   if (!imgNode) return; // slot sem foto: nada a editar
+  imgNode.clearCache(); // crop em resolução plena (re-cacheia no próximo renderSpread)
 
   _slotEmEdicao = {
     grupo: grupoAtual, slot: slot, dimSlot: dimSlot, imgNode: imgNode, modo: 'foto',
@@ -3920,7 +3968,8 @@ function medirDimensoesPool() {
       var img = new Image();
       img.onload = function() { foto.w = img.naturalWidth; foto.h = img.naturalHeight; resolve(); };
       img.onerror = function() { resolve(); };
-      img.src = '/api/gallery-img?key=' + encodeURIComponent(foto.key);
+      // Sempre o original: w/h alimentam a checagem de DPI da exportação
+      img.src = urlFotoOriginal(foto.key);
     });
   }));
 }
@@ -4026,7 +4075,7 @@ function renderizarMiniaturaMod(cnv, item) {
         ctx.drawImage(img, sx + (sw - dw) / 2, sy + (sh - dh) / 2, dw, dh);
         ctx.restore();
       };
-      img.src = '/api/gallery-img?key=' + encodeURIComponent(foto.key);
+      img.src = urlFotoThumb(foto.key);
     } else {
       ctx.fillStyle = '#2a2620';
       ctx.fillRect(sx, sy, sw, sh);
