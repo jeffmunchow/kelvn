@@ -826,7 +826,12 @@ var _imgElCache = {}; // url -> HTMLImageElement
 
 function carregarKonvaImg(url, cb, errCb) {
   var el = _imgElCache[url];
-  if (el && el.complete && el.naturalWidth) { cb(new Konva.Image({ image: el })); return; }
+  if (el && el.complete && el.naturalWidth) {
+    // Sempre assíncrono: chamadores usam contadores de pendência que precisam
+    // ser registrados por inteiro antes do primeiro callback disparar.
+    Promise.resolve().then(function() { cb(new Konva.Image({ image: el })); });
+    return;
+  }
   if (!el) {
     el = new Image();
     el.crossOrigin = 'anonymous';
