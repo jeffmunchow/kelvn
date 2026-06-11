@@ -245,23 +245,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* ── Nível 6 — Exportação ────────────────────────────────────────── */
 #modal-exportar{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
 #modal-exportar.open{display:flex;}
-/* Modal Exportar lâminas */
-#modal-exp{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
-#modal-exp.open{display:flex;}
-.exp-label{font-size:.7rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin:1.1rem 0 .5rem;}
-.exp-label:first-child{margin-top:0;}
-.exp-fmt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;}
-.exp-fmt{padding:.7rem .5rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s;}
+/* Menu Exportar (inline no painel direito) */
+.exp-panel{padding:.85rem 1rem;display:flex;flex-direction:column;overflow-y:auto;}
+.exp-label{font-size:.63rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;}
+.exp-fmt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;margin-bottom:1rem;}
+.exp-fmt{padding:.55rem .3rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s;}
 .exp-fmt:hover{border-color:var(--text-muted);}
 .exp-fmt.sel{border-color:var(--text);background:var(--surface2);}
-.exp-fmt-nome{font-size:.8rem;font-weight:500;color:var(--text);}
-.exp-fmt-desc{font-size:.6rem;color:var(--text-hint);margin-top:.15rem;}
-.exp-sel{width:100%;padding:8px 12px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none;cursor:pointer;}
-.exp-pasta-row{display:flex;align-items:center;gap:.6rem;}
-.exp-pasta-nome{font-size:.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
-.exp-pasta-nome.vazio{color:var(--text-hint);}
-.exp-nota{font-size:.72rem;color:var(--text-muted);line-height:1.6;background:var(--surface2);border-radius:8px;padding:.7rem .9rem;}
-#exp-status{font-size:.74rem;color:var(--text-muted);min-height:1rem;margin-top:.9rem;}
+.exp-fmt-nome{font-size:.72rem;font-weight:500;color:var(--text);}
+#exp-qualidade-wrap{margin-bottom:1rem;}
+.exp-nota{font-size:.7rem;color:var(--text-muted);line-height:1.55;background:var(--surface2);border-radius:8px;padding:.65rem .8rem;margin-bottom:1rem;}
+#exp-status{font-size:.7rem;color:var(--text-muted);min-height:.9rem;margin-bottom:.5rem;}
+#exp-status:empty{display:none;}
+.exp-btn-acao{display:block;width:100%;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;text-align:center;transition:color .15s,border-color .15s;}
+.exp-btn-acao:hover{color:var(--text);border-color:var(--text-muted);}
+.exp-btn-acao:disabled{opacity:.5;cursor:default;}
 .perfil-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;}
 .perfil-opt{padding:.65rem .9rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;transition:border-color .15s,background .15s;}
 .perfil-opt:hover{border-color:var(--amber);}
@@ -558,9 +556,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
         <!-- Exportar -->
-        <div class="rpanel-action" id="sec-exportar" onclick="abrirExportLaminas()" title="Exportar as lâminas do álbum">
-          <span>Exportar</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <div class="rpanel-sec" id="sec-exportar">
+          <div class="rpanel-sec-hdr" onclick="toggleSec('exportar')">
+            <span>Exportar</span>
+            <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          </div>
+          <div class="rpanel-sec-body">
+            <div class="exp-panel">
+              <div class="exp-label">Formato</div>
+              <div class="exp-fmt-grid">
+                <div class="exp-fmt sel" id="exp-fmt-jpg" onclick="selecExpFormato('jpg')"><div class="exp-fmt-nome">JPG</div></div>
+                <div class="exp-fmt" id="exp-fmt-pdf" onclick="selecExpFormato('pdf')"><div class="exp-fmt-nome">PDF</div></div>
+                <div class="exp-fmt" id="exp-fmt-pdfx3" onclick="selecExpFormato('pdfx3')"><div class="exp-fmt-nome">PDF/X-3</div></div>
+              </div>
+              <div id="exp-qualidade-wrap">
+                <div class="exp-label" id="exp-qual-label">Qualidade — Alta</div>
+                <input type="range" min="0" max="2" step="1" value="1" class="props-slider" id="exp-qual-slider" oninput="atualizarQualLabel()">
+              </div>
+              <div id="exp-pdfx3-nota" class="exp-nota" style="display:none;">O PDF/X-3 é gerado pela Kelvn com perfil de cor e sangria para a gráfica, na etapa seguinte.</div>
+              <div id="exp-status"></div>
+              <button class="exp-btn-acao" id="exp-btn-exportar" onclick="executarExport()">Exportar</button>
+            </div>
+          </div>
         </div>
         <!-- Favoritas -->
         <div class="rpanel-sec expandido" id="sec-favoritas">
@@ -656,59 +673,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <div class="modal-footer">
       <button class="btn btn-sec" onclick="fecharModalExportar()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
       <button class="btn" id="btn-gerar-pdf" onclick="gerarPdf()" style="padding:5px 14px;font-size:.75rem;">Gerar PDF</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Modal Exportar lâminas ── -->
-<div id="modal-exp">
-  <div class="modal-box" style="max-width:480px;">
-    <div class="modal-header">
-      <div class="modal-titulo">Exportar lâminas</div>
-      <button class="btn btn-sec" onclick="fecharExportLaminas()" style="padding:3px 10px;font-size:.72rem;">✕</button>
-    </div>
-    <div class="modal-body" style="padding:1.25rem;">
-      <div class="exp-label">Formato</div>
-      <div class="exp-fmt-grid">
-        <div class="exp-fmt" id="exp-fmt-jpg" onclick="selecExpFormato('jpg')">
-          <div class="exp-fmt-nome">JPG</div>
-          <div class="exp-fmt-desc">uma imagem por lâmina</div>
-        </div>
-        <div class="exp-fmt" id="exp-fmt-pdf" onclick="selecExpFormato('pdf')">
-          <div class="exp-fmt-nome">PDF</div>
-          <div class="exp-fmt-desc">álbum em um arquivo</div>
-        </div>
-        <div class="exp-fmt" id="exp-fmt-pdfx3" onclick="selecExpFormato('pdfx3')">
-          <div class="exp-fmt-nome">PDF/X-3</div>
-          <div class="exp-fmt-desc">para gráfica</div>
-        </div>
-      </div>
-
-      <div id="exp-bloco-cliente">
-        <div class="exp-label">Resolução</div>
-        <select class="exp-sel" id="exp-resolucao-sel">
-          <option value="1600">Tela — 1600px</option>
-          <option value="2400" selected>Alta — 2400px</option>
-          <option value="3500">Impressão — 3500px</option>
-        </select>
-
-        <div class="exp-label">Pasta de destino</div>
-        <div class="exp-pasta-row">
-          <button class="btn btn-sec" onclick="escolherPastaExp()" style="padding:6px 12px;font-size:.72rem;white-space:nowrap;">Escolher pasta</button>
-          <span class="exp-pasta-nome vazio" id="exp-pasta-nome">Nenhuma pasta escolhida</span>
-        </div>
-      </div>
-
-      <div id="exp-bloco-pdfx3" style="display:none;">
-        <div class="exp-label">Impressão profissional</div>
-        <div class="exp-nota">O PDF/X-3 é gerado pela Kelvn com perfil de cor e sangria para a gráfica. Você escolhe o perfil e baixa o arquivo na etapa seguinte.</div>
-      </div>
-
-      <div id="exp-status"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-sec" onclick="fecharExportLaminas()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
-      <button class="btn" id="exp-btn-exportar" onclick="executarExport()" style="padding:5px 14px;font-size:.75rem;">Exportar</button>
     </div>
   </div>
 </div>
@@ -3689,7 +3653,7 @@ var CORES_FUNDO = [
 // ── Acordeão do painel direito ────────────────────────────────────────────────
 // O painel fica sempre visível; as seções recolhidas ficam no topo e a
 // expandida ocupa o restante (via CSS order). Abrir uma fecha as outras.
-var _SECS = ['favoritas', 'templates', 'spread'];
+var _SECS = ['exportar', 'favoritas', 'templates', 'spread'];
 function toggleSec(id) {
   var target = document.getElementById('sec-' + id);
   var jaAberto = target.classList.contains('expandido');
@@ -3698,6 +3662,7 @@ function toggleSec(id) {
   sincronizarBotoesSec();
   if (!jaAberto && id === 'templates') renderTemplates();
   if (!jaAberto && id === 'spread') renderPropsSpreadBody();
+  if (!jaAberto && id === 'exportar') initExportUI();
 }
 
 function sincronizarBotoesSec() {
@@ -4285,71 +4250,60 @@ async function aplicarAutoLayout() {
 
 // ── Exportar lâminas (JPG / PDF client-side; PDF/X-3 via gráfica) ─────────────
 var _expFormato = 'jpg';
-var _expDirHandle = null;
 var _expRodando = false;
 
-function abrirExportLaminas() {
-  if (!estado.album) return;
-  _expFormato = 'jpg';
-  _expDirHandle = null;
+// Estado inicial do menu Exportar ao expandir a seção
+function initExportUI() {
+  if (!_expFormato) _expFormato = 'jpg';
   _expRodando = false;
-  document.getElementById('exp-pasta-nome').textContent = 'Nenhuma pasta escolhida';
-  document.getElementById('exp-pasta-nome').classList.add('vazio');
-  document.getElementById('exp-status').textContent = '';
-  document.getElementById('exp-btn-exportar').disabled = false;
-  atualizarExpUI();
-  document.getElementById('modal-exp').classList.add('open');
-}
-function fecharExportLaminas() {
-  if (_expRodando) return;
-  document.getElementById('modal-exp').classList.remove('open');
+  selecExpFormato(_expFormato);
+  atualizarQualLabel();
+  var st = document.getElementById('exp-status');
+  if (st) st.textContent = '';
+  var btn = document.getElementById('exp-btn-exportar');
+  if (btn) btn.disabled = false;
 }
 
 function selecExpFormato(f) {
   if (_expRodando) return;
   _expFormato = f;
-  atualizarExpUI();
-}
-
-function atualizarExpUI() {
-  ['jpg', 'pdf', 'pdfx3'].forEach(function(f) {
-    document.getElementById('exp-fmt-' + f).classList.toggle('sel', f === _expFormato);
+  ['jpg', 'pdf', 'pdfx3'].forEach(function(x) {
+    document.getElementById('exp-fmt-' + x).classList.toggle('sel', x === f);
   });
-  var ehPrint = _expFormato === 'pdfx3';
-  document.getElementById('exp-bloco-cliente').style.display = ehPrint ? 'none' : '';
-  document.getElementById('exp-bloco-pdfx3').style.display = ehPrint ? '' : 'none';
-  // Resolução só faz sentido para JPG e PDF; pasta só para JPG (PDF é arquivo único)
-  document.getElementById('exp-btn-exportar').textContent = ehPrint ? 'Continuar' : 'Exportar';
+  var ehPrint = f === 'pdfx3';
+  document.getElementById('exp-qualidade-wrap').style.display = ehPrint ? 'none' : '';
+  document.getElementById('exp-pdfx3-nota').style.display = ehPrint ? '' : 'none';
+  document.getElementById('exp-btn-exportar').textContent = ehPrint ? 'Continuar para a gráfica' : 'Exportar';
 }
 
-async function escolherPastaExp() {
-  // ─────────────────────────────────────────────────────────────────────────
-  // EMPACOTAMENTO DESKTOP (Mac): quando virar app, troque por uma das opções.
-  //
-  // ELECTRON — não precisa mexer: o showDirectoryPicker abaixo continua
-  //   funcionando (é o mesmo Chromium). Opcional, via Node, para lembrar a
-  //   pasta entre sessões:
-  //     const { dialog } = require('@electron/remote');
-  //     const r = await dialog.showOpenDialog({ properties: ['openDirectory'] });
-  //     if (!r.canceled) _expDirPath = r.filePaths[0];  // grava com fs.writeFile
-  //
-  // TAURI — o WKWebView do Mac NÃO tem showDirectoryPicker; use as APIs nativas:
-  //     import { open } from '@tauri-apps/plugin-dialog';
-  //     import { writeFile } from '@tauri-apps/plugin-fs';
-  //     _expDirPath = await open({ directory: true });
-  //     // e em gravarNaPasta(): await writeFile(_expDirPath + '/' + nome, bytes);
-  // ─────────────────────────────────────────────────────────────────────────
-  if (!window.showDirectoryPicker) {
-    document.getElementById('exp-status').textContent = 'Seu navegador não permite escolher pasta. Os arquivos serão baixados normalmente.';
-    return;
-  }
-  try {
-    _expDirHandle = await window.showDirectoryPicker();
-    var el = document.getElementById('exp-pasta-nome');
-    el.textContent = _expDirHandle.name;
-    el.classList.remove('vazio');
-    document.getElementById('exp-status').textContent = '';
-  } catch (e) { /* cancelado */ }
+var EXP_QUALIDADES = [
+  { rotulo: 'Baixa',      w: 1600 },
+  { rotulo: 'Alta',       w: 2400 },
+  { rotulo: 'Impressão',  w: 3500 },
+];
+function atualizarQualLabel() {
+  var sl = document.getElementById('exp-qual-slider');
+  if (!sl) return;
+  var q = EXP_QUALIDADES[parseInt(sl.value)] || EXP_QUALIDADES[1];
+  document.getElementById('exp-qual-label').textContent = 'Qualidade — ' + q.rotulo;
+}
+
+// Abre o seletor nativo de pasta. Retorna o handle ou null (cancelado/sem suporte).
+// ───────────────────────────────────────────────────────────────────────────
+// EMPACOTAMENTO DESKTOP (Mac): quando a Kelvn virar app, troque esta função.
+//   ELECTRON — não precisa mexer: showDirectoryPicker continua funcionando
+//     (mesmo Chromium). Opcional, via Node, para lembrar a pasta entre sessões:
+//       const { dialog } = require('@electron/remote');
+//       const r = await dialog.showOpenDialog({ properties: ['openDirectory'] });
+//       return r.canceled ? null : r.filePaths[0]; // grava com fs.writeFile
+//   TAURI — o WKWebView do Mac NÃO tem showDirectoryPicker; use as APIs nativas:
+//       import { open } from '@tauri-apps/plugin-dialog';
+//       return await open({ directory: true }); // e writeFile() em gravarNaPasta()
+// ───────────────────────────────────────────────────────────────────────────
+async function pedirPastaExport() {
+  if (!window.showDirectoryPicker) return null;
+  try { return await window.showDirectoryPicker(); }
+  catch (e) { return undefined; } // cancelado pelo usuário
 }
 
 // Renderiza um spread em JPEG (fundo branco) com largura-alvo fixa
@@ -4388,7 +4342,7 @@ function baixarBlob(blob, nome) {
 }
 async function gravarNaPasta(dir, nome, blob) {
   // DESKTOP: no Tauri, troque por writeFile(_expDirPath + '/' + nome, new Uint8Array(await blob.arrayBuffer()));
-  // No Electron com caminho nativo, use fs.promises.writeFile. Ver escolherPastaExp().
+  // No Electron com caminho nativo, use fs.promises.writeFile. Ver pedirPastaExport().
   var fh = await dir.getFileHandle(nome, { create: true });
   var w = await fh.createWritable();
   await w.write(blob); await w.close();
@@ -4404,19 +4358,24 @@ function nomeLamina(spread, i) {
 
 async function executarExport() {
   if (_expRodando) return;
-  if (_expFormato === 'pdfx3') {
-    document.getElementById('modal-exp').classList.remove('open');
-    abrirModalExportar();
-    return;
-  }
+  if (_expFormato === 'pdfx3') { abrirModalExportar(); return; }
+
   var spreads = (estado.spreads || []).slice();
   if (!spreads.length) return;
-  var targetW = parseInt(document.getElementById('exp-resolucao-sel').value) || 2400;
+  var qual = EXP_QUALIDADES[parseInt(document.getElementById('exp-qual-slider').value)] || EXP_QUALIDADES[1];
+  var targetW = qual.w;
+  var statusEl = document.getElementById('exp-status');
+
+  // Pede a pasta de destino no momento da exportação (cai em download se cancelar/sem suporte)
+  var dir = await pedirPastaExport();
+  if (dir === undefined) { statusEl.textContent = ''; return; } // usuário cancelou
+  if (dir === null && !window.showDirectoryPicker) {
+    statusEl.textContent = 'Sem suporte a pasta neste navegador — os arquivos serão baixados.';
+  }
 
   _expRodando = true;
   var btn = document.getElementById('exp-btn-exportar');
   btn.disabled = true;
-  var statusEl = document.getElementById('exp-status');
 
   try {
     if (_expFormato === 'jpg') {
@@ -4428,12 +4387,12 @@ async function executarExport() {
         if (!r) continue;
         var nome = base + ' - ' + nomeLamina(spreads[i], i) + '.jpg';
         var blob = dataURLparaBlob(r.url);
-        if (_expDirHandle) await gravarNaPasta(_expDirHandle, nome, blob);
+        if (dir) await gravarNaPasta(dir, nome, blob);
         else baixarBlob(blob, nome);
         n++;
       }
       statusEl.textContent = n + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.')
-        + (_expDirHandle ? ' Em "' + _expDirHandle.name + '".' : '');
+        + (dir ? ' Em "' + dir.name + '".' : '');
     } else if (_expFormato === 'pdf') {
       var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (!jsPDFctor) { statusEl.textContent = 'Biblioteca PDF não carregou. Recarregue a página.'; return; }
@@ -4450,7 +4409,7 @@ async function executarExport() {
       if (!doc) { statusEl.textContent = 'Nada para exportar.'; return; }
       var pdfBlob = doc.output('blob');
       var nomePdf = nomeBaseAlbum() + '.pdf';
-      if (_expDirHandle) { await gravarNaPasta(_expDirHandle, nomePdf, pdfBlob); statusEl.textContent = 'PDF salvo em "' + _expDirHandle.name + '".'; }
+      if (dir) { await gravarNaPasta(dir, nomePdf, pdfBlob); statusEl.textContent = 'PDF salvo em "' + dir.name + '".'; }
       else { baixarBlob(pdfBlob, nomePdf); statusEl.textContent = 'PDF gerado.'; }
     }
   } catch (e) {
