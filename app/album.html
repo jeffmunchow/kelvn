@@ -152,7 +152,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .thumb-item{height:100px;flex-shrink:0;border-radius:2px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
 .thumb-item.ativo{border-color:var(--amber);}
 .thumb-item canvas,.thumb-item img.thumb-snap{height:100%;width:auto;display:block;}
-.thumb-hover-ov{position:absolute;top:-2px;left:-2px;right:-2px;bottom:-2px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;pointer-events:none;}
+.thumb-hover-ov{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;pointer-events:none;}
 .thumb-item:hover .thumb-hover-ov{opacity:1;}
 [data-theme="dark"] .thumb-hover-ov{background:rgba(0,0,0,.35);}
 [data-theme="light"] .thumb-hover-ov{background:rgba(255,255,255,.45);}
