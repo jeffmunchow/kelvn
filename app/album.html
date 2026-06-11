@@ -259,6 +259,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .exp-fmt.sel{border-color:var(--border-strong);background:var(--surface2);}
 .exp-fmt-nome{font-size:.72rem;font-weight:500;color:var(--text);}
 #exp-qualidade-wrap{margin-bottom:1rem;}
+#exp-opcoes-wrap{margin-bottom:1rem;}
+.exp-check{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--text-muted);cursor:pointer;user-select:none;}
+.exp-check + .exp-check{margin-top:.5rem;}
+.exp-check input{accent-color:var(--amber);width:14px;height:14px;cursor:pointer;}
 .exp-nota{font-size:.7rem;color:var(--text-muted);line-height:1.55;background:var(--surface2);border-radius:8px;padding:.65rem .8rem;margin-bottom:1rem;}
 #exp-status{font-size:.7rem;color:var(--text-muted);min-height:.9rem;margin-bottom:.5rem;}
 #exp-status:empty{display:none;}
@@ -577,6 +581,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
               <div id="exp-qualidade-wrap">
                 <div class="exp-label" id="exp-qual-label">Qualidade — Alta</div>
                 <input type="range" min="0" max="2" step="1" value="1" class="props-slider" id="exp-qual-slider" oninput="atualizarQualLabel()">
+              </div>
+              <div id="exp-opcoes-wrap">
+                <label class="exp-check"><input type="checkbox" id="exp-num-paginas"> Numerar as páginas</label>
+                <label class="exp-check"><input type="checkbox" id="exp-num-fotos"> Numerar fotos</label>
               </div>
               <div id="exp-pdfx3-nota" class="exp-nota" style="display:none;">O PDF/X-3 é gerado pela Kelvn com perfil de cor e sangria para a gráfica, na etapa seguinte.</div>
               <div id="exp-status"></div>
@@ -1879,9 +1887,13 @@ function renderSpread() {
 // ── Renderizador estático (para snapshots dos spreads vizinhos) ───────────────
 // Desenha um spread qualquer numa layer, sem hooks de edição, e chama onReady
 // quando todas as imagens carregaram (para capturar o snapshot).
-function desenharSpreadEstatico(layer, spread, W, H, onReady) {
+function desenharSpreadEstatico(layer, spread, W, H, onReady, numOpts) {
   var pend = 0, finalizou = false;
-  function aoCarregar() { pend--; if (pend <= 0 && !finalizou) { finalizou = true; onReady(); } }
+  function finalizar() {
+    if (numOpts) desenharNumeracao(layer, spread, W, H, numOpts);
+    onReady();
+  }
+  function aoCarregar() { pend--; if (pend <= 0 && !finalizou) { finalizou = true; finalizar(); } }
   function aguardar() { pend++; }
 
   var bgColor = spread.background_color || '#ffffff';
@@ -1947,11 +1959,66 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady) {
     }));
   });
 
-  if (!finalizou && pend === 0) { finalizou = true; onReady(); }
+  if (!finalizou && pend === 0) { finalizou = true; finalizar(); }
+}
+
+// Numeração de páginas e fotos (somente na exportação).
+// Página: 2 por lâmina (capa não numera). Foto: sequencial por foto preenchida.
+function fotosNumeraveis(spread, W, H) {
+  var slotsAjust = slotsEfetivos(spread, W, H);
+  var slots = spread.album_slots || [];
+  var out = [];
+  slotsAjust.forEach(function(s, idx) {
+    if (s.w < 0.0001 || s.h < 0.0001) return;
+    var slot = slots[idx];
+    if (!slot || !slot.foto_key) return;
+    out.push({ x: s.x, y: s.y, w: s.w, h: s.h, cx: s.x + s.w / 2, cy: s.y + s.h / 2 });
+  });
+  out.sort(function(a, b) { return a.cx - b.cx || a.cy - b.cy; });
+  return out;
+}
+
+function _luminancia(hex) {
+  var h = String(hex || '#ffffff').replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var r = parseInt(h.substr(0,2),16)/255, g = parseInt(h.substr(2,2),16)/255, b = parseInt(h.substr(4,2),16)/255;
+  return 0.299*r + 0.587*g + 0.114*b;
+}
+
+function desenharNumeracao(layer, spread, W, H, opts) {
+  // Números de página: cada lâmina interna tem 2 páginas; a capa não numera.
+  if (opts.numerarPaginas && spread.tipo !== 'capa' && opts.pageStart) {
+    var m = H * 0.025;
+    var fs = Math.max(9, H * 0.03);
+    var claro = _luminancia(spread.background_color || '#ffffff') > 0.55;
+    var fill = claro ? '#1a1814' : '#ffffff';
+    var sombra = claro ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.55)';
+    [[opts.pageStart, W / 2 - m], [opts.pageStart + 1, W - m]].forEach(function(pg) {
+      var t = new Konva.Text({ text: String(pg[0]), fontFamily: 'DM Sans', fontSize: fs, fill: fill, listening: false });
+      t.x(pg[1] - t.width());
+      t.y(H - m - fs);
+      t.shadowColor(sombra); t.shadowBlur(2); t.shadowOpacity(1); t.shadowOffset({ x: 0, y: 0 });
+      layer.add(t);
+    });
+  }
+  // Números de foto: canto inferior direito de cada foto, sequencial no álbum.
+  if (opts.numerarFotos && opts.fotoStart) {
+    var fotos = fotosNumeraveis(spread, W, H);
+    var fs2 = Math.max(8, H * 0.026);
+    var m2 = H * 0.018;
+    fotos.forEach(function(f, i) {
+      var t = new Konva.Text({ text: String(opts.fotoStart + i), fontFamily: 'DM Sans', fontSize: fs2, fill: '#ffffff', listening: false });
+      t.x((f.x + f.w) * W - m2 - t.width());
+      t.y((f.y + f.h) * H - m2 - fs2);
+      t.shadowColor('rgba(0,0,0,0.7)'); t.shadowBlur(3); t.shadowOpacity(1); t.shadowOffset({ x: 0, y: 1 });
+      layer.add(t);
+    });
+  }
 }
 
 // Gera um snapshot (dataURL) de um spread, renderizando-o num stage fora da tela.
-function gerarSnapshotSpread(spread, cb, pixelRatio) {
+// numOpts (opcional, só na exportação): { numerarPaginas, numerarFotos, pageStart, fotoStart }
+function gerarSnapshotSpread(spread, cb, pixelRatio, numOpts) {
   if (!spread) { cb(null); return; }
   var dim = dimParaSpread(spread);
   if (!dim.w) { cb(null); return; }
@@ -1968,7 +2035,7 @@ function gerarSnapshotSpread(spread, cb, pixelRatio) {
     stage.destroy(); holder.remove();
     cb(url);
   }
-  desenharSpreadEstatico(layer, spread, dim.w, dim.h, capturar);
+  desenharSpreadEstatico(layer, spread, dim.w, dim.h, capturar, numOpts);
   setTimeout(capturar, 8000);
 }
 
@@ -4277,6 +4344,7 @@ function selecExpFormato(f) {
   });
   var ehPrint = f === 'pdfx3';
   document.getElementById('exp-qualidade-wrap').style.display = ehPrint ? 'none' : '';
+  document.getElementById('exp-opcoes-wrap').style.display = ehPrint ? 'none' : '';
   document.getElementById('exp-pdfx3-nota').style.display = ehPrint ? '' : 'none';
   document.getElementById('exp-btn-exportar').textContent = ehPrint ? 'Continuar para a gráfica' : 'Exportar';
 }
@@ -4312,7 +4380,7 @@ async function pedirPastaExport() {
 }
 
 // Renderiza um spread em JPEG (fundo branco) com largura-alvo fixa
-function renderSpreadJpeg(spread, targetW) {
+function renderSpreadJpeg(spread, targetW, numOpts) {
   return new Promise(function(resolve) {
     var dim = dimParaSpread(spread);
     var pr = dim.w ? (targetW / dim.w) : 2;
@@ -4329,7 +4397,7 @@ function renderSpreadJpeg(spread, targetW) {
       };
       img.onerror = function() { resolve(null); };
       img.src = pngUrl;
-    }, pr);
+    }, pr, numOpts);
   });
 }
 
@@ -4378,6 +4446,22 @@ async function executarExport() {
     statusEl.textContent = 'Sem suporte a pasta neste navegador — os arquivos serão baixados.';
   }
 
+  // Numeração de páginas/fotos (sequencial no álbum, na ordem das lâminas)
+  var numPag = document.getElementById('exp-num-paginas').checked;
+  var numFoto = document.getElementById('exp-num-fotos').checked;
+  var _pageC = 0, _fotoC = 0;
+  function numOptsPara(sp) {
+    if (!numPag && !numFoto) return null;
+    var o = { numerarPaginas: numPag, numerarFotos: numFoto };
+    if (numPag && sp.tipo !== 'capa') { o.pageStart = _pageC + 1; _pageC += 2; }
+    if (numFoto) {
+      var d = dimParaSpread(sp);
+      var nf = fotosNumeraveis(sp, d.w, d.h).length;
+      if (nf > 0) { o.fotoStart = _fotoC + 1; _fotoC += nf; }
+    }
+    return o;
+  }
+
   _expRodando = true;
   var btn = document.getElementById('exp-btn-exportar');
   btn.disabled = true;
@@ -4388,7 +4472,7 @@ async function executarExport() {
       var n = 0;
       for (var i = 0; i < spreads.length; i++) {
         statusEl.textContent = 'Renderizando ' + (i + 1) + ' de ' + spreads.length + '…';
-        var r = await renderSpreadJpeg(spreads[i], targetW);
+        var r = await renderSpreadJpeg(spreads[i], targetW, numOptsPara(spreads[i]));
         if (!r) continue;
         var nome = base + ' - ' + nomeLamina(spreads[i], i) + '.jpg';
         var blob = dataURLparaBlob(r.url);
@@ -4404,7 +4488,7 @@ async function executarExport() {
       var doc = null;
       for (var k = 0; k < spreads.length; k++) {
         statusEl.textContent = 'Montando PDF ' + (k + 1) + ' de ' + spreads.length + '…';
-        var rp = await renderSpreadJpeg(spreads[k], targetW);
+        var rp = await renderSpreadJpeg(spreads[k], targetW, numOptsPara(spreads[k]));
         if (!rp) continue;
         var orient = rp.w > rp.h ? 'l' : 'p';
         if (!doc) doc = new jsPDFctor({ unit: 'px', format: [rp.w, rp.h], orientation: orient, compress: true });
