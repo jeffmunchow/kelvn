@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/konva@9.3.6/konva.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -108,6 +109,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* Ação (Compartilhar) — header clicável sem corpo */
 .rpanel-action{padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:.68rem;font-family:'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.07em;color:var(--text);user-select:none;transition:color .15s,background .15s;flex-shrink:0;border-bottom:.5px solid var(--border);}
 .rpanel-action:hover{color:var(--text);background:var(--surface2);}
+.rpanel-action.dim{color:var(--text-hint);}
+.rpanel-action.dim:hover{color:var(--text);}
 .rpanel-action svg{width:13px;height:13px;flex-shrink:0;}
 .rpanel-sec-body{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
 .rpanel-sec.expandido>.rpanel-sec-body{display:flex;}
@@ -242,6 +245,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* ── Nível 6 — Exportação ────────────────────────────────────────── */
 #modal-exportar{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
 #modal-exportar.open{display:flex;}
+/* Modal Exportar lâminas */
+#modal-exp{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:none;align-items:center;justify-content:center;}
+#modal-exp.open{display:flex;}
+.exp-label{font-size:.7rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin:1.1rem 0 .5rem;}
+.exp-label:first-child{margin-top:0;}
+.exp-fmt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;}
+.exp-fmt{padding:.7rem .5rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;text-align:center;transition:border-color .15s,background .15s;}
+.exp-fmt:hover{border-color:var(--text-muted);}
+.exp-fmt.sel{border-color:var(--text);background:var(--surface2);}
+.exp-fmt-nome{font-size:.8rem;font-weight:500;color:var(--text);}
+.exp-fmt-desc{font-size:.6rem;color:var(--text-hint);margin-top:.15rem;}
+.exp-sel{width:100%;padding:8px 12px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.8rem;outline:none;cursor:pointer;}
+.exp-pasta-row{display:flex;align-items:center;gap:.6rem;}
+.exp-pasta-nome{font-size:.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.exp-pasta-nome.vazio{color:var(--text-hint);}
+.exp-nota{font-size:.72rem;color:var(--text-muted);line-height:1.6;background:var(--surface2);border-radius:8px;padding:.7rem .9rem;}
+#exp-status{font-size:.74rem;color:var(--text-muted);min-height:1rem;margin-top:.9rem;}
 .perfil-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;}
 .perfil-opt{padding:.65rem .9rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;transition:border-color .15s,background .15s;}
 .perfil-opt:hover{border-color:var(--amber);}
@@ -533,9 +553,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         </div>
         <div id="right-panels">
         <!-- Compartilhar -->
-        <div class="rpanel-action" id="sec-share" onclick="abrirModalShare()" title="Compartilhar para revisão do casal">
+        <div class="rpanel-action dim" id="sec-share" onclick="abrirModalShare()" title="Compartilhar para revisão do casal">
           <span>Compartilhar</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
+        <!-- Exportar -->
+        <div class="rpanel-action" id="sec-exportar" onclick="abrirExportLaminas()" title="Exportar as lâminas do álbum">
+          <span>Exportar</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <!-- Favoritas -->
         <div class="rpanel-sec expandido" id="sec-favoritas">
@@ -631,6 +656,59 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     <div class="modal-footer">
       <button class="btn btn-sec" onclick="fecharModalExportar()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
       <button class="btn" id="btn-gerar-pdf" onclick="gerarPdf()" style="padding:5px 14px;font-size:.75rem;">Gerar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Exportar lâminas ── -->
+<div id="modal-exp">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-titulo">Exportar lâminas</div>
+      <button class="btn btn-sec" onclick="fecharExportLaminas()" style="padding:3px 10px;font-size:.72rem;">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1.25rem;">
+      <div class="exp-label">Formato</div>
+      <div class="exp-fmt-grid">
+        <div class="exp-fmt" id="exp-fmt-jpg" onclick="selecExpFormato('jpg')">
+          <div class="exp-fmt-nome">JPG</div>
+          <div class="exp-fmt-desc">uma imagem por lâmina</div>
+        </div>
+        <div class="exp-fmt" id="exp-fmt-pdf" onclick="selecExpFormato('pdf')">
+          <div class="exp-fmt-nome">PDF</div>
+          <div class="exp-fmt-desc">álbum em um arquivo</div>
+        </div>
+        <div class="exp-fmt" id="exp-fmt-pdfx3" onclick="selecExpFormato('pdfx3')">
+          <div class="exp-fmt-nome">PDF/X-3</div>
+          <div class="exp-fmt-desc">para gráfica</div>
+        </div>
+      </div>
+
+      <div id="exp-bloco-cliente">
+        <div class="exp-label">Resolução</div>
+        <select class="exp-sel" id="exp-resolucao-sel">
+          <option value="1600">Tela — 1600px</option>
+          <option value="2400" selected>Alta — 2400px</option>
+          <option value="3500">Impressão — 3500px</option>
+        </select>
+
+        <div class="exp-label">Pasta de destino</div>
+        <div class="exp-pasta-row">
+          <button class="btn btn-sec" onclick="escolherPastaExp()" style="padding:6px 12px;font-size:.72rem;white-space:nowrap;">Escolher pasta</button>
+          <span class="exp-pasta-nome vazio" id="exp-pasta-nome">Nenhuma pasta escolhida</span>
+        </div>
+      </div>
+
+      <div id="exp-bloco-pdfx3" style="display:none;">
+        <div class="exp-label">Impressão profissional</div>
+        <div class="exp-nota">O PDF/X-3 é gerado pela Kelvn com perfil de cor e sangria para a gráfica. Você escolhe o perfil e baixa o arquivo na etapa seguinte.</div>
+      </div>
+
+      <div id="exp-status"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sec" onclick="fecharExportLaminas()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
+      <button class="btn" id="exp-btn-exportar" onclick="executarExport()" style="padding:5px 14px;font-size:.75rem;">Exportar</button>
     </div>
   </div>
 </div>
@@ -4203,6 +4281,166 @@ async function aplicarAutoLayout() {
   renderThumbs();
   renderTemplates();
   renderSpread();
+}
+
+// ── Exportar lâminas (JPG / PDF client-side; PDF/X-3 via gráfica) ─────────────
+var _expFormato = 'jpg';
+var _expDirHandle = null;
+var _expRodando = false;
+
+function abrirExportLaminas() {
+  if (!estado.album) return;
+  _expFormato = 'jpg';
+  _expDirHandle = null;
+  _expRodando = false;
+  document.getElementById('exp-pasta-nome').textContent = 'Nenhuma pasta escolhida';
+  document.getElementById('exp-pasta-nome').classList.add('vazio');
+  document.getElementById('exp-status').textContent = '';
+  document.getElementById('exp-btn-exportar').disabled = false;
+  atualizarExpUI();
+  document.getElementById('modal-exp').classList.add('open');
+}
+function fecharExportLaminas() {
+  if (_expRodando) return;
+  document.getElementById('modal-exp').classList.remove('open');
+}
+
+function selecExpFormato(f) {
+  if (_expRodando) return;
+  _expFormato = f;
+  atualizarExpUI();
+}
+
+function atualizarExpUI() {
+  ['jpg', 'pdf', 'pdfx3'].forEach(function(f) {
+    document.getElementById('exp-fmt-' + f).classList.toggle('sel', f === _expFormato);
+  });
+  var ehPrint = _expFormato === 'pdfx3';
+  document.getElementById('exp-bloco-cliente').style.display = ehPrint ? 'none' : '';
+  document.getElementById('exp-bloco-pdfx3').style.display = ehPrint ? '' : 'none';
+  // Resolução só faz sentido para JPG e PDF; pasta só para JPG (PDF é arquivo único)
+  document.getElementById('exp-btn-exportar').textContent = ehPrint ? 'Continuar' : 'Exportar';
+}
+
+async function escolherPastaExp() {
+  if (!window.showDirectoryPicker) {
+    document.getElementById('exp-status').textContent = 'Seu navegador não permite escolher pasta. Os arquivos serão baixados normalmente.';
+    return;
+  }
+  try {
+    _expDirHandle = await window.showDirectoryPicker();
+    var el = document.getElementById('exp-pasta-nome');
+    el.textContent = _expDirHandle.name;
+    el.classList.remove('vazio');
+    document.getElementById('exp-status').textContent = '';
+  } catch (e) { /* cancelado */ }
+}
+
+// Renderiza um spread em JPEG (fundo branco) com largura-alvo fixa
+function renderSpreadJpeg(spread, targetW) {
+  return new Promise(function(resolve) {
+    var dim = dimParaSpread(spread);
+    var pr = dim.w ? (targetW / dim.w) : 2;
+    gerarSnapshotSpread(spread, function(pngUrl) {
+      if (!pngUrl) { resolve(null); return; }
+      var img = new Image();
+      img.onload = function() {
+        var cv = document.createElement('canvas');
+        cv.width = img.width; cv.height = img.height;
+        var ctx = cv.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.drawImage(img, 0, 0);
+        resolve({ url: cv.toDataURL('image/jpeg', 0.92), w: cv.width, h: cv.height });
+      };
+      img.onerror = function() { resolve(null); };
+      img.src = pngUrl;
+    }, pr);
+  });
+}
+
+function dataURLparaBlob(d) {
+  var arr = d.split(','), mime = arr[0].match(/:(.*?);/)[1];
+  var bstr = atob(arr[1]), n = bstr.length, u8 = new Uint8Array(n);
+  while (n--) u8[n] = bstr.charCodeAt(n);
+  return new Blob([u8], { type: mime });
+}
+function baixarBlob(blob, nome) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = nome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
+}
+async function gravarNaPasta(dir, nome, blob) {
+  var fh = await dir.getFileHandle(nome, { create: true });
+  var w = await fh.createWritable();
+  await w.write(blob); await w.close();
+}
+function nomeBaseAlbum() {
+  return (estado.album && estado.album.nome ? estado.album.nome : 'album')
+    .replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'album';
+}
+function nomeLamina(spread, i) {
+  if (spread.tipo === 'capa') return 'Capa';
+  return 'Lamina ' + String(i).padStart(2, '0');
+}
+
+async function executarExport() {
+  if (_expRodando) return;
+  if (_expFormato === 'pdfx3') {
+    document.getElementById('modal-exp').classList.remove('open');
+    abrirModalExportar();
+    return;
+  }
+  var spreads = (estado.spreads || []).slice();
+  if (!spreads.length) return;
+  var targetW = parseInt(document.getElementById('exp-resolucao-sel').value) || 2400;
+
+  _expRodando = true;
+  var btn = document.getElementById('exp-btn-exportar');
+  btn.disabled = true;
+  var statusEl = document.getElementById('exp-status');
+
+  try {
+    if (_expFormato === 'jpg') {
+      var base = nomeBaseAlbum();
+      var n = 0;
+      for (var i = 0; i < spreads.length; i++) {
+        statusEl.textContent = 'Renderizando ' + (i + 1) + ' de ' + spreads.length + '…';
+        var r = await renderSpreadJpeg(spreads[i], targetW);
+        if (!r) continue;
+        var nome = base + ' - ' + nomeLamina(spreads[i], i) + '.jpg';
+        var blob = dataURLparaBlob(r.url);
+        if (_expDirHandle) await gravarNaPasta(_expDirHandle, nome, blob);
+        else baixarBlob(blob, nome);
+        n++;
+      }
+      statusEl.textContent = n + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.')
+        + (_expDirHandle ? ' Em "' + _expDirHandle.name + '".' : '');
+    } else if (_expFormato === 'pdf') {
+      var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+      if (!jsPDFctor) { statusEl.textContent = 'Biblioteca PDF não carregou. Recarregue a página.'; return; }
+      var doc = null;
+      for (var k = 0; k < spreads.length; k++) {
+        statusEl.textContent = 'Montando PDF ' + (k + 1) + ' de ' + spreads.length + '…';
+        var rp = await renderSpreadJpeg(spreads[k], targetW);
+        if (!rp) continue;
+        var orient = rp.w > rp.h ? 'l' : 'p';
+        if (!doc) doc = new jsPDFctor({ unit: 'px', format: [rp.w, rp.h], orientation: orient, compress: true });
+        else doc.addPage([rp.w, rp.h], orient);
+        doc.addImage(rp.url, 'JPEG', 0, 0, rp.w, rp.h);
+      }
+      if (!doc) { statusEl.textContent = 'Nada para exportar.'; return; }
+      var pdfBlob = doc.output('blob');
+      var nomePdf = nomeBaseAlbum() + '.pdf';
+      if (_expDirHandle) { await gravarNaPasta(_expDirHandle, nomePdf, pdfBlob); statusEl.textContent = 'PDF salvo em "' + _expDirHandle.name + '".'; }
+      else { baixarBlob(pdfBlob, nomePdf); statusEl.textContent = 'PDF gerado.'; }
+    }
+  } catch (e) {
+    statusEl.textContent = 'Erro ao exportar: ' + (e && e.message ? e.message : e);
+  } finally {
+    _expRodando = false;
+    btn.disabled = false;
+  }
 }
 
 // ── Nível 6: Exportação ──────────────────────────────────────────────────────
