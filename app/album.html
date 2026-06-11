@@ -1693,6 +1693,7 @@ function slotsEfetivos(spread, W, H) {
 function renderSpread() {
   if (!_stage || !_layer) return;
   _slotEmEdicao = null;
+  desselecionarTexto();
   _layer.destroyChildren();
 
   var spread = estado.spreads[estado.spreadAtivo];
@@ -1808,6 +1809,8 @@ function renderSpread() {
   // Botão de propriedades (clique no canvas fora dos slots)
   _stage.off('click.props');
   _stage.on('click.props', function(e) {
+    // Desseleciona texto se o clique não foi num nó de texto
+    if (_textoSelecionado && e.target !== _textoSelecionado.kt) desselecionarTexto();
     if (!_slotEmEdicao) return;
     // Clique no proxyRect ou na imagem do slot ativo → permanece selecionado
     var alvo = e.target;
@@ -3156,6 +3159,7 @@ async function restaurarEstadoHistorico(snap) {
 
 // ── Nível 4 — Crop interativo ────────────────────────────────────────────────
 var _slotEmEdicao = null; // { grupo, slot, dimSlot, imgNode, snapAntes }
+var _textoSelecionado = null; // { kt: KonvaText, td: textoData }
 
 // ── Smart guides + snap ───────────────────────────────────────────────────────
 var _SNAP_PX = 7;
@@ -3814,6 +3818,23 @@ async function removerTexto(textoId) {
   renderSpread();
 }
 
+function desselecionarTexto() {
+  if (_textoSelecionado) {
+    _textoSelecionado.kt.strokeEnabled(false);
+    _layer.batchDraw();
+    _textoSelecionado = null;
+  }
+}
+
+function selecionarTexto(kt, td) {
+  desselecionarTexto();
+  _textoSelecionado = { kt: kt, td: td };
+  kt.stroke('rgba(196,120,10,0.7)');
+  kt.strokeWidth(1);
+  kt.strokeEnabled(true);
+  _layer.batchDraw();
+}
+
 function renderizarTextos(textos) {
   (textos || []).forEach(function(td) {
     var x = td.x_prop * _dimSpread.w;
@@ -3830,6 +3851,11 @@ function renderizarTextos(textos) {
       align: td.alinhamento,
       draggable: true,
       name: 'texto-' + td.id,
+    });
+
+    kt.on('click tap', function(e) {
+      e.cancelBubble = true;
+      selecionarTexto(kt, td);
     });
 
     kt.on('dragend', function() {
@@ -3902,12 +3928,21 @@ document.addEventListener('keydown', function(e) {
   if (ctrl && e.key === 'z' && !e.shiftKey) { e.preventDefault(); historico.desfazer(); return; }
   if ((ctrl && e.key === 'y') || (ctrl && e.shiftKey && e.key === 'z')) { e.preventDefault(); historico.refazer(); return; }
   if (e.key === 'Escape') { sairModoEdicaoSlot(false); return; }
-  if ((e.key === 'Delete' || e.key === 'Backspace') && _slotEmEdicao) {
+  if (e.key === 'Delete' || e.key === 'Backspace') {
     var t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    e.preventDefault();
-    if (_slotEmEdicao.modo === 'foto') removerFotoDoSlot();
-    else excluirSlotEmEdicao();
+    if (_textoSelecionado) {
+      e.preventDefault();
+      var tdDel = _textoSelecionado.td;
+      desselecionarTexto();
+      removerTexto(tdDel.id);
+      return;
+    }
+    if (_slotEmEdicao) {
+      e.preventDefault();
+      if (_slotEmEdicao.modo === 'foto') removerFotoDoSlot();
+      else excluirSlotEmEdicao();
+    }
   }
 });
 
