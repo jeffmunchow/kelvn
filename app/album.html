@@ -2316,6 +2316,23 @@ function renderTemplates() {
   renderTemplatesAgora();
 }
 
+// Retorna true se o layout efetivo da lâmina coincide com algum template da lista.
+// Tolerância de 0.5% por dimensão para absorver arredondamentos de espelhamento.
+function layoutBateTemplate(spread, templates) {
+  var efetivos = slotsEfetivos(spread, _dimSpread.w, _dimSpread.h)
+    .filter(function(s){ return s.w > 0.0001 && s.h > 0.0001; })
+    .map(function(s){ return { x: +s.x.toFixed(4), y: +s.y.toFixed(4), w: +s.w.toFixed(4), h: +s.h.toFixed(4) }; });
+  var TOL = 0.005;
+  function near(a, b){ return Math.abs(a - b) <= TOL; }
+  return templates.some(function(tpl) {
+    if (tpl.slots.length !== efetivos.length) return false;
+    return efetivos.every(function(e, i) {
+      var t = tpl.slots[i];
+      return near(e.x, t.x) && near(e.y, t.y) && near(e.w, t.w) && near(e.h, t.h);
+    });
+  });
+}
+
 function renderTemplatesAgora() {
   var grid = document.getElementById('tpl-grid');
   if (!grid) return;
@@ -2357,8 +2374,9 @@ function renderTemplatesAgora() {
   grid.innerHTML = '';
 
   // Lâmina com slots editados manualmente → preview do layout atual + salvar
+  // (só mostra se o layout efetivo não bate com nenhum template existente)
   var temGeom = spread && (spread.album_slots || []).some(function(s){ return s.geom; });
-  if (temGeom) {
+  if (temGeom && !layoutBateTemplate(spread, scored.map(function(x){ return x.tpl; }))) {
     grid.appendChild(criarCardLayoutAtual(spread, aspect));
     var btnSalvar = document.createElement('button');
     btnSalvar.className = 'btn-salvar-tpl';
