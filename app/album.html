@@ -4323,6 +4323,22 @@ function atualizarExpUI() {
 }
 
 async function escolherPastaExp() {
+  // ─────────────────────────────────────────────────────────────────────────
+  // EMPACOTAMENTO DESKTOP (Mac): quando virar app, troque por uma das opções.
+  //
+  // ELECTRON — não precisa mexer: o showDirectoryPicker abaixo continua
+  //   funcionando (é o mesmo Chromium). Opcional, via Node, para lembrar a
+  //   pasta entre sessões:
+  //     const { dialog } = require('@electron/remote');
+  //     const r = await dialog.showOpenDialog({ properties: ['openDirectory'] });
+  //     if (!r.canceled) _expDirPath = r.filePaths[0];  // grava com fs.writeFile
+  //
+  // TAURI — o WKWebView do Mac NÃO tem showDirectoryPicker; use as APIs nativas:
+  //     import { open } from '@tauri-apps/plugin-dialog';
+  //     import { writeFile } from '@tauri-apps/plugin-fs';
+  //     _expDirPath = await open({ directory: true });
+  //     // e em gravarNaPasta(): await writeFile(_expDirPath + '/' + nome, bytes);
+  // ─────────────────────────────────────────────────────────────────────────
   if (!window.showDirectoryPicker) {
     document.getElementById('exp-status').textContent = 'Seu navegador não permite escolher pasta. Os arquivos serão baixados normalmente.';
     return;
@@ -4371,6 +4387,8 @@ function baixarBlob(blob, nome) {
   setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
 }
 async function gravarNaPasta(dir, nome, blob) {
+  // DESKTOP: no Tauri, troque por writeFile(_expDirPath + '/' + nome, new Uint8Array(await blob.arrayBuffer()));
+  // No Electron com caminho nativo, use fs.promises.writeFile. Ver escolherPastaExp().
   var fh = await dir.getFileHandle(nome, { create: true });
   var w = await fh.createWritable();
   await w.write(blob); await w.close();
