@@ -1701,7 +1701,7 @@ function renderSpread() {
   var slots = spread.album_slots || [];
   if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
     (function(fotoKey) {
-      carregarKonvaImg(urlFotoOriginal(fotoKey), function(img) {
+      carregarKonvaImg(urlFotoWeb(fotoKey), function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
         img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
         _layer.add(img);
@@ -1731,7 +1731,11 @@ function renderSpread() {
     // Foto, se houver
     if (slot && slot.foto_key) {
       (function(slotRef, gx, gy, gw, gh, grupoRef, idxLocal) {
-        carregarKonvaImg(urlFotoOriginal(slotRef.foto_key), function(img) {
+        // Sem crop manual → variante web (decode rápido, drag leve).
+        // Com crop manual → original (foto_escala é salvo em px do original).
+        var temCrop = (slotRef.foto_x || 0) !== 0 || (slotRef.foto_y || 0) !== 0;
+        var urlSlot = temCrop ? urlFotoOriginal(slotRef.foto_key) : urlFotoWeb(slotRef.foto_key);
+        carregarKonvaImg(urlSlot, function(img) {
           var scMin = Math.max(gw / img.width(), gh / img.height());
           // autoFit: foto nunca recortada manualmente (sem offset) → cover-fit centralizado,
           // ignorando escala persistida (corrige dados antigos salvos como nativo 1).
@@ -1746,10 +1750,7 @@ function renderSpread() {
             imgY = gy + (slotRef.foto_y || 0);
           }
           img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
-          // Rasteriza no tamanho de exibição: o redraw durante drags blita um
-          // bitmap pequeno em vez de reescalar o original gigante a cada frame.
-          var pr = Math.min(1, sc * (window.devicePixelRatio || 1) * 1.4);
-          if (pr < 1) img.cache({ pixelRatio: pr });
+          img.setAttr('variante', temCrop ? 'original' : 'web');
           grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
           grupoRef.add(img);
           _layer.batchDraw();
@@ -3337,7 +3338,26 @@ function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
   var grupoAtual = _layer.findOne('.grupo-slot-' + (grupo.name() || '').replace('grupo-slot-', '')) || grupo;
   var imgNode = grupoAtual.findOne('Image');
   if (!imgNode) return; // slot sem foto: nada a editar
-  imgNode.clearCache(); // crop em resolução plena (re-cacheia no próximo renderSpread)
+  imgNode.clearCache();
+
+  // Se o slot está exibindo a variante web, troca para o original antes do
+  // crop: foto_escala precisa ser salvo em px do original (exportação usa ele).
+  if (imgNode.getAttr('variante') === 'web' && slot.foto_key) {
+    carregarKonvaImg(urlFotoOriginal(slot.foto_key), function(orig) {
+      var el = orig.image();
+      if (el && el.naturalWidth) {
+        var fator = imgNode.width() / el.naturalWidth; // webW / origW
+        imgNode.image(el);
+        imgNode.width(el.naturalWidth);
+        imgNode.height(el.naturalHeight);
+        imgNode.scale({ x: imgNode.scaleX() * fator, y: imgNode.scaleY() * fator });
+        imgNode.setAttr('variante', 'original');
+        _layer.batchDraw();
+      }
+      ativarModoEdicaoFoto(grupo, slot, dimSlot);
+    });
+    return;
+  }
 
   _slotEmEdicao = {
     grupo: grupoAtual, slot: slot, dimSlot: dimSlot, imgNode: imgNode, modo: 'foto',
