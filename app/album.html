@@ -1257,13 +1257,13 @@ async function criarAlbum() {
   var { data: album, error: e1 } = await _sb.from('albuns').insert({
     user_id: _userId, nome, formato, galeria_slug: galeriaSlug || null,
     nome_cliente: nomeCliente, data_evento: dataEvento,
-    largura_cm: d[0], altura_cm: d[1], status: 'rascunho', total_spreads: 3
+    largura_cm: d[0], altura_cm: d[1], status: 'rascunho', total_spreads: 2
   }).select().single();
 
   if (e1) { erro.textContent = 'Erro ao criar álbum. Tente novamente.'; erro.style.display = 'block'; return; }
 
-  // Criar capa, 1 spread e contracapa
-  var tipos = ['capa','spread','contracapa'];
+  // Criar capa e 1 spread (fotolivro de casamento não tem contracapa editável)
+  var tipos = ['capa','spread'];
   for (var i = 0; i < tipos.length; i++) {
     var tplId = i === 0 || i === 2 ? 'uma-foto' : 'duas-lado';
     var { data: spread } = await _sb.from('album_spreads').insert({
@@ -1331,10 +1331,12 @@ async function carregarSpreads() {
     .eq('user_id', _userId)
     .order('posicao', { ascending: true });
 
-  estado.spreads = (spreads || []).map(function(s) {
-    s.album_slots = (s.album_slots || []).sort(function(a,b){ return a.slot_index - b.slot_index; });
-    return s;
-  });
+  estado.spreads = (spreads || [])
+    .filter(function(s) { return s.tipo !== 'contracapa'; }) // álbuns antigos: contracapa não existe mais
+    .map(function(s) {
+      s.album_slots = (s.album_slots || []).sort(function(a,b){ return a.slot_index - b.slot_index; });
+      return s;
+    });
 
   // Reconstruir fotosUsadas
   estado.fotosUsadas = new Set();
@@ -2854,11 +2856,10 @@ async function adicionarSpread() {
 var _thumbDragIdx = null;
 
 async function reordenarSpreads(deIdx, paraIdx) {
-  // Capa (0) e contracapa (último) nunca se movem
-  var ultimo = estado.spreads.length - 1;
-  if (deIdx === 0 || deIdx === ultimo) return;
-  if (paraIdx === 0 || paraIdx === ultimo) return;
+  // Capa (0) nunca se move; só lâminas internas são reordenáveis
   if (deIdx === paraIdx) return;
+  if (!estado.spreads[deIdx] || estado.spreads[deIdx].tipo !== 'spread') return;
+  if (paraIdx === 0 || paraIdx >= estado.spreads.length) return;
 
   var spreads = estado.spreads.slice();
   var [movido] = spreads.splice(deIdx, 1);
