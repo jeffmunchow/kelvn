@@ -3741,35 +3741,6 @@ function renderPropsSpreadBody() {
   secGutter.appendChild(slGutter);
   body.appendChild(secGutter);
 
-  // Texto
-  var secTexto = criarPropsSection('Texto');
-  var btnTexto = document.createElement('button');
-  btnTexto.className = 'props-btn';
-  btnTexto.textContent = '+ Adicionar texto';
-  btnTexto.addEventListener('click', function() { adicionarTexto(); });
-  secTexto.appendChild(btnTexto);
-  body.appendChild(secTexto);
-
-  // Full-bleed (só para spreads com exatamente 1 foto)
-  var slots = spread.album_slots || [];
-  var fotosNoSpread = slots.filter(function(sl) { return sl.foto_key; }).length;
-  if (fotosNoSpread === 1) {
-    var secFB = criarPropsSection('Full-bleed');
-    var lblFB = document.createElement('label');
-    lblFB.className = 'toggle-wrap';
-    var cbFB = document.createElement('input');
-    cbFB.type = 'checkbox'; cbFB.checked = !!spread.full_bleed;
-    cbFB.addEventListener('change', function() {
-      spread.full_bleed = this.checked;
-      _sb.from('album_spreads').update({ full_bleed: this.checked }).eq('id', spread.id).eq('user_id', _userId).then(function(){});
-      renderSpread();
-    });
-    lblFB.appendChild(cbFB);
-    lblFB.appendChild(document.createTextNode(' Foto sangra a página toda'));
-    secFB.appendChild(lblFB);
-    body.appendChild(secFB);
-  }
-
   // Botão fechar
 }
 
