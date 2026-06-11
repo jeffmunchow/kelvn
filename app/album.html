@@ -2547,13 +2547,7 @@ function renderThumbs() {
     mini.style.aspectRatio = dimMini.w + ' / ' + dimMini.h;
     montarThumbSnapshot(spread, mini);
 
-    // Label tipo
-    var label = document.createElement('div');
-    label.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:.48rem;color:rgba(255,255,255,.4);font-family:DM Sans,sans-serif;';
-    label.textContent = spread.tipo === 'capa' ? 'capa' : spread.tipo === 'contracapa' ? 'fim' : idx;
-
     item.appendChild(mini);
-    item.appendChild(label);
 
     var ov = document.createElement('div');
     ov.className = 'thumb-hover-ov';
