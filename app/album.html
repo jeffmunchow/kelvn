@@ -140,6 +140,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* Barra de spreads — com toggle */
 #thumbs-wrap{flex-shrink:0;position:relative;}
 #thumbs-modes{position:absolute;top:0;left:8px;height:30px;display:flex;align-items:center;gap:3px;z-index:3;}
+#thumbs-actions{position:absolute;top:0;right:8px;height:30px;display:flex;align-items:center;gap:3px;z-index:3;}
 .thumb-mode-btn{width:32px;height:24px;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text-hint);cursor:pointer;border-radius:5px;padding:0;transition:color .15s,background .15s;}
 .thumb-mode-btn:hover{color:var(--text);background:var(--surface2);}
 .thumb-mode-btn.ativo{color:var(--text);background:var(--surface2);}
@@ -501,6 +502,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
             </button>
             <button class="thumb-mode-btn" id="mode-timeline-btn" onclick="setThumbsMode('timeline')" title="Timeline de fotos">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="5" height="10" rx="1"/><rect x="9.5" y="7" width="5" height="10" rx="1"/><rect x="17" y="7" width="5" height="10" rx="1"/></svg>
+            </button>
+          </div>
+          <div id="thumbs-actions">
+            <button class="thumb-mode-btn" id="btn-espelhar" onclick="espelharLamina()" title="Espelhar lâmina">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18" stroke-dasharray="3 3"/><path d="M8 8 4 12l4 4"/><path d="m16 8 4 4-4 4"/></svg>
             </button>
           </div>
           <div id="thumbs-toggle-btn" onclick="toggleThumbs()" title="Mostrar/ocultar spreads">
@@ -1999,6 +2005,45 @@ function limparDestaqueSlots() {
   _layer.batchDraw();
 }
 
+// ── Espelhar lâmina: reflete as posições dos slots horizontalmente ────────────
+// As fotos migram junto com seus quadros (mesmo enquadramento); nada é flipado.
+async function espelharLamina() {
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread) return;
+  var slots = spread.album_slots || [];
+  if (!slots.length) return;
+  var efetivos = slotsEfetivos(spread, _dimSpread.w, _dimSpread.h);
+
+  function snapGeoms() {
+    return {
+      tipo: 'lamina-geom', spreadId: spread.id,
+      slots: slots.map(function(sl) {
+        return { id: sl.id, geom: sl.geom ? Object.assign({}, sl.geom) : null,
+                 foto_x: sl.foto_x || 0, foto_y: sl.foto_y || 0, foto_escala: sl.foto_escala || 0 };
+      })
+    };
+  }
+  var snapAntes = snapGeoms();
+
+  var updates = [];
+  efetivos.forEach(function(s, idx) {
+    var slot = slots[idx];
+    if (!slot) return;
+    if (s.w < 0.0001 || s.h < 0.0001) return; // slot excluído fica como está
+    var novo = { x: +(1 - s.x - s.w).toFixed(5), y: s.y, w: s.w, h: s.h };
+    slot.geom = novo;
+    updates.push(_sb.from('album_slots').update({ geom: novo, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId));
+  });
+  await Promise.all(updates);
+
+  historico.empurrar('lamina-geom', snapAntes, snapGeoms());
+
+  renderSpread();
+  renderThumbs();
+  renderTemplates();
+  setSaveStatus('Salvo ✓');
+}
+
 async function trocarFotosEntreSlots(ia, ib) {
   var spread = estado.spreads[estado.spreadAtivo];
   if (!spread) return;
@@ -2986,6 +3031,16 @@ async function restaurarEstadoHistorico(snap) {
     slot.geom = snap.geom;
     slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
     await _sb.from('album_slots').update({ geom: snap.geom, foto_x: 0, foto_y: 0, foto_escala: 0, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
+  } else if (snap.tipo === 'lamina-geom') {
+    var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
+    if (!spread) return;
+    snap.slots.forEach(function(snapSlot) {
+      var slot = (spread.album_slots || []).find(function(sl) { return sl.id === snapSlot.id; });
+      if (!slot) return;
+      slot.geom = snapSlot.geom;
+      slot.foto_x = snapSlot.foto_x; slot.foto_y = snapSlot.foto_y; slot.foto_escala = snapSlot.foto_escala;
+      _sb.from('album_slots').update({ geom: snapSlot.geom, foto_x: snapSlot.foto_x, foto_y: snapSlot.foto_y, foto_escala: snapSlot.foto_escala, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId).then(function(){}, function(){});
+    });
   } else if (snap.tipo === 'slot-del') {
     var spread = estado.spreads.find(function(s) { return s.id === snap.spreadId; });
     if (!spread) return;
