@@ -2987,7 +2987,7 @@ function labelParaBarra(texto, sugerido) {
   var sep = document.createElement('div');
   sep.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;flex-shrink:0;padding:0 6px;';
   var txt = document.createElement('div');
-  txt.style.cssText = 'writing-mode:vertical-lr;transform:rotate(180deg);font-size:.52rem;text-transform:uppercase;letter-spacing:.07em;font-family:\'DM Sans\',sans-serif;color:' + (sugerido ? 'var(--text)' : 'var(--text-hint)') + ';white-space:nowrap;';
+  txt.style.cssText = 'writing-mode:vertical-lr;transform:rotate(180deg);font-size:.52rem;text-transform:uppercase;letter-spacing:.07em;font-family:\'DM Sans\',sans-serif;color:var(--text-hint);white-space:nowrap;';
   txt.textContent = texto;
   sep.appendChild(txt);
   return sep;
