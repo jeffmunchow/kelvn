@@ -2050,7 +2050,9 @@ function renderSpread() {
 // ── Renderizador estático (para snapshots dos spreads vizinhos) ───────────────
 // Desenha um spread qualquer numa layer, sem hooks de edição, e chama onReady
 // quando todas as imagens carregaram (para capturar o snapshot).
-function desenharSpreadEstatico(layer, spread, W, H, onReady, numOpts) {
+// hqFotos: na exportação, carrega o original de cada foto (a variante web tem
+// só 1080px e sairia borrada num arquivo de impressão).
+function desenharSpreadEstatico(layer, spread, W, H, onReady, numOpts, hqFotos) {
   var pend = 0, finalizou = false;
   function finalizar() {
     if (numOpts) desenharNumeracao(layer, spread, W, H, numOpts);
@@ -2068,7 +2070,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady, numOpts) {
   if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
     aguardar();
     (function(fotoKey) {
-      carregarKonvaImg(urlFotoWeb(fotoKey), function(img) {
+      carregarKonvaImg(hqFotos ? urlFotoOriginal(fotoKey) : urlFotoWeb(fotoKey), function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
         img.setAttrs({ x:(W - img.width()*sc)/2, y:(H - img.height()*sc)/2, width:img.width()*sc, height:img.height()*sc });
         layer.add(img); aoCarregar();
@@ -2089,7 +2091,7 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady, numOpts) {
           // Crop manual: foto_escala é relativo ao original → precisa dele.
           // Cover-fit automático funciona com a variante web (10x mais leve).
           var temCrop = (slotRef.foto_x || 0) !== 0 || (slotRef.foto_y || 0) !== 0;
-          var url = temCrop ? urlFotoOriginal(slotRef.foto_key) : urlFotoWeb(slotRef.foto_key);
+          var url = (temCrop || hqFotos) ? urlFotoOriginal(slotRef.foto_key) : urlFotoWeb(slotRef.foto_key);
           carregarKonvaImg(url, function(img) {
             var scMin = Math.max(gw / img.width(), gh / img.height());
             var autoFit = (slotRef.foto_x || 0) === 0 && (slotRef.foto_y || 0) === 0;
@@ -2181,7 +2183,7 @@ function desenharNumeracao(layer, spread, W, H, opts) {
 
 // Gera um snapshot (dataURL) de um spread, renderizando-o num stage fora da tela.
 // numOpts (opcional, só na exportação): { numerarPaginas, numerarFotos, pageStart, fotoStart }
-function gerarSnapshotSpread(spread, cb, pixelRatio, numOpts) {
+function gerarSnapshotSpread(spread, cb, pixelRatio, numOpts, hqFotos) {
   if (!spread) { cb(null); return; }
   var dim = dimParaSpread(spread);
   if (!dim.w) { cb(null); return; }
@@ -2198,8 +2200,8 @@ function gerarSnapshotSpread(spread, cb, pixelRatio, numOpts) {
     stage.destroy(); holder.remove();
     cb(url);
   }
-  desenharSpreadEstatico(layer, spread, dim.w, dim.h, capturar, numOpts);
-  setTimeout(capturar, 8000);
+  desenharSpreadEstatico(layer, spread, dim.w, dim.h, capturar, numOpts, hqFotos);
+  setTimeout(capturar, hqFotos ? 30000 : 8000);
 }
 
 // Atualiza tamanho e snapshots dos spreads vizinhos (esquerda/direita).
@@ -4644,7 +4646,7 @@ function renderSpreadJpeg(spread, targetW, numOpts) {
       };
       img.onerror = function() { resolve(null); };
       img.src = pngUrl;
-    }, pr, numOpts);
+    }, pr, numOpts, true);
   });
 }
 
