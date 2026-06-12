@@ -2636,6 +2636,7 @@ function renderTemplates() {
     pendentes.forEach(function(k){ carregarOrient(k, function(){ if (--restante === 0) renderTemplatesAgora(); }); });
   }
   renderTemplatesAgora();
+  if (_thumbsMode === 'templates') renderThumbs();
 }
 
 // Retorna true se o layout efetivo da lâmina coincide com algum template da lista.
@@ -2975,6 +2976,23 @@ function setThumbsMode(mode) {
   renderThumbs();
 }
 
+function cardParaBarra(card, aspect) {
+  card.style.width = Math.round(90 * aspect) + 'px';
+  card.style.height = '90px';
+  card.style.flexShrink = '0';
+  return card;
+}
+
+function labelParaBarra(texto, sugerido) {
+  var sep = document.createElement('div');
+  sep.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:90px;flex-shrink:0;padding:0 6px;';
+  var txt = document.createElement('div');
+  txt.style.cssText = 'writing-mode:vertical-lr;transform:rotate(180deg);font-size:.52rem;text-transform:uppercase;letter-spacing:.07em;font-family:\'DM Sans\',sans-serif;color:' + (sugerido ? 'var(--text)' : 'var(--text-hint)') + ';white-space:nowrap;';
+  txt.textContent = texto;
+  sep.appendChild(txt);
+  return sep;
+}
+
 function renderTemplatesNaBarra(bar) {
   bar.innerHTML = '';
   var spread = estado.spreads[estado.spreadAtivo];
@@ -2982,17 +3000,51 @@ function renderTemplatesNaBarra(bar) {
   var tplAtivo = spread.template_id;
   var aspect = spreadAspectRatio();
   var ocultos = (_sd && _sd.tpl_ocultos) ? _sd.tpl_ocultos : [];
-  var todos = TEMPLATES.concat(TEMPLATES_USUARIO).filter(function(tpl) {
+
+  var keys = spread ? (spread.album_slots || []).map(function(s){ return s.foto_key; }).filter(Boolean) : [];
+  var nFotos = keys.length;
+  var fotoOrients = keys.map(function(k){ return _orientCache[k] || 's'; });
+
+  var scored = TEMPLATES.concat(TEMPLATES_USUARIO).filter(function(tpl) {
     if (ocultos.indexOf(tpl.id) >= 0) return false;
     return tpl.slots.every(function(s) { var a = (s.w / s.h) * aspect; return a >= 0.28 && a <= 6.0; });
+  }).map(function(tpl) {
+    var slotOrients = tpl.slots.map(function(s){ return slotOrient(s, aspect); });
+    var score = 0;
+    if (nFotos > 0 && tpl.slots.length === nFotos) {
+      score = 100;
+      var disp = slotOrients.slice();
+      fotoOrients.forEach(function(o){ var i = disp.indexOf(o); if (i >= 0) { disp.splice(i, 1); score += 12; } });
+    }
+    return { tpl: tpl, score: score, n: tpl.slots.length };
   });
-  todos.forEach(function(tpl) {
-    var card = criarCardTemplate(tpl, tplAtivo, aspect);
-    card.style.width = Math.round(90 * aspect) + 'px';
-    card.style.height = '90px';
-    card.style.flexShrink = '0';
-    bar.appendChild(card);
-  });
+
+  var sugeridos = scored.filter(function(x){ return x.score >= 100; }).sort(function(a,b){ return b.score - a.score; });
+  var resto = scored.filter(function(x){ return x.score < 100; }).sort(function(a,b){ return a.n - b.n; });
+
+  // Layout customizado atual + botão salvar
+  var temGeom = spread && (spread.album_slots || []).some(function(s){ return s.geom; });
+  if (temGeom && !layoutBateTemplate(spread, scored.map(function(x){ return x.tpl; }))) {
+    bar.appendChild(cardParaBarra(criarCardLayoutAtual(spread, aspect), aspect));
+    var btn = document.createElement('button');
+    btn.textContent = 'Salvar layout';
+    btn.style.cssText = 'height:36px;flex-shrink:0;align-self:center;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:0 10px;font-family:\'DM Sans\',sans-serif;font-size:.68rem;cursor:pointer;white-space:nowrap;';
+    btn.onclick = salvarComoNovoTemplate;
+    bar.appendChild(btn);
+    var divisor = document.createElement('div');
+    divisor.style.cssText = 'width:1px;height:70px;background:var(--border);flex-shrink:0;align-self:center;margin:0 4px;';
+    bar.appendChild(divisor);
+  }
+
+  if (sugeridos.length) {
+    bar.appendChild(labelParaBarra('Sugeridos', true));
+    sugeridos.forEach(function(x){ bar.appendChild(cardParaBarra(criarCardTemplate(x.tpl, tplAtivo, aspect), aspect)); });
+    var div2 = document.createElement('div');
+    div2.style.cssText = 'width:1px;height:70px;background:var(--border);flex-shrink:0;align-self:center;margin:0 4px;';
+    bar.appendChild(div2);
+    bar.appendChild(labelParaBarra('Todos', false));
+  }
+  resto.forEach(function(x){ bar.appendChild(cardParaBarra(criarCardTemplate(x.tpl, tplAtivo, aspect), aspect)); });
 }
 
 function renderThumbs() {
