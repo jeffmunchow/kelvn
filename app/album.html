@@ -3028,7 +3028,7 @@ function renderTemplatesNaBarra(bar) {
     bar.appendChild(cardParaBarra(criarCardLayoutAtual(spread, aspect), aspect));
     var btn = document.createElement('button');
     btn.textContent = 'Salvar layout';
-    btn.style.cssText = 'height:36px;flex-shrink:0;align-self:center;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:0 10px;font-family:\'DM Sans\',sans-serif;font-size:.68rem;cursor:pointer;white-space:nowrap;';
+    btn.style.cssText = 'flex-shrink:0;align-self:center;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:8px 18px;font-family:\'DM Sans\',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;white-space:nowrap;';
     btn.onclick = salvarComoNovoTemplate;
     bar.appendChild(btn);
     var divisor = document.createElement('div');
