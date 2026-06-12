@@ -3113,6 +3113,13 @@ function renderTimeline(bar) {
         alvo.loading = 'lazy';
         alvo.alt = '';
         alvo.src = urlFotoThumb(slot.foto_key);
+        alvo.addEventListener('contextmenu', (function(spreadIdx, slotRef) {
+          return function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            mostrarMenuContextoFotoTimeline(e.clientX, e.clientY, spreadIdx, slotRef);
+          };
+        })(idx, slot));
       } else {
         alvo = document.createElement('div');
         alvo.className = 'tl-empty';
@@ -3215,6 +3222,45 @@ async function reordenarSpreads(deIdx, paraIdx) {
 }
 
 // ── Menu de contexto da miniatura (duplicar / excluir) ────────────────────────
+function mostrarMenuContextoFotoTimeline(cx, cy, spreadIdx, slot) {
+  var antigo = document.getElementById('menu-ctx-spread');
+  if (antigo) antigo.remove();
+
+  var menu = document.createElement('div');
+  menu.id = 'menu-ctx-spread';
+  menu.style.cssText = 'position:fixed;z-index:950;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;padding:4px;min-width:130px;box-shadow:0 4px 16px rgba(0,0,0,.18);';
+
+  function item(txt, cor, fn) {
+    var b = document.createElement('button');
+    b.textContent = txt;
+    b.style.cssText = 'display:block;width:100%;text-align:left;background:none;border:none;border-radius:6px;padding:7px 10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.74rem;color:' + cor + ';';
+    b.onmouseenter = function(){ b.style.background = 'var(--surface2)'; };
+    b.onmouseleave = function(){ b.style.background = 'none'; };
+    b.onclick = function(){ menu.remove(); fn(); };
+    menu.appendChild(b);
+  }
+
+  item('Remover foto', 'var(--coral)', function() {
+    slot.foto_key = null; slot.foto_x = 0; slot.foto_y = 0; slot.foto_escala = 0;
+    reconstruirFotosUsadas();
+    atualizarUsadasNoPool();
+    if (spreadIdx === estado.spreadAtivo) renderSpread();
+    renderThumbs();
+    _sb.from('album_slots').update({ foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
+  });
+
+  document.body.appendChild(menu);
+  var r = menu.getBoundingClientRect();
+  menu.style.left = Math.min(cx, window.innerWidth - r.width - 8) + 'px';
+  menu.style.top  = Math.min(cy, window.innerHeight - r.height - 8) + 'px';
+
+  setTimeout(function() {
+    document.addEventListener('mousedown', function fechar(e) {
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('mousedown', fechar); }
+    });
+  }, 0);
+}
+
 function mostrarMenuContextoSpread(cx, cy, idx) {
   var antigo = document.getElementById('menu-ctx-spread');
   if (antigo) antigo.remove();
