@@ -2036,7 +2036,9 @@ function renderSpread() {
     var hitRect = new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'transparent', name:'slot-'+idx });
     if (!slot || !slot.foto_key) {
       (function(slotRef, gx, gy, gw, gh, grupoRef) {
-        hitRect.on('click tap', function() {
+        hitRect.on('click tap', function(e) {
+          e.cancelBubble = true; // não deixa o click.props do stage desselecionar
+          if (!slotRef) return;
           if (_slotEmEdicao && _slotEmEdicao.slot === slotRef) return;
           ativarModoEdicaoSlot(grupoRef, slotRef, { x: gx, y: gy, w: gw, h: gh });
         });
@@ -3782,8 +3784,7 @@ function atualizarGuias(bx, by, bw, bh) {
 // (largura e altura independentes, sem trava de proporção).
 function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   if (_slotEmEdicao) sairModoEdicaoSlot(true);
-  var imgNode = grupo.findOne('Image');
-  if (!imgNode) return;
+  var imgNode = grupo.findOne('Image'); // null em slot vazio — modo caixa funciona igual
   var W = _dimSpread.w, H = _dimSpread.h;
 
   // proxyRect: retângulo invisível posicionado exatamente no slot.
@@ -3995,8 +3996,9 @@ function _wheelCropHandler(e) {
   if (!pos) return;
   var ds = _slotEmEdicao.dimSlot;
   if (pos.x < ds.x || pos.x > ds.x + ds.w || pos.y < ds.y || pos.y > ds.y + ds.h) return;
-  e.preventDefault();
   var imgNode = _slotEmEdicao.imgNode;
+  if (!imgNode) return; // slot vazio: sem foto para dar zoom
+  e.preventDefault();
   var fator = e.deltaY > 0 ? 0.92 : 1.08;
   var escalaMin = escalaMinCover(imgNode, _slotEmEdicao.dimSlot);
   var novaSc = Math.max(escalaMin, Math.min(imgNode.scaleX() * fator, escalaMin * 3));
