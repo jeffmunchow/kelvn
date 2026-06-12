@@ -1522,6 +1522,7 @@ async function abrirAlbum(albumObj) {
   observarKonvaWrap();
   setupPanNav();
   setupCanvasDrop();
+  precarregarAlbum(); // baixa as fotos de todas as lâminas em background, em ordem
 
   // Nível 5: verificar aprovado + carregar comentários pendentes
   if (albumObj.aprovado) {
@@ -1531,6 +1532,46 @@ async function abrirAlbum(albumObj) {
     document.getElementById('btn-revisao').style.display = '';
     carregarBadgeComentarios(albumObj.id);
   }
+}
+
+// ── Pré-carregamento progressivo do álbum ─────────────────────────────────────
+// Baixa as variantes web de TODAS as lâminas em background, na ordem do álbum
+// a partir da ativa — quando o fotógrafo rolar, a foto já está no cache e a
+// lâmina aparece na hora. 2 downloads por vez para não saturar a conexão.
+var _preloadToken = 0;
+function precarregarAlbum() {
+  _preloadToken++;
+  var tk = _preloadToken;
+  var idx = estado.spreadAtivo;
+  var ordem = [];
+  for (var i = idx; i < estado.spreads.length; i++) ordem.push(i);
+  for (var j = idx - 1; j >= 0; j--) ordem.push(j);
+
+  var urls = [], vistos = {};
+  ordem.forEach(function(si) {
+    var sp = estado.spreads[si];
+    (sp && sp.album_slots || []).forEach(function(sl) {
+      if (!sl.foto_key) return;
+      var url = urlFotoWeb(sl.foto_key);
+      if (vistos[url]) return;
+      vistos[url] = true;
+      urls.push(url);
+    });
+  });
+
+  var pos = 0;
+  function proximo() {
+    if (tk !== _preloadToken) return; // outro álbum foi aberto
+    if (pos >= urls.length) return;
+    var url = urls[pos++];
+    var el = _imgElCache[url];
+    if (el && el.complete) { proximo(); return; }
+    carregarKonvaImg(url,
+      function() { setTimeout(proximo, 30); },
+      function() { setTimeout(proximo, 30); });
+  }
+  // Espera o primeiro render assentar antes de disputar banda
+  setTimeout(function() { proximo(); proximo(); }, 800);
 }
 
 // ── Carregar spreads + slots ──────────────────────────────────────────────────
@@ -4995,6 +5036,7 @@ async function executarAutoDesign() {
     renderThumbs();
     renderTemplates();
     renderSpread();
+    precarregarAlbum(); // fotos novas em muitas lâminas: reaquece o cache
     st.textContent = alvo.length + (alvo.length === 1 ? ' lâmina montada' : ' lâminas montadas') + ' por cronologia.';
   } catch (e) {
     st.textContent = 'Erro no auto-design: ' + (e && e.message ? e.message : e);
