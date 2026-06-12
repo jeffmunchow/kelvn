@@ -4599,9 +4599,9 @@ function selecExpFormato(f) {
 }
 
 var EXP_QUALIDADES = [
-  { rotulo: 'Baixa',      w: 1600 },
-  { rotulo: 'Alta',       w: 2400 },
-  { rotulo: 'Impressão',  w: 3500 },
+  { rotulo: 'Baixa',              w: 1600 },
+  { rotulo: 'Alta',               w: 2400 },
+  { rotulo: 'Impressão (300 DPI)', dpi: 300 },
 ];
 function atualizarQualLabel() {
   var sl = document.getElementById('exp-qual-slider');
@@ -4687,11 +4687,18 @@ async function executarExport() {
   var qual = EXP_QUALIDADES[parseInt(document.getElementById('exp-qual-slider').value)] || EXP_QUALIDADES[1];
   var targetW = qual.w;
   // Ajusta targetW se o usuário escolheu um tamanho de exportação diferente
-  if (_expTamanho) {
+  if (_expTamanho && !qual.dpi) {
     var origDims = dimsPrintAlbum();
     var origW = origDims.h * (estado.album && estado.album.largura_cm && estado.album.altura_cm
       ? estado.album.largura_cm / estado.album.altura_cm : 1.4);
     targetW = Math.round(qual.w * (_expTamanho.w / origW));
+  }
+  // Impressão: largura derivada do tamanho físico real de cada lâmina a 300 DPI
+  // (capa tem metade da largura de um spread — por isso o cálculo é por lâmina).
+  function targetWPara(sp) {
+    if (!qual.dpi) return targetW;
+    var physH = _expTamanho ? _expTamanho.h : dimsPrintAlbum().h;
+    return Math.round((physH * ratioParaSpread(sp)) / 2.54 * qual.dpi);
   }
   var statusEl = document.getElementById('exp-status');
 
@@ -4728,7 +4735,7 @@ async function executarExport() {
       var n = 0;
       for (var i = 0; i < spreads.length; i++) {
         statusEl.textContent = 'Renderizando ' + (i + 1) + ' de ' + spreads.length + ' (HQ)…';
-        var r = await renderSpreadJpeg(spreads[i], targetW, numOptsPara(spreads[i]));
+        var r = await renderSpreadJpeg(spreads[i], targetWPara(spreads[i]), numOptsPara(spreads[i]));
         if (!r) continue;
         var nome = base + ' - ' + nomeLamina(spreads[i], i) + '.jpg';
         var blob = dataURLparaBlob(r.url);
@@ -4744,7 +4751,7 @@ async function executarExport() {
       var doc = null;
       for (var k = 0; k < spreads.length; k++) {
         statusEl.textContent = 'Montando PDF ' + (k + 1) + ' de ' + spreads.length + ' (HQ)…';
-        var rp = await renderSpreadJpeg(spreads[k], targetW, numOptsPara(spreads[k]));
+        var rp = await renderSpreadJpeg(spreads[k], targetWPara(spreads[k]), numOptsPara(spreads[k]));
         if (!rp) continue;
         var orient = rp.w > rp.h ? 'l' : 'p';
         if (!doc) doc = new jsPDFctor({ unit: 'px', format: [rp.w, rp.h], orientation: orient, compress: true });
