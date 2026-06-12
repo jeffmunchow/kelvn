@@ -601,6 +601,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           </div>
           <div class="rpanel-sec-body">
             <div class="exp-panel">
+              <div id="exp-resumo-inline" style="font-size:.72rem;color:var(--text-muted);line-height:1.7;margin-bottom:1rem;"></div>
               <div class="exp-label">Formato</div>
               <div class="exp-fmt-grid">
                 <div class="exp-fmt sel" id="exp-fmt-jpg" onclick="selecExpFormato('jpg')"><div class="exp-fmt-nome">JPG</div></div>
@@ -4701,6 +4702,17 @@ var _expTamanho = null; // null = tamanho original do álbum; {w,h} = override e
 function initExportUI() {
   if (!_expFormato) _expFormato = 'jpg';
   _expRodando = false;
+  // Resumo do álbum: lâminas e imagens colocadas
+  var resEl = document.getElementById('exp-resumo-inline');
+  if (resEl) {
+    var nLam = (estado.spreads || []).length;
+    var nImg = 0;
+    (estado.spreads || []).forEach(function(s) {
+      (s.album_slots || []).forEach(function(sl) { if (sl.foto_key) nImg++; });
+    });
+    resEl.innerHTML = 'Lâminas: <span style="color:var(--text);">' + nLam + '</span><br>' +
+                      'Imagens: <span style="color:var(--text);">' + nImg + '</span>';
+  }
   selecExpFormato(_expFormato);
   atualizarQualLabel();
   initExpTamanhoUI();
