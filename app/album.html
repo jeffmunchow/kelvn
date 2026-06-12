@@ -4710,8 +4710,8 @@ function initExportUI() {
     (estado.spreads || []).forEach(function(s) {
       (s.album_slots || []).forEach(function(sl) { if (sl.foto_key) nImg++; });
     });
-    resEl.innerHTML = '<span style="color:var(--text-muted);">Lâminas:</span> <span style="color:var(--text);">Capa + ' + nSpreads + '</span><br>' +
-                      '<span style="color:var(--text-muted);">Imagens:</span> <span style="color:var(--text);">' + nImg + '</span>';
+    resEl.innerHTML = '<span style="color:var(--text-hint);">Lâminas:</span> <span style="color:var(--text-muted);">Capa + ' + nSpreads + '</span><br>' +
+                      '<span style="color:var(--text-hint);">Imagens:</span> <span style="color:var(--text-muted);">' + nImg + '</span>';
   }
   selecExpFormato(_expFormato);
   atualizarQualLabel();
