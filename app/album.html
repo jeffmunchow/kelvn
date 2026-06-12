@@ -263,10 +263,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .exp-fmt.sel{border-color:var(--border-strong);background:var(--surface2);}
 .exp-fmt-nome{font-size:.72rem;font-weight:500;color:var(--text);}
 #exp-tamanho-wrap{margin-bottom:1rem;}
-.exp-tam-grid{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.4rem;}
-.exp-tam-opt{min-width:62px;text-align:center;padding:.4rem .75rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;font-size:.72rem;color:var(--text-muted);transition:border-color .15s,background .15s,color .15s;}
-.exp-tam-opt:hover{background:var(--surface2);color:var(--text);}
-.exp-tam-opt.sel{border-color:var(--border-strong);background:var(--surface2);color:var(--text);}
 #exp-tam-custom-wrap{display:none;align-items:center;gap:.5rem;margin-top:.6rem;}
 #exp-qualidade-wrap{margin-bottom:1rem;}
 #exp-opcoes-wrap{margin-bottom:1rem;}
@@ -608,8 +604,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
                 <div class="exp-fmt" id="exp-fmt-pdfx3" onclick="selecExpFormato('pdfx3')"><div class="exp-fmt-nome">PDF/X-3</div></div>
               </div>
               <div id="exp-tamanho-wrap">
-                <div class="exp-label" id="exp-tam-label">Tamanho</div>
-                <div class="exp-tam-grid" id="exp-tam-grid"></div>
+                <div class="exp-label" id="exp-tam-label">Tamanho — original</div>
+                <input type="range" min="0" max="4" step="1" value="0" class="props-slider" id="exp-tam-slider" oninput="atualizarTamLabel()">
+                <button class="exp-btn-acao" id="exp-tam-outro-btn" onclick="toggleExpTamOutro()" style="margin-top:.5rem;">Outro</button>
                 <div id="exp-tam-custom-wrap">
                   <input class="form-input" id="exp-tam-w" type="number" min="5" max="100" placeholder="larg" style="width:72px;padding:5px 8px;font-size:.75rem;">
                   <span style="color:var(--text-hint);">×</span>
@@ -4506,72 +4503,67 @@ function initExpTamanhoUI() {
   var a = estado.album;
   var fmt = a ? a.formato : 'paisagem';
   var lista = (TAMANHOS_ALBUM[fmt] || TAMANHOS_ALBUM.paisagem).slice();
-  // Tamanho original do álbum — sempre primeiro chip, sempre selecionado por padrão
   var origW = a && a.largura_cm ? a.largura_cm : lista[0].w;
   var origH = a && a.altura_cm  ? a.altura_cm  : lista[0].h;
-  // Garante que o original aparece na lista (pode já estar lá)
+  // Garante que o original está na lista (como primeira parada)
   var temOrig = lista.some(function(t){ return t.w === origW && t.h === origH; });
-  var presets = temOrig ? lista : [{ w: origW, h: origH }].concat(lista);
+  _expPresets = temOrig ? lista : [{ w: origW, h: origH }].concat(lista);
   _expTamanho = null; // reset para original
-  var grid = document.getElementById('exp-tam-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  presets.forEach(function(t, i) {
-    var chip = document.createElement('div');
-    chip.className = 'exp-tam-opt' + (i === 0 ? ' sel' : '');
-    chip.textContent = t.w + '×' + t.h;
-    chip.dataset.w = t.w;
-    chip.dataset.h = t.h;
-    chip.onclick = function() { selExpTamanho(chip, t.w, t.h); };
-    grid.appendChild(chip);
-  });
-  // Botão Outro
-  var outro = document.createElement('div');
-  outro.className = 'exp-tam-opt';
-  outro.id = 'exp-tam-outro';
-  outro.textContent = 'Outro';
-  outro.onclick = function() { selExpTamanhoOutro(); };
-  grid.appendChild(outro);
+  // Configura o slider com o número de paradas correto
+  var sl = document.getElementById('exp-tam-slider');
+  if (!sl) return;
+  sl.min = 0;
+  sl.max = _expPresets.length - 1;
+  sl.value = 0;
   document.getElementById('exp-tam-custom-wrap').style.display = 'none';
   atualizarTamLabel();
 }
 
-function selExpTamanho(chip, w, h) {
-  if (_expRodando) return;
-  document.querySelectorAll('.exp-tam-opt').forEach(function(c){ c.classList.remove('sel'); });
-  chip.classList.add('sel');
-  _expTamanho = { w: parseFloat(w), h: parseFloat(h) };
-  // Se w e h iguais ao original → null (sem override)
-  var a = estado.album;
-  if (a && a.largura_cm == _expTamanho.w && a.altura_cm == _expTamanho.h) _expTamanho = null;
-  document.getElementById('exp-tam-custom-wrap').style.display = 'none';
-  atualizarTamLabel();
-}
+var _expPresets = [];
 
-function selExpTamanhoOutro() {
+function toggleExpTamOutro() {
   if (_expRodando) return;
-  document.querySelectorAll('.exp-tam-opt').forEach(function(c){ c.classList.remove('sel'); });
-  document.getElementById('exp-tam-outro').classList.add('sel');
   var wrap = document.getElementById('exp-tam-custom-wrap');
-  wrap.style.display = 'flex';
-  document.getElementById('exp-tam-w').oninput = atualizarTamLabel;
-  document.getElementById('exp-tam-h').oninput = atualizarTamLabel;
+  var aberto = wrap.style.display === 'flex';
+  if (aberto) {
+    wrap.style.display = 'none';
+    // Volta o slider para o preset original
+    var sl = document.getElementById('exp-tam-slider');
+    if (sl) { sl.value = 0; sl.disabled = false; }
+    _expTamanho = null;
+  } else {
+    wrap.style.display = 'flex';
+    var sl = document.getElementById('exp-tam-slider');
+    if (sl) sl.disabled = true;
+    document.getElementById('exp-tam-w').oninput = atualizarTamLabel;
+    document.getElementById('exp-tam-h').oninput = atualizarTamLabel;
+  }
   atualizarTamLabel();
 }
 
 function atualizarTamLabel() {
   var lbl = document.getElementById('exp-tam-label');
   if (!lbl) return;
-  var outroSel = document.getElementById('exp-tam-outro');
-  if (outroSel && outroSel.classList.contains('sel')) {
+  var wrap = document.getElementById('exp-tam-custom-wrap');
+  var customAberto = wrap && wrap.style.display === 'flex';
+  if (customAberto) {
     var w = parseFloat(document.getElementById('exp-tam-w').value);
     var h = parseFloat(document.getElementById('exp-tam-h').value);
     _expTamanho = (w > 0 && h > 0) ? { w: w, h: h } : null;
     lbl.textContent = (w > 0 && h > 0) ? 'Tamanho — ' + w + '×' + h + ' cm' : 'Tamanho — personalizado';
-  } else if (_expTamanho) {
-    lbl.textContent = 'Tamanho — ' + _expTamanho.w + '×' + _expTamanho.h + ' cm';
   } else {
-    lbl.textContent = 'Tamanho — original';
+    var sl = document.getElementById('exp-tam-slider');
+    var idx = sl ? parseInt(sl.value) : 0;
+    var preset = _expPresets[idx];
+    if (preset) {
+      var a = estado.album;
+      var ehOrig = a && a.largura_cm == preset.w && a.altura_cm == preset.h;
+      _expTamanho = ehOrig ? null : { w: preset.w, h: preset.h };
+      lbl.textContent = ehOrig ? 'Tamanho — original (' + preset.w + '×' + preset.h + ')' : 'Tamanho — ' + preset.w + '×' + preset.h + ' cm';
+    } else {
+      _expTamanho = null;
+      lbl.textContent = 'Tamanho — original';
+    }
   }
   // Aviso de upscale
   var aviso = document.getElementById('exp-tam-aviso');
