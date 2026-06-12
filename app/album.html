@@ -142,7 +142,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 /* Fita contínua: todas as lâminas lado a lado, scroll nativo com inércia.
    A lâmina onde o scroll assenta recebe o canvas editável (#konva-container);
    as demais exibem snapshots — rolar é uma coisa só, estilo SmartAlbums. */
-#konva-strip{width:100%;display:flex;align-items:center;gap:48px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:none;}
+#konva-strip{width:100%;display:flex;align-items:center;gap:48px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;}
 #konva-strip::-webkit-scrollbar{display:none;}
 .strip-item{flex:none;scroll-snap-align:center;position:relative;}
 .strip-item img.strip-snap{display:block;width:100%;height:100%;background:#fff;}
@@ -1809,10 +1809,12 @@ function setupPanNav() {
     clearTimeout(_stripScrollTimer);
     _stripScrollTimer = setTimeout(fitaAssentou, 140);
   }, { passive: true });
-  // Roda vertical do mouse também navega a fita
+  // Roda vertical do mouse também navega a fita — só quando o gesto é
+  // puramente vertical (deltaX zero). Trackpad com deriva diagonal fica
+  // 100% no scroll nativo, sem interferência.
   strip.addEventListener('wheel', function(e) {
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // trackpad horizontal: nativo
-    if (_slotEmEdicao) return; // wheel durante crop é zoom da foto
+    if (Math.abs(e.deltaX) > 0.5) return; // gesto horizontal de trackpad: nativo
+    if (_slotEmEdicao) return;            // wheel durante crop é zoom da foto
     if (e.deltaY) { e.preventDefault(); strip.scrollLeft += e.deltaY; }
   }, { passive: false });
 }
@@ -3535,8 +3537,8 @@ async function mudarSpread(idx, veioDoScroll) {
   renderTemplates();
   renderSpread();
   atualizarPropsSeAberto();
-  // Centraliza a fita — exceto quando a troca veio do próprio scroll
-  if (!veioDoScroll) centralizarFita(idx, true);
+  // Centraliza a fita sempre — inclusive após o scroll assentar fora do centro
+  centralizarFita(idx, true);
 }
 
 // ── Adicionar / remover spreads ───────────────────────────────────────────────
