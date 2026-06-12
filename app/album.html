@@ -3121,8 +3121,7 @@ function renderTimeline(bar) {
           };
         })(idx, slot));
       } else {
-        alvo = document.createElement('div');
-        alvo.className = 'tl-empty';
+        continue; // timeline mostra só slots com foto
       }
       // Aceita foto arrastada do pool de favoritas
       ligarDropSlotTimeline(alvo, idx, si);
