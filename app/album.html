@@ -1564,10 +1564,14 @@ function precarregarAlbum() {
     });
   });
 
-  var pos = 0;
+  var pos = 0, aqueceu = false;
   function proximo() {
     if (tk !== _preloadToken) return; // outro álbum foi aberto
-    if (pos >= urls.length) return;
+    if (pos >= urls.length) {
+      // Fotos prontas → pré-gera os snapshots de todas as lâminas
+      if (!aqueceu) { aqueceu = true; preaquecerVizinhos(tk); }
+      return;
+    }
     var url = urls[pos++];
     var el = _imgElCache[url];
     if (el && el.complete) { proximo(); return; }
@@ -1577,6 +1581,26 @@ function precarregarAlbum() {
   }
   // Espera o primeiro render assentar antes de disputar banda
   setTimeout(function() { proximo(); proximo(); }, 800);
+}
+
+// Pré-gera o snapshot de TODAS as lâminas (alimenta o cache dos vizinhos do
+// pan). Com as fotos já no cache de imagens, cada snapshot é só raster — e
+// rolar o álbum encontra todos os previews prontos, como uma coisa só.
+function preaquecerVizinhos(tk) {
+  var fila = estado.spreads.slice();
+  function prox() {
+    if (tk !== _preloadToken) return;
+    var sp = fila.shift();
+    if (!sp) return;
+    var sig = assinaturaSpread(sp);
+    var vc = _vizSnapCache[sp.id];
+    if (vc && vc.sig === sig) { prox(); return; }
+    gerarSnapshotSpread(sp, function(url) {
+      if (url) _vizSnapCache[sp.id] = { sig: sig, url: url };
+      setTimeout(prox, 120); // respiro entre rasters para não travar a UI
+    });
+  }
+  prox();
 }
 
 // ── Carregar spreads + slots ──────────────────────────────────────────────────
@@ -2424,7 +2448,7 @@ function gerarSnapshotSpread(spread, cb, pixelRatio, numOpts, hqFotos) {
   function capturar() {
     if (pronto) return; pronto = true;
     var url = null;
-    try { layer.batchDraw(); url = stage.toDataURL({ pixelRatio: pixelRatio || 1 }); } catch (e) { url = null; }
+    try { layer.batchDraw(); url = stage.toDataURL({ pixelRatio: pixelRatio || 1, mimeType: 'image/jpeg', quality: 0.85 }); } catch (e) { url = null; }
     stage.destroy(); holder.remove();
     cb(url);
   }
