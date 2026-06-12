@@ -3171,7 +3171,7 @@ async function adicionarSpread() {
   var tplId = 'duas-lado';
   var { data: spread } = await _sb.from('album_spreads').insert({
     album_id: estado.album.id, user_id: _userId, posicao: novaPos,
-    tipo: 'spread', template_id: tplId
+    tipo: 'spread', template_id: tplId, background_color: '#ffffff'
   }).select().single();
 
   if (!spread) return;
