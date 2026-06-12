@@ -3233,7 +3233,8 @@ function mostrarMenuContextoSpread(cx, cy, idx) {
     menu.appendChild(b);
   }
   item('Duplicar', 'var(--text)', function(){ duplicarSpread(idx); });
-  item('Excluir', 'var(--coral)', function(){ excluirSpreadComFotos(idx); });
+  item('Limpar fotos', 'var(--text-muted)', function(){ limparFotosSpread(idx); });
+  item('Excluir lâmina', 'var(--coral)', function(){ excluirSpreadComFotos(idx); });
 
   document.body.appendChild(menu);
   var r = menu.getBoundingClientRect();
@@ -3299,6 +3300,21 @@ async function duplicarSpread(idx) {
 
   // mudarSpread cuida do recálculo do canvas (capa 1:1 vs spread 2:1) e dos textos
   await mudarSpread(novaPos);
+}
+
+async function limparFotosSpread(idx) {
+  var spread = estado.spreads[idx];
+  if (!spread) return;
+  var slotsComFoto = (spread.album_slots || []).filter(function(s) { return s.foto_key; });
+  if (!slotsComFoto.length) return;
+  slotsComFoto.forEach(function(s) { s.foto_key = null; s.foto_x = 0; s.foto_y = 0; s.foto_escala = 0; });
+  reconstruirFotosUsadas();
+  atualizarUsadasNoPool();
+  if (idx === estado.spreadAtivo) renderSpread();
+  renderThumbs();
+  await Promise.all(slotsComFoto.map(function(s) {
+    return _sb.from('album_slots').update({ foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0, atualizado_em: new Date().toISOString() }).eq('id', s.id).eq('user_id', _userId);
+  }));
 }
 
 async function excluirSpreadComFotos(idx) {
