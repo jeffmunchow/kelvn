@@ -4646,7 +4646,29 @@ async function pedirPastaExport() {
 }
 
 // Renderiza um spread em JPEG (fundo branco) com largura-alvo fixa
-function renderSpreadJpeg(spread, targetW, numOpts) {
+// Corrige o APP0/JFIF para declarar o DPI real no header do JPEG.
+// canvas.toDataURL escreve 1 DPI por padrão — isso faz Photoshop/Lightroom
+// mostrarem "1 DPI" ao abrir o arquivo, mesmo que os pixels sejam corretos.
+function fixarJfifDpi(dataUrl, dpi) {
+  try {
+    var b64 = dataUrl.split(',')[1];
+    var bytes = new Uint8Array(atob(b64).split('').map(function(c) { return c.charCodeAt(0); }));
+    // Verificar SOI (FF D8) + APP0 (FF E0) + identificador JFIF
+    if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) return dataUrl;
+    if (bytes[2] !== 0xFF || bytes[3] !== 0xE0) return dataUrl;
+    if (bytes[6] !== 0x4A || bytes[7] !== 0x46 || bytes[8] !== 0x49 || bytes[9] !== 0x46) return dataUrl;
+    var d = Math.min(Math.round(dpi), 65535);
+    bytes[13] = 0x01;            // units: pixels per inch
+    bytes[14] = (d >> 8) & 0xFF; // X density — high byte
+    bytes[15] = d & 0xFF;        // X density — low byte
+    bytes[16] = (d >> 8) & 0xFF; // Y density — high byte
+    bytes[17] = d & 0xFF;        // Y density — low byte
+    var bin = ''; for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return 'data:image/jpeg;base64,' + btoa(bin);
+  } catch(e) { return dataUrl; }
+}
+
+function renderSpreadJpeg(spread, targetW, numOpts, targetDpi) {
   return new Promise(function(resolve) {
     var dim = dimParaSpread(spread);
     var pr = dim.w ? (targetW / dim.w) : 2;
@@ -4659,7 +4681,9 @@ function renderSpreadJpeg(spread, targetW, numOpts) {
         var ctx = cv.getContext('2d');
         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cv.width, cv.height);
         ctx.drawImage(img, 0, 0);
-        resolve({ url: cv.toDataURL('image/jpeg', 0.92), w: cv.width, h: cv.height });
+        var dataUrl = cv.toDataURL('image/jpeg', 0.92);
+        if (targetDpi) dataUrl = fixarJfifDpi(dataUrl, targetDpi);
+        resolve({ url: dataUrl, w: cv.width, h: cv.height });
       };
       img.onerror = function() { resolve(null); };
       img.src = pngUrl;
@@ -4762,7 +4786,7 @@ async function executarExport() {
       var n = 0;
       for (var i = 0; i < spreads.length; i++) {
         atualizarBarra(i, spreads.length);
-        var r = await renderSpreadJpeg(spreads[i], targetWPara(spreads[i]), numOptsPara(spreads[i]));
+        var r = await renderSpreadJpeg(spreads[i], targetWPara(spreads[i]), numOptsPara(spreads[i]), qual.dpi || null);
         if (!r) continue;
         var nome = base + ' - ' + nomeLamina(spreads[i], i) + '.jpg';
         var blob = dataURLparaBlob(r.url);
@@ -4780,7 +4804,7 @@ async function executarExport() {
       var doc = null;
       for (var k = 0; k < spreads.length; k++) {
         atualizarBarra(k, spreads.length);
-        var rp = await renderSpreadJpeg(spreads[k], targetWPara(spreads[k]), numOptsPara(spreads[k]));
+        var rp = await renderSpreadJpeg(spreads[k], targetWPara(spreads[k]), numOptsPara(spreads[k]), qual.dpi || null);
         if (!rp) continue;
         var orient = rp.w > rp.h ? 'l' : 'p';
         if (!doc) doc = new jsPDFctor({ unit: 'px', format: [rp.w, rp.h], orientation: orient, compress: true });
