@@ -273,7 +273,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .exp-check input{appearance:none;-webkit-appearance:none;width:15px;height:15px;border-radius:4px;background:var(--surface2);border:.5px solid var(--border-strong);cursor:pointer;position:relative;flex-shrink:0;margin:0;}
 .exp-check input:checked::after{content:'';position:absolute;left:4.5px;top:1.5px;width:3px;height:7px;border:solid var(--text);border-width:0 2px 2px 0;transform:rotate(45deg);}
 .exp-nota{font-size:.7rem;color:var(--text-muted);line-height:1.55;background:var(--surface2);border-radius:8px;padding:.65rem .8rem;margin-bottom:1rem;}
-#exp-status{font-size:.7rem;color:var(--text-muted);min-height:.9rem;margin-bottom:.5rem;}
+#exp-status{font-size:.7rem;color:var(--text-muted);}
 #exp-status:empty{display:none;}
 .exp-btn-acao{display:block;width:100%;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;text-align:center;transition:color .15s,background .15s;}
 .exp-btn-acao:hover{color:var(--text);background:var(--surface2);}
@@ -626,8 +626,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
                 <label class="exp-check"><input type="checkbox" id="exp-num-fotos"> Numerar fotos</label>
               </div>
               <div id="exp-pdfx3-nota" class="exp-nota" style="display:none;">O PDF/X-3 é gerado pela Kelvn com perfil de cor e sangria para a gráfica, na etapa seguinte.</div>
-              <div id="exp-status"></div>
               <button class="exp-btn-acao" id="exp-btn-exportar" onclick="executarExport()">Exportar</button>
+              <div id="exp-inline-progress" style="display:none;margin-top:.65rem;">
+                <div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;">
+                  <div id="exp-inline-bar" style="height:100%;background:var(--amber);border-radius:2px;width:0%;transition:width .35s;"></div>
+                </div>
+              </div>
+              <div id="exp-status" style="margin-top:.5rem;"></div>
             </div>
           </div>
         </div>
@@ -4499,6 +4504,10 @@ function initExportUI() {
   initExpTamanhoUI();
   var st = document.getElementById('exp-status');
   if (st) st.textContent = '';
+  var prog = document.getElementById('exp-inline-progress');
+  if (prog) prog.style.display = 'none';
+  var bar = document.getElementById('exp-inline-bar');
+  if (bar) bar.style.width = '0%';
   var btn = document.getElementById('exp-btn-exportar');
   if (btn) btn.disabled = false;
 }
@@ -4728,13 +4737,23 @@ async function executarExport() {
   _expRodando = true;
   var btn = document.getElementById('exp-btn-exportar');
   btn.disabled = true;
+  var progWrap = document.getElementById('exp-inline-progress');
+  var progBar = document.getElementById('exp-inline-bar');
+  if (progWrap) progWrap.style.display = 'block';
+  if (progBar) progBar.style.width = '5%';
+  statusEl.textContent = '';
+
+  function atualizarBarra(atual, total) {
+    if (!progBar) return;
+    progBar.style.width = Math.round((atual / total) * 100) + '%';
+  }
 
   try {
     if (_expFormato === 'jpg') {
       var base = nomeBaseAlbum();
       var n = 0;
       for (var i = 0; i < spreads.length; i++) {
-        statusEl.textContent = 'Renderizando ' + (i + 1) + ' de ' + spreads.length + ' (HQ)…';
+        atualizarBarra(i, spreads.length);
         var r = await renderSpreadJpeg(spreads[i], targetWPara(spreads[i]), numOptsPara(spreads[i]));
         if (!r) continue;
         var nome = base + ' - ' + nomeLamina(spreads[i], i) + '.jpg';
@@ -4742,6 +4761,7 @@ async function executarExport() {
         if (dir) await gravarNaPasta(dir, nome, blob);
         else baixarBlob(blob, nome);
         n++;
+        atualizarBarra(i + 1, spreads.length);
       }
       statusEl.textContent = n + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.')
         + (dir ? ' Em "' + dir.name + '".' : '');
@@ -4750,13 +4770,14 @@ async function executarExport() {
       if (!jsPDFctor) { statusEl.textContent = 'Biblioteca PDF não carregou. Recarregue a página.'; return; }
       var doc = null;
       for (var k = 0; k < spreads.length; k++) {
-        statusEl.textContent = 'Montando PDF ' + (k + 1) + ' de ' + spreads.length + ' (HQ)…';
+        atualizarBarra(k, spreads.length);
         var rp = await renderSpreadJpeg(spreads[k], targetWPara(spreads[k]), numOptsPara(spreads[k]));
         if (!rp) continue;
         var orient = rp.w > rp.h ? 'l' : 'p';
         if (!doc) doc = new jsPDFctor({ unit: 'px', format: [rp.w, rp.h], orientation: orient, compress: true });
         else doc.addPage([rp.w, rp.h], orient);
         doc.addImage(rp.url, 'JPEG', 0, 0, rp.w, rp.h);
+        atualizarBarra(k + 1, spreads.length);
       }
       if (!doc) { statusEl.textContent = 'Nada para exportar.'; return; }
       var pdfBlob = doc.output('blob');
@@ -4769,6 +4790,8 @@ async function executarExport() {
   } finally {
     _expRodando = false;
     btn.disabled = false;
+    if (progWrap) progWrap.style.display = 'none';
+    if (progBar) progBar.style.width = '0%';
   }
 }
 
