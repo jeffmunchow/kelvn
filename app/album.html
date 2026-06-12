@@ -639,7 +639,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           </div>
         </div>
         <!-- Favoritas -->
-        <div class="rpanel-sec expandido" id="sec-favoritas">
+        <div class="rpanel-sec" id="sec-favoritas">
           <div class="rpanel-sec-hdr" onclick="toggleSec('favoritas')">
             <span>Favoritas</span>
             <div class="rpanel-sec-hdr-r">
@@ -4013,10 +4013,9 @@ function toggleThumbs() {
 
 function toggleTemplates() { toggleSec('templates'); }
 
-// Estado padrão ao abrir um álbum: só Favoritas expandida.
+// Estado padrão ao abrir um álbum: todas as seções fechadas.
 function fecharProps() {
   _SECS.forEach(function(s) { document.getElementById('sec-' + s).classList.remove('expandido'); });
-  document.getElementById('sec-favoritas').classList.add('expandido');
   sincronizarBotoesSec();
 }
 
