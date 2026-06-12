@@ -455,9 +455,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       </div>
       <div class="form-group">
         <label class="form-label">Galeria vinculada <span style="color:var(--text-hint);font-size:.65rem;">(as fotos favoritadas pelo casal virão desta galeria)</span></label>
-        <select class="form-input" id="novo-galeria">
-          <option value="">Selecionar galeria…</option>
-        </select>
+        <div style="position:relative;" id="novo-galeria-wrap">
+          <button type="button" class="form-input" id="novo-galeria-btn" onclick="toggleGaleriaMenu()" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;text-align:left;cursor:pointer;">
+            <span id="novo-galeria-label" style="color:var(--text-hint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Selecionar galeria…</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--text-hint);"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="novo-galeria-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:50;max-height:240px;overflow-y:auto;padding:.35rem 0;"></div>
+          <input type="hidden" id="novo-galeria" value="">
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Formato</label>
@@ -1035,15 +1040,48 @@ async function carregarGalerias() {
 }
 
 function popularSelectGalerias() {
-  var sel = document.getElementById('novo-galeria');
-  sel.innerHTML = '<option value="">Selecionar galeria…</option>';
+  var menu = document.getElementById('novo-galeria-menu');
+  if (!menu) return;
+  menu.innerHTML = '';
+  // Opção "nenhuma"
+  menu.appendChild(criarOpcaoGaleria('', 'Selecionar galeria…'));
   _galerias.forEach(function(g) {
     if (!g.slug) return;
-    var opt = document.createElement('option');
-    opt.value = g.slug;
-    opt.textContent = g.nomeCliente || g.slug;
-    sel.appendChild(opt);
+    menu.appendChild(criarOpcaoGaleria(g.slug, g.nomeCliente || g.slug));
   });
+  // Reset seleção
+  document.getElementById('novo-galeria').value = '';
+  var lbl = document.getElementById('novo-galeria-label');
+  lbl.textContent = 'Selecionar galeria…';
+  lbl.style.color = 'var(--text-hint)';
+}
+
+function criarOpcaoGaleria(slug, texto) {
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'gal-sort-opt';
+  b.textContent = texto;
+  b.onclick = function() { selGaleria(slug, texto); };
+  return b;
+}
+
+function toggleGaleriaMenu() {
+  var m = document.getElementById('novo-galeria-menu');
+  if (!m) return;
+  var open = m.style.display === 'block';
+  m.style.display = open ? 'none' : 'block';
+  if (!open) setTimeout(function() { document.addEventListener('click', fecharGaleriaMenu, { once: true }); }, 0);
+}
+function fecharGaleriaMenu(e) {
+  var w = document.getElementById('novo-galeria-wrap');
+  if (w && !w.contains(e.target)) { var m = document.getElementById('novo-galeria-menu'); if (m) m.style.display = 'none'; }
+}
+function selGaleria(slug, texto) {
+  document.getElementById('novo-galeria').value = slug;
+  var lbl = document.getElementById('novo-galeria-label');
+  lbl.textContent = texto;
+  lbl.style.color = slug ? 'var(--text)' : 'var(--text-hint)';
+  var m = document.getElementById('novo-galeria-menu'); if (m) m.style.display = 'none';
 }
 
 // ── Navegação ─────────────────────────────────────────────────────────────────
