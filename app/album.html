@@ -613,7 +613,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
                   <input class="form-input" id="exp-tam-h" type="number" min="5" max="100" placeholder="alt" style="width:72px;padding:5px 8px;font-size:.75rem;">
                   <span style="color:var(--text-hint);font-size:.72rem;">cm</span>
                 </div>
-                <div id="exp-tam-aviso" style="display:none;margin-top:.6rem;font-size:.68rem;color:var(--coral);line-height:1.5;">Exportar num tamanho maior que o original pode reduzir a qualidade de impressão das fotos.</div>
+                <div id="exp-tam-aviso" style="display:none;margin-top:.6rem;font-size:.68rem;color:var(--coral);line-height:1.5;width:100%;">As fotos serão ampliadas. Se tiverem baixa resolução, podem sair pixeladas na impressão.</div>
               </div>
               <div id="exp-qualidade-wrap">
                 <div class="exp-label" id="exp-qual-label">Qualidade — Alta</div>
@@ -4509,12 +4509,15 @@ function initExpTamanhoUI() {
   var temOrig = lista.some(function(t){ return t.w === origW && t.h === origH; });
   _expPresets = temOrig ? lista : [{ w: origW, h: origH }].concat(lista);
   _expTamanho = null; // reset para original
-  // Configura o slider com o número de paradas correto
+  // Posiciona o slider no tamanho original do álbum
+  var origIdx = _expPresets.findIndex(function(t){ return t.w === origW && t.h === origH; });
+  if (origIdx < 0) origIdx = 0;
   var sl = document.getElementById('exp-tam-slider');
   if (!sl) return;
   sl.min = 0;
   sl.max = _expPresets.length - 1;
-  sl.value = 0;
+  sl.value = origIdx;
+  sl.disabled = false;
   document.getElementById('exp-tam-custom-wrap').style.display = 'none';
   atualizarTamLabel();
 }
