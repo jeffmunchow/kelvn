@@ -479,6 +479,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <div class="form-group">
         <label class="form-label">Tamanho <span style="color:var(--text-hint);font-size:.65rem;">(página fechada, em cm)</span></label>
         <div class="tam-grid" id="tam-grid"></div>
+        <div id="tam-custom" style="display:none;align-items:center;gap:.5rem;margin-top:.7rem;">
+          <input class="form-input" id="tam-custom-w" type="number" min="5" max="100" placeholder="larg" style="width:90px;padding:6px 10px;">
+          <span style="color:var(--text-hint);">×</span>
+          <input class="form-input" id="tam-custom-h" type="number" min="5" max="100" placeholder="alt" style="width:90px;padding:6px 10px;">
+          <span style="color:var(--text-hint);font-size:.72rem;">cm</span>
+        </div>
       </div>
       <div style="display:flex;gap:.6rem;margin-top:1.5rem;">
         <button class="btn" onclick="criarAlbum()">Criar álbum</button>
@@ -1177,7 +1183,7 @@ async function renderLista() {
 // Tamanhos disponíveis por formato (página fechada, cm). w×h da página única.
 var TAMANHOS_ALBUM = {
   paisagem: [ {w:30,h:20}, {w:35,h:25}, {w:40,h:30}, {w:25,h:20} ],
-  quadrado: [ {w:30,h:30}, {w:25,h:25}, {w:20,h:20}, {w:15,h:15} ],
+  quadrado: [ {w:35,h:35}, {w:30,h:30}, {w:25,h:25}, {w:20,h:20}, {w:15,h:15} ],
   retrato:  [ {w:20,h:30}, {w:25,h:35}, {w:30,h:40}, {w:20,h:25} ],
 };
 
@@ -1200,11 +1206,22 @@ function renderTamanhos(formato) {
     d.onclick = function() { selTamanho(d); };
     grid.appendChild(d);
   });
+  // Tamanho personalizado
+  var outro = document.createElement('div');
+  outro.className = 'tam-opt';
+  outro.dataset.custom = '1';
+  outro.textContent = 'Outro';
+  outro.onclick = function() { selTamanho(outro); };
+  grid.appendChild(outro);
+  document.getElementById('tam-custom').style.display = 'none';
 }
 
 function selTamanho(el) {
   document.querySelectorAll('.tam-opt').forEach(function(t) { t.classList.remove('sel'); });
   el.classList.add('sel');
+  var custom = document.getElementById('tam-custom');
+  custom.style.display = el.dataset.custom ? 'flex' : 'none';
+  if (el.dataset.custom) document.getElementById('tam-custom-w').focus();
 }
 
 // ── Menu de opções do card de álbum (3 pontos) ───────────────────────────────
@@ -1342,12 +1359,22 @@ async function criarAlbum() {
 
   if (!nome) { erro.textContent = 'Dá um nome para o álbum.'; erro.style.display = 'block'; return; }
 
-  // Tamanho escolhido (página fechada, cm); fallback para o 1º do formato
+  // Tamanho escolhido (página fechada, cm); "Outro" = dimensões digitadas
   var tamSel = document.querySelector('.tam-opt.sel');
-  var padrao = (TAMANHOS_ALBUM[formato] || TAMANHOS_ALBUM.paisagem)[0];
-  var d = tamSel
-    ? [parseInt(tamSel.dataset.w), parseInt(tamSel.dataset.h)]
-    : [padrao.w, padrao.h];
+  var d;
+  if (tamSel && tamSel.dataset.custom) {
+    var cw = parseInt(document.getElementById('tam-custom-w').value);
+    var ch = parseInt(document.getElementById('tam-custom-h').value);
+    if (!cw || !ch || cw < 5 || ch < 5 || cw > 100 || ch > 100) {
+      erro.textContent = 'Informe um tamanho válido entre 5 e 100 cm.'; erro.style.display = 'block'; return;
+    }
+    d = [cw, ch];
+  } else if (tamSel) {
+    d = [parseInt(tamSel.dataset.w), parseInt(tamSel.dataset.h)];
+  } else {
+    var padrao = (TAMANHOS_ALBUM[formato] || TAMANHOS_ALBUM.paisagem)[0];
+    d = [padrao.w, padrao.h];
+  }
 
   // Pega nome do casal e data do evento da galeria vinculada
   var galVinculada = galeriaSlug ? _galerias.find(function(g){ return g.slug === galeriaSlug; }) : null;
