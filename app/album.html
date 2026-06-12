@@ -3179,12 +3179,10 @@ async function adicionarSpread() {
   var slotsData = tpl.slots.map(function(_, idx) { return { spread_id: spread.id, user_id: _userId, slot_index: idx }; });
   var { data: slots } = await _sb.from('album_slots').insert(slotsData).select();
   spread.album_slots = slots || [];
+  spread._textos = [];
   estado.spreads.splice(novaPos, 0, spread);
-  estado.spreadAtivo = novaPos;
 
-  renderThumbs();
-  renderTemplates();
-  renderSpread();
+  await mudarSpread(novaPos);
 }
 
 var _thumbDragIdx = null;
