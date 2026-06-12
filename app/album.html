@@ -4705,13 +4705,13 @@ function initExportUI() {
   // Resumo do álbum: lâminas e imagens colocadas
   var resEl = document.getElementById('exp-resumo-inline');
   if (resEl) {
-    var nLam = (estado.spreads || []).length;
+    var nSpreads = (estado.spreads || []).filter(function(s) { return s.tipo === 'spread'; }).length;
     var nImg = 0;
     (estado.spreads || []).forEach(function(s) {
       (s.album_slots || []).forEach(function(sl) { if (sl.foto_key) nImg++; });
     });
-    resEl.innerHTML = 'Lâminas: <span style="color:var(--text);">' + nLam + '</span><br>' +
-                      'Imagens: <span style="color:var(--text);">' + nImg + '</span>';
+    resEl.innerHTML = '<span style="color:var(--text-muted);">Lâminas:</span> <span style="color:var(--text);">Capa + ' + nSpreads + '</span><br>' +
+                      '<span style="color:var(--text-muted);">Imagens:</span> <span style="color:var(--text);">' + nImg + '</span>';
   }
   selecExpFormato(_expFormato);
   atualizarQualLabel();
