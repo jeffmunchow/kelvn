@@ -2978,7 +2978,7 @@ function setThumbsMode(mode) {
 function renderTemplatesNaBarra(bar) {
   bar.innerHTML = '';
   var spread = estado.spreads[estado.spreadAtivo];
-  if (!spread || spread.tipo !== 'spread') return;
+  if (!spread) return;
   var tplAtivo = spread.template_id;
   var aspect = spreadAspectRatio();
   var ocultos = (_sd && _sd.tpl_ocultos) ? _sd.tpl_ocultos : [];
@@ -2986,7 +2986,13 @@ function renderTemplatesNaBarra(bar) {
     if (ocultos.indexOf(tpl.id) >= 0) return false;
     return tpl.slots.every(function(s) { var a = (s.w / s.h) * aspect; return a >= 0.28 && a <= 6.0; });
   });
-  todos.forEach(function(tpl) { bar.appendChild(criarCardTemplate(tpl, tplAtivo, aspect)); });
+  todos.forEach(function(tpl) {
+    var card = criarCardTemplate(tpl, tplAtivo, aspect);
+    card.style.width = Math.round(90 * aspect) + 'px';
+    card.style.height = '90px';
+    card.style.flexShrink = '0';
+    bar.appendChild(card);
+  });
 }
 
 function renderThumbs() {
