@@ -4927,11 +4927,10 @@ function dpiRealSlot(fotoKey, slotFrac, spread) {
 }
 
 // Badge Konva de aviso de resolução — null se DPI suficiente
-// < 150 DPI → coral (crítico); 150-199 DPI → amber (aviso)
+// < 210 DPI (70% de 300) → coral (crítico); 210-299 DPI → amber (aviso)
 function badgeAvisoSlot(dpi, gx, gy, gw, gh) {
-  if (dpi === null || dpi >= 200) return null;
-  var cor = dpi < 150 ? 'var(--coral, #C43A1A)' : 'var(--amber, #C4780A)';
-  var fill = dpi < 150 ? '#C43A1A' : '#C4780A';
+  if (dpi === null || dpi >= 300) return null;
+  var fill = dpi < 210 ? '#C43A1A' : '#C4780A';
   var sz = Math.round(Math.min(Math.max(Math.min(gw, gh) * 0.15, 13), 20));
   var bx = gx + gw - sz - 5, by = gy + 5;
   var g = new Konva.Group({ listening: false });
