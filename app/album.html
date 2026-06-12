@@ -2005,13 +2005,26 @@ function renderSpread() {
   var slots = spread.album_slots || [];
   if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
     (function(fotoKey) {
-      carregarKonvaImg(urlFotoOriginal(fotoKey), function(img) {
+      var urlOrigFb = urlFotoOriginal(fotoKey);
+      var urlWebFb = urlFotoWeb(fotoKey);
+      carregarKonvaImg(urlWebFb, function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
         img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
         img.cache({ pixelRatio: window.devicePixelRatio || 1 }); // raster leve p/ pan
         _layer.add(img);
         _layer.batchDraw();
         agendarCapturaThumbAtivo();
+        // Upgrade in-place: width/height fixos, basta trocar o bitmap
+        if (urlWebFb !== urlOrigFb) {
+          carregarKonvaImg(urlOrigFb, function(hq) {
+            var el = hq.image();
+            if (!img.getLayer() || !el || !el.naturalWidth) return;
+            img.clearCache();
+            img.image(el);
+            img.cache({ pixelRatio: window.devicePixelRatio || 1 });
+            _layer.batchDraw();
+          });
+        }
       });
     })(slots[0].foto_key);
     renderizarTextos(spread._textos || []);
@@ -2036,8 +2049,12 @@ function renderSpread() {
     // Foto, se houver
     if (slot && slot.foto_key) {
       (function(slotRef, gx, gy, gw, gh, grupoRef, idxLocal, slotFrac, spreadRef) {
+        // Sem crop manual → web primeiro (navegação instantânea), original em background.
+        // Com crop manual → original direto (foto_escala é salvo em px do original).
         var temCrop = (slotRef.foto_x || 0) !== 0 || (slotRef.foto_y || 0) !== 0;
-        carregarKonvaImg(urlFotoOriginal(slotRef.foto_key), function(img) {
+        var urlOriginalSlot = urlFotoOriginal(slotRef.foto_key);
+        var urlSlot = temCrop ? urlOriginalSlot : urlFotoWeb(slotRef.foto_key);
+        carregarKonvaImg(urlSlot, function(img) {
           var scMin = Math.max(gw / img.width(), gh / img.height());
           // autoFit: foto nunca recortada manualmente (sem offset) → cover-fit centralizado,
           // ignorando escala persistida (corrige dados antigos salvos como nativo 1).
@@ -2052,7 +2069,7 @@ function renderSpread() {
             imgY = gy + (slotRef.foto_y || 0);
           }
           img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
-          img.setAttr('variante', 'original');
+          img.setAttr('variante', temCrop ? 'original' : 'web');
           // Rasteriza na resolução de exibição: redesenhos (pan, drag) ficam
           // leves mesmo com originais gigantes, sem perder nitidez na tela.
           var dpr = window.devicePixelRatio || 1;
@@ -2067,6 +2084,26 @@ function renderSpread() {
 
           _layer.batchDraw();
           agendarCapturaThumbAtivo();
+
+          // Upgrade in-place para a original: mesmo nó, mesmos handlers — só o
+          // bitmap e a escala mudam (mesma técnica do modo de crop).
+          if (!temCrop && urlSlot !== urlOriginalSlot) {
+            carregarKonvaImg(urlOriginalSlot, function(hq) {
+              var el = hq.image();
+              if (!img.getLayer() || !el || !el.naturalWidth) return; // slot re-renderizado
+              if (img.getAttr('variante') === 'original') return;     // já trocado (crop)
+              var fator = img.width() / el.naturalWidth;
+              img.clearCache();
+              img.image(el);
+              img.width(el.naturalWidth);
+              img.height(el.naturalHeight);
+              img.scaleX(img.scaleX() * fator);
+              img.scaleY(img.scaleY() * fator);
+              img.setAttr('variante', 'original');
+              img.cache({ pixelRatio: Math.min(1, img.scaleX() * dpr * 1.25) });
+              _layer.batchDraw();
+            });
+          }
 
           // 1 clique: seleciona a caixa do slot (tamanho e formato livres)
           img.on('click tap', function() {
