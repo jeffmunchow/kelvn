@@ -684,15 +684,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           </div>
         </div>
         <!-- Templates -->
-        <div class="rpanel-sec" id="sec-templates">
-          <div class="rpanel-sec-hdr" onclick="toggleSec('templates')">
-            <span>Templates</span>
-            <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
-          </div>
-          <div class="rpanel-sec-body">
-            <div id="tpl-grid"></div>
-          </div>
-        </div>
+        <div id="tpl-grid" style="display:none;"></div>
         <!-- Spread -->
         <div class="rpanel-sec" id="sec-spread">
           <div class="rpanel-sec-hdr" onclick="toggleSec('spread')">
@@ -4108,26 +4100,23 @@ var CORES_FUNDO = [
 // ── Acordeão do painel direito ────────────────────────────────────────────────
 // O painel fica sempre visível; as seções recolhidas ficam no topo e a
 // expandida ocupa o restante (via CSS order). Abrir uma fecha as outras.
-var _SECS = ['exportar', 'favoritas', 'autodesign', 'templates', 'spread'];
+var _SECS = ['exportar', 'favoritas', 'autodesign', 'spread'];
 function toggleSec(id) {
   var target = document.getElementById('sec-' + id);
+  if (!target) return;
   var jaAberto = target.classList.contains('expandido');
   _SECS.forEach(function(s) { document.getElementById('sec-' + s).classList.remove('expandido'); });
   if (!jaAberto) target.classList.add('expandido');
   sincronizarBotoesSec();
-  if (!jaAberto && id === 'templates') renderTemplates();
   if (!jaAberto && id === 'spread') renderPropsSpreadBody();
   if (!jaAberto && id === 'exportar') initExportUI();
   if (!jaAberto && id === 'autodesign') initAutoDesignUI();
 }
 
 function sincronizarBotoesSec() {
-  // botões da topbar foram removidos — ignorar silenciosamente se não existirem
   var bp = document.getElementById('btn-toggle-pool');
-  var bt = document.getElementById('btn-toggle-tpl');
   var bs = document.getElementById('btn-toggle-props');
   if (bp) bp.classList.toggle('ativo', document.getElementById('sec-favoritas').classList.contains('expandido'));
-  if (bt) bt.classList.toggle('ativo', document.getElementById('sec-templates').classList.contains('expandido'));
   if (bs) bs.classList.toggle('ativo', document.getElementById('sec-spread').classList.contains('expandido'));
 }
 
