@@ -2032,19 +2032,15 @@ function renderSpread() {
       })(slot, x, y, w, h, grupo, idx, s, spread);
     }
 
-    // HitRect para drop
+    // HitRect para drop e clique em slot vazio
     var hitRect = new Konva.Rect({ x:x, y:y, width:w, height:h, fill:'transparent', name:'slot-'+idx });
-    // Slot vazio: clique direito oferece excluir
     if (!slot || !slot.foto_key) {
-      (function(slotRef) {
-        hitRect.on('contextmenu', function(e) {
-          e.evt.preventDefault();
-          var pos = _stage.getPointerPosition();
-          var cx = pos ? pos.x + _stage.container().getBoundingClientRect().left : e.evt.clientX;
-          var cy = pos ? pos.y + _stage.container().getBoundingClientRect().top  : e.evt.clientY;
-          mostrarMenuSlotVazio(cx, cy, slotRef);
+      (function(slotRef, gx, gy, gw, gh, grupoRef) {
+        hitRect.on('click tap', function() {
+          if (_slotEmEdicao && _slotEmEdicao.slot === slotRef) return;
+          ativarModoEdicaoSlot(grupoRef, slotRef, { x: gx, y: gy, w: gw, h: gh });
         });
-      })(slot);
+      })(slot, x, y, w, h, grupo);
     }
     grupo.add(hitRect);
     _layer.add(grupo);
@@ -3344,36 +3340,6 @@ async function reordenarSpreads(deIdx, paraIdx) {
 }
 
 // ── Menu de contexto da miniatura (duplicar / excluir) ────────────────────────
-function mostrarMenuSlotVazio(cx, cy, slot) {
-  var antigo = document.getElementById('menu-ctx-spread');
-  if (antigo) antigo.remove();
-  var menu = document.createElement('div');
-  menu.id = 'menu-ctx-spread';
-  menu.style.cssText = 'position:fixed;z-index:950;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;padding:4px;min-width:130px;box-shadow:0 4px 16px rgba(0,0,0,.18);';
-  var b = document.createElement('button');
-  b.textContent = 'Excluir slot';
-  b.style.cssText = 'display:block;width:100%;text-align:left;background:none;border:none;border-radius:6px;padding:7px 10px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.74rem;color:var(--coral);';
-  b.onmouseenter = function(){ b.style.background = 'var(--surface2)'; };
-  b.onmouseleave = function(){ b.style.background = 'none'; };
-  b.onclick = function() {
-    menu.remove();
-    if (!slot) return;
-    slot.geom = { x: 0, y: 0, w: 0, h: 0 };
-    renderSpread();
-    renderThumbs();
-    _sb.from('album_slots').update({ geom: { x:0, y:0, w:0, h:0 }, atualizado_em: new Date().toISOString() }).eq('id', slot.id).eq('user_id', _userId);
-  };
-  menu.appendChild(b);
-  document.body.appendChild(menu);
-  var r = menu.getBoundingClientRect();
-  menu.style.left = Math.min(cx, window.innerWidth - r.width - 8) + 'px';
-  menu.style.top  = Math.min(cy, window.innerHeight - r.height - 8) + 'px';
-  setTimeout(function() {
-    document.addEventListener('mousedown', function fechar(e) {
-      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('mousedown', fechar); }
-    });
-  }, 0);
-}
 
 function mostrarMenuContextoFotoTimeline(cx, cy, spreadIdx, slot) {
   var antigo = document.getElementById('menu-ctx-spread');
