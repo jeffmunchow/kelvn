@@ -3481,10 +3481,13 @@ var _SNAP_PX = 7;
 
 function calcSnapTargets(meuSlotId) {
   var W = _dimSpread.w, H = _dimSpread.h;
-  var vT = [0, W / 2, W];
-  var hT = [0, H / 2, H];
-  // Centros das páginas individuais (esquerda: W/4, direita: 3W/4)
   var spread = estado.spreads[estado.spreadAtivo];
+  var margem = spread.margem_px != null ? spread.margem_px : 8;
+  var gutter = spread.gutter_px != null ? spread.gutter_px : 8;
+  // Bordas, centro e linhas de margem do spread
+  var vT = [0, W / 2, W, margem, W - margem];
+  var hT = [0, H / 2, H, margem, H - margem];
+  // Centros das páginas individuais (esquerda: W/4, direita: 3W/4)
   var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
   if (!isCapa) { vT.push(W / 4, W * 3 / 4); }
   slotsEfetivos(spread, W, H).forEach(function(s, i) {
@@ -3494,6 +3497,11 @@ function calcSnapTargets(meuSlotId) {
     var sx = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
     vT.push(sx, sx + sw / 2, sx + sw);
     hT.push(sy, sy + sh / 2, sy + sh);
+    // Espaçamento: gruda a exatamente um gutter de distância do slot vizinho
+    if (gutter > 0) {
+      vT.push(sx - gutter, sx + sw + gutter);
+      hT.push(sy - gutter, sy + sh + gutter);
+    }
   });
   return { vT: vT, hT: hT };
 }
@@ -3545,6 +3553,16 @@ function atualizarGuias(bx, by, bw, bh) {
   if (Math.abs(by) < SNAP)          addH(0);
   if (Math.abs(by + bh - H) < SNAP) addH(H);
 
+  // Linhas de margem do spread
+  var margem = spread.margem_px != null ? spread.margem_px : 8;
+  var gutter = spread.gutter_px != null ? spread.gutter_px : 8;
+  [margem, W - margem].forEach(function(mx) {
+    if (Math.abs(bx - mx) < SNAP || Math.abs(bx + bw - mx) < SNAP) addV(mx);
+  });
+  [margem, H - margem].forEach(function(my) {
+    if (Math.abs(by - my) < SNAP || Math.abs(by + bh - my) < SNAP) addH(my);
+  });
+
   // Alinhamento com outros slots
   var efetivos = slotsEfetivos(spread, W, H);
   var meuId = _slotEmEdicao.slot.id;
@@ -3564,6 +3582,15 @@ function atualizarGuias(bx, by, bw, bh) {
     [sy, sy + sh].forEach(function(ey) {
       if (Math.abs(by - ey) < SNAP || Math.abs(by + bh - ey) < SNAP) addH(ey);
     });
+    // Espaçamento: linha onde a borda gruda a um gutter do vizinho
+    if (gutter > 0) {
+      [sx - gutter, sx + sw + gutter].forEach(function(ex) {
+        if (Math.abs(bx - ex) < SNAP || Math.abs(bx + bw - ex) < SNAP) addV(ex);
+      });
+      [sy - gutter, sy + sh + gutter].forEach(function(ey) {
+        if (Math.abs(by - ey) < SNAP || Math.abs(by + bh - ey) < SNAP) addH(ey);
+      });
+    }
   });
 
   Object.values(vLines).forEach(function(x) {
@@ -3619,6 +3646,28 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     borderStroke: '#C4780A',
     borderStrokeWidth: 1.5,
     boundBoxFunc: function(oldBox, newBox) {
+      if (newBox.width < 36 || newBox.height < 36) return oldBox;
+      // Snap das bordas em movimento (só a borda que a âncora está puxando)
+      var st = calcSnapTargets(slot.id);
+      var EPS = 0.5;
+      var movEsq   = Math.abs(newBox.x - oldBox.x) > EPS;
+      var movDir   = Math.abs((newBox.x + newBox.width) - (oldBox.x + oldBox.width)) > EPS;
+      var movTopo  = Math.abs(newBox.y - oldBox.y) > EPS;
+      var movBaixo = Math.abs((newBox.y + newBox.height) - (oldBox.y + oldBox.height)) > EPS;
+      if (movEsq && !movDir) {
+        var dxE = findSnap([newBox.x], st.vT);
+        if (dxE !== null) { newBox.x += dxE; newBox.width -= dxE; }
+      } else if (movDir && !movEsq) {
+        var dxD = findSnap([newBox.x + newBox.width], st.vT);
+        if (dxD !== null) newBox.width += dxD;
+      }
+      if (movTopo && !movBaixo) {
+        var dyT = findSnap([newBox.y], st.hT);
+        if (dyT !== null) { newBox.y += dyT; newBox.height -= dyT; }
+      } else if (movBaixo && !movTopo) {
+        var dyB = findSnap([newBox.y + newBox.height], st.hT);
+        if (dyB !== null) newBox.height += dyB;
+      }
       if (newBox.width < 36 || newBox.height < 36) return oldBox;
       if (newBox.x < -0.5 || newBox.y < -0.5) return oldBox;
       if (newBox.x + newBox.width  > W + 0.5) return oldBox;
