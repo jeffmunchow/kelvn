@@ -4762,9 +4762,9 @@ async function executarExport() {
         else baixarBlob(blob, nome);
         n++;
         atualizarBarra(i + 1, spreads.length);
+        statusEl.textContent = n + '/' + spreads.length + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.');
       }
-      statusEl.textContent = n + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.')
-        + (dir ? ' Em "' + dir.name + '".' : '');
+      if (dir) statusEl.textContent += ' Em "' + dir.name + '".';
     } else if (_expFormato === 'pdf') {
       var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (!jsPDFctor) { statusEl.textContent = 'Biblioteca PDF não carregou. Recarregue a página.'; return; }
@@ -4778,6 +4778,7 @@ async function executarExport() {
         else doc.addPage([rp.w, rp.h], orient);
         doc.addImage(rp.url, 'JPEG', 0, 0, rp.w, rp.h);
         atualizarBarra(k + 1, spreads.length);
+        statusEl.textContent = (k + 1) + '/' + spreads.length + (k + 1 === 1 ? ' lâmina montada.' : ' lâminas montadas.');
       }
       if (!doc) { statusEl.textContent = 'Nada para exportar.'; return; }
       var pdfBlob = doc.output('blob');
