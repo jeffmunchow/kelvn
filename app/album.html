@@ -2015,16 +2015,33 @@ function renderSpread() {
         _layer.add(img);
         _layer.batchDraw();
         agendarCapturaThumbAtivo();
-        // Upgrade in-place: width/height fixos, basta trocar o bitmap
+        // Upgrade in-place: width/height fixos, basta trocar o bitmap.
+        // createImageBitmap reduz a original fora da thread principal.
         if (urlWebFb !== urlOrigFb) {
-          carregarKonvaImg(urlOrigFb, function(hq) {
-            var el = hq.image();
-            if (!img.getLayer() || !el || !el.naturalWidth) return;
-            img.clearCache();
-            img.image(el);
-            img.cache({ pixelRatio: window.devicePixelRatio || 1 });
-            _layer.batchDraw();
-          });
+          setTimeout(function() {
+            if (!img.getLayer()) return;
+            carregarKonvaImg(urlOrigFb, function(hq) {
+              var el = hq.image();
+              if (!img.getLayer() || !el || !el.naturalWidth) return;
+              var dprFb = window.devicePixelRatio || 1;
+              var alvoW = Math.min(el.naturalWidth, Math.round(img.width() * dprFb * 1.25));
+              var alvoH = Math.round(el.naturalHeight * alvoW / el.naturalWidth);
+              function aplicarFb(bitmapOuEl, comCache) {
+                if (!img.getLayer()) return;
+                img.clearCache();
+                img.image(bitmapOuEl);
+                if (comCache) img.cache({ pixelRatio: dprFb });
+                _layer.batchDraw();
+              }
+              if (window.createImageBitmap) {
+                createImageBitmap(el, { resizeWidth: alvoW, resizeHeight: alvoH, resizeQuality: 'high' })
+                  .then(function(bmp) { aplicarFb(bmp, false); })
+                  .catch(function() { aplicarFb(el, true); });
+              } else {
+                aplicarFb(el, true);
+              }
+            });
+          }, 350);
         }
       });
     })(slots[0].foto_key);
@@ -2086,24 +2103,52 @@ function renderSpread() {
           _layer.batchDraw();
           agendarCapturaThumbAtivo();
 
-          // Upgrade in-place para a original: mesmo nó, mesmos handlers — só o
-          // bitmap e a escala mudam (mesma técnica do modo de crop).
+          // Upgrade in-place para nitidez de original: mesmo nó, mesmos handlers.
+          // A original é reduzida para a resolução de exibição via
+          // createImageBitmap (decode/resize assíncrono, fora da thread
+          // principal) — sem raster pesado travando o pan. variante vira
+          // 'display': o modo de crop sabe que ainda precisa da original real.
           if (!temCrop && urlSlot !== urlOriginalSlot) {
-            carregarKonvaImg(urlOriginalSlot, function(hq) {
-              var el = hq.image();
-              if (!img.getLayer() || !el || !el.naturalWidth) return; // slot re-renderizado
-              if (img.getAttr('variante') === 'original') return;     // já trocado (crop)
-              var fator = img.width() / el.naturalWidth;
-              img.clearCache();
-              img.image(el);
-              img.width(el.naturalWidth);
-              img.height(el.naturalHeight);
-              img.scaleX(img.scaleX() * fator);
-              img.scaleY(img.scaleY() * fator);
-              img.setAttr('variante', 'original');
-              img.cache({ pixelRatio: Math.min(1, img.scaleX() * dpr * 1.25) });
-              _layer.batchDraw();
-            });
+            setTimeout(function() {
+              if (!img.getLayer()) return; // lâmina já trocou
+              carregarKonvaImg(urlOriginalSlot, function(hq) {
+                var el = hq.image();
+                if (!img.getLayer() || !el || !el.naturalWidth) return;
+                if (img.getAttr('variante') !== 'web') return; // crop já trocou
+                function aplicarBitmap(bmp, bw, bh) {
+                  if (!img.getLayer() || img.getAttr('variante') !== 'web') return;
+                  var fator = img.width() / bw; // mantém o tamanho na tela
+                  img.clearCache();
+                  img.image(bmp);
+                  img.width(bw); img.height(bh);
+                  img.scaleX(img.scaleX() * fator);
+                  img.scaleY(img.scaleY() * fator);
+                  img.setAttr('variante', 'display');
+                  _layer.batchDraw();
+                }
+                function fallbackOriginal() {
+                  if (!img.getLayer() || img.getAttr('variante') !== 'web') return;
+                  var fator = img.width() / el.naturalWidth;
+                  img.clearCache();
+                  img.image(el);
+                  img.width(el.naturalWidth); img.height(el.naturalHeight);
+                  img.scaleX(img.scaleX() * fator); img.scaleY(img.scaleY() * fator);
+                  img.setAttr('variante', 'original');
+                  img.cache({ pixelRatio: Math.min(1, img.scaleX() * dpr * 1.25) });
+                  _layer.batchDraw();
+                }
+                var dispW = img.width() * img.scaleX();
+                var alvoW = Math.min(el.naturalWidth, Math.round(dispW * dpr * 1.25));
+                var alvoH = Math.round(el.naturalHeight * alvoW / el.naturalWidth);
+                if (window.createImageBitmap) {
+                  createImageBitmap(el, { resizeWidth: alvoW, resizeHeight: alvoH, resizeQuality: 'high' })
+                    .then(function(bmp) { aplicarBitmap(bmp, alvoW, alvoH); })
+                    .catch(fallbackOriginal);
+                } else {
+                  fallbackOriginal();
+                }
+              });
+            }, 350);
           }
 
           // 1 clique: seleciona a caixa do slot (tamanho e formato livres)
@@ -2379,12 +2424,16 @@ function definirVizinho(el, spread, tk) {
   else { img.removeAttribute('src'); img.style.background = spread.background_color || '#ffffff'; }
   img.style.visibility = 'visible';
 
-  // 3) Gera o snapshot definitivo em background e cacheia
-  gerarSnapshotSpread(spread, function(url) {
-    if (url) _vizSnapCache[spread.id] = { sig: sig, url: url };
-    if (tk !== _vizToken) return;
-    if (url) { img.src = url; img.style.visibility = 'visible'; }
-  });
+  // 3) Gera o snapshot definitivo em background e cacheia — com atraso para
+  //    não competir com o render da lâmina recém-aberta durante o pan
+  setTimeout(function() {
+    if (tk !== _vizToken) return; // já navegou de novo: deixa pro próximo ciclo
+    gerarSnapshotSpread(spread, function(url) {
+      if (url) _vizSnapCache[spread.id] = { sig: sig, url: url };
+      if (tk !== _vizToken) return;
+      if (url) { img.src = url; img.style.visibility = 'visible'; }
+    });
+  }, 300);
 }
 
 function encontrarSlotNaPosicao(px, py, exato) {
@@ -2776,6 +2825,7 @@ function layoutBateTemplate(spread, templates) {
 function renderTemplatesAgora() {
   var grid = document.getElementById('tpl-grid');
   if (!grid) return;
+  if (grid.style.display === 'none') return; // grid legado oculto: barra inferior cuida dos templates
   var spread = estado.spreads[estado.spreadAtivo];
   var tplAtivo = spread ? spread.template_id : null;
   var aspect = spreadAspectRatio();
@@ -4002,9 +4052,9 @@ function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
   if (!imgNode) return; // slot sem foto: nada a editar
   imgNode.clearCache();
 
-  // Se o slot está exibindo a variante web, troca para o original antes do
-  // crop: foto_escala precisa ser salvo em px do original (exportação usa ele).
-  if (imgNode.getAttr('variante') === 'web' && slot.foto_key) {
+  // Se o slot exibe a variante web ou o bitmap reduzido ('display'), troca pela
+  // original antes do crop: foto_escala é salvo em px do original (export usa ele).
+  if (imgNode.getAttr('variante') !== 'original' && slot.foto_key) {
     carregarKonvaImg(urlFotoOriginal(slot.foto_key), function(orig) {
       var el = orig.image();
       if (el && el.naturalWidth) {
