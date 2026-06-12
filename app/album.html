@@ -653,6 +653,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
             <div id="pool-grid"></div>
           </div>
         </div>
+        <!-- Auto-design -->
+        <div class="rpanel-sec" id="sec-autodesign">
+          <div class="rpanel-sec-hdr" onclick="toggleSec('autodesign')">
+            <span>Auto-design</span>
+            <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+          </div>
+          <div class="rpanel-sec-body">
+            <div class="exp-panel">
+              <div class="exp-label">Lâminas no álbum</div>
+              <input class="form-input" id="ad-num-laminas" type="number" min="1" max="60" style="width:90px;padding:6px 10px;font-size:.78rem;margin-bottom:1rem;">
+              <div class="exp-nota">As fotos são distribuídas pelas lâminas em ordem cronológica. Lâminas que faltarem são criadas automaticamente.</div>
+              <button class="exp-btn-acao" id="ad-btn" onclick="executarAutoDesign()">Auto-design</button>
+              <div id="ad-inline-progress" style="display:none;margin-top:.65rem;">
+                <div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;">
+                  <div id="ad-inline-bar" style="height:100%;background:var(--amber);border-radius:2px;width:0%;transition:width .35s;"></div>
+                </div>
+              </div>
+              <div id="ad-status" style="margin-top:.5rem;font-size:.7rem;color:var(--text-muted);"></div>
+            </div>
+          </div>
+        </div>
         <!-- Templates -->
         <div class="rpanel-sec" id="sec-templates">
           <div class="rpanel-sec-hdr" onclick="toggleSec('templates')">
@@ -3903,7 +3924,7 @@ var CORES_FUNDO = [
 // ── Acordeão do painel direito ────────────────────────────────────────────────
 // O painel fica sempre visível; as seções recolhidas ficam no topo e a
 // expandida ocupa o restante (via CSS order). Abrir uma fecha as outras.
-var _SECS = ['exportar', 'favoritas', 'templates', 'spread'];
+var _SECS = ['exportar', 'favoritas', 'autodesign', 'templates', 'spread'];
 function toggleSec(id) {
   var target = document.getElementById('sec-' + id);
   var jaAberto = target.classList.contains('expandido');
@@ -3913,6 +3934,7 @@ function toggleSec(id) {
   if (!jaAberto && id === 'templates') renderTemplates();
   if (!jaAberto && id === 'spread') renderPropsSpreadBody();
   if (!jaAberto && id === 'exportar') initExportUI();
+  if (!jaAberto && id === 'autodesign') initAutoDesignUI();
 }
 
 function sincronizarBotoesSec() {
@@ -4442,15 +4464,11 @@ async function tentarNovamente() {
   await gerarPreviewAutoLayout();
 }
 
-// Aplica o resultado do auto-layout nos spreads
-async function aplicarAutoLayout() {
-  if (!_autoLayoutResultado) return;
-  var btn = document.querySelector('.modal-footer .btn:last-child');
-  if (btn) { btn.textContent = 'Aplicando…'; btn.disabled = true; }
-
-  var { spreadsAlvo, resultado } = _autoLayoutResultado;
-
-  for (var i = 0; i < spreadsAlvo.length && i < resultado.length; i++) {
+// Core compartilhado: aplica um resultado de auto-layout numa lista de spreads
+async function aplicarResultadoAutoLayout(spreadsAlvo, resultado, onProgresso) {
+  var total = Math.min(spreadsAlvo.length, resultado.length);
+  for (var i = 0; i < total; i++) {
+    if (onProgresso) onProgresso(i + 1, total);
     var spread = spreadsAlvo[i];
     var item   = resultado[i];
     var tpl    = buscarTemplate(item.template_id);
@@ -4490,12 +4508,122 @@ async function aplicarAutoLayout() {
       }).eq('id', slot.id).eq('user_id', _userId);
     }
   }
+}
+
+// Aplica o resultado do auto-layout nos spreads
+async function aplicarAutoLayout() {
+  if (!_autoLayoutResultado) return;
+  var btn = document.querySelector('.modal-footer .btn:last-child');
+  if (btn) { btn.textContent = 'Aplicando…'; btn.disabled = true; }
+
+  var { spreadsAlvo, resultado } = _autoLayoutResultado;
+  await aplicarResultadoAutoLayout(spreadsAlvo, resultado);
 
   fecharModalAutoLayout();
   setSaveStatus('Salvo ✓');
   renderThumbs();
   renderTemplates();
   renderSpread();
+}
+
+// ── Auto-design (painel direito) ─────────────────────────────────────────────
+var _adRodando = false;
+
+// Ao abrir a seção: input mostra a quantidade atual de lâminas
+function initAutoDesignUI() {
+  var n = estado.spreads.filter(function(s) { return s.tipo === 'spread'; }).length;
+  var inp = document.getElementById('ad-num-laminas');
+  if (inp) inp.value = Math.max(n, 1);
+  var st = document.getElementById('ad-status');
+  if (st) st.textContent = '';
+  var prog = document.getElementById('ad-inline-progress');
+  if (prog) prog.style.display = 'none';
+  var btn = document.getElementById('ad-btn');
+  if (btn) btn.disabled = false;
+}
+
+// Garante que o álbum tem pelo menos n lâminas (tipo spread), criando antes da contracapa
+async function garantirNumLaminas(n) {
+  var atuais = estado.spreads.filter(function(s) { return s.tipo === 'spread'; }).length;
+  var faltam = n - atuais;
+  if (faltam <= 0) return 0;
+
+  var posContracapa = estado.spreads.findIndex(function(s) { return s.tipo === 'contracapa'; });
+  var base = posContracapa >= 0 ? posContracapa : estado.spreads.length;
+
+  // Empurra contracapa (e o que vier depois) para o fim de uma vez
+  for (var j = base; j < estado.spreads.length; j++) {
+    estado.spreads[j].posicao = j + faltam;
+    await _sb.from('album_spreads').update({ posicao: j + faltam }).eq('id', estado.spreads[j].id).eq('user_id', _userId);
+  }
+
+  var tplId = 'duas-lado';
+  var tpl = buscarTemplate(tplId);
+  var novos = [];
+  for (var i = 0; i < faltam; i++) {
+    var { data: spread } = await _sb.from('album_spreads').insert({
+      album_id: estado.album.id, user_id: _userId, posicao: base + i,
+      tipo: 'spread', template_id: tplId
+    }).select().single();
+    if (!spread) continue;
+    var slotsData = tpl.slots.map(function(_, idx) { return { spread_id: spread.id, user_id: _userId, slot_index: idx }; });
+    var { data: slots } = await _sb.from('album_slots').insert(slotsData).select();
+    spread.album_slots = slots || [];
+    spread._textos = [];
+    novos.push(spread);
+  }
+  estado.spreads.splice.apply(estado.spreads, [base, 0].concat(novos));
+  return novos.length;
+}
+
+async function executarAutoDesign() {
+  if (_adRodando) return;
+  var st = document.getElementById('ad-status');
+  var n = parseInt(document.getElementById('ad-num-laminas').value);
+  if (!n || n < 1) { st.textContent = 'Informe o número de lâminas.'; return; }
+  if (!estado.pool.length) { st.textContent = 'Nenhuma foto disponível ainda.'; return; }
+  if (spreadsComFotos().length && !confirm('O auto-design vai remontar as lâminas que já têm fotos. Continuar?')) return;
+
+  _adRodando = true;
+  var btn = document.getElementById('ad-btn');
+  btn.disabled = true;
+  var progWrap = document.getElementById('ad-inline-progress');
+  var progBar = document.getElementById('ad-inline-bar');
+  if (progWrap) progWrap.style.display = 'block';
+  if (progBar) progBar.style.width = '5%';
+
+  try {
+    st.textContent = 'Analisando fotos…';
+    await medirDimensoesPool();
+    await garantirNumLaminas(n);
+
+    var alvo = estado.spreads.filter(function(s) { return s.tipo === 'spread'; });
+    var resultado = autoLayoutAlgoritmo(estado.pool, alvo.length, { cronologico: true });
+
+    await aplicarResultadoAutoLayout(alvo, resultado, function(atual, total) {
+      if (progBar) progBar.style.width = Math.round((atual / total) * 100) + '%';
+      st.textContent = atual + '/' + total + ' lâminas montadas…';
+    });
+
+    // Recalcula fotos usadas a partir do estado final dos slots
+    estado.fotosUsadas = new Set();
+    estado.spreads.forEach(function(s) {
+      (s.album_slots || []).forEach(function(sl) { if (sl.foto_key) estado.fotosUsadas.add(sl.foto_key); });
+    });
+
+    setSaveStatus('Salvo ✓');
+    renderThumbs();
+    renderTemplates();
+    renderSpread();
+    st.textContent = alvo.length + (alvo.length === 1 ? ' lâmina montada' : ' lâminas montadas') + ' por cronologia.';
+  } catch (e) {
+    st.textContent = 'Erro no auto-design: ' + (e && e.message ? e.message : e);
+  } finally {
+    _adRodando = false;
+    btn.disabled = false;
+    if (progWrap) progWrap.style.display = 'none';
+    if (progBar) progBar.style.width = '0%';
+  }
 }
 
 // ── Exportar lâminas (JPG / PDF client-side; PDF/X-3 via gráfica) ─────────────
