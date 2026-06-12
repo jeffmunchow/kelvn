@@ -1870,6 +1870,33 @@ function iniciarKonva() {
   requestAnimationFrame(function() { _ignorarRO = false; });
 }
 
+// Troca as fotos de dois slots (podem ser de lâminas diferentes) e persiste.
+function trocarFotosSlots(slotOrigem, spreadIdxOrigem, slotDestino, spreadIdxDestino) {
+  var keyDestino = slotDestino.foto_key || null;
+  slotDestino.foto_key = slotOrigem.foto_key;
+  slotOrigem.foto_key = keyDestino;
+  slotDestino.foto_x = 0; slotDestino.foto_y = 0; slotDestino.foto_escala = 0;
+  slotOrigem.foto_x = 0; slotOrigem.foto_y = 0; slotOrigem.foto_escala = 0;
+  reconstruirFotosUsadas();
+  atualizarUsadasNoPool();
+  if (spreadIdxDestino === estado.spreadAtivo || spreadIdxOrigem === estado.spreadAtivo) renderSpread();
+  renderThumbs();
+  _sb.from('album_slots').update({ foto_key: slotDestino.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em: new Date().toISOString() }).eq('id', slotDestino.id).eq('user_id', _userId);
+  _sb.from('album_slots').update({ foto_key: slotOrigem.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em: new Date().toISOString() }).eq('id', slotOrigem.id).eq('user_id', _userId);
+}
+
+// Resolve o slot de origem serializado num dragstart da timeline.
+function slotOrigemDeDrag(e) {
+  var raw = e.dataTransfer.getData('tl-slot');
+  if (!raw) return null;
+  var origem;
+  try { origem = JSON.parse(raw); } catch(err) { return null; }
+  if (!origem) return null;
+  var spread = estado.spreads[origem.spreadIdx];
+  var slot = spread && (spread.album_slots || []).find(function(s) { return s.id === origem.slotId; });
+  return slot ? { slot: slot, spreadIdx: origem.spreadIdx } : null;
+}
+
 // Drop no canvas — anexado UMA vez ao #konva-container (elemento estável).
 // Evita listeners duplicados/obsoletos a cada recriação do stage.
 var _dropSetup = false;
@@ -1883,6 +1910,31 @@ function setupCanvasDrop() {
     e.preventDefault();
     var key = e.dataTransfer.getData('text/plain');
     if (!key) return;
+
+    // Drag vindo de uma foto da timeline → swap com o slot sob o cursor
+    var origem = slotOrigemDeDrag(e);
+    if (origem) {
+      var rect = domEl.getBoundingClientRect();
+      var px = e.clientX - rect.left, py = e.clientY - rect.top;
+      var spread = estado.spreads[estado.spreadAtivo];
+      var W = _dimSpread.w, H = _dimSpread.h;
+      var alvoIdx = -1;
+      slotsEfetivos(spread, W, H).forEach(function(s, i) {
+        if (s.w < 0.0001 || s.h < 0.0001) return;
+        if (px >= s.x*W && px <= (s.x+s.w)*W && py >= s.y*H && py <= (s.y+s.h)*H) alvoIdx = i;
+      });
+      var slotDestino = alvoIdx >= 0 ? (spread.album_slots || [])[alvoIdx] : null;
+      if (slotDestino && slotDestino.id !== origem.slot.id) {
+        trocarFotosSlots(origem.slot, origem.spreadIdx, slotDestino, estado.spreadAtivo);
+        return;
+      }
+      if (origem.spreadIdx === estado.spreadAtivo) return; // mesma lâmina, sem alvo: nada a fazer
+      // Fora de qualquer slot → move: tira da lâmina de origem antes de adicionar
+      origem.slot.foto_key = null; origem.slot.foto_x = 0; origem.slot.foto_y = 0; origem.slot.foto_escala = 0;
+      _sb.from('album_slots').update({ foto_key: null, foto_x:0, foto_y:0, foto_escala:0, atualizado_em: new Date().toISOString() }).eq('id', origem.slot.id).eq('user_id', _userId);
+      reconstruirFotosUsadas();
+    }
+
     // Posição confiável durante drag nativo: clientX/Y relativo ao container
     // Acrescenta a foto na lâmina ativa e redistribui o layout (não substitui)
     adicionarFotoNaLamina(estado.spreadAtivo, key);
@@ -3159,35 +3211,18 @@ function ligarDropSlotTimeline(el, spreadIdx, slotIdx) {
     e.preventDefault();
     e.stopPropagation();
     el.classList.remove('drop-over');
-    var tlSlotRaw = e.dataTransfer.getData('tl-slot');
     var key = e.dataTransfer.getData('text/plain');
     if (!key) return;
 
     // Swap entre slots da timeline
-    if (tlSlotRaw) {
-      var origem;
-      try { origem = JSON.parse(tlSlotRaw); } catch(e2) {}
-      if (origem) {
-        var spreadOrigem = estado.spreads[origem.spreadIdx];
-        var slotOrigem = spreadOrigem && (spreadOrigem.album_slots || []).find(function(s) { return s.id === origem.slotId; });
-        var spreadDestino = estado.spreads[spreadIdx];
-        var slotDestino = spreadDestino && (spreadDestino.album_slots || [])[slotIdx];
-        if (slotOrigem && slotDestino && slotOrigem.id !== slotDestino.id) {
-          // Troca as fotos
-          var keyDestino = slotDestino.foto_key || null;
-          slotDestino.foto_key = slotOrigem.foto_key;
-          slotOrigem.foto_key = keyDestino;
-          slotDestino.foto_x = 0; slotDestino.foto_y = 0; slotDestino.foto_escala = 0;
-          slotOrigem.foto_x = 0; slotOrigem.foto_y = 0; slotOrigem.foto_escala = 0;
-          reconstruirFotosUsadas();
-          atualizarUsadasNoPool();
-          if (spreadIdx === estado.spreadAtivo || origem.spreadIdx === estado.spreadAtivo) renderSpread();
-          renderThumbs();
-          _sb.from('album_slots').update({ foto_key: slotDestino.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em: new Date().toISOString() }).eq('id', slotDestino.id).eq('user_id', _userId);
-          _sb.from('album_slots').update({ foto_key: slotOrigem.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em: new Date().toISOString() }).eq('id', slotOrigem.id).eq('user_id', _userId);
-        }
-        return;
+    var origem = slotOrigemDeDrag(e);
+    if (origem) {
+      var spreadDestino = estado.spreads[spreadIdx];
+      var slotDestino = spreadDestino && (spreadDestino.album_slots || [])[slotIdx];
+      if (slotDestino && slotDestino.id !== origem.slot.id) {
+        trocarFotosSlots(origem.slot, origem.spreadIdx, slotDestino, spreadIdx);
       }
+      return;
     }
 
     // Drop do pool de favoritas
