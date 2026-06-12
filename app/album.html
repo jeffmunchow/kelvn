@@ -1493,6 +1493,8 @@ async function abrirAlbum(albumObj) {
   fecharProps();
 
   renderTemplates();
+  // Mede dimensões originais das fotos em background — alimenta os badges de DPI
+  medirDimensoesPool().then(function() { renderSpread(); });
   // ResizeObserver garante que iniciarKonva só roda quando o #konva-wrap
   // tem dimensões reais — e recalcula sempre que o tamanho muda.
   observarKonvaWrap();
@@ -1958,7 +1960,7 @@ function renderSpread() {
 
     // Foto, se houver
     if (slot && slot.foto_key) {
-      (function(slotRef, gx, gy, gw, gh, grupoRef, idxLocal) {
+      (function(slotRef, gx, gy, gw, gh, grupoRef, idxLocal, slotFrac, spreadRef) {
         // Sem crop manual → variante web (decode rápido, drag leve).
         // Com crop manual → original (foto_escala é salvo em px do original).
         var temCrop = (slotRef.foto_x || 0) !== 0 || (slotRef.foto_y || 0) !== 0;
@@ -1981,6 +1983,12 @@ function renderSpread() {
           img.setAttr('variante', temCrop ? 'original' : 'web');
           grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
           grupoRef.add(img);
+
+          // Badge de resolução insuficiente (adicionado ao layer, fora do clip do grupo)
+          var dpiReal = dpiRealSlot(slotRef.foto_key, slotFrac, spreadRef);
+          var badge = badgeAvisoSlot(dpiReal, gx, gy, gw, gh);
+          if (badge) _layer.add(badge);
+
           _layer.batchDraw();
           agendarCapturaThumbAtivo();
 
@@ -2002,7 +2010,7 @@ function renderSpread() {
           img.on('mouseenter', function() { if (!_slotEmEdicao && _stage) _stage.container().style.cursor = 'grab'; });
           img.on('mouseleave', function() { if (!_slotEmEdicao && _stage) _stage.container().style.cursor = ''; });
         });
-      })(slot, x, y, w, h, grupo, idx);
+      })(slot, x, y, w, h, grupo, idx, s, spread);
     }
 
     // HitRect para drop
@@ -4897,6 +4905,39 @@ function validarResolucaoUI() {
     }
     el.innerHTML = html;
   }
+}
+
+// Tamanho físico de um slot em cm, considerando se é capa (1 página) ou spread (2 páginas)
+function physSlotCm(spread, slotFrac) {
+  var a = estado.album;
+  var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
+  var largura = (a && a.largura_cm) ? a.largura_cm : 25;
+  var altura  = (a && a.altura_cm)  ? a.altura_cm  : 25;
+  return { w: slotFrac.w * (isCapa ? largura : largura * 2), h: slotFrac.h * altura };
+}
+
+// DPI real da foto no slot; retorna null se dimensões ainda não medidas
+function dpiRealSlot(fotoKey, slotFrac, spread) {
+  var foto = estado.pool.find(function(f) { return f.key === fotoKey; });
+  if (!foto || !foto.w || !foto.h) return null;
+  var phys = physSlotCm(spread, slotFrac);
+  var maxCm = Math.max(phys.w, phys.h);
+  if (!maxCm) return null;
+  return Math.round((Math.max(foto.w, foto.h) / maxCm) * 2.54);
+}
+
+// Badge Konva de aviso de resolução — null se DPI suficiente
+// < 150 DPI → coral (crítico); 150-199 DPI → amber (aviso)
+function badgeAvisoSlot(dpi, gx, gy, gw, gh) {
+  if (dpi === null || dpi >= 200) return null;
+  var cor = dpi < 150 ? 'var(--coral, #C43A1A)' : 'var(--amber, #C4780A)';
+  var fill = dpi < 150 ? '#C43A1A' : '#C4780A';
+  var sz = Math.round(Math.min(Math.max(Math.min(gw, gh) * 0.15, 13), 20));
+  var bx = gx + gw - sz - 5, by = gy + 5;
+  var g = new Konva.Group({ listening: false });
+  g.add(new Konva.Rect({ x: bx, y: by, width: sz, height: sz, fill: fill, cornerRadius: 3, opacity: 0.92 }));
+  g.add(new Konva.Text({ x: bx, y: by, width: sz, height: sz, text: '!', fontSize: Math.round(sz * 0.72), fontFamily: 'DM Sans, sans-serif', fontStyle: 'bold', fill: '#ffffff', align: 'center', verticalAlign: 'middle', listening: false }));
+  return g;
 }
 
 function validarResolucao(perfil) {
