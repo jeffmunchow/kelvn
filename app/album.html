@@ -176,6 +176,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .thumb-item:hover .thumb-remove{display:flex;}
 /* Timeline de fotos — visão SmartAlbums */
 #thumbs-bar.timeline{align-items:center;gap:0;padding:0 1rem;}
+#thumbs-bar.templates{align-items:center;gap:6px;padding:0 1rem;}
+#thumbs-bar.templates .tpl-card{height:90px;width:auto;flex-shrink:0;border-radius:4px;}
+#thumbs-bar.templates .tpl-preview{height:90px;width:auto;min-width:60px;}
 .tl-spread{display:flex;align-items:center;gap:5px;height:118px;padding:0 12px;border-radius:11px;flex-shrink:0;transition:background .15s;}
 .tl-spread.ativo{background:var(--surface2);}
 .tl-divisor{width:1px;height:74px;flex-shrink:0;background:var(--border-strong);margin:0 6px;align-self:center;}
@@ -555,6 +558,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
             </button>
             <button class="thumb-mode-btn" id="mode-timeline-btn" onclick="setThumbsMode('timeline')" title="Timeline de fotos">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="5" height="10" rx="1"/><rect x="9.5" y="7" width="5" height="10" rx="1"/><rect x="17" y="7" width="5" height="10" rx="1"/></svg>
+            </button>
+            <button class="thumb-mode-btn" id="mode-templates-btn" onclick="setThumbsMode('templates')" title="Templates">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
             </button>
           </div>
           <div id="thumbs-actions">
@@ -2962,16 +2968,33 @@ function setThumbsMode(mode) {
   _thumbsMode = mode;
   document.getElementById('mode-spreads-btn').classList.toggle('ativo', mode === 'spreads');
   document.getElementById('mode-timeline-btn').classList.toggle('ativo', mode === 'timeline');
+  document.getElementById('mode-templates-btn').classList.toggle('ativo', mode === 'templates');
   // Garante a barra aberta ao trocar de modo
   document.getElementById('thumbs-bar').classList.remove('fechado');
   document.getElementById('thumbs-toggle-btn').classList.remove('fechado');
   renderThumbs();
 }
 
+function renderTemplatesNaBarra(bar) {
+  bar.innerHTML = '';
+  var spread = estado.spreads[estado.spreadAtivo];
+  if (!spread || spread.tipo !== 'spread') return;
+  var tplAtivo = spread.template_id;
+  var aspect = spreadAspectRatio();
+  var ocultos = (_sd && _sd.tpl_ocultos) ? _sd.tpl_ocultos : [];
+  var todos = TEMPLATES.concat(TEMPLATES_USUARIO).filter(function(tpl) {
+    if (ocultos.indexOf(tpl.id) >= 0) return false;
+    return tpl.slots.every(function(s) { var a = (s.w / s.h) * aspect; return a >= 0.28 && a <= 6.0; });
+  });
+  todos.forEach(function(tpl) { bar.appendChild(criarCardTemplate(tpl, tplAtivo, aspect)); });
+}
+
 function renderThumbs() {
   var bar = document.getElementById('thumbs-bar');
   bar.classList.toggle('timeline', _thumbsMode === 'timeline');
+  bar.classList.toggle('templates', _thumbsMode === 'templates');
   if (_thumbsMode === 'timeline') { renderTimeline(bar); return; }
+  if (_thumbsMode === 'templates') { renderTemplatesNaBarra(bar); return; }
 
   // Preservar botão de adicionar
   var btn = bar.querySelector('.thumb-add');
