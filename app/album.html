@@ -1957,10 +1957,18 @@ function renderSpread() {
     (function(fotoKey) {
       carregarKonvaImg(urlFotoWeb(fotoKey), function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
-        img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
+        img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, scaleX: sc, scaleY: sc, name: 'img-foto' });
         _layer.add(img);
         _layer.batchDraw();
         agendarCapturaThumbAtivo();
+        // Progressive upgrade para original
+        carregarKonvaImg(urlFotoOriginal(fotoKey), function(imgHq) {
+          if (!img.getLayer()) return;
+          imgHq.setAttrs({ x: img.x(), y: img.y(), scaleX: img.scaleX(), scaleY: img.scaleY(), name: 'img-foto' });
+          img.destroy();
+          _layer.add(imgHq);
+          _layer.batchDraw();
+        });
       });
     })(slots[0].foto_key);
     renderizarTextos(spread._textos || []);
@@ -2015,6 +2023,23 @@ function renderSpread() {
 
           _layer.batchDraw();
           agendarCapturaThumbAtivo();
+
+          // Progressive upgrade: troca para original em background (só se usou web)
+          if (!temCrop) {
+            var urlOrig = urlFotoOriginal(slotRef.foto_key);
+            carregarKonvaImg(urlOrig, function(imgHq) {
+              if (!img.getLayer()) return; // slot foi desmontado
+              imgHq.setAttrs({ x: img.x(), y: img.y(), scaleX: img.scaleX(), scaleY: img.scaleY(), name: 'img-foto' });
+              imgHq.setAttr('variante', 'original');
+              var idx2 = grupoRef.children.indexOf(img);
+              if (idx2 >= 0) {
+                img.destroy();
+                grupoRef.add(imgHq);
+                imgHq.zIndex(idx2);
+              }
+              _layer.batchDraw();
+            });
+          }
 
           // 1 clique: seleciona a caixa do slot (tamanho e formato livres)
           img.on('click tap', function() {
