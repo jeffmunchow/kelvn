@@ -2008,6 +2008,7 @@ function renderSpread() {
       carregarKonvaImg(urlFotoOriginal(fotoKey), function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
         img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
+        img.cache({ pixelRatio: window.devicePixelRatio || 1 }); // raster leve p/ pan
         _layer.add(img);
         _layer.batchDraw();
         agendarCapturaThumbAtivo();
@@ -2052,6 +2053,10 @@ function renderSpread() {
           }
           img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
           img.setAttr('variante', 'original');
+          // Rasteriza na resolução de exibição: redesenhos (pan, drag) ficam
+          // leves mesmo com originais gigantes, sem perder nitidez na tela.
+          var dpr = window.devicePixelRatio || 1;
+          img.cache({ pixelRatio: Math.min(1, sc * dpr * 1.25) });
           grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
           grupoRef.add(img);
 
