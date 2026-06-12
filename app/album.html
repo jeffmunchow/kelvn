@@ -3101,11 +3101,6 @@ function renderTimeline(bar) {
     var grupo = document.createElement('div');
     grupo.className = 'tl-spread' + (idx === estado.spreadAtivo ? ' ativo' : '');
 
-    // Número da lâmina (capa/fim para extremos)
-    var num = document.createElement('div');
-    num.className = 'tl-num';
-    num.textContent = spread.tipo === 'capa' ? 'capa' : spread.tipo === 'contracapa' ? 'fim' : idx;
-    grupo.appendChild(num);
 
     var tpl = buscarTemplate(spread.template_id) || TEMPLATES[0];
     var slots = spread.album_slots || [];
