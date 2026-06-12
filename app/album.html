@@ -4764,7 +4764,8 @@ async function executarExport() {
         atualizarBarra(i + 1, spreads.length);
         statusEl.textContent = n + '/' + spreads.length + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.');
       }
-      if (dir) statusEl.textContent += ' Em "' + dir.name + '".';
+      statusEl.textContent = n + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.')
+        + (dir ? ' Em "' + dir.name + '".' : '');
     } else if (_expFormato === 'pdf') {
       var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
       if (!jsPDFctor) { statusEl.textContent = 'Biblioteca PDF não carregou. Recarregue a página.'; return; }
