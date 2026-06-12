@@ -1762,11 +1762,15 @@ function toggleSangria() {
 
 // Retângulo tracejado inset pela sangria física: a faixa entre a linha e a borda
 // é a área que pode ser perdida no corte. Capa também recebe (também é cortada).
+// A largura física vem do ratio do que está sendo renderizado (a capa quadrada
+// tem 1 página, não 2), para a sangria ficar uniforme em todas as bordas.
 function desenharGuiasSangria(layer, spread, W, H) {
   var fmt = (estado.album && estado.album.formato) || 'paisagem';
   var dims = DIMENSOES_FORMATO_PRINT[fmt] || DIMENSOES_FORMATO_PRINT.paisagem;
-  var ix = ((SANGRIA_REF_MM / 10) / dims.spread_w) * W;
-  var iy = ((SANGRIA_REF_MM / 10) / dims.h) * H;
+  var physH = dims.h;
+  var physW = physH * ratioParaSpread(spread);
+  var ix = ((SANGRIA_REF_MM / 10) / physW) * W;
+  var iy = ((SANGRIA_REF_MM / 10) / physH) * H;
   layer.add(new Konva.Rect({
     x: ix, y: iy, width: W - ix * 2, height: H - iy * 2,
     stroke: 'rgba(196,58,26,0.75)', strokeWidth: 1, dash: [7, 4],
