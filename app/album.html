@@ -137,6 +137,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #save-status{display:none;font-size:.65rem;color:var(--text-hint);margin-left:.4rem;}
 #canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem 3rem;overflow:hidden;box-sizing:border-box;}
+#konva-wrap:fullscreen{background:var(--bg);}
+#konva-wrap:-webkit-full-screen{background:var(--bg);}
 /* Track horizontal: spread atual ao centro, vizinhos (snapshots) nas laterais.
    O gap (48px) é igual ao padding horizontal do wrap, então os vizinhos ficam
    exatamente fora da área visível enquanto em repouso (sem "espiar"). */
@@ -4209,10 +4211,26 @@ function aplicarEspacamento(slots, margemPx, gutterPx, W, H) {
 }
 
 // ── Nível 4 — Atalhos de teclado ─────────────────────────────────────────────
+// Cmd/Ctrl+F — álbum em tela cheia (Esc sai, nativo do browser)
+function toggleFullscreenAlbum() {
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    return;
+  }
+  var editor = document.getElementById('view-editor');
+  if (!editor || editor.classList.contains('hidden')) return;
+  var wrap = document.getElementById('konva-wrap');
+  if (!wrap) return;
+  if (wrap.requestFullscreen) wrap.requestFullscreen();
+  else if (wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+}
+
 document.addEventListener('keydown', function(e) {
   var ctrl = e.ctrlKey || e.metaKey;
   if (ctrl && e.key === 'z' && !e.shiftKey) { e.preventDefault(); historico.desfazer(); return; }
   if ((ctrl && e.key === 'y') || (ctrl && e.shiftKey && e.key === 'z')) { e.preventDefault(); historico.refazer(); return; }
+  if (ctrl && (e.key === 'f' || e.key === 'F') && !e.shiftKey) { e.preventDefault(); toggleFullscreenAlbum(); return; }
   if (e.key === 'Escape') { sairModoEdicaoSlot(false); return; }
   if (e.key === 'Delete' || e.key === 'Backspace') {
     var t = e.target;
