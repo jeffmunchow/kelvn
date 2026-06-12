@@ -946,6 +946,11 @@ function urlFotoThumb(key) { var v = _variantes[key]; return urlFotoOriginal((v 
 var _imgElCache = {}; // url -> HTMLImageElement
 
 function carregarKonvaImg(url, cb, errCb) {
+  // O canvas exige CORS (crossOrigin=anonymous), mas timeline/pool carregam as
+  // MESMAS URLs via <img> comum — o navegador cacheia essas respostas sem o
+  // header Access-Control-Allow-Origin e depois serve o cache envenenado ao
+  // canvas, que bloqueia a imagem. O parâmetro separa as entradas de cache.
+  url = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'cors=1';
   var el = _imgElCache[url];
   if (el && el.complete && el.naturalWidth) {
     // Sempre assíncrono: chamadores usam contadores de pendência que precisam
