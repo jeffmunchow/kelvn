@@ -3936,6 +3936,7 @@ async function removerFotoDoSlot() {
     { tipo:'slot', spreadId: snapAntes.spreadId, slotId: slot.id, foto_key: null, foto_x: 0, foto_y: 0, foto_escala: 0 });
 
   reconstruirFotosUsadas();
+  atualizarUsadasNoPool();
   sairModoEdicaoSlot(true);
 
   setSaveStatus('Salvando…');
