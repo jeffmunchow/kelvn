@@ -1955,20 +1955,12 @@ function renderSpread() {
   var slots = spread.album_slots || [];
   if (spread.full_bleed && slots.length > 0 && slots[0] && slots[0].foto_key) {
     (function(fotoKey) {
-      carregarKonvaImg(urlFotoWeb(fotoKey), function(img) {
+      carregarKonvaImg(urlFotoOriginal(fotoKey), function(img) {
         var sc = Math.max(W / img.width(), H / img.height());
-        img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, scaleX: sc, scaleY: sc, name: 'img-foto' });
+        img.setAttrs({ x: (W - img.width()*sc)/2, y: (H - img.height()*sc)/2, width: img.width()*sc, height: img.height()*sc });
         _layer.add(img);
         _layer.batchDraw();
         agendarCapturaThumbAtivo();
-        // Progressive upgrade para original
-        carregarKonvaImg(urlFotoOriginal(fotoKey), function(imgHq) {
-          if (!img.getLayer()) return;
-          imgHq.setAttrs({ x: img.x(), y: img.y(), scaleX: img.scaleX(), scaleY: img.scaleY(), name: 'img-foto' });
-          img.destroy();
-          _layer.add(imgHq);
-          _layer.batchDraw();
-        });
       });
     })(slots[0].foto_key);
     renderizarTextos(spread._textos || []);
@@ -1993,11 +1985,8 @@ function renderSpread() {
     // Foto, se houver
     if (slot && slot.foto_key) {
       (function(slotRef, gx, gy, gw, gh, grupoRef, idxLocal, slotFrac, spreadRef) {
-        // Sem crop manual → variante web (decode rápido, drag leve).
-        // Com crop manual → original (foto_escala é salvo em px do original).
         var temCrop = (slotRef.foto_x || 0) !== 0 || (slotRef.foto_y || 0) !== 0;
-        var urlSlot = temCrop ? urlFotoOriginal(slotRef.foto_key) : urlFotoWeb(slotRef.foto_key);
-        carregarKonvaImg(urlSlot, function(img) {
+        carregarKonvaImg(urlFotoOriginal(slotRef.foto_key), function(img) {
           var scMin = Math.max(gw / img.width(), gh / img.height());
           // autoFit: foto nunca recortada manualmente (sem offset) → cover-fit centralizado,
           // ignorando escala persistida (corrige dados antigos salvos como nativo 1).
@@ -2012,7 +2001,7 @@ function renderSpread() {
             imgY = gy + (slotRef.foto_y || 0);
           }
           img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
-          img.setAttr('variante', temCrop ? 'original' : 'web');
+          img.setAttr('variante', 'original');
           grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
           grupoRef.add(img);
 
@@ -2023,23 +2012,6 @@ function renderSpread() {
 
           _layer.batchDraw();
           agendarCapturaThumbAtivo();
-
-          // Progressive upgrade: troca para original em background (só se usou web)
-          if (!temCrop) {
-            var urlOrig = urlFotoOriginal(slotRef.foto_key);
-            carregarKonvaImg(urlOrig, function(imgHq) {
-              if (!img.getLayer()) return; // slot foi desmontado
-              imgHq.setAttrs({ x: img.x(), y: img.y(), scaleX: img.scaleX(), scaleY: img.scaleY(), name: 'img-foto' });
-              imgHq.setAttr('variante', 'original');
-              var idx2 = grupoRef.children.indexOf(img);
-              if (idx2 >= 0) {
-                img.destroy();
-                grupoRef.add(imgHq);
-                imgHq.zIndex(idx2);
-              }
-              _layer.batchDraw();
-            });
-          }
 
           // 1 clique: seleciona a caixa do slot (tamanho e formato livres)
           img.on('click tap', function() {
