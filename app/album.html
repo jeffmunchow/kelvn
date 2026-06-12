@@ -4514,6 +4514,7 @@ function initExpTamanhoUI() {
   // Posiciona o slider no tamanho original do álbum
   var origIdx = _expPresets.findIndex(function(t){ return t.w === origW && t.h === origH; });
   if (origIdx < 0) origIdx = 0;
+  _expOrigIdx = origIdx;
   var sl = document.getElementById('exp-tam-slider');
   if (!sl) return;
   sl.min = 0;
@@ -4525,6 +4526,7 @@ function initExpTamanhoUI() {
 }
 
 var _expPresets = [];
+var _expOrigIdx = 0;
 
 function toggleExpTamOutro() {
   if (_expRodando) return;
@@ -4534,7 +4536,7 @@ function toggleExpTamOutro() {
     wrap.style.display = 'none';
     // Volta o slider para o preset original
     var sl = document.getElementById('exp-tam-slider');
-    if (sl) { sl.value = 0; sl.disabled = false; }
+    if (sl) { sl.value = _expOrigIdx; sl.disabled = false; }
     _expTamanho = null;
   } else {
     wrap.style.display = 'flex';
