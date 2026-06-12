@@ -136,16 +136,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #album-nome-topbar{font-size:.78rem;color:var(--text-muted);}
 #save-status{display:none;font-size:.65rem;color:var(--text-hint);margin-left:.4rem;}
 #canvas-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#konva-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem 3rem;overflow:hidden;box-sizing:border-box;}
+#konva-wrap{flex:1;display:flex;align-items:center;padding:1.5rem 0;overflow:hidden;box-sizing:border-box;}
 #konva-wrap:fullscreen{background:var(--bg);}
 #konva-wrap:-webkit-full-screen{background:var(--bg);}
-/* Track horizontal: spread atual ao centro, vizinhos (snapshots) nas laterais.
-   O gap (48px) é igual ao padding horizontal do wrap, então os vizinhos ficam
-   exatamente fora da área visível enquanto em repouso (sem "espiar"). */
-#konva-track{display:flex;align-items:center;gap:48px;will-change:transform;}
+/* Fita contínua: todas as lâminas lado a lado, scroll nativo com inércia.
+   A lâmina onde o scroll assenta recebe o canvas editável (#konva-container);
+   as demais exibem snapshots — rolar é uma coisa só, estilo SmartAlbums. */
+#konva-strip{width:100%;display:flex;align-items:center;gap:48px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;overscroll-behavior-x:contain;scrollbar-width:none;}
+#konva-strip::-webkit-scrollbar{display:none;}
+.strip-item{flex:none;scroll-snap-align:center;position:relative;}
+.strip-item img.strip-snap{display:block;width:100%;height:100%;background:#fff;}
 #konva-container{flex:none;}
-.konva-viz{flex:none;display:flex;align-items:center;justify-content:center;background:transparent;}
-.konva-viz img{display:block;max-width:none;}
 
 /* Barra de spreads — com toggle */
 #thumbs-wrap{flex-shrink:0;position:relative;}
@@ -543,10 +544,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <div id="canvas-panel">
         <div id="canvas-area">
           <div id="konva-wrap">
-            <div id="konva-track">
-              <div class="konva-viz" id="konva-prev"><img alt=""></div>
+            <div id="konva-strip">
               <div id="konva-container"></div>
-              <div class="konva-viz" id="konva-next"><img alt=""></div>
             </div>
           </div>
         </div>
@@ -1596,7 +1595,14 @@ function preaquecerVizinhos(tk) {
     var vc = _vizSnapCache[sp.id];
     if (vc && vc.sig === sig) { prox(); return; }
     gerarSnapshotSpread(sp, function(url) {
-      if (url) _vizSnapCache[sp.id] = { sig: sig, url: url };
+      if (url) {
+        _vizSnapCache[sp.id] = { sig: sig, url: url };
+        // Atualiza o item da fita na hora (se não for o ativo com canvas)
+        var strip = document.getElementById('konva-strip');
+        var item = strip && strip.querySelector('.strip-item[data-spread-id="' + sp.id + '"]');
+        var img = item && item.querySelector('img.strip-snap');
+        if (img && img.style.display !== 'none') img.src = url;
+      }
       setTimeout(prox, 120); // respiro entre rasters para não travar a UI
     });
   }
@@ -1787,87 +1793,145 @@ function observarKonvaWrap() {
   _konvaRO.observe(wrap);
 }
 
-// Navegação por pan horizontal do trackpad: o spread acompanha o dedo e o vizinho
-// entra pela lateral; ao soltar, encaixa no spread mais próximo.
-var PAN_GAP = 48;            // px entre spreads no track (igual ao gap do CSS)
+// ── Fita contínua (estilo SmartAlbums) ───────────────────────────────────────
+// Todas as lâminas lado a lado num scroll nativo. A lâmina onde o scroll
+// assenta recebe o canvas editável; as demais mostram snapshots.
 var _panSetup = false;
-var _panOffset = 0;          // deslocamento atual do track (px)
-var _panAnimating = false;
-var _panEndTimer = null;
+var _stripScrollTimer = null;
+var _fitaIds = ''; // assinatura da ordem das lâminas — rebuild quando mudar
+
 function setupPanNav() {
   if (_panSetup) return;
-  var wrap  = document.getElementById('konva-wrap');
-  var track = document.getElementById('konva-track');
-  if (!wrap || !track) return;
+  var strip = document.getElementById('konva-strip');
+  if (!strip) return;
   _panSetup = true;
-  wrap.addEventListener('wheel', function(e) {
-    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; // só gestos horizontais
-    if (_slotEmEdicao) return;                            // não navega durante crop
-    e.preventDefault();                                   // evita voltar/avançar do navegador
-    if (_panAnimating) return;
-
-    var idx = estado.spreadAtivo;
-    var pitch = _dimSpread.w + PAN_GAP;
-    track.style.transition = 'none';
-    _panOffset -= e.deltaX;                               // segue o dedo
-
-    // Resistência (rubber-band) quando não há vizinho daquele lado
-    if ((_panOffset > 0 && idx === 0) ||
-        (_panOffset < 0 && idx >= estado.spreads.length - 1)) {
-      _panOffset *= 0.35;
-    }
-    _panOffset = Math.max(-pitch * 1.15, Math.min(pitch * 1.15, _panOffset));
-    track.style.transform = 'translateX(' + _panOffset + 'px)';
-
-    // Fim do gesto: dispara o snap quando os eventos param (inclui a inércia)
-    clearTimeout(_panEndTimer);
-    _panEndTimer = setTimeout(finalizarPan, 110);
+  strip.addEventListener('scroll', function() {
+    clearTimeout(_stripScrollTimer);
+    _stripScrollTimer = setTimeout(fitaAssentou, 140);
+  }, { passive: true });
+  // Roda vertical do mouse também navega a fita
+  strip.addEventListener('wheel', function(e) {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // trackpad horizontal: nativo
+    if (_slotEmEdicao) return; // wheel durante crop é zoom da foto
+    if (e.deltaY) { e.preventDefault(); strip.scrollLeft += e.deltaY; }
   }, { passive: false });
 }
 
-function finalizarPan() {
-  if (_panAnimating) return;
-  var track = document.getElementById('konva-track');
-  if (!track) return;
-  var idx   = estado.spreadAtivo;
-  var pitch = _dimSpread.w + PAN_GAP;
-  var limiar = pitch * 0.22;
-  var destino = 0, novoIdx = idx;
-  if (_panOffset < -limiar && idx < estado.spreads.length - 1) { destino = -pitch; novoIdx = idx + 1; }
-  else if (_panOffset > limiar && idx > 0)                     { destino =  pitch; novoIdx = idx - 1; }
+function montarFita() {
+  var strip = document.getElementById('konva-strip');
+  if (!strip) return;
+  var container = document.getElementById('konva-container');
+  strip.innerHTML = '';
+  _fitaIds = estado.spreads.map(function(s) { return s.id; }).join(',');
 
-  _panAnimating = true;
-  track.style.transition = 'transform .2s ease-out';
-  track.style.transform  = 'translateX(' + destino + 'px)';
+  estado.spreads.forEach(function(sp, i) {
+    var item = document.createElement('div');
+    item.className = 'strip-item';
+    var d = dimParaSpread(sp);
+    item.style.width = d.w + 'px';
+    item.style.height = d.h + 'px';
+    item.dataset.spreadId = sp.id;
+    var img = document.createElement('img');
+    img.className = 'strip-snap';
+    img.alt = '';
+    img.draggable = false;
+    item.appendChild(img);
+    item.addEventListener('click', (function(idx) {
+      return function() { if (idx !== estado.spreadAtivo && !_slotEmEdicao) mudarSpread(idx); };
+    })(i));
+    strip.appendChild(item);
+  });
 
-  var concluido = false;
-  function concluir() {
-    if (concluido) return; concluido = true;
-    track.removeEventListener('transitionend', concluir);
-    if (novoIdx !== idx) {
-      // Renderiza o novo spread no centro ANTES de resetar o track (sem flash)
-      var spreadAntesPan = estado.spreads[idx];
-      var spreadDepoisPan = estado.spreads[novoIdx];
-      estado.spreadAtivo = novoIdx;
-      if (estado.album && estado.album.formato === 'quadrado') {
-        var tipoAP = spreadAntesPan ? spreadAntesPan.tipo : '';
-        var tipoDP = spreadDepoisPan ? spreadDepoisPan.tipo : '';
-        var eraCapaP = tipoAP === 'capa' || tipoAP === 'contracapa';
-        var eCapaP   = tipoDP === 'capa' || tipoDP === 'contracapa';
-        if (eraCapaP !== eCapaP) iniciarKonva();
-      }
-      renderSpread();
-      renderThumbs();
-      renderTemplates();
-      atualizarPropsSeAberto();
-    }
-    track.style.transition = 'none';
-    track.style.transform  = 'translateX(0)';
-    _panOffset = 0;
-    _panAnimating = false;
+  // Padding nas pontas para a primeira/última lâmina centralizarem
+  var wrapW = strip.clientWidth || strip.offsetWidth;
+  var itens = strip.children;
+  if (itens.length) {
+    strip.style.paddingLeft  = Math.max(48, Math.round((wrapW - itens[0].offsetWidth) / 2)) + 'px';
+    strip.style.paddingRight = Math.max(48, Math.round((wrapW - itens[itens.length - 1].offsetWidth) / 2)) + 'px';
   }
-  track.addEventListener('transitionend', concluir, { once: true });
-  setTimeout(concluir, 280); // fallback se o transitionend não disparar
+
+  // Canvas editável dentro do item ativo
+  var itemAtivo = itens[estado.spreadAtivo];
+  if (itemAtivo && container) {
+    ajustarStageParaAtivo();
+    itemAtivo.querySelector('img.strip-snap').style.display = 'none';
+    itemAtivo.appendChild(container);
+  }
+  atualizarVizinhos();
+  centralizarFita(estado.spreadAtivo, false);
+}
+
+// Garante que o stage tem as dimensões da lâmina ativa (capa ≠ spread).
+function ajustarStageParaAtivo() {
+  var sp = estado.spreads[estado.spreadAtivo];
+  if (!sp) return;
+  var d = dimParaSpread(sp);
+  if (d.w !== _dimSpread.w || d.h !== _dimSpread.h) {
+    _dimSpread = d;
+    var container = document.getElementById('konva-container');
+    if (container) {
+      container.style.width  = d.w + 'px';
+      container.style.height = d.h + 'px';
+    }
+    if (_stage) _stage.size({ width: d.w, height: d.h });
+  }
+}
+
+function centralizarFita(idx, suave) {
+  var strip = document.getElementById('konva-strip');
+  if (!strip) return;
+  var item = strip.children[idx];
+  if (!item) return;
+  var alvo = item.offsetLeft + item.offsetWidth / 2 - strip.clientWidth / 2;
+  strip.scrollTo({ left: Math.max(0, alvo), behavior: suave ? 'smooth' : 'auto' });
+}
+
+function itemMaisCentral() {
+  var strip = document.getElementById('konva-strip');
+  if (!strip) return estado.spreadAtivo;
+  var centro = strip.scrollLeft + strip.clientWidth / 2;
+  var melhor = estado.spreadAtivo, menor = Infinity;
+  for (var i = 0; i < strip.children.length; i++) {
+    var it = strip.children[i];
+    var d = Math.abs(it.offsetLeft + it.offsetWidth / 2 - centro);
+    if (d < menor) { menor = d; melhor = i; }
+  }
+  return melhor;
+}
+
+function fitaAssentou() {
+  if (_slotEmEdicao) return; // editando: não troca a lâmina ativa
+  var idx = itemMaisCentral();
+  if (idx !== estado.spreadAtivo) mudarSpread(idx, true);
+}
+
+// Move o canvas editável para o item idx; o item anterior volta a ser snapshot.
+function pousarCanvasNoItem(idx) {
+  var strip = document.getElementById('konva-strip');
+  var container = document.getElementById('konva-container');
+  if (!strip || !container) return;
+  var itemAntigo = container.parentElement;
+  var itemNovo = strip.children[idx];
+  if (!itemNovo || itemNovo === itemAntigo) return;
+
+  // Snapshot fresco do stage atual antes de sair (instantâneo, já renderizado)
+  if (itemAntigo && itemAntigo.classList && itemAntigo.classList.contains('strip-item') && _stage) {
+    var imgAntiga = itemAntigo.querySelector('img.strip-snap');
+    if (imgAntiga) {
+      try {
+        var spAntigo = estado.spreads[Array.prototype.indexOf.call(strip.children, itemAntigo)];
+        var urlSnap = _stage.toDataURL({ mimeType: 'image/jpeg', quality: 0.85 });
+        imgAntiga.src = urlSnap;
+        if (spAntigo) _vizSnapCache[spAntigo.id] = { sig: assinaturaSpread(spAntigo), url: urlSnap };
+      } catch (e) {}
+      imgAntiga.style.display = '';
+    }
+  }
+
+  // Redimensiona o stage para as dimensões da nova lâmina (capa ≠ spread)
+  ajustarStageParaAtivo();
+  itemNovo.querySelector('img.strip-snap').style.display = 'none';
+  itemNovo.appendChild(container);
 }
 
 // Razão W/H para um spread específico (considera formato e tipo capa/spread).
@@ -1892,7 +1956,8 @@ function dimParaSpread(spread) {
   var cs = getComputedStyle(wrap);
   var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
   var padY = parseFloat(cs.paddingTop)  + parseFloat(cs.paddingBottom);
-  var aw = wrap.clientWidth  - padX;
+  // 88% da largura disponível: folga para os vizinhos da fita "espiarem"
+  var aw = (wrap.clientWidth - padX) * 0.88;
   var ah = wrap.clientHeight - padY;
   var ratio = ratioParaSpread(spread);
   var w = aw, h = w / ratio;
@@ -1916,18 +1981,6 @@ function iniciarKonva() {
   container.style.width  = _dimSpread.w + 'px';
   container.style.height = _dimSpread.h + 'px';
 
-  // Reseta a posição do track de pan e ajusta o gap para que os vizinhos fiquem
-  // exatamente fora da área visível em repouso (sem "espiar").
-  var track = document.getElementById('konva-track');
-  var wrap  = document.getElementById('konva-wrap');
-  if (track && wrap) {
-    PAN_GAP = Math.max(48, Math.round((wrap.clientWidth - _dimSpread.w) / 2));
-    track.style.gap = PAN_GAP + 'px';
-    track.style.transition = 'none';
-    track.style.transform = 'translateX(0)';
-  }
-  _panOffset = 0; _panAnimating = false;
-
   _stage = new Konva.Stage({ container: 'konva-container', width: _dimSpread.w, height: _dimSpread.h });
   _layer = new Konva.Layer();
   _guideLayer = new Konva.Layer({ listening: false });
@@ -1935,6 +1988,7 @@ function iniciarKonva() {
   _stage.add(_guideLayer);
 
   setupCanvasDrop();
+  montarFita();
   // Atualiza referência do wrap para que a próxima observação legítima passe no guard
   var _wrapAgora = document.getElementById('konva-wrap');
   if (_wrapAgora) { _ultimoWrapW = _wrapAgora.clientWidth; _ultimoWrapH = _wrapAgora.clientHeight; }
@@ -2456,54 +2510,41 @@ function gerarSnapshotSpread(spread, cb, pixelRatio, numOpts, hqFotos) {
   setTimeout(capturar, hqFotos ? 30000 : 8000);
 }
 
-// Atualiza tamanho e snapshots dos spreads vizinhos (esquerda/direita).
+// Atualiza os snapshots de todos os itens da fita (lâminas não-ativas).
 var _vizToken = 0;
+var _vizSnapCache = {}; // spreadId -> { sig, url } — snapshots das lâminas
+var _vizGerando = {};   // spreadId -> true (geração em andamento)
 function atualizarVizinhos() {
-  var prevEl = document.getElementById('konva-prev');
-  var nextEl = document.getElementById('konva-next');
-  if (!prevEl || !nextEl) return;
-  // Vizinhos usam dimensões do spread ativo (ficam fora da área visível com mesmo tamanho)
-  [prevEl, nextEl].forEach(function(el) {
-    el.style.width  = _dimSpread.w + 'px';
-    el.style.height = _dimSpread.h + 'px';
-  });
-  var idx = estado.spreadAtivo;
+  var strip = document.getElementById('konva-strip');
+  if (!strip) return;
   _vizToken++;
   var tk = _vizToken;
-  definirVizinho(prevEl, estado.spreads[idx - 1], tk);
-  definirVizinho(nextEl, estado.spreads[idx + 1], tk);
-}
-var _vizSnapCache = {}; // spreadId -> { sig, url } — snapshots dos vizinhos
-function definirVizinho(el, spread, tk) {
-  var img = el.querySelector('img');
-  if (!img) return;
-  if (!spread) { img.style.visibility = 'hidden'; img.removeAttribute('src'); return; }
-  var dim = dimParaSpread(spread);
-  img.style.width  = dim.w + 'px';
-  img.style.height = dim.h + 'px';
-  var sig = assinaturaSpread(spread);
-
-  // 1) Cache do vizinho: aparece na hora
-  var vc = _vizSnapCache[spread.id];
-  if (vc && vc.sig === sig && vc.url) { img.src = vc.url; img.style.visibility = 'visible'; return; }
-
-  // 2) Fallback imediato enquanto o snapshot gera: thumb da barra (já pronto
-  //    na maioria dos casos) ou ao menos a cor de fundo da lâmina
-  var tc = _thumbSnapCache[spread.id];
-  if (tc && tc.sig === sig && tc.url) { img.src = tc.url; }
-  else { img.removeAttribute('src'); img.style.background = spread.background_color || '#ffffff'; }
-  img.style.visibility = 'visible';
-
-  // 3) Gera o snapshot definitivo em background e cacheia — com atraso para
-  //    não competir com o render da lâmina recém-aberta durante o pan
-  setTimeout(function() {
-    if (tk !== _vizToken) return; // já navegou de novo: deixa pro próximo ciclo
-    gerarSnapshotSpread(spread, function(url) {
-      if (url) _vizSnapCache[spread.id] = { sig: sig, url: url };
-      if (tk !== _vizToken) return;
-      if (url) { img.src = url; img.style.visibility = 'visible'; }
-    });
-  }, 300);
+  estado.spreads.forEach(function(sp, i) {
+    var item = strip.children[i];
+    if (!item || !sp || i === estado.spreadAtivo) return;
+    var img = item.querySelector('img.strip-snap');
+    if (!img) return;
+    var sig = assinaturaSpread(sp);
+    var vc = _vizSnapCache[sp.id];
+    if (vc && vc.sig === sig && vc.url) {
+      if (img.src !== vc.url) img.src = vc.url;
+      return;
+    }
+    // Fallback enquanto gera: thumb da barra ou cor de fundo da lâmina
+    var tc = _thumbSnapCache[sp.id];
+    if (tc && tc.sig === sig && tc.url) img.src = tc.url;
+    else { img.removeAttribute('src'); img.style.background = sp.background_color || '#ffffff'; }
+    // Gera o definitivo só para vizinhos próximos; o resto vem do preaquecimento
+    if (Math.abs(i - estado.spreadAtivo) <= 2 && !_vizGerando[sp.id]) {
+      _vizGerando[sp.id] = true;
+      gerarSnapshotSpread(sp, function(url) {
+        delete _vizGerando[sp.id];
+        if (url) _vizSnapCache[sp.id] = { sig: sig, url: url };
+        if (tk !== _vizToken) return;
+        if (url) img.src = url;
+      });
+    }
+  });
 }
 
 function encontrarSlotNaPosicao(px, py, exato) {
@@ -3280,6 +3321,10 @@ function renderTemplatesNaBarra(bar) {
 }
 
 function renderThumbs() {
+  // Fita: reconstrói se a lista de lâminas mudou (add/remove/duplica/reordena)
+  var idsFita = estado.spreads.map(function(s) { return s.id; }).join(',');
+  if (idsFita !== _fitaIds) montarFita();
+
   var bar = document.getElementById('thumbs-bar');
   bar.classList.toggle('timeline', _thumbsMode === 'timeline');
   bar.classList.toggle('templates', _thumbsMode === 'templates');
@@ -3475,25 +3520,23 @@ function renderTimeline(bar) {
   if (ativoEl) ativoEl.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
 
-async function mudarSpread(idx) {
-  var spreadAnterior = estado.spreads[estado.spreadAtivo];
+async function mudarSpread(idx, veioDoScroll) {
+  if (_slotEmEdicao) sairModoEdicaoSlot(true, true);
   estado.spreadAtivo = idx;
   var spread = estado.spreads[idx];
   if (spread && !spread._textos) {
     spread._textos = await carregarTextos(spread.id);
   }
-  // Formato quadrado: capa tem 1 página, spread tem 2 → recalcular dimensões ao trocar tipo
-  if (estado.album && estado.album.formato === 'quadrado') {
-    var tipoAntes = spreadAnterior ? spreadAnterior.tipo : '';
-    var tipoDepois = spread ? spread.tipo : '';
-    var eraCapaTipo = tipoAntes === 'capa' || tipoAntes === 'contracapa';
-    var eCapaTipo   = tipoDepois === 'capa' || tipoDepois === 'contracapa';
-    if (eraCapaTipo !== eCapaTipo) iniciarKonva();
-  }
+  // Reconstrói a fita se a lista de lâminas mudou (add/remove/reordena)
+  var ids = estado.spreads.map(function(s) { return s.id; }).join(',');
+  if (ids !== _fitaIds) montarFita();
+  else pousarCanvasNoItem(idx);
   renderThumbs();
   renderTemplates();
   renderSpread();
   atualizarPropsSeAberto();
+  // Centraliza a fita — exceto quando a troca veio do próprio scroll
+  if (!veioDoScroll) centralizarFita(idx, true);
 }
 
 // ── Adicionar / remover spreads ───────────────────────────────────────────────
@@ -3700,20 +3743,10 @@ async function excluirSpreadComFotos(idx) {
   var spread = estado.spreads[idx];
   if (!spread || spread.tipo !== 'spread') return;
 
-  var tipoAtivoAntes = estado.spreads[estado.spreadAtivo] ? estado.spreads[estado.spreadAtivo].tipo : '';
-
   await _sb.from('album_slots').delete().eq('spread_id', spread.id).eq('user_id', _userId);
   await _sb.from('album_spreads').delete().eq('id', spread.id).eq('user_id', _userId);
   estado.spreads.splice(idx, 1);
   if (estado.spreadAtivo >= idx) estado.spreadAtivo = Math.max(0, estado.spreadAtivo - 1);
-
-  // Formato quadrado: se o tipo da lâmina ativa mudou (spread ↔ capa/fim), o canvas precisa de outras dimensões
-  if (estado.album && estado.album.formato === 'quadrado') {
-    var ativoAgora = estado.spreads[estado.spreadAtivo];
-    var eraCapa = tipoAtivoAntes === 'capa' || tipoAtivoAntes === 'contracapa';
-    var eCapa = ativoAgora && (ativoAgora.tipo === 'capa' || ativoAgora.tipo === 'contracapa');
-    if (eraCapa !== eCapa) iniciarKonva();
-  }
 
   // Libera no pool as fotos que só existiam nesta lâmina
   estado.fotosUsadas = new Set();
@@ -3997,6 +4030,8 @@ function atualizarGuias(bx, by, bw, bh) {
 // (largura e altura independentes, sem trava de proporção).
 function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   if (_slotEmEdicao) sairModoEdicaoSlot(true);
+  var stripEd = document.getElementById('konva-strip');
+  if (stripEd) stripEd.style.overflowX = 'hidden'; // sem scroll da fita durante edição
   var imgNode = grupo.findOne('Image'); // null em slot vazio — modo caixa funciona igual
   var W = _dimSpread.w, H = _dimSpread.h;
 
@@ -4116,6 +4151,8 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
 // 2 cliques — edita a FOTO dentro do slot: arrasta e redimensiona mantendo
 // a proporção original da foto (nunca menor que o cover-fit do slot).
 function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
+  var stripEd = document.getElementById('konva-strip');
+  if (stripEd) stripEd.style.overflowX = 'hidden'; // sem scroll da fita durante crop
   // grupo pode ter sido re-renderizado; tenta achar o grupo atual pelo nome
   var grupoAtual = _layer.findOne('.grupo-slot-' + (grupo.name() || '').replace('grupo-slot-', '')) || grupo;
   var imgNode = grupoAtual.findOne('Image');
@@ -4258,6 +4295,8 @@ function salvarCropAtual() {
 }
 
 function sairModoEdicaoSlot(silencioso, semRender) {
+  var stripEd = document.getElementById('konva-strip');
+  if (stripEd) stripEd.style.overflowX = 'auto'; // libera o scroll da fita
   if (!_slotEmEdicao) return;
   var snap = _slotEmEdicao.snapAntes;
   var slot = _slotEmEdicao.slot;
