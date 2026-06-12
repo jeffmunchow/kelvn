@@ -1839,6 +1839,7 @@ function calcDims() {
 function iniciarKonva() {
   _ignorarRO = true;
   _thumbSnapCache = {}; // dimensões mudaram → invalida todos os snapshots
+  _vizSnapCache = {};
   calcDims();
   var container = document.getElementById('konva-container');
   container.innerHTML = '';
@@ -2357,17 +2358,32 @@ function atualizarVizinhos() {
   definirVizinho(prevEl, estado.spreads[idx - 1], tk);
   definirVizinho(nextEl, estado.spreads[idx + 1], tk);
 }
+var _vizSnapCache = {}; // spreadId -> { sig, url } — snapshots dos vizinhos
 function definirVizinho(el, spread, tk) {
   var img = el.querySelector('img');
   if (!img) return;
   if (!spread) { img.style.visibility = 'hidden'; img.removeAttribute('src'); return; }
   var dim = dimParaSpread(spread);
+  img.style.width  = dim.w + 'px';
+  img.style.height = dim.h + 'px';
+  var sig = assinaturaSpread(spread);
+
+  // 1) Cache do vizinho: aparece na hora
+  var vc = _vizSnapCache[spread.id];
+  if (vc && vc.sig === sig && vc.url) { img.src = vc.url; img.style.visibility = 'visible'; return; }
+
+  // 2) Fallback imediato enquanto o snapshot gera: thumb da barra (já pronto
+  //    na maioria dos casos) ou ao menos a cor de fundo da lâmina
+  var tc = _thumbSnapCache[spread.id];
+  if (tc && tc.sig === sig && tc.url) { img.src = tc.url; }
+  else { img.removeAttribute('src'); img.style.background = spread.background_color || '#ffffff'; }
+  img.style.visibility = 'visible';
+
+  // 3) Gera o snapshot definitivo em background e cacheia
   gerarSnapshotSpread(spread, function(url) {
+    if (url) _vizSnapCache[spread.id] = { sig: sig, url: url };
     if (tk !== _vizToken) return;
-    img.style.width  = dim.w + 'px';
-    img.style.height = dim.h + 'px';
     if (url) { img.src = url; img.style.visibility = 'visible'; }
-    else { img.style.visibility = 'hidden'; }
   });
 }
 
