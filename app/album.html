@@ -3141,7 +3141,7 @@ function ligarDropSlotTimeline(el, spreadIdx, slotIdx) {
   el.addEventListener('dragover', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     el.classList.add('drop-over');
   });
   el.addEventListener('dragleave', function() { el.classList.remove('drop-over'); });
@@ -3149,8 +3149,38 @@ function ligarDropSlotTimeline(el, spreadIdx, slotIdx) {
     e.preventDefault();
     e.stopPropagation();
     el.classList.remove('drop-over');
+    var tlSlotRaw = e.dataTransfer.getData('tl-slot');
     var key = e.dataTransfer.getData('text/plain');
     if (!key) return;
+
+    // Swap entre slots da timeline
+    if (tlSlotRaw) {
+      var origem;
+      try { origem = JSON.parse(tlSlotRaw); } catch(e2) {}
+      if (origem) {
+        var spreadOrigem = estado.spreads[origem.spreadIdx];
+        var slotOrigem = spreadOrigem && (spreadOrigem.album_slots || []).find(function(s) { return s.id === origem.slotId; });
+        var spreadDestino = estado.spreads[spreadIdx];
+        var slotDestino = spreadDestino && (spreadDestino.album_slots || [])[slotIdx];
+        if (slotOrigem && slotDestino && slotOrigem.id !== slotDestino.id) {
+          // Troca as fotos
+          var keyDestino = slotDestino.foto_key || null;
+          slotDestino.foto_key = slotOrigem.foto_key;
+          slotOrigem.foto_key = keyDestino;
+          slotDestino.foto_x = 0; slotDestino.foto_y = 0; slotDestino.foto_escala = 0;
+          slotOrigem.foto_x = 0; slotOrigem.foto_y = 0; slotOrigem.foto_escala = 0;
+          reconstruirFotosUsadas();
+          atualizarUsadasNoPool();
+          if (spreadIdx === estado.spreadAtivo || origem.spreadIdx === estado.spreadAtivo) renderSpread();
+          renderThumbs();
+          _sb.from('album_slots').update({ foto_key: slotDestino.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em: new Date().toISOString() }).eq('id', slotDestino.id).eq('user_id', _userId);
+          _sb.from('album_slots').update({ foto_key: slotOrigem.foto_key, foto_x:0, foto_y:0, foto_escala:0, atualizado_em: new Date().toISOString() }).eq('id', slotOrigem.id).eq('user_id', _userId);
+        }
+        return;
+      }
+    }
+
+    // Drop do pool de favoritas
     adicionarFotoNaLamina(spreadIdx, key);
   });
 }
@@ -3186,6 +3216,14 @@ function renderTimeline(bar) {
         alvo.loading = 'lazy';
         alvo.alt = '';
         alvo.src = urlFotoThumb(slot.foto_key);
+        alvo.draggable = true;
+        alvo.addEventListener('dragstart', (function(spreadIdx, slotRef) {
+          return function(e) {
+            e.dataTransfer.setData('text/plain', slotRef.foto_key);
+            e.dataTransfer.setData('tl-slot', JSON.stringify({ spreadIdx: spreadIdx, slotId: slotRef.id }));
+            e.dataTransfer.effectAllowed = 'move';
+          };
+        })(idx, slot));
         alvo.addEventListener('contextmenu', (function(spreadIdx, slotRef) {
           return function(e) {
             e.preventDefault();
@@ -3196,7 +3234,7 @@ function renderTimeline(bar) {
       } else {
         continue; // timeline mostra só slots com foto
       }
-      // Aceita foto arrastada do pool de favoritas
+      // Aceita foto arrastada do pool de favoritas ou de outro slot da timeline
       ligarDropSlotTimeline(alvo, idx, si);
       grupo.appendChild(alvo);
     }
