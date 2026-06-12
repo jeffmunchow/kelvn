@@ -4727,7 +4727,7 @@ async function executarExport() {
       var base = nomeBaseAlbum();
       var n = 0;
       for (var i = 0; i < spreads.length; i++) {
-        statusEl.textContent = 'Renderizando ' + (i + 1) + ' de ' + spreads.length + '…';
+        statusEl.textContent = 'Renderizando ' + (i + 1) + ' de ' + spreads.length + ' (HQ)…';
         var r = await renderSpreadJpeg(spreads[i], targetW, numOptsPara(spreads[i]));
         if (!r) continue;
         var nome = base + ' - ' + nomeLamina(spreads[i], i) + '.jpg';
@@ -4743,7 +4743,7 @@ async function executarExport() {
       if (!jsPDFctor) { statusEl.textContent = 'Biblioteca PDF não carregou. Recarregue a página.'; return; }
       var doc = null;
       for (var k = 0; k < spreads.length; k++) {
-        statusEl.textContent = 'Montando PDF ' + (k + 1) + ' de ' + spreads.length + '…';
+        statusEl.textContent = 'Montando PDF ' + (k + 1) + ' de ' + spreads.length + ' (HQ)…';
         var rp = await renderSpreadJpeg(spreads[k], targetW, numOptsPara(spreads[k]));
         if (!rp) continue;
         var orient = rp.w > rp.h ? 'l' : 'p';
