@@ -84,6 +84,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .formato-opt.sel{border-color:var(--amber);background:var(--amber-light);}
 .formato-preview{background:var(--surface2);border-radius:3px;}
 .formato-label{font-size:.65rem;color:var(--text-hint);}
+.tam-grid{display:flex;gap:.5rem;flex-wrap:wrap;}
+.tam-opt{padding:.45rem .85rem;border:.5px solid var(--border-strong);border-radius:8px;cursor:pointer;font-size:.75rem;color:var(--text-muted);transition:border-color .15s,background .15s,color .15s;}
+.tam-opt:hover{background:var(--surface2);color:var(--text);}
+.tam-opt.sel{border-color:var(--amber);background:var(--amber-light);color:var(--amber-deep);}
 
 /* ── Estado: Editor ──────────────────────────────────────────────── */
 #view-editor{flex:1;display:flex;flex-direction:row;overflow:hidden;}
@@ -471,6 +475,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
             <div class="formato-label">Retrato</div>
           </div>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tamanho <span style="color:var(--text-hint);font-size:.65rem;">(página fechada, em cm)</span></label>
+        <div class="tam-grid" id="tam-grid"></div>
       </div>
       <div style="display:flex;gap:.6rem;margin-top:1.5rem;">
         <button class="btn" onclick="criarAlbum()">Criar álbum</button>
@@ -1052,6 +1060,7 @@ function irParaNovo() {
   var fmts = document.querySelectorAll('.formato-opt');
   fmts.forEach(function(f) { f.classList.remove('sel'); });
   document.querySelector('[data-formato="paisagem"]').classList.add('sel');
+  renderTamanhos('paisagem');
   var m = document.getElementById('modal-novo');
   m.classList.remove('hidden');
   m.onclick = function(e) { if (e.target === m) fecharModalNovo(); };
@@ -1125,6 +1134,7 @@ async function renderLista() {
     var statusAtual = STATUS_CICLO.indexOf(a.status) >= 0 ? a.status : 'rascunho';
 
     var fmtLabel = { paisagem: 'Paisagem', quadrado: 'Quadrado', retrato: 'Retrato' }[fmt] || fmt;
+    if (a.largura_cm && a.altura_cm) fmtLabel += ' ' + a.largura_cm + '×' + a.altura_cm;
     // Data do evento formatada
     var dataStr = (function(s){
       if (!s) return '';
@@ -1164,8 +1174,36 @@ async function renderLista() {
 }
 
 // ── Criar álbum ───────────────────────────────────────────────────────────────
+// Tamanhos disponíveis por formato (página fechada, cm). w×h da página única.
+var TAMANHOS_ALBUM = {
+  paisagem: [ {w:30,h:20}, {w:35,h:25}, {w:40,h:30}, {w:25,h:20} ],
+  quadrado: [ {w:30,h:30}, {w:25,h:25}, {w:20,h:20}, {w:15,h:15} ],
+  retrato:  [ {w:20,h:30}, {w:25,h:35}, {w:30,h:40}, {w:20,h:25} ],
+};
+
 function selFormato(el) {
   document.querySelectorAll('.formato-opt').forEach(function(f) { f.classList.remove('sel'); });
+  el.classList.add('sel');
+  renderTamanhos(el.dataset.formato);
+}
+
+function renderTamanhos(formato) {
+  var grid = document.getElementById('tam-grid');
+  if (!grid) return;
+  var lista = TAMANHOS_ALBUM[formato] || TAMANHOS_ALBUM.paisagem;
+  grid.innerHTML = '';
+  lista.forEach(function(t, i) {
+    var d = document.createElement('div');
+    d.className = 'tam-opt' + (i === 0 ? ' sel' : '');
+    d.dataset.w = t.w; d.dataset.h = t.h;
+    d.textContent = t.w + '×' + t.h;
+    d.onclick = function() { selTamanho(d); };
+    grid.appendChild(d);
+  });
+}
+
+function selTamanho(el) {
+  document.querySelectorAll('.tam-opt').forEach(function(t) { t.classList.remove('sel'); });
   el.classList.add('sel');
 }
 
@@ -1304,9 +1342,12 @@ async function criarAlbum() {
 
   if (!nome) { erro.textContent = 'Dá um nome para o álbum.'; erro.style.display = 'block'; return; }
 
-  // Dimensões por formato
-  var dims = { paisagem: [30,20], quadrado: [25,25], retrato: [20,28] };
-  var d = dims[formato] || [30,20];
+  // Tamanho escolhido (página fechada, cm); fallback para o 1º do formato
+  var tamSel = document.querySelector('.tam-opt.sel');
+  var padrao = (TAMANHOS_ALBUM[formato] || TAMANHOS_ALBUM.paisagem)[0];
+  var d = tamSel
+    ? [parseInt(tamSel.dataset.w), parseInt(tamSel.dataset.h)]
+    : [padrao.w, padrao.h];
 
   // Pega nome do casal e data do evento da galeria vinculada
   var galVinculada = galeriaSlug ? _galerias.find(function(g){ return g.slug === galeriaSlug; }) : null;
@@ -1651,11 +1692,16 @@ function finalizarPan() {
 
 // Razão W/H para um spread específico (considera formato e tipo capa/spread).
 function ratioParaSpread(spread) {
-  var fmt = estado.album ? estado.album.formato : 'paisagem';
-  if (fmt === 'quadrado') {
-    var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
-    return isCapa ? 1 : 2;
+  var a = estado.album;
+  var isCapa = spread && (spread.tipo === 'capa' || spread.tipo === 'contracapa');
+  // Proporção derivada do tamanho físico da página (capa = 1 página; spread = 2)
+  if (a && a.largura_cm && a.altura_cm) {
+    var pr = a.largura_cm / a.altura_cm;
+    return isCapa ? pr : pr * 2;
   }
+  // Fallback (álbuns antigos sem dimensões): proporção por formato
+  var fmt = a ? a.formato : 'paisagem';
+  if (fmt === 'quadrado') return isCapa ? 1 : 2;
   return fmt === 'retrato' ? 1.4 : 2.8;
 }
 
@@ -1765,8 +1811,7 @@ function toggleSangria() {
 // A largura física vem do ratio do que está sendo renderizado (a capa quadrada
 // tem 1 página, não 2), para a sangria ficar uniforme em todas as bordas.
 function desenharGuiasSangria(layer, spread, W, H) {
-  var fmt = (estado.album && estado.album.formato) || 'paisagem';
-  var dims = DIMENSOES_FORMATO_PRINT[fmt] || DIMENSOES_FORMATO_PRINT.paisagem;
+  var dims = dimsPrintAlbum();
   var physH = dims.h;
   var physW = physH * ratioParaSpread(spread);
   var ix = ((SANGRIA_REF_MM / 10) / physW) * W;
@@ -4556,12 +4601,23 @@ var PERFIS_GRAFICA = [
   { id:'labfoto',        nome:'Labfoto',            desc:'Especificação Labfoto',            sangria:3, dpi:300 },
 ];
 
-// Dimensões físicas do spread por formato (cm)
+// Dimensões físicas do spread por formato (cm) — fallback p/ álbuns sem tamanho
 var DIMENSOES_FORMATO_PRINT = {
   paisagem: { spread_w: 60, h: 20 },
   quadrado: { spread_w: 50, h: 25 },
   retrato:  { spread_w: 40, h: 28 },
 };
+
+// Dimensões físicas do spread (2 páginas) do álbum atual, derivadas do tamanho
+// escolhido na criação. Cai no fallback por formato para álbuns antigos.
+function dimsPrintAlbum() {
+  var a = estado.album;
+  if (a && a.largura_cm && a.altura_cm) {
+    return { spread_w: a.largura_cm * 2, h: a.altura_cm };
+  }
+  var fmt = a ? a.formato : 'paisagem';
+  return DIMENSOES_FORMATO_PRINT[fmt] || DIMENSOES_FORMATO_PRINT.paisagem;
+}
 
 var _perfilSelecionado = 'padrao';
 var _exportJobId       = null;
@@ -4574,7 +4630,7 @@ function abrirModalExportar() {
 
   // Resumo
   var fmt = album.formato || 'paisagem';
-  var dims = DIMENSOES_FORMATO_PRINT[fmt] || DIMENSOES_FORMATO_PRINT.paisagem;
+  var dims = dimsPrintAlbum();
   var nSpreads = estado.spreads.length;
   document.getElementById('exp-resumo').innerHTML =
     '<strong>' + esc(album.nome) + '</strong>' +
@@ -4640,8 +4696,7 @@ function validarResolucaoUI() {
 function validarResolucao(perfil) {
   var alertas = [];
   var dpi = perfil.dpi;
-  var formato = (estado.album && estado.album.formato) || 'paisagem';
-  var dims = DIMENSOES_FORMATO_PRINT[formato] || DIMENSOES_FORMATO_PRINT.paisagem;
+  var dims = dimsPrintAlbum();
   var CM2PX = dpi / 2.54;
 
   estado.spreads.forEach(function(spread) {
