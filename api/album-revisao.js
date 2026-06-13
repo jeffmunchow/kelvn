@@ -45,7 +45,7 @@ async function acGerar(req, res) {
   if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
   const jwt = authHeader.slice(7);
 
-  const sbAnon = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+  const sbAnon = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
   const { data: { user }, error: authErr } = await sbAnon.auth.getUser(jwt);
   if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
   const userId = user.id;
