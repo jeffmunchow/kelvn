@@ -422,7 +422,7 @@ function montarLivro() {
     minHeight: 260, maxHeight: 640,
     showCover: true,
     usePortrait: true,
-    maxShadowOpacity: 0.5,
+    maxShadowOpacity: document.documentElement.getAttribute('data-theme') === 'light' ? 0.08 : 0.35,
     drawShadow: true,
     flippingTime: 720,
     mobileScrollSupport: false,
