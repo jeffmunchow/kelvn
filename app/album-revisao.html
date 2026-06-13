@@ -92,11 +92,11 @@ body{
   display:flex;align-items:center;justify-content:center;gap:1.1rem;
 }
 .dock-nav{
-  width:42px;height:42px;border-radius:50%;border:.5px solid var(--border-strong);
+  width:42px;height:42px;border-radius:50%;border:none;
   background:rgba(20,17,12,.55);backdrop-filter:blur(8px);color:var(--text-muted);cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s,opacity .2s;flex-shrink:0;
 }
-.dock-nav:hover:not(:disabled){color:var(--amber);border-color:var(--amber);}
+.dock-nav:hover:not(:disabled){color:var(--amber);}
 .dock-nav:disabled{opacity:.25;cursor:default;}
 #dock-label{
   font-size:.78rem;color:var(--text-muted);min-width:96px;text-align:center;letter-spacing:.02em;
