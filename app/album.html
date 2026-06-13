@@ -2065,15 +2065,37 @@ function redimensionarKonva() {
     if (_thumbSnapCache[id]) _thumbSnapCache[id].sig = null;
   });
   calcDims();
-  var container = document.getElementById('konva-container');
-  if (container) {
-    container.style.width  = _dimSpread.w + 'px';
-    container.style.height = _dimSpread.h + 'px';
+  // Redimensiona itens existentes do strip sem destruí-lo — preserva scrollLeft
+  // e evita qualquer flash. montarFita() (que faz innerHTML='') só é chamada
+  // quando a lista de spreads mudou; aqui apenas o tamanho do canvas mudou.
+  var strip = document.getElementById('konva-strip');
+  if (strip) {
+    estado.spreads.forEach(function(sp, i) {
+      var item = strip.children[i];
+      if (!item) return;
+      var d = dimParaSpread(sp);
+      item.style.width  = d.w + 'px';
+      item.style.height = d.h + 'px';
+    });
   }
-  _stage.size({ width: _dimSpread.w, height: _dimSpread.h });
-  montarFita();
+  ajustarStageParaAtivo();
+  // Re-calcula padding e centraliza sem destruir o strip
+  var idxAtivo = estado.spreadAtivo;
+  requestAnimationFrame(function() {
+    if (!strip) return;
+    var itens = strip.children;
+    var wrapW = strip.clientWidth || strip.offsetWidth;
+    if (itens.length) {
+      strip.style.paddingLeft  = Math.max(48, Math.round((wrapW - itens[0].offsetWidth) / 2)) + 'px';
+      strip.style.paddingRight = Math.max(48, Math.round((wrapW - itens[itens.length - 1].offsetWidth) / 2)) + 'px';
+    }
+    requestAnimationFrame(function() {
+      centralizarFita(idxAtivo, false);
+    });
+  });
   renderThumbs();
   renderSpread();
+  atualizarVizinhos();
   var wrap = document.getElementById('konva-wrap');
   if (wrap) { _ultimoWrapW = wrap.clientWidth; _ultimoWrapH = wrap.clientHeight; }
 }
