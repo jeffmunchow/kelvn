@@ -65,12 +65,13 @@ begin
     'spreads', (
       select coalesce(json_agg(
         json_build_object(
-          'id',       s.id,
-          'posicao',  s.posicao,
-          'tipo',     s.tipo,
+          'id',          s.id,
+          'posicao',     s.posicao,
+          'tipo',        s.tipo,
           'template_id', s.template_id,
           'margem_px',   s.margem_px,
           'gutter_px',   s.gutter_px,
+          'preview_key', s.preview_key,
           'slots', (
             select coalesce(json_agg(
               json_build_object(
@@ -124,7 +125,7 @@ begin
     raise exception 'Revisão não encontrada ou expirada';
   end if;
 
-  insert into album_comentarios(album_id, spread_id, nome, email, conteudo, spread_num)
+  insert into album_comentarios(album_id, spread_id, autor_nome, email, conteudo, spread_num)
   values (p_album_id, p_spread_id, p_nome, p_email, p_conteudo, p_spread_num);
 end;
 $$;
