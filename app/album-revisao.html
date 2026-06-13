@@ -382,6 +382,11 @@ async function renderSpread(idx) {
   var spread = _spreads[idx];
   if (!spread) return;
 
+  // DEBUG TEMP — remover após diagnóstico
+  var dbgEl = document.getElementById('_dbg');
+  if (!dbgEl) { dbgEl = document.createElement('pre'); dbgEl.id='_dbg'; dbgEl.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font-size:10px;padding:4px;max-height:120px;overflow:auto;z-index:9999;'; document.body.appendChild(dbgEl); }
+  dbgEl.textContent = 'template_id: ' + spread.template_id + '\nslots: ' + JSON.stringify((spread.slots||[]).map(function(s){return{idx:s.slot_index||s.posicao,key:s.foto_key};}));
+
   var canvas = document.getElementById('spread-canvas');
   var ctx    = canvas.getContext('2d');
 
