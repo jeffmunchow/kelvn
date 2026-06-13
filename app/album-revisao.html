@@ -76,6 +76,7 @@ body{
 #flipbook{margin:0 auto;touch-action:pan-y;}
 #flipbook .page{
   background:#faf8f4;overflow:hidden;
+  filter:drop-shadow(0 8px 24px rgba(0,0,0,.18));
 }
 #flipbook .page .pg-img{width:100%;height:100%;background-repeat:no-repeat;}
 #flipbook .page .pg-back{
@@ -422,8 +423,8 @@ function montarLivro() {
     minHeight: 260, maxHeight: 640,
     showCover: true,
     usePortrait: true,
-    maxShadowOpacity: document.documentElement.getAttribute('data-theme') === 'light' ? 0.08 : 0.35,
-    drawShadow: true,
+    maxShadowOpacity: 0,
+    drawShadow: false,
     flippingTime: 720,
     mobileScrollSupport: false,
     swipeDistance: 25,
