@@ -6167,7 +6167,26 @@ async function exportarPreviewsRevisao(albumId, jwt, onProgress) {
     if (!sp) continue;
     if (onProgress) onProgress(i + 1, spreads.length);
     var dataUrl = await new Promise(function(resolve) {
-      gerarSnapshotSpread(sp, function(url) { resolve(url); }, 1, null, false);
+      // Dimensões fixas baseadas na proporção física do álbum — independe do tamanho da tela.
+      var ratio = ratioParaSpread(sp);
+      var exportW = 1600;
+      var exportH = Math.round(exportW / ratio);
+      var holder = document.createElement('div');
+      holder.style.cssText = 'position:fixed;left:-99999px;top:0;pointer-events:none;';
+      document.body.appendChild(holder);
+      var stage = new Konva.Stage({ container: holder, width: exportW, height: exportH });
+      var layer = new Konva.Layer();
+      stage.add(layer);
+      var pronto = false;
+      function capturar() {
+        if (pronto) return; pronto = true;
+        var url = null;
+        try { layer.batchDraw(); url = stage.toDataURL({ pixelRatio: 1, mimeType: 'image/jpeg', quality: 0.88 }); } catch(e) { url = null; }
+        stage.destroy(); holder.remove();
+        resolve(url);
+      }
+      desenharSpreadEstatico(layer, sp, exportW, exportH, capturar, null, false);
+      setTimeout(capturar, 10000);
     });
     if (!dataUrl) continue;
     try {
