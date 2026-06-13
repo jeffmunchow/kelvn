@@ -398,11 +398,11 @@ async function renderSpread(idx) {
   canvas.style.display = 'block';
   var ctx    = canvas.getContext('2d');
 
-  // Dimensões do formato
-  var W = 800, H = 300;
+  // Dimensões do spread (2 páginas lado a lado)
+  var W = 900, H = 300;  // paisagem: ~3:1
   var fmt = _album.formato || 'paisagem';
-  if (fmt === 'quadrado') { W = 600; H = 600; }
-  if (fmt === 'retrato')  { W = 480; H = 680; }
+  if (fmt === 'quadrado') { W = 600; H = 300; }  // 2 páginas quadradas = 2:1
+  if (fmt === 'retrato')  { W = 560; H = 400; }  // 2 páginas retrato
 
   canvas.width  = W;
   canvas.height = H;
