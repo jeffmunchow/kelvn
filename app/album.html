@@ -6267,7 +6267,6 @@ async function carregarComentarios() {
   var { data: comentarios, error } = await _sb.from('album_comentarios')
     .select('*')
     .eq('album_id', album.id)
-    .eq('user_id', _userId)
     .order('criado_em', { ascending: false });
 
   if (error || !comentarios) {
@@ -6290,7 +6289,7 @@ async function carregarComentarios() {
     div.className = 'rev-item' + (c.resolvido ? ' resolvido' : '');
     div.innerHTML =
       '<div class="rev-item-header">' +
-        '<span class="rev-item-nome">' + esc(c.nome) + '</span>' +
+        '<span class="rev-item-nome">' + esc(c.autor_nome) + '</span>' +
         (c.spread_num ? '<span class="rev-item-spread">Spread ' + c.spread_num + '</span>' : '') +
         '<span class="rev-item-data">' + data + ' ' + hora + '</span>' +
       '</div>' +
@@ -6308,7 +6307,6 @@ async function carregarBadgeComentarios(albumId) {
   var { count } = await _sb.from('album_comentarios')
     .select('*', { count: 'exact', head: true })
     .eq('album_id', albumId)
-    .eq('user_id', _userId)
     .eq('resolvido', false);
   atualizarBadge(count || 0);
 }
