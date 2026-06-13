@@ -125,7 +125,7 @@ begin
     raise exception 'Revisão não encontrada ou expirada';
   end if;
 
-  insert into album_comentarios(album_id, spread_id, autor_nome, email, conteudo, spread_num)
+  insert into album_comentarios(album_id, spread_id, autor_nome, autor_email, conteudo, spread_num)
   values (p_album_id, p_spread_id, p_nome, p_email, p_conteudo, p_spread_num);
 end;
 $$;
