@@ -19,11 +19,23 @@
   --coral:#CC4A28;--coral-light:#1E0A06;
   --teal:#18926E;--teal-light:#091E15;
   --radius:8px;
+  --body-bg-start:#1A1611;--body-bg-end:#070605;
+  --stage-bg:transparent;
+  --page-bg:#ffffff;
+}
+[data-theme="light"]{
+  --bg:#F7F4EF;--surface:#FFFFFF;--surface2:#F0EDE6;--surface3:#E8E4DC;
+  --border:rgba(0,0,0,0.06);--border-strong:rgba(0,0,0,0.11);
+  --text:#1A1814;--text-muted:#6B6660;--text-hint:#B0ABA6;
+  --amber:#C4780A;--amber-light:#FDF3E3;
+  --coral:#C43A1A;--coral-light:#FEF0ED;
+  --teal:#0A7864;--teal-light:#E3F4EF;
+  --body-bg-start:#EDE9E3;--body-bg-end:#F7F4EF;
 }
 html,body{height:100%;}
 body{
   font-family:'DM Sans',sans-serif;color:var(--text);
-  background:radial-gradient(120% 120% at 50% 38%, #1A1611 0%, #0E0C0A 60%, #070605 100%);
+  background:radial-gradient(120% 120% at 50% 38%, var(--body-bg-start) 0%, var(--body-bg-end) 100%);
   min-height:100vh;display:flex;flex-direction:column;overflow:hidden;
 }
 
@@ -327,6 +339,8 @@ var _curMeta = null;    // metadados da lâmina atualmente visível
 (async function init() {
   var params = new URLSearchParams(window.location.search);
   var token  = params.get('t');
+  var tema   = params.get('theme');
+  if (tema === 'light') document.documentElement.setAttribute('data-theme', 'light');
   if (!token) return mostrarErro('Link inválido', 'Nenhum token de revisão encontrado na URL.');
 
   try {

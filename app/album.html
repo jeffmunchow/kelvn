@@ -778,6 +778,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <p style="font-size:.8rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem;">
           Gere um link para o casal revisar o álbum, deixar comentários e aprovar. O link expira em 30 dias.
         </p>
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:.7rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem;">Tema para o cliente</div>
+          <div style="display:flex;gap:.4rem;">
+            <button id="share-tema-dark" onclick="selecionarTemaCasal('dark')" style="flex:1;padding:6px 0;font-size:.75rem;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;border:.5px solid var(--border-strong);background:var(--surface3,#1A1814);color:var(--text);transition:border-color .15s,opacity .15s;">Escuro</button>
+            <button id="share-tema-light" onclick="selecionarTemaCasal('light')" style="flex:1;padding:6px 0;font-size:.75rem;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;border:.5px solid var(--border-strong);background:var(--surface);color:var(--text-muted);transition:border-color .15s,opacity .15s;">Claro</button>
+          </div>
+        </div>
         <div id="share-link-area" style="display:none;">
           <div class="share-link-wrap">
             <input class="share-link-input" id="share-link-input" readonly>
@@ -6076,6 +6083,25 @@ function aplicarModoAprovado() {
 
 // Modal de compartilhamento
 var _shareLink = null;
+var _shareTema = 'dark';
+
+function selecionarTemaCasal(tema) {
+  _shareTema = tema;
+  var btnD = document.getElementById('share-tema-dark');
+  var btnL = document.getElementById('share-tema-light');
+  if (btnD) { btnD.style.borderColor = tema === 'dark' ? 'var(--amber)' : 'var(--border-strong)'; btnD.style.color = tema === 'dark' ? 'var(--amber)' : 'var(--text)'; }
+  if (btnL) { btnL.style.borderColor = tema === 'light' ? 'var(--amber)' : 'var(--border-strong)'; btnL.style.color = tema === 'light' ? 'var(--amber)' : 'var(--text-muted)'; }
+  if (_shareLink) {
+    var base = _shareLink.split('&theme=')[0];
+    var linkFinal = base + '&theme=' + tema;
+    document.getElementById('share-link-input').value = linkFinal;
+  }
+}
+
+function linkComTema() {
+  if (!_shareLink) return null;
+  return _shareLink.split('&theme=')[0] + '&theme=' + _shareTema;
+}
 
 function abrirModalShare() {
   var album = estado.album;
@@ -6088,7 +6114,8 @@ function abrirModalShare() {
   // Se já tem token ativo, mostrar o link existente
   if (album.revisao_token && album.revisao_ativa) {
     _shareLink = 'https://app.kelvn.com.br/album-revisao?t=' + album.revisao_token;
-    document.getElementById('share-link-input').value = _shareLink;
+    document.getElementById('share-link-input').value = linkComTema();
+    selecionarTemaCasal(_shareTema);
     var expira = album.revisao_expira_em ? new Date(album.revisao_expira_em).toLocaleDateString('pt-BR') : '';
     document.getElementById('share-rodada-info').textContent = 'Rodada ' + (album.revisao_rodada || 1) + (expira ? ' · Expira em ' + expira : '');
     area.style.display = '';
@@ -6131,7 +6158,7 @@ async function gerarLinkRevisao() {
     album.revisao_rodada = data.rodada;
     album.revisao_expira_em = data.expira;
 
-    document.getElementById('share-link-input').value = _shareLink;
+    document.getElementById('share-link-input').value = linkComTema();
     var expira = new Date(data.expira).toLocaleDateString('pt-BR');
     document.getElementById('share-rodada-info').textContent = 'Rodada ' + data.rodada + ' · Expira em ' + expira;
     document.getElementById('share-link-area').style.display = '';
@@ -6233,7 +6260,7 @@ function renderSpreadParaJPEG(sp) {
 
 function copiarLink() {
   if (!_shareLink) return;
-  navigator.clipboard.writeText(_shareLink).then(function() {
+  navigator.clipboard.writeText(linkComTema()).then(function() {
     var btn = document.getElementById('btn-copiar');
     btn.textContent = 'Copiado!';
     setTimeout(function() { btn.textContent = 'Copiar'; }, 2000);
