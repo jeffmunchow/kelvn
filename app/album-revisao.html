@@ -303,7 +303,8 @@ var _albumId = null;   // guid do álbum (para notificações)
 
   try {
     var { data, error } = await _sb.rpc('album_revisao_obter', { p_token: token });
-    if (error || !data) return mostrarErro('Link inválido', 'Este link de revisão não existe ou expirou.');
+    if (error) return mostrarErro('Erro técnico', error.message || JSON.stringify(error));
+    if (!data) return mostrarErro('Link inválido', 'Este link de revisão não existe ou expirou.');
 
     _album   = data.album;
     _spreads = (data.spreads || []).sort(function(a,b){ return a.posicao - b.posicao; });
