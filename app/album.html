@@ -3621,10 +3621,13 @@ async function mudarSpread(idx, veioDoScroll) {
   if (_slotEmEdicao) sairModoEdicaoSlot(true, true);
   estado.spreadAtivo = idx;
   var spread = estado.spreads[idx];
-  if (spread && !spread._textos) {
-    spread._textos = await carregarTextos(spread.id);
-  }
-  // Reconstrói a fita se a lista de lâminas mudou (add/remove/reordena)
+
+  // ── Atualização visual IMEDIATA (síncrona) ─────────────────────────────────
+  // carregarTextos é async (vai ao banco na 1ª visita). Se fizermos await antes
+  // do render, a fita fica sem canvas durante a espera e fitaAssentou pode
+  // redirecionar para outro spread (ex.: volta para a capa). Renderizamos
+  // primeiro com os dados que já temos; se textos faltarem, re-renderizamos
+  // silenciosamente quando chegarem.
   var ids = estado.spreads.map(function(s) { return s.id; }).join(',');
   var snapCover = null;
   if (ids !== _fitaIds) montarFita();
@@ -3632,8 +3635,6 @@ async function mudarSpread(idx, veioDoScroll) {
   renderThumbs();
   renderTemplates();
   renderSpread();
-  // Após o render (imagens em cache: síncrono), faz fade-out do snap de cobertura.
-  // O snap ficou visível em z-index 2 para cobrir o canvas enquanto redesenhava.
   if (snapCover) {
     requestAnimationFrame(function() {
       requestAnimationFrame(function() {
@@ -3646,11 +3647,14 @@ async function mudarSpread(idx, veioDoScroll) {
     });
   }
   atualizarPropsSeAberto();
-  // Pré-aquece os vizinhos imediatos (±1) assim que a lâmina ativa renderizar,
-  // sem esperar o preload completo — o snapshot aparece na hora ao rolar.
   setTimeout(function() { atualizarVizinhos(); }, 200);
-  // Vindo do scroll a fita já está centrada; outras origens deslizam até lá
   if (!veioDoScroll) centralizarFita(idx, true);
+
+  // ── Textos: carrega em background, re-renderiza se ainda estiver aqui ──────
+  if (spread && !spread._textos) {
+    spread._textos = await carregarTextos(spread.id);
+    if (estado.spreadAtivo === idx) renderSpread(); // re-render silencioso com textos
+  }
 }
 
 // ── Adicionar / remover spreads ───────────────────────────────────────────────
