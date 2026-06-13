@@ -6141,6 +6141,13 @@ async function gerarLinkRevisao() {
     // Mostrar botão de revisão na topbar
     document.getElementById('btn-revisao').style.display = '';
 
+    // Exportar previews de todos os spreads para o R2
+    btn.textContent = 'Exportando lâminas…';
+    status.textContent = '';
+    await exportarPreviewsRevisao(album.id, jwt, function(n, total) {
+      btn.textContent = 'Exportando ' + n + '/' + total + '…';
+    });
+
     btn.textContent = 'Regenerar link';
     status.textContent = 'Link gerado com sucesso.';
     status.style.color = 'var(--teal)';
@@ -6150,6 +6157,28 @@ async function gerarLinkRevisao() {
     btn.textContent = 'Gerar link';
   } finally {
     btn.disabled = false;
+  }
+}
+
+async function exportarPreviewsRevisao(albumId, jwt, onProgress) {
+  var spreads = estado.spreads || [];
+  for (var i = 0; i < spreads.length; i++) {
+    var sp = spreads[i];
+    if (!sp) continue;
+    if (onProgress) onProgress(i + 1, spreads.length);
+    var dataUrl = await new Promise(function(resolve) {
+      gerarSnapshotSpread(sp, function(url) { resolve(url); }, 1, null, false);
+    });
+    if (!dataUrl) continue;
+    try {
+      await fetch('/api/album-preview?action=upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+        body: JSON.stringify({ album_id: albumId, spread_id: sp.id, data_url: dataUrl }),
+      });
+    } catch (e) {
+      console.warn('exportarPreviewsRevisao: erro no spread', i, e);
+    }
   }
 }
 

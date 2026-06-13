@@ -184,9 +184,10 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
   </div>
 
   <div id="rev-body">
-    <!-- Canvas do spread atual -->
+    <!-- Preview do spread atual -->
     <div id="canvas-wrap">
-      <canvas id="spread-canvas"></canvas>
+      <img id="spread-img" src="" alt="Spread do álbum" style="display:block;width:100%;height:auto;border-radius:8px;">
+      <canvas id="spread-canvas" style="display:none;"></canvas>
     </div>
 
     <!-- Progresso + navegação -->
@@ -373,7 +374,7 @@ function renderNav() {
   }
 }
 
-// ── Renderizar spread no canvas ───────────────────────────────────────────────
+// ── Renderizar spread ─────────────────────────────────────────────────────────
 async function renderSpread(idx) {
   _idx = idx;
   _vistos.add(idx);
@@ -382,7 +383,19 @@ async function renderSpread(idx) {
   var spread = _spreads[idx];
   if (!spread) return;
 
+  // Usa preview JPEG gerado pelo editor (alta fidelidade)
+  var img = document.getElementById('spread-img');
   var canvas = document.getElementById('spread-canvas');
+  if (spread.preview_key) {
+    img.src = '/api/gallery-img?key=' + encodeURIComponent(spread.preview_key);
+    img.style.display = 'block';
+    canvas.style.display = 'none';
+    return;
+  }
+
+  // Fallback: renderização via canvas (spreads sem preview ainda)
+  img.style.display = 'none';
+  canvas.style.display = 'block';
   var ctx    = canvas.getContext('2d');
 
   // Dimensões do formato
