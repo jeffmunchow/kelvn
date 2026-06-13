@@ -98,8 +98,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #right-panels-wrap{display:flex;flex-shrink:0;position:relative;}
 #right-panels-toggle{width:30px;background:var(--bg);border-left:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);transition:color .15s;flex-shrink:0;}
 #right-panels-toggle:hover{color:var(--text);}
-#right-panels-toggle svg{transition:transform .22s;}
-#right-panels-wrap.fechado #right-panels-toggle svg{transform:rotate(180deg);}
+#right-panels-toggle svg{transition:transform .22s;transform:rotate(180deg);}
+#right-panels-wrap.fechado #right-panels-toggle svg{transform:rotate(0deg);}
 #right-panels{width:240px;flex-shrink:0;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;transition:width .22s;padding-top:1rem;}
 #right-panels-wrap.fechado #right-panels{width:0;}
 .rpanel-sec{display:flex;flex-direction:column;flex-shrink:0;border-bottom:.5px solid var(--border);}
@@ -157,8 +157,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .thumb-mode-btn.ativo{color:var(--text);background:var(--surface2);}
 #thumbs-toggle-btn{width:100%;height:30px;background:var(--bg);border-top:none;border-bottom:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-hint);transition:color .15s;}
 #thumbs-toggle-btn:hover{color:var(--text);}
-#thumbs-toggle-btn svg{transition:transform .22s;}
-#thumbs-toggle-btn.fechado svg{transform:rotate(180deg);}
+#thumbs-toggle-btn svg{transition:transform .22s;transform:rotate(180deg);}
+#thumbs-toggle-btn.fechado svg{transform:rotate(0deg);}
 #thumbs-bar{height:132px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;flex-shrink:0;transition:height .22s,opacity .22s;overflow-x:auto;overflow-y:hidden;}
 #thumbs-bar.fechado{height:0;opacity:0;}
 .thumb-item{height:100px;flex-shrink:0;border-radius:2px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
