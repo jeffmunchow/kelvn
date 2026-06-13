@@ -1830,6 +1830,9 @@ function montarFita() {
   // a capa (índice 0) enquanto o strip está sendo reconstruído.
   clearTimeout(_stripScrollTimer);
   _stripScrollTimer = null;
+  // Salva o scroll atual — restaurado imediatamente após rebuild para evitar
+  // o flash de 2 frames onde a capa aparece enquanto os RAFs não corrigiram.
+  var _scrollAntes = strip.scrollLeft;
   strip.innerHTML = '';
   _fitaIds = estado.spreads.map(function(s) { return s.id; }).join(',');
 
@@ -1861,6 +1864,10 @@ function montarFita() {
     itemAtivo.appendChild(container);
   }
   atualizarVizinhos();
+
+  // Restaura posição de scroll imediatamente (evita flash da capa nos 2 RAFs
+  // antes da centralização precisa). Valor aproximado; o double-RAF corrige.
+  strip.scrollLeft = _scrollAntes;
 
   // Padding e centralização DEPOIS do browser ter calculado o layout.
   // Dois RAFs: 1° aplica padding, 2° lê offsetLeft já correto e centraliza.
