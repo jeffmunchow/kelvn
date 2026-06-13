@@ -2065,15 +2065,11 @@ function redimensionarKonva() {
     if (_thumbSnapCache[id]) _thumbSnapCache[id].sig = null;
   });
   calcDims();
-  // Redimensiona itens existentes do strip sem destruí-lo — sem flash.
-  var idxAtivo = estado.spreadAtivo;
+  // Redimensiona itens existentes do strip sem destruí-lo — preserva scrollLeft
+  // e evita qualquer flash. montarFita() (que faz innerHTML='') só é chamada
+  // quando a lista de spreads mudou; aqui apenas o tamanho do canvas mudou.
   var strip = document.getElementById('konva-strip');
   if (strip) {
-    // Cancela qualquer fitaAssentou pendente — evita que o scroll stale
-    // (com dimensões antigas) redirecione para o spread errado.
-    clearTimeout(_stripScrollTimer);
-    _stripScrollTimer = null;
-
     estado.spreads.forEach(function(sp, i) {
       var item = strip.children[i];
       if (!item) return;
@@ -2081,22 +2077,10 @@ function redimensionarKonva() {
       item.style.width  = d.w + 'px';
       item.style.height = d.h + 'px';
     });
-
-    // Após redimensionar os itens, o scrollLeft antigo não corresponde mais
-    // à mesma posição visual (itens ficam maiores). Calcula e aplica
-    // imediatamente o scrollLeft aproximado para o spread ativo, sem
-    // esperar o RAF — evita que fitaAssentou veja o spread errado centrado.
-    var approxLeft = 0;
-    for (var j = 0; j < idxAtivo; j++) {
-      var prev = strip.children[j];
-      if (prev) approxLeft += parseFloat(prev.style.width) + 48; // 48 = gap
-    }
-    var ativo = strip.children[idxAtivo];
-    if (ativo) approxLeft += parseFloat(ativo.style.width) / 2 - strip.clientWidth / 2;
-    strip.scrollLeft = Math.max(0, Math.round(approxLeft));
   }
   ajustarStageParaAtivo();
-  // Re-calcula padding e centraliza com precisão via double-RAF
+  // Re-calcula padding e centraliza sem destruir o strip
+  var idxAtivo = estado.spreadAtivo;
   requestAnimationFrame(function() {
     if (!strip) return;
     var itens = strip.children;
@@ -2271,14 +2255,7 @@ function posicaoFotoNoSlot(slotRef, gx, gy, gw, gh, imgW, imgH) {
   if (!slotRef._refGW || !slotRef._refGH) { slotRef._refGW = gw; slotRef._refGH = gh; }
   var kx = gw / slotRef._refGW, ky = gh / slotRef._refGH;
   var sc = fesc > 0 ? Math.max(scMin, fesc * kx) : scMin;
-  var x = gx + fx * kx, y = gy + fy * ky;
-  // Garante cobertura total do slot (invariante: foto nunca descobre o bgSlot)
-  var sw = imgW * sc, sh = imgH * sc;
-  if (x > gx) x = gx;
-  if (y > gy) y = gy;
-  if (x + sw < gx + gw) x = gx + gw - sw;
-  if (y + sh < gy + gh) y = gy + gh - sh;
-  return { x: x, y: y, sc: sc };
+  return { x: gx + fx * kx, y: gy + fy * ky, sc: sc };
 }
 
 // ── Renderizar spread no canvas ───────────────────────────────────────────────
@@ -4312,7 +4289,7 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   proxyRect.on('dragend.box', commitGeom);
   proxyRect.on('transformend.box', commitGeom);
 
-  // Duplo clique no proxyRect (modo caixa) → volta para modo crop da foto
+  // Duplo clique no proxyRect (que fica sobre a imagem) troca para modo foto
   proxyRect.on('dblclick dbltap', function() {
     var g = _slotEmEdicao ? _slotEmEdicao.grupo : grupo;
     var s = _slotEmEdicao ? _slotEmEdicao.slot : slot;
@@ -4320,6 +4297,7 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     sairModoEdicaoSlot(true, true); // destrói proxyRect sem re-renderizar
     ativarModoEdicaoFoto(g, s, ds);
   });
+
   _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
   _layer.batchDraw();
 }
