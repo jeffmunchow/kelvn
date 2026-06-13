@@ -387,7 +387,7 @@ async function renderSpread(idx) {
   var img = document.getElementById('spread-img');
   var canvas = document.getElementById('spread-canvas');
   if (spread.preview_key) {
-    img.src = '/api/gallery-img?key=' + encodeURIComponent(spread.preview_key);
+    img.src = '/api/gallery-img?key=' + encodeURIComponent(spread.preview_key) + '&v=' + (_album.revisao_rodada || 1);
     img.style.display = 'block';
     canvas.style.display = 'none';
     return;

@@ -6162,32 +6162,36 @@ async function gerarLinkRevisao() {
 
 async function exportarPreviewsRevisao(albumId, jwt, onProgress) {
   var spreads = estado.spreads || [];
+  if (!spreads.length || !_stage) return;
+  var idxOriginal = estado.spreadAtivo;
+
   for (var i = 0; i < spreads.length; i++) {
     var sp = spreads[i];
     if (!sp) continue;
     if (onProgress) onProgress(i + 1, spreads.length);
+
+    // Navega para o spread e aguarda o Konva renderizar as imagens
     var dataUrl = await new Promise(function(resolve) {
-      // Dimensões fixas baseadas na proporção física do álbum — independe do tamanho da tela.
-      var ratio = ratioParaSpread(sp);
-      var exportW = 1600;
-      var exportH = Math.round(exportW / ratio);
-      var holder = document.createElement('div');
-      holder.style.cssText = 'position:fixed;left:-99999px;top:0;pointer-events:none;';
-      document.body.appendChild(holder);
-      var stage = new Konva.Stage({ container: holder, width: exportW, height: exportH });
-      var layer = new Konva.Layer();
-      stage.add(layer);
-      var pronto = false;
+      var idx = i;
+      estado.spreadAtivo = idx;
+      renderSpread(); // renderiza no stage visível (garante layout idêntico ao editor)
+
+      // Aguarda as imagens carregarem (batchDraw é síncrono; imagens são async)
+      var tentativas = 0;
       function capturar() {
-        if (pronto) return; pronto = true;
-        var url = null;
-        try { layer.batchDraw(); url = stage.toDataURL({ pixelRatio: 1, mimeType: 'image/jpeg', quality: 0.88 }); } catch(e) { url = null; }
-        stage.destroy(); holder.remove();
-        resolve(url);
+        tentativas++;
+        if (!_stage) { resolve(null); return; }
+        try {
+          _layer.batchDraw();
+          var url = _stage.toDataURL({ pixelRatio: 2, mimeType: 'image/jpeg', quality: 0.9 });
+          resolve(url);
+        } catch(e) {
+          if (tentativas < 2) { setTimeout(capturar, 1500); } else { resolve(null); }
+        }
       }
-      desenharSpreadEstatico(layer, sp, exportW, exportH, capturar, null, false);
-      setTimeout(capturar, 10000);
+      setTimeout(capturar, 1500); // aguarda 1.5s para imagens carregarem no stage
     });
+
     if (!dataUrl) continue;
     try {
       await fetch('/api/album-revisao?action=preview-upload', {
@@ -6199,6 +6203,11 @@ async function exportarPreviewsRevisao(albumId, jwt, onProgress) {
       console.warn('exportarPreviewsRevisao: erro no spread', i, e);
     }
   }
+
+  // Volta ao spread original
+  estado.spreadAtivo = idxOriginal;
+  renderSpread();
+  centralizarFita();
 }
 
 function copiarLink() {
