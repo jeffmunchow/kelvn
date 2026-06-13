@@ -384,9 +384,9 @@ function montarLivro() {
       laminaNum++;
       var totalLaminas = _spreads.filter(function(s){ return s.tipo !== 'capa'; }).length;
       var lbl = 'Lâmina ' + laminaNum + ' / ' + totalLaminas;
-      book.appendChild(criarPagina(url, 'left', 'soft'));
+      book.appendChild(criarPagina(url, 'left', 'hard'));
       _pageMeta.push({ spreadId: sp.id, spreadNum: laminaNum, label: lbl, comentavel: true });
-      book.appendChild(criarPagina(url, 'right', 'soft'));
+      book.appendChild(criarPagina(url, 'right', 'hard'));
       _pageMeta.push({ spreadId: sp.id, spreadNum: laminaNum, label: lbl, comentavel: true });
     }
   });
