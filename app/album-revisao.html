@@ -275,12 +275,33 @@ var _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Templates (idênticos ao album.html) ──────────────────────────────────────
 var TEMPLATES = [
+  // ── 1 foto ──────────────────────────────────────────────
   { id:'uma-foto',       slots:[{x:.02,y:.02,w:.96,h:.96}] },
   { id:'full-bleed',     slots:[{x:0,y:0,w:1,h:1}] },
-  { id:'duas-lado',      slots:[{x:.01,y:.02,w:.485,h:.96},{x:.505,y:.02,w:.485,h:.96}] },
-  { id:'tres-direita',   slots:[{x:.01,y:.02,w:.63,h:.96},{x:.65,y:.02,w:.335,h:.47},{x:.65,y:.51,w:.335,h:.47}] },
-  { id:'tres-esquerda',  slots:[{x:.01,y:.02,w:.335,h:.47},{x:.01,y:.51,w:.335,h:.47},{x:.36,y:.02,w:.63,h:.96}] },
-  { id:'quatro-grid',    slots:[{x:.01,y:.02,w:.485,h:.47},{x:.505,y:.02,w:.485,h:.47},{x:.01,y:.51,w:.485,h:.47},{x:.505,y:.51,w:.485,h:.47}] },
+  { id:'uma-retrato',    slots:[{x:.37,y:.05,w:.26,h:.9}] },
+  { id:'uma-paisagem',   slots:[{x:.13,y:.22,w:.74,h:.56}] },
+  // ── 2 fotos ─────────────────────────────────────────────
+  { id:'duas-lado',      slots:[{x:.02,y:.02,w:.47,h:.96},{x:.51,y:.02,w:.47,h:.96}] },
+  { id:'duas-empilhadas',slots:[{x:.08,y:.04,w:.84,h:.45},{x:.08,y:.51,w:.84,h:.45}] },
+  { id:'duas-retrato',   slots:[{x:.15,y:.06,w:.32,h:.88},{x:.53,y:.06,w:.32,h:.88}] },
+  { id:'duas-paisagem',  slots:[{x:.05,y:.28,w:.43,h:.44},{x:.52,y:.28,w:.43,h:.44}] },
+  // ── 3 fotos ─────────────────────────────────────────────
+  { id:'tres-direita',   slots:[{x:.02,y:.02,w:.62,h:.96},{x:.66,y:.02,w:.32,h:.47},{x:.66,y:.51,w:.32,h:.47}] },
+  { id:'tres-esquerda',  slots:[{x:.02,y:.02,w:.32,h:.47},{x:.02,y:.51,w:.32,h:.47},{x:.36,y:.02,w:.62,h:.96}] },
+  { id:'tres-colunas',   slots:[{x:.02,y:.06,w:.31,h:.88},{x:.345,y:.06,w:.31,h:.88},{x:.67,y:.06,w:.31,h:.88}] },
+  { id:'tres-topo-larga',slots:[{x:.04,y:.03,w:.92,h:.5},{x:.04,y:.56,w:.45,h:.41},{x:.51,y:.56,w:.45,h:.41}] },
+  { id:'tres-base-larga',slots:[{x:.04,y:.03,w:.45,h:.41},{x:.51,y:.03,w:.45,h:.41},{x:.04,y:.47,w:.92,h:.5}] },
+  // ── 4 fotos ─────────────────────────────────────────────
+  { id:'quatro-grid',    slots:[{x:.02,y:.02,w:.47,h:.47},{x:.51,y:.02,w:.47,h:.47},{x:.02,y:.51,w:.47,h:.47},{x:.51,y:.51,w:.47,h:.47}] },
+  { id:'quatro-linha',   slots:[{x:.015,y:.12,w:.235,h:.76},{x:.265,y:.12,w:.235,h:.76},{x:.515,y:.12,w:.235,h:.76},{x:.765,y:.12,w:.22,h:.76}] },
+  { id:'quatro-destaque',slots:[{x:.02,y:.02,w:.55,h:.96},{x:.59,y:.02,w:.39,h:.305},{x:.59,y:.345,w:.39,h:.305},{x:.59,y:.67,w:.39,h:.31}] },
+  { id:'quatro-destaque-dir',slots:[{x:.02,y:.02,w:.39,h:.305},{x:.02,y:.345,w:.39,h:.305},{x:.02,y:.67,w:.39,h:.31},{x:.43,y:.02,w:.55,h:.96}] },
+  // ── 5 fotos ─────────────────────────────────────────────
+  { id:'cinco-destaque', slots:[{x:.02,y:.02,w:.55,h:.96},{x:.59,y:.02,w:.195,h:.47},{x:.795,y:.02,w:.19,h:.47},{x:.59,y:.51,w:.195,h:.47},{x:.795,y:.51,w:.19,h:.47}] },
+  { id:'cinco-mix',      slots:[{x:.04,y:.03,w:.45,h:.46},{x:.51,y:.03,w:.45,h:.46},{x:.04,y:.52,w:.30,h:.45},{x:.355,y:.52,w:.29,h:.45},{x:.66,y:.52,w:.30,h:.45}] },
+  // ── 6 fotos ─────────────────────────────────────────────
+  { id:'seis-grid',      slots:[{x:.02,y:.02,w:.31,h:.47},{x:.345,y:.02,w:.31,h:.47},{x:.67,y:.02,w:.31,h:.47},{x:.02,y:.51,w:.31,h:.47},{x:.345,y:.51,w:.31,h:.47},{x:.67,y:.51,w:.31,h:.47}] },
+  // ── Layouts especiais ────────────────────────────────────
   { id:'tira-topo',      slots:[{x:.01,y:.02,w:.32,h:.96},{x:.34,y:.02,w:.32,h:.96},{x:.67,y:.02,w:.32,h:.96}] },
   { id:'panorama',       slots:[{x:.01,y:.02,w:.96,h:.45},{x:.01,y:.52,w:.475,h:.46},{x:.505,y:.52,w:.475,h:.46}] },
   { id:'destaque-topo',  slots:[{x:.01,y:.02,w:.96,h:.55},{x:.01,y:.59,w:.31,h:.39},{x:.345,y:.59,w:.31,h:.39},{x:.68,y:.59,w:.305,h:.39}] },
@@ -381,7 +402,7 @@ async function renderSpread(idx) {
   var tpl = TEMPLATES.find(function(t){ return t.id === spread.template_id; });
   if (!tpl) { ctx.fillStyle = '#1A1814'; ctx.fillRect(0,0,W,H); return; }
 
-  var slots = (spread.slots || []).sort(function(a,b){ return a.slot_index - b.slot_index; });
+  var slots = (spread.slots || []).sort(function(a,b){ return (a.slot_index||a.posicao||0) - (b.slot_index||b.posicao||0); });
 
   for (var i = 0; i < tpl.slots.length; i++) {
     var s     = tpl.slots[i];
@@ -402,13 +423,16 @@ async function renderSpread(idx) {
     ctx.rect(sx, sy, sw, sh);
     ctx.clip();
 
-    var escala = slot.foto_escala || 1;
-    var ox     = slot.foto_x || 0;
-    var oy     = slot.foto_y || 0;
-    var dw     = img.naturalWidth  * escala;
-    var dh     = img.naturalHeight * escala;
+    // Cover-fit: a escala é calculada para cobrir o slot inteiro.
+    // foto_escala do editor está em espaço de pixels do editor (canvas diferente),
+    // então não pode ser usada diretamente — usamos cover-fit centrado.
+    var scCover = Math.max(sw / img.naturalWidth, sh / img.naturalHeight);
+    var dw = img.naturalWidth  * scCover;
+    var dh = img.naturalHeight * scCover;
+    var ox = sx + (sw - dw) / 2;
+    var oy = sy + (sh - dh) / 2;
 
-    ctx.drawImage(img, sx + ox, sy + oy, dw, dh);
+    ctx.drawImage(img, ox, oy, dw, dh);
     ctx.restore();
   }
 
