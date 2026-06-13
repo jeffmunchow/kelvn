@@ -403,14 +403,20 @@ async function renderSpread(idx) {
   ctx.fillStyle = spread.background_color || '#111009';
   ctx.fillRect(0, 0, W, H);
 
-  // Slots
-  var tpl = TEMPLATES.find(function(t){ return t.id === spread.template_id; });
-  if (!tpl) { ctx.fillStyle = '#1A1814'; ctx.fillRect(0,0,W,H); return; }
+  // Slots — usa template fixo ou template personalizado do fotógrafo
+  var tplDefs = null;
+  if (spread.template_slots && spread.template_slots.length) {
+    tplDefs = spread.template_slots;
+  } else {
+    var tpl = TEMPLATES.find(function(t){ return t.id === spread.template_id; });
+    if (tpl) tplDefs = tpl.slots;
+  }
+  if (!tplDefs) { ctx.fillStyle = '#1A1814'; ctx.fillRect(0,0,W,H); return; }
 
   var slots = (spread.slots || []).sort(function(a,b){ return (a.slot_index||a.posicao||0) - (b.slot_index||b.posicao||0); });
 
-  for (var i = 0; i < tpl.slots.length; i++) {
-    var s     = tpl.slots[i];
+  for (var i = 0; i < tplDefs.length; i++) {
+    var s     = tplDefs[i];
     var slot  = slots[i];
     var sx    = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
 
