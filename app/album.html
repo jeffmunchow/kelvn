@@ -2033,6 +2033,26 @@ function calcDims() {
   _dimSpread = d;
 }
 
+// Redimensiona o stage existente sem destruir nada (sem piscar).
+// Usado quando o painel lateral ou o rodapé colapsa/expande.
+function redimensionarKonva() {
+  if (!_stage) { iniciarKonva(); return; }
+  _thumbSnapCache = {};
+  _vizSnapCache = {};
+  calcDims();
+  var container = document.getElementById('konva-container');
+  if (container) {
+    container.style.width  = _dimSpread.w + 'px';
+    container.style.height = _dimSpread.h + 'px';
+  }
+  _stage.size({ width: _dimSpread.w, height: _dimSpread.h });
+  montarFita();
+  renderThumbs();
+  renderSpread();
+  var wrap = document.getElementById('konva-wrap');
+  if (wrap) { _ultimoWrapW = wrap.clientWidth; _ultimoWrapH = wrap.clientHeight; }
+}
+
 function iniciarKonva() {
   _ignorarRO = true;
   _thumbSnapCache = {}; // dimensões mudaram → invalida todos os snapshots
@@ -4533,8 +4553,7 @@ function _animarThumbs(el, deH, ateH, deOp, ateOp, dur, aoFim) {
 }
 
 function _aoFimResize() {
-  // Recalcula canvas com as novas dimensões finais
-  if (estado.album) { iniciarKonva(); renderThumbs(); renderSpread(); }
+  if (estado.album) redimensionarKonva();
 }
 
 var _THUMBS_H = 132;
