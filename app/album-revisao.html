@@ -53,7 +53,7 @@ body{
 #rev-logo{font-family:'Cherry Bomb One',cursive;font-size:1.3rem;color:var(--amber);line-height:1;opacity:.9;}
 #rev-topbar .topbar-center{flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:.6rem;}
 #rev-album-nome{font-family:'Playfair Display',serif;font-style:italic;font-size:1.05rem;color:var(--text);}
-#rev-rodada{font-size:.6rem;letter-spacing:.05em;color:var(--text-hint);padding:2px 9px;border-radius:20px;background:rgba(20,17,12,.55);backdrop-filter:blur(8px);border:none;}
+#rev-rodada{font-size:.6rem;letter-spacing:.05em;color:var(--text-hint);padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.04);border:.5px solid var(--border-strong);}
 #rev-topbar .topbar-spacer{width:24px;}
 
 /* Palco do livro */
@@ -92,11 +92,11 @@ body{
   display:flex;align-items:center;justify-content:center;gap:1.1rem;
 }
 .dock-nav{
-  width:42px;height:42px;border-radius:50%;border:none;
-  background:rgba(20,17,12,.55);backdrop-filter:blur(8px);color:var(--text-muted);cursor:pointer;
+  width:42px;height:42px;border-radius:50%;border:.5px solid var(--border-strong);
+  background:rgba(255,255,255,.04);color:var(--text-muted);cursor:pointer;
   display:flex;align-items:center;justify-content:center;transition:color .15s,background .15s,opacity .2s;flex-shrink:0;
 }
-.dock-nav:hover:not(:disabled){color:var(--amber);background:var(--surface3);}
+.dock-nav:hover:not(:disabled){color:var(--amber);background:rgba(255,255,255,.07);}
 .dock-nav:disabled{opacity:.25;cursor:default;}
 #dock-label{
   font-size:.78rem;color:var(--text-muted);min-width:96px;text-align:center;letter-spacing:.02em;
