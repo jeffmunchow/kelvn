@@ -525,10 +525,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <button id="btn-undo" class="btn" onclick="historico.desfazer()" title="Desfazer (Ctrl+Z)" style="display:none;"></button>
       <button id="btn-redo" class="btn" onclick="historico.refazer()" title="Refazer (Ctrl+Y)" style="display:none;"></button>
       <button id="btn-autolayout" class="btn" onclick="abrirModalAutoLayout()" style="display:none;">Montar</button>
-      <div id="btn-revisao-wrap" style="position:relative;">
-        <button class="btn" id="btn-revisao" onclick="abrirModalRevisao()" style="display:none;" title="Comentários do casal">Revisão</button>
-        <span class="rev-badge hidden" id="rev-badge-count"></span>
-      </div>
       <button class="btn primary" id="btn-exportar" onclick="abrirModalExportar()" style="display:none;" title="Gerar PDF para gráfica">Exportar PDF</button>
       <div id="save-status">—</div>
     </div>
@@ -597,6 +593,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <div class="rpanel-action dim" id="sec-share" onclick="abrirModalShare()" title="Compartilhar para revisão do casal">
           <span>Compartilhar</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </div>
+        <!-- Revisão -->
+        <div class="rpanel-action dim" id="sec-revisao" onclick="abrirModalRevisao()" title="Comentários do casal" style="opacity:.4;pointer-events:none;">
+          <span style="position:relative;">Revisão <span class="rev-badge hidden" id="rev-badge-count" style="top:-6px;right:-16px;"></span></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <!-- Exportar -->
         <div class="rpanel-sec" id="sec-exportar">
@@ -1533,7 +1534,6 @@ async function abrirAlbum(albumObj) {
     aplicarModoAprovado();
   } else if (albumObj.revisao_ativa) {
     // Se há revisão ativa, mostrar botão de revisão
-    document.getElementById('btn-revisao').style.display = '';
     carregarBadgeComentarios(albumObj.id);
   }
 }
@@ -6061,10 +6061,8 @@ function aplicarModoAprovado() {
   if (_stage) _stage.listening(false);
   // Esconder botões de edição
   var btnShare = document.getElementById('btn-share');
-  var btnRevisao = document.getElementById('btn-revisao');
   var btnAutolayout = document.getElementById('btn-autolayout');
   if (btnShare)     btnShare.style.display = 'none';
-  if (btnRevisao)   btnRevisao.style.display = 'none';
   if (btnAutolayout) btnAutolayout.style.display = 'none';
   // Esconder painel lateral (casal não edita)
   var rp = document.getElementById('right-panels-wrap');
@@ -6139,8 +6137,6 @@ async function gerarLinkRevisao() {
     document.getElementById('share-link-area').style.display = '';
 
     // Mostrar botão de revisão na topbar
-    document.getElementById('btn-revisao').style.display = '';
-
     // Exportar previews de todos os spreads para o R2
     btn.textContent = 'Exportando lâminas…';
     status.textContent = '';
@@ -6313,14 +6309,16 @@ async function carregarBadgeComentarios(albumId) {
 
 function atualizarBadge(n) {
   var badge = document.getElementById('rev-badge-count');
-  var btnRev = document.getElementById('btn-revisao');
-  if (!badge || !btnRev) return;
+  var secRev = document.getElementById('sec-revisao');
+  if (!secRev) return;
   if (n > 0) {
-    badge.textContent = n > 9 ? '9+' : String(n);
-    badge.classList.remove('hidden');
-    btnRev.style.display = '';
+    secRev.style.opacity = '';
+    secRev.style.pointerEvents = '';
+    if (badge) { badge.textContent = n > 9 ? '9+' : String(n); badge.classList.remove('hidden'); }
   } else {
-    badge.classList.add('hidden');
+    secRev.style.opacity = '.4';
+    secRev.style.pointerEvents = 'none';
+    if (badge) badge.classList.add('hidden');
   }
 }
 
