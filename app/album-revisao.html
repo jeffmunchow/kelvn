@@ -394,8 +394,8 @@ async function renderSpread(idx) {
   canvas.width  = W;
   canvas.height = H;
 
-  // Fundo
-  ctx.fillStyle = spread.background_color || '#111009';
+  // Fundo — padrão branco como no editor
+  ctx.fillStyle = spread.background_color || '#FFFFFF';
   ctx.fillRect(0, 0, W, H);
 
   // Slots — usa template fixo ou template personalizado do fotógrafo
@@ -415,8 +415,8 @@ async function renderSpread(idx) {
     var slot  = slots[i];
     var sx    = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
 
-    // Fundo do slot
-    ctx.fillStyle = '#2A2520';
+    // Fundo do slot (placeholder quando sem foto)
+    ctx.fillStyle = '#E8E4DE';
     ctx.fillRect(sx, sy, sw, sh);
 
     if (!slot || !slot.foto_key) continue;
