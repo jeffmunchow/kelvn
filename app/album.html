@@ -2172,6 +2172,25 @@ function desenharGuiasSangria(layer, spread, W, H) {
   }));
 }
 
+// Posiciona a foto dentro do slot de forma independente do tamanho do canvas.
+// foto_x/foto_y/foto_escala são salvos em px do canvas na dimensão de referência
+// (_refGW/_refGH = tamanho do slot quando o recorte foi feito). Ao renderizar num
+// canvas de tamanho diferente (ex.: colapsar o painel da direita), escalamos o
+// recorte pela razão atual/referência — o enquadramento fica IDÊNTICO em qualquer
+// tamanho. Sem recorte manual (foto_x=foto_y=0) → cover-fit centralizado, que já é
+// independente de resolução.
+function posicaoFotoNoSlot(slotRef, gx, gy, gw, gh, imgW, imgH) {
+  var scMin = Math.max(gw / imgW, gh / imgH);
+  var fx = slotRef.foto_x || 0, fy = slotRef.foto_y || 0, fesc = slotRef.foto_escala || 0;
+  if (fx === 0 && fy === 0) {
+    return { x: gx + (gw - imgW * scMin) / 2, y: gy + (gh - imgH * scMin) / 2, sc: scMin };
+  }
+  if (!slotRef._refGW || !slotRef._refGH) { slotRef._refGW = gw; slotRef._refGH = gh; }
+  var kx = gw / slotRef._refGW, ky = gh / slotRef._refGH;
+  var sc = fesc > 0 ? Math.max(scMin, fesc * kx) : scMin;
+  return { x: gx + fx * kx, y: gy + fy * ky, sc: sc };
+}
+
 // ── Renderizar spread no canvas ───────────────────────────────────────────────
 function renderSpread() {
   if (!_stage || !_layer) return;
@@ -2259,19 +2278,8 @@ function renderSpread() {
         var urlOriginalSlot = urlFotoOriginal(slotRef.foto_key);
         var urlSlot = temCrop ? urlOriginalSlot : urlFotoWeb(slotRef.foto_key);
         carregarKonvaImg(urlSlot, function(img) {
-          var scMin = Math.max(gw / img.width(), gh / img.height());
-          // autoFit: foto nunca recortada manualmente (sem offset) → cover-fit centralizado,
-          // ignorando escala persistida (corrige dados antigos salvos como nativo 1).
-          var autoFit = (slotRef.foto_x || 0) === 0 && (slotRef.foto_y || 0) === 0;
-          var sc = (!autoFit && slotRef.foto_escala > 0) ? Math.max(scMin, slotRef.foto_escala) : scMin;
-          var imgX, imgY;
-          if (autoFit) {
-            imgX = gx + (gw - img.width() * sc) / 2;
-            imgY = gy + (gh - img.height() * sc) / 2;
-          } else {
-            imgX = gx + (slotRef.foto_x || 0);
-            imgY = gy + (slotRef.foto_y || 0);
-          }
+          var pos = posicaoFotoNoSlot(slotRef, gx, gy, gw, gh, img.width(), img.height());
+          var sc = pos.sc, imgX = pos.x, imgY = pos.y;
           img.setAttrs({ x: imgX, y: imgY, scaleX: sc, scaleY: sc, name:'img-foto' });
           img.setAttr('variante', temCrop ? 'original' : 'web');
           // Rasteriza na resolução de exibição: redesenhos (pan, drag) ficam
@@ -2461,18 +2469,8 @@ function desenharSpreadEstatico(layer, spread, W, H, onReady, numOpts, hqFotos) 
           var temCrop = (slotRef.foto_x || 0) !== 0 || (slotRef.foto_y || 0) !== 0;
           var url = (temCrop || hqFotos) ? urlFotoOriginal(slotRef.foto_key) : urlFotoWeb(slotRef.foto_key);
           carregarKonvaImg(url, function(img) {
-            var scMin = Math.max(gw / img.width(), gh / img.height());
-            var autoFit = (slotRef.foto_x || 0) === 0 && (slotRef.foto_y || 0) === 0;
-            var sc = (!autoFit && slotRef.foto_escala > 0) ? Math.max(scMin, slotRef.foto_escala) : scMin;
-            var imgX, imgY;
-            if (autoFit) {
-              imgX = gx + (gw - img.width()*sc)/2;
-              imgY = gy + (gh - img.height()*sc)/2;
-            } else {
-              imgX = gx + (slotRef.foto_x || 0);
-              imgY = gy + (slotRef.foto_y || 0);
-            }
-            img.setAttrs({ x:imgX, y:imgY, scaleX:sc, scaleY:sc });
+            var pos = posicaoFotoNoSlot(slotRef, gx, gy, gw, gh, img.width(), img.height());
+            img.setAttrs({ x: pos.x, y: pos.y, scaleX: pos.sc, scaleY: pos.sc });
             grupoRef.clipFunc(function(ctx) { ctx.rect(gx, gy, gw, gh); });
             grupoRef.add(img); aoCarregar();
           }, function() { aoCarregar(); }); // erro de carga: avança sem bloquear
@@ -4348,6 +4346,9 @@ function salvarCropAtual() {
   slot.foto_x     = imgNode.x() - ds.x;
   slot.foto_y     = imgNode.y() - ds.y;
   slot.foto_escala = imgNode.scaleX();
+  // Referência do recorte: dimensões do slot em que esses px foram medidos.
+  // O render escala por (slot atual / referência) → enquadramento estável.
+  slot._refGW = ds.w; slot._refGH = ds.h;
   // x=0 e y=0 exatos disparariam a heurística de autoFit no render (que ignora
   // a escala salva); um deslocamento de 1/100 px preserva o zoom sem efeito visual.
   if (slot.foto_x === 0 && slot.foto_y === 0 && slot.foto_escala > escalaMinCover(imgNode, ds) + 1e-6) {
@@ -5055,6 +5056,7 @@ async function aplicarResultadoAutoLayout(spreadsAlvo, resultado, onProgresso) {
       slot.foto_x     = crop.ox;
       slot.foto_y     = crop.oy;
       slot.foto_escala = crop.escala;
+      slot._refGW = slotW; slot._refGH = slotH; // px do crop medidos nestas dimensões
 
       if (foto) estado.fotosUsadas.add(foto.key);
 
