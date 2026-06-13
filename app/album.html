@@ -100,7 +100,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #right-panels-toggle:hover{color:var(--text);}
 #right-panels-toggle svg{transition:transform .22s;transform:rotate(180deg);}
 #right-panels-wrap.fechado #right-panels-toggle svg{transform:rotate(0deg);}
-#right-panels{width:240px;flex-shrink:0;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;transition:width .22s;padding-top:1rem;}
+#right-panels{width:240px;flex-shrink:0;background:var(--surface);display:flex;flex-direction:column;overflow:hidden;padding-top:1rem;}
 #right-panels-wrap.fechado #right-panels{width:0;}
 .rpanel-sec{display:flex;flex-direction:column;flex-shrink:0;border-bottom:.5px solid var(--border);}
 .rpanel-sec.expandido{flex:1;min-height:0;flex-shrink:1;}
@@ -159,7 +159,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #thumbs-toggle-btn:hover{color:var(--text);}
 #thumbs-toggle-btn svg{transition:transform .22s;transform:rotate(180deg);}
 #thumbs-toggle-btn.fechado svg{transform:rotate(0deg);}
-#thumbs-bar{height:132px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;flex-shrink:0;transition:height .22s,opacity .22s;overflow-x:auto;overflow-y:hidden;}
+#thumbs-bar{height:132px;background:var(--surface);border-top:.5px solid var(--border);display:flex;align-items:center;gap:.5rem;padding:0 1rem;flex-shrink:0;overflow-x:auto;overflow-y:hidden;}
 #thumbs-bar.fechado{height:0;opacity:0;}
 .thumb-item{height:100px;flex-shrink:0;border-radius:2px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;position:relative;background:var(--surface2);}
 .thumb-item.ativo{border-color:var(--amber);}
@@ -4490,15 +4490,96 @@ function sincronizarBotoesSec() {
 
 function togglePool() { toggleSec('favoritas'); }
 
+// Animações RAF para colapso/expansão dos painéis.
+// O ResizeObserver é silenciado durante a animação e chamado uma vez no fim,
+// evitando que iniciarKonva() dispare 60× por segundo durante o resize.
+var _panelAnimRAF = null;
+var _thumbsAnimRAF = null;
+
+function _easeInOut(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+function _animarPainel(el, de, ate, dur, aoFim) {
+  if (_panelAnimRAF) cancelAnimationFrame(_panelAnimRAF);
+  _ignorarRO = true;
+  var t0 = performance.now();
+  function passo(t) {
+    var p = _easeInOut(Math.min(1, (t - t0) / dur));
+    el.style.width = (de + (ate - de) * p) + 'px';
+    if (p < 1) { _panelAnimRAF = requestAnimationFrame(passo); return; }
+    _panelAnimRAF = null;
+    el.style.width = ate + 'px';
+    _ignorarRO = false;
+    if (aoFim) aoFim();
+  }
+  _panelAnimRAF = requestAnimationFrame(passo);
+}
+
+function _animarThumbs(el, deH, ateH, deOp, ateOp, dur, aoFim) {
+  if (_thumbsAnimRAF) cancelAnimationFrame(_thumbsAnimRAF);
+  _ignorarRO = true;
+  var t0 = performance.now();
+  function passo(t) {
+    var p = _easeInOut(Math.min(1, (t - t0) / dur));
+    el.style.height  = (deH  + (ateH  - deH)  * p) + 'px';
+    el.style.opacity = (deOp + (ateOp - deOp) * p);
+    if (p < 1) { _thumbsAnimRAF = requestAnimationFrame(passo); return; }
+    _thumbsAnimRAF = null;
+    el.style.height = ateH + 'px';
+    el.style.opacity = ateOp;
+    _ignorarRO = false;
+    if (aoFim) aoFim();
+  }
+  _thumbsAnimRAF = requestAnimationFrame(passo);
+}
+
+function _aoFimResize() {
+  // Recalcula canvas com as novas dimensões finais
+  if (estado.album) { iniciarKonva(); renderThumbs(); renderSpread(); }
+}
+
+var _THUMBS_H = 132;
+
 function toggleRightPanel() {
-  document.getElementById('right-panels-wrap').classList.toggle('fechado');
+  var wrap = document.getElementById('right-panels-wrap');
+  var panel = document.getElementById('right-panels');
+  var abrindo = wrap.classList.contains('fechado');
+  if (abrindo) {
+    wrap.classList.remove('fechado');
+    panel.style.width = '0px';
+    _animarPainel(panel, 0, 240, 240, _aoFimResize);
+  } else {
+    _animarPainel(panel, 240, 0, 240, function() {
+      wrap.classList.add('fechado');
+      panel.style.width = '';
+      _aoFimResize();
+    });
+  }
 }
 
 function toggleThumbs() {
   var bar = document.getElementById('thumbs-bar');
   var btn = document.getElementById('thumbs-toggle-btn');
-  bar.classList.toggle('fechado');
-  btn.classList.toggle('fechado');
+  var fechando = !bar.classList.contains('fechado');
+  if (fechando) {
+    var alturaAtual = bar.offsetHeight || _THUMBS_H;
+    _animarThumbs(bar, alturaAtual, 0, 1, 0, 220, function() {
+      bar.classList.add('fechado');
+      btn.classList.add('fechado');
+      bar.style.height = '';
+      bar.style.opacity = '';
+      _aoFimResize();
+    });
+  } else {
+    bar.classList.remove('fechado');
+    btn.classList.remove('fechado');
+    bar.style.height = '0px';
+    bar.style.opacity = '0';
+    _animarThumbs(bar, 0, _THUMBS_H, 0, 1, 220, function() {
+      bar.style.height = '';
+      bar.style.opacity = '';
+      _aoFimResize();
+    });
+  }
 }
 
 function toggleTemplates() { toggleSec('templates'); }
