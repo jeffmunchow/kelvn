@@ -1992,8 +1992,12 @@ function pousarCanvasNoItem(idx) {
 
   // Redimensiona o stage para as dimensões da nova lâmina (capa ≠ spread)
   ajustarStageParaAtivo();
-  itemNovo.querySelector('img.strip-snap').style.display = 'none';
+  // Mantém o snap visível (z-index 2 > canvas z-index 1) enquanto renderSpread()
+  // desenha embaixo. mudarSpread() faz o fade-out depois do render.
+  var imgNova = itemNovo.querySelector('img.strip-snap');
+  if (imgNova) { imgNova.style.opacity = ''; imgNova.style.display = ''; }
   itemNovo.appendChild(container);
+  return imgNova;
 }
 
 // Razão W/H para um spread específico (considera formato e tipo capa/spread).
@@ -3622,11 +3626,25 @@ async function mudarSpread(idx, veioDoScroll) {
   }
   // Reconstrói a fita se a lista de lâminas mudou (add/remove/reordena)
   var ids = estado.spreads.map(function(s) { return s.id; }).join(',');
+  var snapCover = null;
   if (ids !== _fitaIds) montarFita();
-  else pousarCanvasNoItem(idx);
+  else snapCover = pousarCanvasNoItem(idx);
   renderThumbs();
   renderTemplates();
   renderSpread();
+  // Após o render (imagens em cache: síncrono), faz fade-out do snap de cobertura.
+  // O snap ficou visível em z-index 2 para cobrir o canvas enquanto redesenhava.
+  if (snapCover) {
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        snapCover.style.opacity = '0';
+        setTimeout(function() {
+          snapCover.style.display = 'none';
+          snapCover.style.opacity = '';
+        }, 180);
+      });
+    });
+  }
   atualizarPropsSeAberto();
   // Pré-aquece os vizinhos imediatos (±1) assim que a lâmina ativa renderizar,
   // sem esperar o preload completo — o snapshot aparece na hora ao rolar.
