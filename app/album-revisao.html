@@ -546,7 +546,7 @@ async function enviarComentario() {
   });
 
   if (resp.error) {
-    msg.textContent='Erro ao enviar. Tente novamente.'; msg.className='modal-msg err'; msg.style.display='block';
+    msg.textContent='Erro: ' + (resp.error.message || JSON.stringify(resp.error)); msg.className='modal-msg err'; msg.style.display='block';
     btn.disabled=false; btn.textContent='Enviar'; return;
   }
 
