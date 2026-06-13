@@ -1825,6 +1825,11 @@ function montarFita() {
   var strip = document.getElementById('konva-strip');
   if (!strip) return;
   var container = document.getElementById('konva-container');
+  // strip.innerHTML = '' reseta scrollLeft para 0. Cancela o timer de scroll
+  // para que fitaAssentou() não dispare com scrollLeft=0 e redirecione para
+  // a capa (índice 0) enquanto o strip está sendo reconstruído.
+  clearTimeout(_stripScrollTimer);
+  _stripScrollTimer = null;
   strip.innerHTML = '';
   _fitaIds = estado.spreads.map(function(s) { return s.id; }).join(',');
 
@@ -1859,6 +1864,8 @@ function montarFita() {
 
   // Padding e centralização DEPOIS do browser ter calculado o layout.
   // Dois RAFs: 1° aplica padding, 2° lê offsetLeft já correto e centraliza.
+  // Captura o índice agora — estado.spreadAtivo pode mudar nos RAFs.
+  var idxParaCentrar = estado.spreadAtivo;
   requestAnimationFrame(function() {
     var wrapW = strip.clientWidth || strip.offsetWidth;
     if (itens.length) {
@@ -1866,7 +1873,7 @@ function montarFita() {
       strip.style.paddingRight = Math.max(48, Math.round((wrapW - itens[itens.length - 1].offsetWidth) / 2)) + 'px';
     }
     requestAnimationFrame(function() {
-      centralizarFita(estado.spreadAtivo, false);
+      centralizarFita(idxParaCentrar, false);
     });
   });
 }
