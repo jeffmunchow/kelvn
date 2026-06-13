@@ -6177,24 +6177,27 @@ async function exportarPreviewsRevisao(albumId, jwt, onProgress) {
     if (!sp) continue;
     if (onProgress) onProgress(i + 1, spreads.length);
 
-    var dataUrl = await renderSpreadParaJPEG(sp);
-    if (!dataUrl) { falhas.push(i + 1); continue; }
-
-    try {
-      var r = await fetch('/api/album-revisao?action=preview-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
-        body: JSON.stringify({ album_id: albumId, spread_id: sp.id, data_url: dataUrl }),
-      });
-      if (!r.ok) {
-        var err = await r.json().catch(function(){ return {}; });
-        console.warn('preview lâmina', i + 1, 'falhou:', err.error || r.status);
-        falhas.push(i + 1);
+    // Até 2 tentativas por lâmina (render + upload) — resiliente a falhas pontuais.
+    var ok = false;
+    for (var tent = 0; tent < 2 && !ok; tent++) {
+      var dataUrl = await renderSpreadParaJPEG(sp);
+      if (!dataUrl) continue;
+      try {
+        var r = await fetch('/api/album-revisao?action=preview-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+          body: JSON.stringify({ album_id: albumId, spread_id: sp.id, data_url: dataUrl }),
+        });
+        if (r.ok) { ok = true; }
+        else {
+          var err = await r.json().catch(function(){ return {}; });
+          console.warn('preview lâmina', i + 1, 'tentativa', tent + 1, 'falhou:', err.error || r.status);
+        }
+      } catch (e) {
+        console.warn('exportarPreviewsRevisao: erro no spread', i, 'tentativa', tent + 1, e);
       }
-    } catch (e) {
-      console.warn('exportarPreviewsRevisao: erro no spread', i, e);
-      falhas.push(i + 1);
     }
+    if (!ok) falhas.push(i + 1);
   }
   return falhas;
 }
