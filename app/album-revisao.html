@@ -93,10 +93,10 @@ body{
 }
 .dock-nav{
   width:42px;height:42px;border-radius:50%;border:.5px solid var(--border-strong);
-  background:rgba(255,255,255,.04);color:var(--text-muted);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:color .15s,background .15s,opacity .2s;flex-shrink:0;
+  background:rgba(20,17,12,.55);backdrop-filter:blur(8px);color:var(--text-muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:color .15s,border-color .15s,opacity .2s;flex-shrink:0;
 }
-.dock-nav:hover:not(:disabled){color:var(--amber);background:rgba(255,255,255,.07);}
+.dock-nav:hover:not(:disabled){color:var(--amber);border-color:var(--amber);}
 .dock-nav:disabled{opacity:.25;cursor:default;}
 #dock-label{
   font-size:.78rem;color:var(--text-muted);min-width:96px;text-align:center;letter-spacing:.02em;
