@@ -2037,8 +2037,15 @@ function calcDims() {
 // Usado quando o painel lateral ou o rodapé colapsa/expande.
 function redimensionarKonva() {
   if (!_stage) { iniciarKonva(); return; }
-  _thumbSnapCache = {};
-  _vizSnapCache = {};
+  // Invalida apenas a assinatura (força regeração), mas mantém as urls antigas.
+  // Assim os strip items exibem o snapshot anterior enquanto o novo é gerado
+  // em background — sem tela branca ao navegar após colapsar um painel.
+  Object.keys(_vizSnapCache).forEach(function(id) {
+    if (_vizSnapCache[id]) _vizSnapCache[id].sig = null;
+  });
+  Object.keys(_thumbSnapCache).forEach(function(id) {
+    if (_thumbSnapCache[id]) _thumbSnapCache[id].sig = null;
+  });
   calcDims();
   var container = document.getElementById('konva-container');
   if (container) {
@@ -2610,10 +2617,15 @@ function atualizarVizinhos() {
       if (img.src !== vc.url) img.src = vc.url;
       return;
     }
-    // Fallback enquanto gera: thumb da barra ou cor de fundo da lâmina
-    var tc = _thumbSnapCache[sp.id];
-    if (tc && tc.sig === sig && tc.url) img.src = tc.url;
-    else { img.removeAttribute('src'); img.style.background = sp.background_color || '#ffffff'; }
+    // Snapshot vencido (ex: após resize): exibe imediatamente enquanto o novo
+    // é gerado em background — evita tela branca ao navegar entre lâminas.
+    if (vc && vc.url) { if (img.src !== vc.url) img.src = vc.url; }
+    else {
+      // Fallback enquanto gera: thumb da barra ou cor de fundo da lâmina
+      var tc = _thumbSnapCache[sp.id];
+      if (tc && tc.url) img.src = tc.url;
+      else { img.removeAttribute('src'); img.style.background = sp.background_color || '#ffffff'; }
+    }
     // Gera snapshot: imediato para vizinhos ±1, com delay para os demais
     var dist = Math.abs(i - estado.spreadAtivo);
     if (dist <= 4 && !_vizGerando[sp.id]) {
