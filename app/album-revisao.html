@@ -330,7 +330,14 @@ var _albumId = null;   // guid do álbum (para notificações)
     if (!data) return mostrarErro('Link inválido', 'Este link de revisão não existe ou expirou.');
 
     _album   = data.album;
-    _spreads = (data.spreads || []).sort(function(a,b){ return a.posicao - b.posicao; });
+    // Mostra só lâminas com conteúdo: ignora páginas vazias (ex.: contracapa
+    // auto-criada e nunca preenchida) — o casal não deve ver páginas em branco.
+    _spreads = (data.spreads || [])
+      .filter(function(sp) {
+        if (sp.preview_key) return true;
+        return (sp.slots || []).some(function(sl){ return sl.foto_key; });
+      })
+      .sort(function(a,b){ return a.posicao - b.posicao; });
     _albumId = _album.id;
 
     document.getElementById('rev-album-nome').textContent = _album.nome || 'Álbum';
