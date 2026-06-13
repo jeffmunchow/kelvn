@@ -781,8 +781,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <div style="margin-bottom:1rem;">
           <div style="font-size:.7rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem;">Tema para o cliente</div>
           <div style="display:flex;gap:.4rem;">
-            <button id="share-tema-dark" onclick="selecionarTemaCasal('dark')" style="flex:1;padding:6px 0;font-size:.75rem;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;border:.5px solid var(--border-strong);background:var(--surface3,#1A1814);color:var(--text);transition:border-color .15s,opacity .15s;">Escuro</button>
-            <button id="share-tema-light" onclick="selecionarTemaCasal('light')" style="flex:1;padding:6px 0;font-size:.75rem;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;border:.5px solid var(--border-strong);background:var(--surface);color:var(--text-muted);transition:border-color .15s,opacity .15s;">Claro</button>
+            <button id="share-tema-dark" onclick="selecionarTemaCasal('dark')" style="flex:1;padding:6px 0;font-size:.75rem;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);outline:none;transition:color .15s;">Escuro</button>
+            <button id="share-tema-light" onclick="selecionarTemaCasal('light')" style="flex:1;padding:6px 0;font-size:.75rem;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);outline:none;transition:color .15s;">Claro</button>
           </div>
         </div>
         <div id="share-link-area" style="display:none;">
@@ -6089,8 +6089,8 @@ function selecionarTemaCasal(tema) {
   _shareTema = tema;
   var btnD = document.getElementById('share-tema-dark');
   var btnL = document.getElementById('share-tema-light');
-  if (btnD) { btnD.style.borderColor = tema === 'dark' ? 'var(--amber)' : 'var(--border-strong)'; btnD.style.color = tema === 'dark' ? 'var(--amber)' : 'var(--text)'; }
-  if (btnL) { btnL.style.borderColor = tema === 'light' ? 'var(--amber)' : 'var(--border-strong)'; btnL.style.color = tema === 'light' ? 'var(--amber)' : 'var(--text-muted)'; }
+  if (btnD) btnD.style.color = tema === 'dark'  ? 'var(--amber)' : 'var(--text-muted)';
+  if (btnL) btnL.style.color = tema === 'light' ? 'var(--amber)' : 'var(--text-muted)';
   if (_shareLink) {
     var base = _shareLink.split('&theme=')[0];
     var linkFinal = base + '&theme=' + tema;
