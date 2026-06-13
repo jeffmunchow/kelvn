@@ -145,8 +145,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #konva-strip{width:100%;display:flex;align-items:center;gap:48px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;}
 #konva-strip::-webkit-scrollbar{display:none;}
 .strip-item{flex:none;position:relative;}
-.strip-item img.strip-snap{display:block;width:100%;height:100%;background:#fff;}
-#konva-container{flex:none;}
+.strip-item img.strip-snap{position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;z-index:2;transition:opacity .18s;}
+#konva-container{flex:none;position:relative;z-index:1;}
 
 /* Barra de spreads — com toggle */
 #thumbs-wrap{flex-shrink:0;position:relative;}
@@ -1813,6 +1813,8 @@ function setupPanNav() {
   // puramente vertical (deltaX zero). Trackpad com deriva diagonal fica
   // 100% no scroll nativo, sem interferência.
   strip.addEventListener('wheel', function(e) {
+    // Usuário retomou o gesto: interrompe o glide em andamento na hora
+    if (_glideRAF) { cancelAnimationFrame(_glideRAF); _glideRAF = null; }
     if (Math.abs(e.deltaX) > 0.5) return; // gesto horizontal de trackpad: nativo
     if (_slotEmEdicao) return;            // wheel durante crop é zoom da foto
     if (e.deltaY) { e.preventDefault(); strip.scrollLeft += e.deltaY; }
@@ -1844,15 +1846,9 @@ function montarFita() {
     strip.appendChild(item);
   });
 
-  // Padding nas pontas para a primeira/última lâmina centralizarem
-  var wrapW = strip.clientWidth || strip.offsetWidth;
+  // Canvas editável dentro do item ativo (antes do RAF para que o container
+  // já esteja no DOM quando o browser medir os offsets)
   var itens = strip.children;
-  if (itens.length) {
-    strip.style.paddingLeft  = Math.max(48, Math.round((wrapW - itens[0].offsetWidth) / 2)) + 'px';
-    strip.style.paddingRight = Math.max(48, Math.round((wrapW - itens[itens.length - 1].offsetWidth) / 2)) + 'px';
-  }
-
-  // Canvas editável dentro do item ativo
   var itemAtivo = itens[estado.spreadAtivo];
   if (itemAtivo && container) {
     ajustarStageParaAtivo();
@@ -1860,7 +1856,19 @@ function montarFita() {
     itemAtivo.appendChild(container);
   }
   atualizarVizinhos();
-  centralizarFita(estado.spreadAtivo, false);
+
+  // Padding e centralização DEPOIS do browser ter calculado o layout.
+  // Dois RAFs: 1° aplica padding, 2° lê offsetLeft já correto e centraliza.
+  requestAnimationFrame(function() {
+    var wrapW = strip.clientWidth || strip.offsetWidth;
+    if (itens.length) {
+      strip.style.paddingLeft  = Math.max(48, Math.round((wrapW - itens[0].offsetWidth) / 2)) + 'px';
+      strip.style.paddingRight = Math.max(48, Math.round((wrapW - itens[itens.length - 1].offsetWidth) / 2)) + 'px';
+    }
+    requestAnimationFrame(function() {
+      centralizarFita(estado.spreadAtivo, false);
+    });
+  });
 }
 
 // Garante que o stage tem as dimensões da lâmina ativa (capa ≠ spread).
@@ -1879,13 +1887,33 @@ function ajustarStageParaAtivo() {
   }
 }
 
+// Glide animado com easing próprio — mais suave e previsível que o
+// scrollTo({behavior:'smooth'}) nativo, que é seco em distâncias curtas.
+var _glideRAF = null;
+function deslizarFitaPara(strip, alvo, aoTerminar) {
+  if (_glideRAF) cancelAnimationFrame(_glideRAF);
+  var de = strip.scrollLeft, dist = alvo - de;
+  if (Math.abs(dist) < 1) { strip.scrollLeft = alvo; if (aoTerminar) aoTerminar(); return; }
+  var dur = Math.max(260, Math.min(520, Math.abs(dist) * 0.7));
+  var t0 = performance.now();
+  function passo(t) {
+    var p = Math.min(1, (t - t0) / dur);
+    var e = 1 - Math.pow(1 - p, 3); // easeOutCubic
+    strip.scrollLeft = de + dist * e;
+    if (p < 1) { _glideRAF = requestAnimationFrame(passo); }
+    else { _glideRAF = null; if (aoTerminar) aoTerminar(); }
+  }
+  _glideRAF = requestAnimationFrame(passo);
+}
+
 function centralizarFita(idx, suave) {
   var strip = document.getElementById('konva-strip');
   if (!strip) return;
   var item = strip.children[idx];
   if (!item) return;
-  var alvo = item.offsetLeft + item.offsetWidth / 2 - strip.clientWidth / 2;
-  strip.scrollTo({ left: Math.max(0, alvo), behavior: suave ? 'smooth' : 'auto' });
+  var alvo = Math.max(0, item.offsetLeft + item.offsetWidth / 2 - strip.clientWidth / 2);
+  if (suave) deslizarFitaPara(strip, alvo);
+  else strip.scrollLeft = alvo;
 }
 
 function itemMaisCentral() {
@@ -1920,21 +1948,23 @@ function decidirAlvoFita() {
 }
 
 function fitaAssentou() {
-  if (_slotEmEdicao) return; // editando: não troca a lâmina ativa
+  if (_slotEmEdicao) return;  // editando: não troca a lâmina ativa
+  if (_glideRAF) return;      // glide em andamento: o callback dele decide
   var strip = document.getElementById('konva-strip');
   if (!strip) return;
   var alvo = decidirAlvoFita();
   var item = strip.children[alvo];
   if (!item) return;
-  var alvoLeft = item.offsetLeft + item.offsetWidth / 2 - strip.clientWidth / 2;
+  var alvoLeft = Math.max(0, item.offsetLeft + item.offsetWidth / 2 - strip.clientWidth / 2);
 
-  // Fora do centro → desliza suavemente até lá; o assentamento re-dispara
-  // quando o scroll suave terminar e aí o canvas pousa, já parado e alinhado.
-  if (Math.abs(strip.scrollLeft - Math.max(0, alvoLeft)) > 2) {
-    strip.scrollTo({ left: Math.max(0, alvoLeft), behavior: 'smooth' });
-    return;
+  function pousar() {
+    if (_slotEmEdicao) return;
+    if (alvo !== estado.spreadAtivo) mudarSpread(alvo, true);
   }
-  if (alvo !== estado.spreadAtivo) mudarSpread(alvo, true);
+  // Fora do centro → glide com easing até lá; o canvas pousa quando o
+  // movimento termina, parado e alinhado.
+  if (Math.abs(strip.scrollLeft - alvoLeft) > 2) deslizarFitaPara(strip, alvoLeft, pousar);
+  else pousar();
 }
 
 // Move o canvas editável para o item idx; o item anterior volta a ser snapshot.
@@ -2566,8 +2596,9 @@ function atualizarVizinhos() {
     var tc = _thumbSnapCache[sp.id];
     if (tc && tc.sig === sig && tc.url) img.src = tc.url;
     else { img.removeAttribute('src'); img.style.background = sp.background_color || '#ffffff'; }
-    // Gera o definitivo só para vizinhos próximos; o resto vem do preaquecimento
-    if (Math.abs(i - estado.spreadAtivo) <= 2 && !_vizGerando[sp.id]) {
+    // Gera snapshot: imediato para vizinhos ±1, com delay para os demais
+    var dist = Math.abs(i - estado.spreadAtivo);
+    if (dist <= 4 && !_vizGerando[sp.id]) {
       _vizGerando[sp.id] = true;
       gerarSnapshotSpread(sp, function(url) {
         delete _vizGerando[sp.id];
@@ -3567,6 +3598,9 @@ async function mudarSpread(idx, veioDoScroll) {
   renderTemplates();
   renderSpread();
   atualizarPropsSeAberto();
+  // Pré-aquece os vizinhos imediatos (±1) assim que a lâmina ativa renderizar,
+  // sem esperar o preload completo — o snapshot aparece na hora ao rolar.
+  setTimeout(function() { atualizarVizinhos(); }, 200);
   // Vindo do scroll a fita já está centrada; outras origens deslizam até lá
   if (!veioDoScroll) centralizarFita(idx, true);
 }
