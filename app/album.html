@@ -6171,7 +6171,7 @@ async function exportarPreviewsRevisao(albumId, jwt, onProgress) {
     });
     if (!dataUrl) continue;
     try {
-      await fetch('/api/album-preview?action=upload', {
+      await fetch('/api/album-revisao?action=preview-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
         body: JSON.stringify({ album_id: albumId, spread_id: sp.id, data_url: dataUrl }),

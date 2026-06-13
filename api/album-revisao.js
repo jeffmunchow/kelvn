@@ -5,11 +5,22 @@
  * GET  (sem action, cron header)   → envia newsletter semanal
  * POST ?action=gerar               → gera/regenera token de revisão (autenticado)
  * POST ?action=notificar           → notifica fotógrafo após comentário/aprovação (anon, rate-limited)
+ * POST ?action=preview-upload      → faz upload de JPEG de um spread para o R2 (autenticado)
  */
 
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { acUnsub, acEnviar, pagina } = require('./_newsletter');
+
+const s3 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId:     process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+  },
+});
 
 const RATE_IP_MAX  = 10;  // máx comentários por IP
 const RATE_IP_MIN  = 30;  // janela em minutos
@@ -28,8 +39,9 @@ module.exports = async function handler(req, res) {
   if (cron === 'newsletter') return acEnviar(req, res);
 
   // ── Album review ──────────────────────────────────────────────────────────
-  if (action === 'gerar')     return acGerar(req, res);
-  if (action === 'notificar') return acNotificar(req, res);
+  if (action === 'gerar')           return acGerar(req, res);
+  if (action === 'notificar')       return acNotificar(req, res);
+  if (action === 'preview-upload')  return acPreviewUpload(req, res);
 
   return res.status(404).json({ error: 'Not found' });
 };
@@ -214,6 +226,55 @@ function emailAprovado({ fotograNome, albumNome, nomeCasal, emailCasal }) {
 </td></tr>
 <tr><td style="padding-top:20px;text-align:center;"><p style="margin:0;font-size:11px;color:${hint};">Kelvn — para fotógrafos de casamento</p></td></tr>
 </table></td></tr></table></body></html>`;
+}
+
+// ── Upload de preview JPEG de um spread ──────────────────────────────────────
+
+async function acPreviewUpload(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const auth = req.headers['authorization'];
+  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
+  const jwt = auth.slice(7);
+
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  const { data: { user }, error: authErr } = await sb.auth.getUser(jwt);
+  if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { album_id, spread_id, data_url } = req.body || {};
+  if (!album_id || !spread_id || !data_url) {
+    return res.status(400).json({ error: 'album_id, spread_id e data_url são obrigatórios' });
+  }
+
+  const { data: album, error: aErr } = await sb
+    .from('albuns').select('id').eq('id', album_id).eq('user_id', user.id).maybeSingle();
+  if (aErr || !album) return res.status(404).json({ error: 'Álbum não encontrado' });
+
+  const base64 = data_url.replace(/^data:image\/\w+;base64,/, '');
+  const buffer = Buffer.from(base64, 'base64');
+  const key = `${album_id}/previews/${spread_id}.jpg`;
+
+  try {
+    await s3.send(new PutObjectCommand({
+      Bucket:      process.env.R2_BUCKET_NAME,
+      Key:         key,
+      Body:        buffer,
+      ContentType: 'image/jpeg',
+    }));
+  } catch (e) {
+    console.error('acPreviewUpload R2 error:', e);
+    return res.status(500).json({ error: 'Erro ao salvar preview' });
+  }
+
+  const { error: uErr } = await sb
+    .from('album_spreads').update({ preview_key: key, atualizado_em: new Date().toISOString() })
+    .eq('id', spread_id).eq('album_id', album_id);
+  if (uErr) {
+    console.error('acPreviewUpload update error:', uErr);
+    return res.status(500).json({ error: 'Erro ao salvar preview_key' });
+  }
+
+  return res.status(200).json({ key });
 }
 
 function esc(str) {
