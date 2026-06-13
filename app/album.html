@@ -2271,7 +2271,14 @@ function posicaoFotoNoSlot(slotRef, gx, gy, gw, gh, imgW, imgH) {
   if (!slotRef._refGW || !slotRef._refGH) { slotRef._refGW = gw; slotRef._refGH = gh; }
   var kx = gw / slotRef._refGW, ky = gh / slotRef._refGH;
   var sc = fesc > 0 ? Math.max(scMin, fesc * kx) : scMin;
-  return { x: gx + fx * kx, y: gy + fy * ky, sc: sc };
+  var x = gx + fx * kx, y = gy + fy * ky;
+  // Garante cobertura total do slot (invariante: foto nunca descobre o bgSlot)
+  var sw = imgW * sc, sh = imgH * sc;
+  if (x > gx) x = gx;
+  if (y > gy) y = gy;
+  if (x + sw < gx + gw) x = gx + gw - sw;
+  if (y + sh < gy + gh) y = gy + gh - sh;
+  return { x: x, y: y, sc: sc };
 }
 
 // ── Renderizar spread no canvas ───────────────────────────────────────────────
@@ -4305,7 +4312,7 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
   proxyRect.on('dragend.box', commitGeom);
   proxyRect.on('transformend.box', commitGeom);
 
-  // Duplo clique no proxyRect (que fica sobre a imagem) troca para modo foto
+  // Duplo clique no proxyRect (modo caixa) → volta para modo crop da foto
   proxyRect.on('dblclick dbltap', function() {
     var g = _slotEmEdicao ? _slotEmEdicao.grupo : grupo;
     var s = _slotEmEdicao ? _slotEmEdicao.slot : slot;
@@ -4313,7 +4320,6 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     sairModoEdicaoSlot(true, true); // destrói proxyRect sem re-renderizar
     ativarModoEdicaoFoto(g, s, ds);
   });
-
   _stage.container().addEventListener('wheel', _wheelCropHandler, { passive: false });
   _layer.batchDraw();
 }
