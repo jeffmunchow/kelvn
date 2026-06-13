@@ -39,6 +39,7 @@ module.exports = async function handler(req, res) {
 async function acGerar(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  try {
   // Autenticação via JWT
   const authHeader = req.headers['authorization'];
   if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
@@ -58,10 +59,13 @@ async function acGerar(req, res) {
   const { data: album, error: aErr } = await sb
     .from('albuns').select('id, nome, revisao_rodada')
     .eq('id', album_id).eq('user_id', userId).maybeSingle();
-  if (aErr || !album) return res.status(404).json({ error: 'Álbum não encontrado' });
+  if (aErr || !album) {
+    console.error('acGerar select error:', aErr);
+    return res.status(404).json({ error: 'Álbum não encontrado' });
+  }
 
-  // Gerar token
-  const token = crypto.randomBytes(32).toString('hex');
+  // Gerar token como UUID v4 — coluna revisao_token é do tipo uuid no Supabase
+  const token = crypto.randomUUID();
   const expira = new Date(Date.now() + TOKEN_DIAS * 24 * 60 * 60 * 1000).toISOString();
   const rodada = (album.revisao_rodada || 0) + 1;
 
@@ -79,11 +83,15 @@ async function acGerar(req, res) {
 
   if (uErr) {
     console.error('acGerar update error:', uErr);
-    return res.status(500).json({ error: 'Erro ao salvar token' });
+    return res.status(500).json({ error: uErr.message || 'Erro ao salvar token' });
   }
 
   const link = `https://app.kelvn.com.br/album-revisao?t=${token}`;
   return res.status(200).json({ link, rodada, expira });
+  } catch (e) {
+    console.error('acGerar exception:', e);
+    return res.status(500).json({ error: e.message || 'Erro inesperado' });
+  }
 }
 
 // ── Notificar fotógrafo (comentário ou aprovação) ─────────────────────────────
