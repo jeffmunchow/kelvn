@@ -1890,8 +1890,14 @@ function ajustarStageParaAtivo() {
   var sp = estado.spreads[estado.spreadAtivo];
   if (!sp) return;
   var d = dimParaSpread(sp);
-  if (d.w !== _dimSpread.w || d.h !== _dimSpread.h) {
-    _dimSpread = d;
+  _dimSpread = d;
+  // Compara contra o tamanho REAL do stage — não contra _dimSpread, que
+  // calcDims() já pode ter atualizado antes desta chamada. Comparar com
+  // _dimSpread tornaria o guard sempre falso e o canvas ficaria no tamanho
+  // antigo enquanto renderSpread() desenha no tamanho novo → lâmina cortada
+  // na parte de baixo ao colapsar/expandir o painel lateral.
+  var precisaResize = !_stage || _stage.width() !== d.w || _stage.height() !== d.h;
+  if (precisaResize) {
     var container = document.getElementById('konva-container');
     if (container) {
       container.style.width  = d.w + 'px';
@@ -2065,11 +2071,15 @@ function redimensionarKonva() {
     if (_thumbSnapCache[id]) _thumbSnapCache[id].sig = null;
   });
   calcDims();
-  // Redimensiona itens existentes do strip sem destruí-lo — preserva scrollLeft
-  // e evita qualquer flash. montarFita() (que faz innerHTML='') só é chamada
-  // quando a lista de spreads mudou; aqui apenas o tamanho do canvas mudou.
+  // Redimensiona itens existentes do strip sem destruí-lo — sem flash.
+  var idxAtivo = estado.spreadAtivo;
   var strip = document.getElementById('konva-strip');
   if (strip) {
+    // Cancela qualquer fitaAssentou pendente — evita que o scroll stale
+    // (com dimensões antigas) redirecione para o spread errado.
+    clearTimeout(_stripScrollTimer);
+    _stripScrollTimer = null;
+
     estado.spreads.forEach(function(sp, i) {
       var item = strip.children[i];
       if (!item) return;
@@ -2077,10 +2087,22 @@ function redimensionarKonva() {
       item.style.width  = d.w + 'px';
       item.style.height = d.h + 'px';
     });
+
+    // Após redimensionar os itens, o scrollLeft antigo não corresponde mais
+    // à mesma posição visual (itens ficam maiores). Calcula e aplica
+    // imediatamente o scrollLeft aproximado para o spread ativo, sem
+    // esperar o RAF — evita que fitaAssentou veja o spread errado centrado.
+    var approxLeft = 0;
+    for (var j = 0; j < idxAtivo; j++) {
+      var prev = strip.children[j];
+      if (prev) approxLeft += parseFloat(prev.style.width) + 48; // 48 = gap
+    }
+    var ativo = strip.children[idxAtivo];
+    if (ativo) approxLeft += parseFloat(ativo.style.width) / 2 - strip.clientWidth / 2;
+    strip.scrollLeft = Math.max(0, Math.round(approxLeft));
   }
   ajustarStageParaAtivo();
-  // Re-calcula padding e centraliza sem destruir o strip
-  var idxAtivo = estado.spreadAtivo;
+  // Re-calcula padding e centraliza com precisão via double-RAF
   requestAnimationFrame(function() {
     if (!strip) return;
     var itens = strip.children;
