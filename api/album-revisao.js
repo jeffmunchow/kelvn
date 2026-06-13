@@ -69,7 +69,7 @@ async function acGerar(req, res) {
   const expira = new Date(Date.now() + TOKEN_DIAS * 24 * 60 * 60 * 1000).toISOString();
   const rodada = (album.revisao_rodada || 0) + 1;
 
-  const { error: uErr } = await sb.from('albuns').update({
+  const { data: updated, error: uErr } = await sb.from('albuns').update({
     revisao_token: token,
     revisao_ativa: true,
     revisao_rodada: rodada,
@@ -79,11 +79,15 @@ async function acGerar(req, res) {
     aprovado_por_nome: null,
     aprovado_por_email: null,
     atualizado_em: new Date().toISOString(),
-  }).eq('id', album_id).eq('user_id', userId);
+  }).eq('id', album_id).eq('user_id', userId).select('id').maybeSingle();
 
   if (uErr) {
     console.error('acGerar update error:', uErr);
     return res.status(500).json({ error: uErr.message || 'Erro ao salvar token' });
+  }
+  if (!updated) {
+    console.error('acGerar: update afetou 0 linhas', { album_id, userId });
+    return res.status(500).json({ error: 'Não foi possível salvar o token. Tente novamente.' });
   }
 
   const link = `https://app.kelvn.com.br/album-revisao?t=${token}`;
