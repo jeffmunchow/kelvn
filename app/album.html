@@ -6144,13 +6144,18 @@ async function gerarLinkRevisao() {
     // Exportar previews de todos os spreads para o R2
     btn.textContent = 'Exportando lâminas…';
     status.textContent = '';
-    await exportarPreviewsRevisao(album.id, jwt, function(n, total) {
+    var falhas = await exportarPreviewsRevisao(album.id, jwt, function(n, total) {
       btn.textContent = 'Exportando ' + n + '/' + total + '…';
     });
 
     btn.textContent = 'Regenerar link';
-    status.textContent = 'Link gerado com sucesso.';
-    status.style.color = 'var(--teal)';
+    if (falhas && falhas.length) {
+      status.textContent = 'Link gerado, mas falhou ao exportar a(s) lâmina(s) ' + falhas.join(', ') + '. Tente regenerar.';
+      status.style.color = 'var(--coral)';
+    } else {
+      status.textContent = 'Link gerado com sucesso.';
+      status.style.color = 'var(--teal)';
+    }
   } catch(err) {
     status.textContent = 'Erro: ' + (err.message || 'Tente novamente.');
     status.style.color = 'var(--coral)';
@@ -6160,54 +6165,71 @@ async function gerarLinkRevisao() {
   }
 }
 
+// Exporta cada lâmina como JPEG de alta resolução num stage OFFSCREEN — nunca
+// mexe no stage visível nem no estado do editor (não troca fotos da capa).
+// A proporção é a física do álbum: capa = 1 página, spread = 2 páginas.
 async function exportarPreviewsRevisao(albumId, jwt, onProgress) {
   var spreads = estado.spreads || [];
-  if (!spreads.length || !_stage) return;
-  var idxOriginal = estado.spreadAtivo;
+  var falhas = [];
 
   for (var i = 0; i < spreads.length; i++) {
     var sp = spreads[i];
     if (!sp) continue;
     if (onProgress) onProgress(i + 1, spreads.length);
 
-    // Navega para o spread e aguarda o Konva renderizar as imagens
-    var dataUrl = await new Promise(function(resolve) {
-      var idx = i;
-      estado.spreadAtivo = idx;
-      renderSpread(); // renderiza no stage visível (garante layout idêntico ao editor)
+    var dataUrl = await renderSpreadParaJPEG(sp);
+    if (!dataUrl) { falhas.push(i + 1); continue; }
 
-      // Aguarda as imagens carregarem (batchDraw é síncrono; imagens são async)
-      var tentativas = 0;
-      function capturar() {
-        tentativas++;
-        if (!_stage) { resolve(null); return; }
-        try {
-          _layer.batchDraw();
-          var url = _stage.toDataURL({ pixelRatio: 2, mimeType: 'image/jpeg', quality: 0.9 });
-          resolve(url);
-        } catch(e) {
-          if (tentativas < 2) { setTimeout(capturar, 1500); } else { resolve(null); }
-        }
-      }
-      setTimeout(capturar, 1500); // aguarda 1.5s para imagens carregarem no stage
-    });
-
-    if (!dataUrl) continue;
     try {
-      await fetch('/api/album-revisao?action=preview-upload', {
+      var r = await fetch('/api/album-revisao?action=preview-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
         body: JSON.stringify({ album_id: albumId, spread_id: sp.id, data_url: dataUrl }),
       });
+      if (!r.ok) {
+        var err = await r.json().catch(function(){ return {}; });
+        console.warn('preview lâmina', i + 1, 'falhou:', err.error || r.status);
+        falhas.push(i + 1);
+      }
     } catch (e) {
       console.warn('exportarPreviewsRevisao: erro no spread', i, e);
+      falhas.push(i + 1);
     }
   }
+  return falhas;
+}
 
-  // Volta ao spread original
-  estado.spreadAtivo = idxOriginal;
-  renderSpread();
-  centralizarFita();
+// Renderiza um spread num stage offscreen com proporção física correta e
+// fotos em alta resolução (originais). Retorna data URL JPEG ou null.
+function renderSpreadParaJPEG(sp) {
+  return new Promise(function(resolve) {
+    var ratio = ratioParaSpread(sp);           // capa→1, spread→2 (proporção física)
+    var exportW = 2000;
+    var exportH = Math.round(exportW / ratio);
+    var holder = document.createElement('div');
+    holder.style.cssText = 'position:fixed;left:-99999px;top:0;pointer-events:none;';
+    document.body.appendChild(holder);
+    var stage = new Konva.Stage({ container: holder, width: exportW, height: exportH });
+    var layer = new Konva.Layer();
+    stage.add(layer);
+    var pronto = false;
+    function capturar() {
+      if (pronto) return; pronto = true;
+      var url = null;
+      try {
+        layer.batchDraw();
+        url = stage.toDataURL({ pixelRatio: 1, mimeType: 'image/jpeg', quality: 0.9 });
+      } catch (e) {
+        console.warn('renderSpreadParaJPEG toDataURL:', e);
+        url = null;
+      }
+      stage.destroy(); holder.remove();
+      resolve(url);
+    }
+    // hqFotos=true → carrega as fotos originais (qualidade máxima)
+    desenharSpreadEstatico(layer, sp, exportW, exportH, capturar, null, true);
+    setTimeout(capturar, 25000); // teto generoso para originais grandes
+  });
 }
 
 function copiarLink() {

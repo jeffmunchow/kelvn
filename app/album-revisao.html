@@ -56,10 +56,9 @@ body{
 /* Canvas do spread */
 #canvas-wrap{
   position:relative;width:100%;max-width:860px;
-  background:var(--surface2);border-radius:10px;overflow:hidden;
+  background:#fff;border-radius:10px;overflow:hidden;
   border:.5px solid var(--border-strong);flex-shrink:0;
 }
-#spread-canvas{display:block;width:100%;height:auto;}
 
 /* Navegação */
 #rev-nav{
@@ -184,10 +183,12 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
   </div>
 
   <div id="rev-body">
-    <!-- Preview do spread atual -->
+    <!-- Preview do spread atual (JPEG exportado pelo editor) -->
     <div id="canvas-wrap">
-      <img id="spread-img" src="" alt="Spread do álbum" style="display:block;width:100%;height:auto;border-radius:8px;">
-      <canvas id="spread-canvas" style="display:none;"></canvas>
+      <img id="spread-img" src="" alt="Lâmina do álbum" style="display:block;width:100%;height:auto;">
+      <div id="spread-aviso" style="display:none;align-items:center;justify-content:center;min-height:300px;padding:2rem;text-align:center;color:var(--text-hint);font-size:.85rem;">
+        Esta lâmina ainda está sendo preparada. Atualize a página em instantes.
+      </div>
     </div>
 
     <!-- Progresso + navegação -->
@@ -375,7 +376,9 @@ function renderNav() {
 }
 
 // ── Renderizar spread ─────────────────────────────────────────────────────────
-async function renderSpread(idx) {
+// Mostra o JPEG exportado pelo editor, com a proporção física já embutida.
+// Não reconstrói nada — o JPEG já está correto.
+function renderSpread(idx) {
   _idx = idx;
   _vistos.add(idx);
   renderNav();
@@ -383,101 +386,18 @@ async function renderSpread(idx) {
   var spread = _spreads[idx];
   if (!spread) return;
 
-  // Usa preview JPEG gerado pelo editor (alta fidelidade)
-  var img = document.getElementById('spread-img');
-  var canvas = document.getElementById('spread-canvas');
+  var img   = document.getElementById('spread-img');
+  var aviso = document.getElementById('spread-aviso');
+
   if (spread.preview_key) {
     img.src = '/api/gallery-img?key=' + encodeURIComponent(spread.preview_key) + '&v=' + (_album.revisao_rodada || 1);
     img.style.display = 'block';
-    canvas.style.display = 'none';
-    return;
-  }
-
-  // Fallback: renderização via canvas (spreads sem preview ainda)
-  img.style.display = 'none';
-  canvas.style.display = 'block';
-  var ctx    = canvas.getContext('2d');
-
-  // Dimensões do spread (2 páginas lado a lado)
-  var W = 900, H = 300;  // paisagem: ~3:1
-  var fmt = _album.formato || 'paisagem';
-  if (fmt === 'quadrado') { W = 600; H = 300; }  // 2 páginas quadradas = 2:1
-  if (fmt === 'retrato')  { W = 560; H = 400; }  // 2 páginas retrato
-
-  canvas.width  = W;
-  canvas.height = H;
-
-  // Fundo — padrão branco como no editor
-  ctx.fillStyle = spread.background_color || '#FFFFFF';
-  ctx.fillRect(0, 0, W, H);
-
-  // Slots — usa template fixo ou template personalizado do fotógrafo
-  var tplDefs = null;
-  if (spread.template_slots && spread.template_slots.length) {
-    tplDefs = spread.template_slots;
+    aviso.style.display = 'none';
   } else {
-    var tpl = TEMPLATES.find(function(t){ return t.id === spread.template_id; });
-    if (tpl) tplDefs = tpl.slots;
+    // Preview ainda não foi gerado para esta lâmina.
+    img.style.display = 'none';
+    aviso.style.display = 'flex';
   }
-  if (!tplDefs) { ctx.fillStyle = '#1A1814'; ctx.fillRect(0,0,W,H); return; }
-
-  var slots = (spread.slots || []).sort(function(a,b){ return (a.slot_index||a.posicao||0) - (b.slot_index||b.posicao||0); });
-
-  for (var i = 0; i < tplDefs.length; i++) {
-    var s     = tplDefs[i];
-    var slot  = slots[i];
-    var sx    = s.x * W, sy = s.y * H, sw = s.w * W, sh = s.h * H;
-
-    // Fundo do slot (placeholder quando sem foto)
-    ctx.fillStyle = '#E8E4DE';
-    ctx.fillRect(sx, sy, sw, sh);
-
-    if (!slot || !slot.foto_key) continue;
-
-    var img = await carregarFoto(slot.foto_key);
-    if (!img) continue;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(sx, sy, sw, sh);
-    ctx.clip();
-
-    // Cover-fit: a escala é calculada para cobrir o slot inteiro.
-    // foto_escala do editor está em espaço de pixels do editor (canvas diferente),
-    // então não pode ser usada diretamente — usamos cover-fit centrado.
-    var scCover = Math.max(sw / img.naturalWidth, sh / img.naturalHeight);
-    var dw = img.naturalWidth  * scCover;
-    var dh = img.naturalHeight * scCover;
-    var ox = sx + (sw - dw) / 2;
-    var oy = sy + (sh - dh) / 2;
-
-    ctx.drawImage(img, ox, oy, dw, dh);
-    ctx.restore();
-  }
-
-  // Textos
-  var textos = spread.textos || [];
-  textos.forEach(function(t) {
-    ctx.save();
-    ctx.font = (t.negrito ? 'bold ' : '') + (t.italico ? 'italic ' : '') + (t.tamanho || 24) + 'px ' + (t.fonte || 'Playfair Display, serif');
-    ctx.fillStyle = t.cor || '#FFFFFF';
-    ctx.globalAlpha = 0.9;
-    ctx.textAlign   = t.alinhamento || 'left';
-    var tx = t.x * W, ty = t.y * H;
-    ctx.fillText(t.conteudo || '', tx, ty);
-    ctx.restore();
-  });
-}
-
-async function carregarFoto(key) {
-  if (_fotoCache[key]) return _fotoCache[key];
-  return new Promise(function(resolve) {
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload  = function() { _fotoCache[key] = img; resolve(img); };
-    img.onerror = function() { resolve(null); };
-    img.src = '/api/gallery-img?key=' + encodeURIComponent(key);
-  });
 }
 
 // ── Comentário ────────────────────────────────────────────────────────────────

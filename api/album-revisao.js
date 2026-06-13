@@ -266,12 +266,17 @@ async function acPreviewUpload(req, res) {
     return res.status(500).json({ error: 'Erro ao salvar preview' });
   }
 
-  const { error: uErr } = await sb
-    .from('album_spreads').update({ preview_key: key, atualizado_em: new Date().toISOString() })
-    .eq('id', spread_id).eq('album_id', album_id);
+  // album_spreads NÃO tem coluna atualizado_em — não incluir.
+  const { data: updated, error: uErr } = await sb
+    .from('album_spreads').update({ preview_key: key })
+    .eq('id', spread_id).eq('album_id', album_id).select('id').maybeSingle();
   if (uErr) {
     console.error('acPreviewUpload update error:', uErr);
-    return res.status(500).json({ error: 'Erro ao salvar preview_key' });
+    return res.status(500).json({ error: uErr.message || 'Erro ao salvar preview_key' });
+  }
+  if (!updated) {
+    console.error('acPreviewUpload: 0 linhas atualizadas', { album_id, spread_id });
+    return res.status(500).json({ error: 'Spread não encontrado para o álbum' });
   }
 
   return res.status(200).json({ key });
