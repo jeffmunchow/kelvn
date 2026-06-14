@@ -1886,6 +1886,14 @@ select.aj-input{cursor:pointer;}
         </label>
       </div>
 
+      <!-- Permitir compartilhamento (só na edição) -->
+      <div id="mgal-compartilhar-row" style="grid-column:1/-1;display:none;">
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;">
+          <input type="checkbox" id="mgal-compartilhar" style="width:14px;height:14px;">
+          Permitir compartilhamento em redes sociais
+        </label>
+      </div>
+
       <!-- Progresso gerenciado pelo widget global upload-progress-wrap -->
       <div style="grid-column:1/-1;">
       </div>
@@ -6885,6 +6893,8 @@ function abrirNovaGaleria(){
   document.getElementById('mgal-senha').value='';
   var dlRow=document.getElementById('mgal-downloads-row');
   if(dlRow) dlRow.style.display='none';
+  var cpRow0=document.getElementById('mgal-compartilhar-row');
+  if(cpRow0) cpRow0.style.display='none';
   var delBtn=document.getElementById('mgal-del');
   if(delBtn) delBtn.style.display='none';
   var sd=g('sd')||{};
@@ -6914,6 +6924,10 @@ function abrirGaleria(id, isNova){
   var dlChk=document.getElementById('mgal-downloads');
   if(dlRow) dlRow.style.display=isNova?'none':'';
   if(dlChk) dlChk.checked=!!gal.downloads_liberados;
+  var cpRow=document.getElementById('mgal-compartilhar-row');
+  var cpChk=document.getElementById('mgal-compartilhar');
+  if(cpRow) cpRow.style.display=isNova?'none':'';
+  if(cpChk) cpChk.checked=(gal.compartilhar_liberado!==false); // padrão: ligado
   var sd=g('sd')||{};
   var hint=document.getElementById('mgal-pro-hint');
   if(hint) hint.style.display=sd['studio-dominio-galeria']?'none':'flex';
@@ -7016,6 +7030,7 @@ function saveGal(){
       status:'rascunho',
       fotos:[],cover_url:'',total_fotos:0,
       downloads_liberados:false,
+      compartilhar_liberado:true,
       created_at:new Date().toISOString(),
       design:designPadrao
     };
@@ -7039,6 +7054,8 @@ function saveGal(){
   gal.senha=document.getElementById('mgal-senha').value.trim();
   var dlChk=document.getElementById('mgal-downloads');
   if(dlChk) gal.downloads_liberados=dlChk.checked;
+  var cpChk=document.getElementById('mgal-compartilhar');
+  if(cpChk) gal.compartilhar_liberado=cpChk.checked;
   s('galerias',gals);
   rGal();
   rGalDetalhe();

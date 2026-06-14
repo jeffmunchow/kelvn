@@ -46,6 +46,20 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // Flag de compartilhamento não vem da RPC — lê do JSON da galeria (PK = user_id).
+    // Padrão: liberado (galerias antigas, sem o campo, mantêm o comportamento atual).
+    let compartilharLiberado = true;
+    if (g.user_id) {
+      const { data: galRow } = await supabase
+        .from('galerias')
+        .select('data')
+        .eq('user_id', g.user_id)
+        .single();
+      const lista = (galRow && Array.isArray(galRow.data)) ? galRow.data : [];
+      const match = lista.find(x => x.slug === slug);
+      if (match && match.compartilhar_liberado === false) compartilharLiberado = false;
+    }
+
     // Assina a cover_url extraindo a key. Formatos possíveis:
     //   1. Proxy autenticado:  /api/gallery-img?key={keyEncodada}  (capa otimizada)
     //   2. R2 público:         pub-xxx.r2.dev/{key}
@@ -74,6 +88,7 @@ module.exports = async function handler(req, res) {
       cover_url:           signedCover,
       total_fotos:         g.total_fotos,
       downloads_liberados: g.downloads_lib,
+      compartilhar_liberado: compartilharLiberado,
       subgalerias:         g.subgalerias || [],
       design:              g.design || null,
       nomeEstudio,
