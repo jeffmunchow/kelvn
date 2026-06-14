@@ -289,6 +289,19 @@ html,body{
 .btn-album-foto.ativo svg{fill:#fff;stroke:#fff;}
 @media(hover:none){ .btn-album-foto{opacity:.6;} }
 
+/* Botão "compartilhar" em cada foto — canto inferior esquerdo */
+.btn-share-foto{position:absolute;bottom:.5rem;left:.5rem;z-index:3;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;cursor:pointer;color:#fff;opacity:0;transition:opacity .2s;padding:0;}
+.btn-share-foto svg{fill:none;stroke:#fff;stroke-width:2;width:16px;height:16px;}
+.gal-foto-wrap:hover .btn-share-foto{opacity:.75;}
+.btn-share-foto:hover{opacity:1!important;}
+@media(hover:none){ .btn-share-foto{opacity:.6;} }
+/* Popover global de compartilhamento (escapa do overflow das células) */
+.share-pop{position:fixed;background:var(--gal-bg);border:.5px solid var(--gal-border,rgba(128,128,128,.18));border-radius:10px;padding:4px 0;min-width:188px;display:none;z-index:12000;box-shadow:0 8px 32px rgba(0,0,0,.35);}
+.share-pop.open{display:block;}
+.share-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.74rem;color:var(--gal-text);opacity:.78;cursor:pointer;white-space:nowrap;transition:background .12s;background:none;border:none;width:100%;text-align:left;font-family:inherit;}
+.share-opt:hover{background:var(--gal-accent-soft,rgba(128,128,128,.08));opacity:1;}
+.share-opt svg{flex-shrink:0;}
+
 /* Modal de email */
 .fav-email-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;padding:1.5rem;}
 .fav-email-modal.open{display:flex;}
@@ -323,6 +336,9 @@ html,body{
   <div class="lb-img-col">
     <img class="lb-img" id="lb-img" src="" alt="">
     <div class="lb-actions" id="lb-actions" style="display:none;">
+      <button class="lb-icon-btn" id="lb-share-btn" onclick="event.stopPropagation();openSharePop(this,_lbIdx)" title="Compartilhar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      </button>
       <button class="lb-icon-btn" id="lb-fav-btn" onclick="event.stopPropagation();toggleFavoritoLb()" title="Favoritar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
       </button>
@@ -707,6 +723,9 @@ function renderizarGaleria(){
     if(!e.target.closest('.btn-dl-wrap')){
       document.querySelectorAll('.dl-menu.open').forEach(function(m){ m.classList.remove('open'); });
     }
+    if(!e.target.closest('.btn-share-foto') && !e.target.closest('#lb-share-btn') && !e.target.closest('#share-pop')){
+      _closeShareMenus();
+    }
   });
 }
 
@@ -913,13 +932,145 @@ function fotoCell(foto, i, classExtra){
     +'data-album-key="'+favKey+'" onclick="event.stopPropagation();toggleAlbum(\''+favKey+'\')" title="Selecionar para o álbum">'
     +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
     +'</button>';
+  var shareBtn = '<button class="btn-share-foto" onclick="event.stopPropagation();openSharePop(this,'+i+')" title="Compartilhar">'+_shareIconSvg+'</button>';
   return '<div class="gal-foto-wrap'+(classExtra||'')+'" onclick="openLb('+i+')">'
     +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
     +(foto.url !== imgSrc ? ' onerror="this.src=\''+foto.url+'\'"' : '')+'>'
-    +albumBtn+favBtn
+    +albumBtn+favBtn+shareBtn
     +'<div class="gal-foto-overlay">'+dlBtn+'</div>'
     +'</div>';
 }
+
+// ── Ícones e lógica de compartilhamento ──────────────────────────────────────
+var _shareIconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+var _waIconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.728-.978zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
+var _igIconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>';
+
+// Popover único, reutilizado por todas as fotos e pelo lightbox.
+var _sharePopIdx = -1;
+function _ensureSharePop(){
+  var pop = document.getElementById('share-pop');
+  if(pop) return pop;
+  pop = document.createElement('div');
+  pop.id = 'share-pop';
+  pop.className = 'share-pop';
+  pop.onclick = function(e){ e.stopPropagation(); };
+  pop.innerHTML =
+    '<button class="share-opt" onclick="shareWhatsPop()">'+_waIconSvg+'<span>WhatsApp</span></button>'
+    +'<button class="share-opt" onclick="shareInstaPop()">'+_igIconSvg+'<span>Stories do Instagram</span></button>';
+  document.body.appendChild(pop);
+  window.addEventListener('scroll', _closeShareMenus, true);
+  window.addEventListener('resize', _closeShareMenus);
+  return pop;
+}
+function openSharePop(btn, i){
+  var pop = _ensureSharePop();
+  var alreadyOpen = pop.classList.contains('open') && _sharePopIdx === i;
+  if(alreadyOpen){ _closeShareMenus(); return; }
+  _sharePopIdx = i;
+  _prefetchShareFile(i); // pré-carrega p/ share síncrono (iOS exige gesto do usuário)
+  pop.style.visibility = 'hidden';
+  pop.classList.add('open');
+  // mede e posiciona acima do botão, preso à viewport
+  var r = btn.getBoundingClientRect();
+  var pw = pop.offsetWidth, ph = pop.offsetHeight, m = 8;
+  var left = r.left;
+  if(left + pw > window.innerWidth - m) left = window.innerWidth - pw - m;
+  if(left < m) left = m;
+  var top = r.top - ph - 6;
+  if(top < m) top = r.bottom + 6; // se não couber acima, abre abaixo
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.style.visibility = '';
+}
+function _closeShareMenus(){
+  var pop = document.getElementById('share-pop');
+  if(pop) pop.classList.remove('open');
+  _sharePopIdx = -1;
+}
+function _fotoSharePop(){ return _fotosVisiveis[_sharePopIdx]; }
+function shareWhatsPop(){ shareWhats(_fotoSharePop()); }
+function shareInstaPop(){ shareInsta(_fotoSharePop(), _sharePopIdx); }
+
+// Pré-carrega o arquivo da imagem para o share nativo funcionar dentro do gesto.
+var _shareFile = null, _shareFileIdx = -1;
+function _prefetchShareFile(i){
+  _shareFile = null; _shareFileIdx = -1;
+  var foto = _fotosVisiveis[i];
+  if(!foto || !navigator.canShare) return;
+  var key = foto.webKey || foto.key;
+  if(!key) return;
+  fetch('/api/gallery-img?key='+encodeURIComponent(key)+'&raw=1')
+    .then(function(r){ return r.ok ? r.blob() : null; })
+    .then(function(blob){
+      if(!blob) return;
+      var file = new File([blob], 'foto.jpg', { type: blob.type || 'image/jpeg' });
+      if(_sharePopIdx === i){ _shareFile = file; _shareFileIdx = i; }
+    })
+    .catch(function(){});
+}
+function _absUrl(path){
+  if(!path) return '';
+  if(/^https?:\/\//.test(path)) return path;
+  return location.origin + path;
+}
+// Link público para a imagem (usado no WhatsApp)
+function _linkFoto(foto){
+  if(!foto) return location.href;
+  var key = foto.webKey || foto.key;
+  if(key) return _absUrl('/api/gallery-img?key='+encodeURIComponent(key));
+  return foto.webUrl || foto.url || location.href;
+}
+
+function shareWhats(foto){
+  _closeShareMenus();
+  if(!foto) return;
+  var nome = (_galData && _galData.nomeCliente) ? (_galData.nomeCliente + ' — ') : '';
+  var txt = nome + _linkFoto(foto);
+  window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+}
+
+async function shareInsta(foto, idx){
+  if(!foto){ _closeShareMenus(); return; }
+  // Arquivo já pré-carregado para esta foto? Compartilha de forma síncrona
+  // (iOS exige que navigator.share rode dentro do gesto do usuário).
+  var cached = (_shareFile && _shareFileIdx === idx) ? _shareFile : null;
+  _closeShareMenus();
+  if(cached && navigator.canShare && navigator.canShare({ files:[cached] })){
+    try{ await navigator.share({ files:[cached] }); return; }
+    catch(e){ if(e && e.name === 'AbortError') return; }
+  }
+  // Sem cache pronto: tenta buscar agora (funciona na maioria dos Androids)
+  var key = foto.webKey || foto.key;
+  try{
+    if(key && navigator.canShare){
+      var resp = await fetch('/api/gallery-img?key='+encodeURIComponent(key)+'&raw=1');
+      if(resp.ok){
+        var blob = await resp.blob();
+        var file = new File([blob], 'foto.jpg', { type: blob.type || 'image/jpeg' });
+        if(navigator.canShare({ files:[file] })){
+          await navigator.share({ files:[file] });
+          return;
+        }
+      }
+    }
+  }catch(e){ if(e && e.name === 'AbortError') return; /* segue p/ fallback */ }
+  // Fallback (desktop / sem suporte): baixa a versão web e orienta
+  baixarFotoWeb(foto);
+  notify('Imagem salva. Abra o Instagram para postar nos seus Stories.');
+}
+
+function baixarFotoWeb(foto){
+  if(!foto) return;
+  var key = foto.webKey || foto.key;
+  if(key){
+    window.location.href = '/api/gallery-download?key='+encodeURIComponent(key)+'&filename=foto.jpg';
+  } else if(foto.webUrl || foto.url){
+    var a=document.createElement('a'); a.href=foto.webUrl||foto.url; a.download='foto.jpg';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function renderDlOpts(foto, i){
@@ -999,6 +1150,7 @@ function openLb(i){
 }
 function closeLb(){
   document.getElementById('lb').classList.remove('open');
+  _closeShareMenus();
 }
 function lbClickOutside(e){
   if(e.target === document.getElementById('lb')) closeLb();
@@ -1010,6 +1162,7 @@ function lbNav(dir){
 function atualizarLb(){
   var foto = _fotosVisiveis[_lbIdx];
   if(!foto) return;
+  _closeShareMenus();
   document.getElementById('lb-img').src = foto.webUrl || foto.url;
   var counter = document.getElementById('lb-counter');
   if(counter) counter.textContent = (_lbIdx+1) + ' / ' + _fotosVisiveis.length;
