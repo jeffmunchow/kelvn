@@ -6521,7 +6521,7 @@ async function resolverComentario(id, btn) {
   btn.textContent = 'Resolvendo…';
   var { error } = await _sb.from('album_comentarios')
     .update({ resolvido: true, resolvido_em: new Date().toISOString() })
-    .eq('id', id).eq('user_id', _userId);
+    .eq('id', id);
   if (!error) {
     var item = btn.closest('.rev-item');
     if (item) {
