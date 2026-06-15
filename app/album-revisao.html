@@ -103,6 +103,7 @@ body{
   padding:1rem 1.25rem 1.5rem;
   display:flex;align-items:center;justify-content:center;
 }
+#dock-inner{display:flex;align-items:center;width:100%;}
 .dock-center{display:flex;align-items:center;gap:1.1rem;}
 .dock-side{flex:1;display:flex;align-items:center;}
 .dock-left{justify-content:flex-start;}
@@ -248,6 +249,7 @@ textarea.form-input{resize:vertical;min-height:92px;line-height:1.5;}
   </div>
 
   <div id="rev-dock">
+   <div id="dock-inner">
     <div class="dock-side dock-left">
       <span id="rev-rodada"></span>
     </div>
@@ -266,6 +268,7 @@ textarea.form-input{resize:vertical;min-height:92px;line-height:1.5;}
         Comentar
       </button>
     </div>
+   </div>
   </div>
 
 </div><!-- /estado-revisao -->
@@ -443,6 +446,7 @@ function montarLivro() {
   _pageFlip.on('flip', function(e){ aoVirar(e.data); });
 
   aoVirar(0);
+  sincDock();
 
   // Dica de arraste some após interação ou 4.5s
   var hint = document.getElementById('hint');
@@ -457,6 +461,7 @@ function montarLivro() {
     var port = window.innerWidth < 720;
     book.style.width = (port ? d.w : d.w * 2) + 'px';
     try { _pageFlip.update(); } catch(_){}
+    sincDock();
   }, 200));
 }
 
@@ -491,6 +496,14 @@ function criarContracapa(){
     '<div class="bk-nome">' + (escHtml(_album.nome) || 'Álbum') + '</div>' +
     '<div class="bk-logo">k</div></div>';
   return page;
+}
+
+function sincDock(){
+  var d = calcDims();
+  var portrait = window.innerWidth < 720;
+  var bookW = portrait ? d.w : d.w * 2;
+  var inner = document.getElementById('dock-inner');
+  if(inner) inner.style.width = bookW + 'px';
 }
 
 function calcDims(){
