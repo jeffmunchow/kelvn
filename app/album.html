@@ -1323,7 +1323,7 @@ async function renderLista() {
 // vem de albuns.revisao_vista_em — comentários posteriores a essa data são novos.
 async function _coletarRevisoes() {
   var { data: albuns, error: e1 } = await _sb.from('albuns')
-    .select('id,nome_cliente,nome,revisao_vista_em')
+    .select('id,nome,revisao_vista_em')
     .eq('user_id', _userId);
   if (e1 || !albuns || !albuns.length) return [];
 
@@ -1355,7 +1355,7 @@ async function _coletarRevisoes() {
       count: gp.count,
       ultima: gp.ultima,
       visto: visto,
-      nome: a.nome_cliente || a.nome || '—',
+      nome: a.nome || '—',
     };
   });
 
