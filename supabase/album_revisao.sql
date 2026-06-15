@@ -7,6 +7,7 @@ alter table albuns
   add column if not exists revisao_ativa        boolean  default false,
   add column if not exists revisao_rodada       integer  default 0,
   add column if not exists revisao_expira_em    timestamptz,
+  add column if not exists revisao_vista_em     timestamptz,  -- última vez que o fotógrafo viu os comentários
   add column if not exists aprovado             boolean  default false,
   add column if not exists aprovado_em          timestamptz,
   add column if not exists aprovado_por_nome    text,

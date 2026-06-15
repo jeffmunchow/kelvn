@@ -342,6 +342,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .rev-item-resolver:hover{color:var(--teal);border-color:var(--teal);}
 #btn-revisao-wrap{position:relative;display:inline-flex;}
 .rev-badge{position:absolute;top:-5px;right:-5px;background:var(--coral);color:#fff;border-radius:50%;width:14px;height:14px;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+/* Botão Revisões (grid) + badge de não-visualizadas */
+#btn-revisoes{position:relative;}
+#btn-revisoes-badge{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;background:var(--coral);color:#fff;border-radius:20px;font-size:.56rem;font-weight:700;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+/* Lista de revisões (view-revisoes) */
+#revx-lista{display:flex;flex-direction:column;gap:.5rem;}
+.revx-item{display:flex;align-items:center;gap:1rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;padding:.85rem 1.1rem;cursor:pointer;transition:opacity .15s,border-color .15s;}
+.revx-item:hover{opacity:.85;border-color:var(--text-hint);}
+.revx-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--coral);}
+.revx-dot.visto{background:transparent;border:1px solid var(--border-strong);}
+.revx-main{flex:1;min-width:0;}
+.revx-nome{font-size:.85rem;font-weight:500;color:var(--text);}
+.revx-meta{font-size:.68rem;color:var(--text-hint);margin-top:2px;}
+.revx-right{display:flex;align-items:center;gap:.85rem;flex-shrink:0;}
+.revx-data{font-size:.7rem;color:var(--text-muted);text-align:right;}
+.revx-status{font-size:.6rem;font-weight:600;letter-spacing:.03em;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.revx-status.nova{background:var(--amber-light);color:var(--amber-deep);}
+.revx-status.vista{background:var(--surface2);color:var(--text-hint);}
 #banner-aprovado-editor{background:var(--teal-light);border-bottom:.5px solid var(--teal);padding:.45rem 1.25rem;font-size:.77rem;color:var(--teal);display:none;align-items:center;gap:.5rem;flex-shrink:0;}
 /* ── Utilitários ─────────────────────────────────────────────────── */
 .hidden{display:none!important;}
@@ -440,6 +457,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
             <button onclick="albSetSort('created_asc')"  class="gal-sort-opt">Criadas: Antigas → Recentes</button>
           </div>
         </div>
+        <!-- Revisões -->
+        <button class="btn" id="btn-revisoes" onclick="irParaRevisoes()" style="display:flex;align-items:center;gap:.4rem;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Revisões
+          <span id="btn-revisoes-badge" class="hidden"></span>
+        </button>
         <!-- Busca -->
         <div style="position:relative;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -454,6 +477,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       <div style="font-size:.75rem;">Crie o primeiro para começar a diagramar.</div>
     </div>
     <div id="albuns-grid"></div>
+  </div>
+
+  <!-- Lista de revisões -->
+  <div id="view-revisoes" class="hidden">
+    <div class="sh">
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <button class="btn btn-sec" onclick="irParaLista()" style="padding:5px 12px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Álbuns
+        </button>
+        <div class="st">Revisões</div>
+      </div>
+    </div>
+    <div id="revx-empty" style="display:none;text-align:center;color:var(--text-hint);padding:3rem 0;">
+      <div style="font-size:1.5rem;margin-bottom:.75rem;opacity:.3;">💬</div>
+      <div style="margin-bottom:.4rem;">Nenhuma revisão ainda.</div>
+      <div style="font-size:.75rem;">Quando o casal comentar um álbum, aparece aqui.</div>
+    </div>
+    <div id="revx-lista"></div>
   </div>
 
   <!-- Modal: Novo álbum -->
@@ -1145,7 +1187,7 @@ function selGaleria(slug, texto) {
 
 // ── Navegação ─────────────────────────────────────────────────────────────────
 function mostrar(id) {
-  ['view-lista','view-editor'].forEach(function(v) {
+  ['view-lista','view-editor','view-revisoes'].forEach(function(v) {
     document.getElementById(v).classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
@@ -1154,6 +1196,7 @@ function mostrar(id) {
 async function irParaLista() {
   mostrar('view-lista');
   await renderLista();
+  atualizarBadgeRevisoes();
 }
 
 function irParaNovo() {
@@ -1274,6 +1317,119 @@ async function renderLista() {
     card.addEventListener('click', function() { abrirAlbum(a); });
     grid.appendChild(card);
   });
+}
+
+// ── Revisões (lista global de comentários por álbum/rodada) ───────────────────
+// Agrupa os comentários do casal por álbum + rodada. Cada grupo é uma "revisão":
+// um lote de comentários enviado numa rodada de revisão. O status visto/não-visto
+// vem de albuns.revisao_vista_em — comentários posteriores a essa data são novos.
+async function _coletarRevisoes() {
+  var { data: albuns, error: e1 } = await _sb.from('albuns')
+    .select('id,nome_cliente,nome,revisao_vista_em')
+    .eq('user_id', _userId);
+  if (e1 || !albuns || !albuns.length) return [];
+
+  var byId = {};
+  var ids = albuns.map(function(a){ byId[a.id] = a; return a.id; });
+
+  var { data: coments, error: e2 } = await _sb.from('album_comentarios')
+    .select('album_id,rodada,criado_em')
+    .in('album_id', ids);
+  if (e2 || !coments || !coments.length) return [];
+
+  var groups = {};
+  coments.forEach(function(c){
+    var rod = c.rodada || 1;
+    var key = c.album_id + '|' + rod;
+    if (!groups[key]) groups[key] = { album_id:c.album_id, rodada:rod, count:0, ultima:c.criado_em };
+    groups[key].count++;
+    if (new Date(c.criado_em) > new Date(groups[key].ultima)) groups[key].ultima = c.criado_em;
+  });
+
+  var rows = Object.keys(groups).map(function(k){
+    var gp = groups[k];
+    var a = byId[gp.album_id] || {};
+    var vista = a.revisao_vista_em ? new Date(a.revisao_vista_em) : null;
+    var visto = !!(vista && vista >= new Date(gp.ultima));
+    return {
+      album_id: gp.album_id,
+      rodada: gp.rodada,
+      count: gp.count,
+      ultima: gp.ultima,
+      visto: visto,
+      nome: a.nome_cliente || a.nome || '—',
+    };
+  });
+
+  // Não-vistas primeiro; depois mais recentes no topo
+  rows.sort(function(a, b){
+    if (a.visto !== b.visto) return a.visto ? 1 : -1;
+    return new Date(b.ultima) - new Date(a.ultima);
+  });
+  return rows;
+}
+
+async function atualizarBadgeRevisoes() {
+  try {
+    var rows = await _coletarRevisoes();
+    var nNovas = rows.filter(function(r){ return !r.visto; }).length;
+    var badge = document.getElementById('btn-revisoes-badge');
+    if (!badge) return;
+    if (nNovas > 0) {
+      badge.textContent = nNovas > 9 ? '9+' : String(nNovas);
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  } catch(_) {}
+}
+
+async function irParaRevisoes() {
+  mostrar('view-revisoes');
+  await carregarRevisoes();
+}
+
+async function carregarRevisoes() {
+  var lista = document.getElementById('revx-lista');
+  var empty = document.getElementById('revx-empty');
+  lista.innerHTML = '<div style="color:var(--text-hint);font-size:.78rem;padding:1rem 0;">Carregando…</div>';
+  empty.style.display = 'none';
+
+  var rows = await _coletarRevisoes();
+  if (!rows.length) {
+    lista.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  lista.innerHTML = '';
+  rows.forEach(function(r){
+    var d = new Date(r.ultima);
+    var dataStr = d.toLocaleDateString('pt-BR') + ' · ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+    var plural = r.count === 1 ? 'comentário' : 'comentários';
+    var item = document.createElement('div');
+    item.className = 'revx-item';
+    item.innerHTML =
+      '<span class="revx-dot' + (r.visto ? ' visto' : '') + '"></span>' +
+      '<div class="revx-main">' +
+        '<div class="revx-nome">' + esc(r.nome) + '</div>' +
+        '<div class="revx-meta">Rodada ' + r.rodada + ' · ' + r.count + ' ' + plural + '</div>' +
+      '</div>' +
+      '<div class="revx-right">' +
+        '<div class="revx-data">' + dataStr + '</div>' +
+        '<span class="revx-status ' + (r.visto ? 'vista' : 'nova') + '">' + (r.visto ? 'Visualizado' : 'Não visualizado') + '</span>' +
+      '</div>';
+    item.addEventListener('click', function(){ abrirRevisaoAlbum(r.album_id); });
+    lista.appendChild(item);
+  });
+}
+
+// Abre o editor no álbum da revisão. abrirModalRevisao marca como visualizado.
+async function abrirRevisaoAlbum(albumId) {
+  var { data: album, error } = await _sb.from('albuns').select('*').eq('id', albumId).single();
+  if (error || !album) { alert('Não foi possível abrir este álbum.'); return; }
+  await abrirAlbum(album);
+  abrirModalRevisao();
 }
 
 // ── Criar álbum ───────────────────────────────────────────────────────────────
@@ -6278,6 +6434,15 @@ function copiarLink() {
 // Modal de revisão (comentários)
 async function abrirModalRevisao() {
   document.getElementById('modal-revisao').classList.add('open');
+  // Marca os comentários deste álbum como visualizados (alimenta a lista de Revisões)
+  if (estado.album && estado.album.id) {
+    var agora = new Date().toISOString();
+    estado.album.revisao_vista_em = agora;
+    _sb.from('albuns')
+      .update({ revisao_vista_em: agora })
+      .eq('id', estado.album.id).eq('user_id', _userId)
+      .then(function(){}, function(){});
+  }
   await carregarComentarios();
 }
 
