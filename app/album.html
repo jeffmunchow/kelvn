@@ -346,19 +346,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #btn-revisoes{position:relative;}
 #btn-revisoes-badge{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;background:var(--coral);color:#fff;border-radius:20px;font-size:.56rem;font-weight:700;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 /* Lista de revisões (view-revisoes) */
-#revx-lista{display:flex;flex-direction:column;gap:.5rem;}
-.revx-item{display:flex;align-items:center;gap:1rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;padding:.85rem 1.1rem;cursor:pointer;transition:opacity .15s,border-color .15s;}
-.revx-item:hover{opacity:.85;border-color:var(--text-hint);}
+#revx-lista{display:flex;flex-direction:column;}
+.revx-item{display:flex;align-items:center;gap:1rem;padding:.9rem 0;border-bottom:.5px solid var(--border);cursor:pointer;transition:opacity .15s;}
+.revx-item:hover{opacity:.7;}
 .revx-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--coral);}
-.revx-dot.visto{background:transparent;border:1px solid var(--border-strong);}
+.revx-dot.visto{background:var(--border-strong);}
 .revx-main{flex:1;min-width:0;}
 .revx-nome{font-size:.85rem;font-weight:500;color:var(--text);}
-.revx-meta{font-size:.68rem;color:var(--text-hint);margin-top:2px;}
-.revx-right{display:flex;align-items:center;gap:.85rem;flex-shrink:0;}
-.revx-data{font-size:.7rem;color:var(--text-muted);text-align:right;}
-.revx-status{font-size:.6rem;font-weight:600;letter-spacing:.03em;padding:2px 9px;border-radius:20px;white-space:nowrap;}
-.revx-status.nova{background:var(--amber-light);color:var(--amber-deep);}
-.revx-status.vista{background:var(--surface2);color:var(--text-hint);}
+.revx-meta{font-size:.72rem;color:var(--text-hint);margin-top:2px;}
+.revx-status{font-size:.72rem;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.revx-status.nova{color:var(--coral);}
+.revx-status.vista{color:var(--text-hint);}
 #banner-aprovado-editor{background:var(--teal-light);border-bottom:.5px solid var(--teal);padding:.45rem 1.25rem;font-size:.77rem;color:var(--teal);display:none;align-items:center;gap:.5rem;flex-shrink:0;}
 /* ── Utilitários ─────────────────────────────────────────────────── */
 .hidden{display:none!important;}
@@ -1405,6 +1403,8 @@ async function carregarRevisoes() {
     var d = new Date(r.ultima);
     var dataStr = d.toLocaleDateString('pt-BR') + ' · ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
     var plural = r.count === 1 ? 'comentário' : 'comentários';
+    var diasAtras = Math.floor((Date.now() - d.getTime()) / 86400000);
+    var statusTxt = r.visto ? 'Visualizado' : (diasAtras === 0 ? 'Hoje' : 'Há ' + diasAtras + 'd');
     var item = document.createElement('div');
     item.className = 'revx-item';
     item.innerHTML =
@@ -1413,10 +1413,7 @@ async function carregarRevisoes() {
         '<div class="revx-nome">' + esc(r.nome) + '</div>' +
         '<div class="revx-meta">Rodada ' + r.rodada + ' · ' + r.count + ' ' + plural + '</div>' +
       '</div>' +
-      '<div class="revx-right">' +
-        '<div class="revx-data">' + dataStr + '</div>' +
-        '<span class="revx-status ' + (r.visto ? 'vista' : 'nova') + '">' + (r.visto ? 'Visualizado' : 'Não visualizado') + '</span>' +
-      '</div>';
+      '<span class="revx-status ' + (r.visto ? 'vista' : 'nova') + '">' + statusTxt + '</span>';
     item.addEventListener('click', function(){ abrirRevisaoAlbum(r.album_id); });
     lista.appendChild(item);
   });
