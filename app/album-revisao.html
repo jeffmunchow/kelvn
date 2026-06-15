@@ -101,8 +101,12 @@ body{
 #rev-dock{
   position:absolute;bottom:0;left:0;right:0;z-index:20;
   padding:1rem 1.25rem 1.5rem;
-  display:flex;align-items:center;justify-content:center;gap:1.1rem;
+  display:flex;align-items:center;justify-content:center;
 }
+.dock-center{display:flex;align-items:center;gap:1.1rem;}
+.dock-side{flex:1;display:flex;align-items:center;}
+.dock-left{justify-content:flex-start;}
+.dock-right{justify-content:flex-end;}
 .dock-nav{
   width:42px;height:42px;border-radius:50%;border:none;
   background:transparent;color:var(--text-hint);cursor:pointer;outline:none;
@@ -216,12 +220,11 @@ textarea.form-input{resize:vertical;min-height:92px;line-height:1.5;}
 <div id="estado-revisao" class="hidden">
 
   <div id="rev-topbar">
-    <div id="rev-logo">k</div>
-    <div class="topbar-center">
+    <div id="rev-logo" style="display:none;">k</div>
+    <div class="topbar-center" style="display:none;">
       <span id="rev-album-nome">Álbum</span>
-      <span id="rev-rodada"></span>
     </div>
-    <div class="topbar-spacer"></div>
+    <div class="topbar-spacer" style="display:none;"></div>
   </div>
 
   <div id="banner-aprovado" class="hidden">
@@ -245,17 +248,24 @@ textarea.form-input{resize:vertical;min-height:92px;line-height:1.5;}
   </div>
 
   <div id="rev-dock">
-    <button class="dock-nav" id="btn-prev" onclick="flipPrev()" aria-label="Anterior">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <span id="dock-label">Capa</span>
-    <button class="dock-nav" id="btn-next" onclick="flipNext()" aria-label="Próxima">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </button>
-    <button class="dock-pill" id="btn-comentar" onclick="abrirComentario()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Comentar
-    </button>
+    <div class="dock-side dock-left">
+      <span id="rev-rodada"></span>
+    </div>
+    <div class="dock-center">
+      <button class="dock-nav" id="btn-prev" onclick="flipPrev()" aria-label="Anterior">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span id="dock-label">Capa</span>
+      <button class="dock-nav" id="btn-next" onclick="flipNext()" aria-label="Próxima">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="dock-side dock-right">
+      <button class="dock-pill" id="btn-comentar" onclick="abrirComentario()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Comentar
+      </button>
+    </div>
   </div>
 
 </div><!-- /estado-revisao -->
