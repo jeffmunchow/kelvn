@@ -353,7 +353,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .revx-dot.visto{background:var(--border-strong);}
 .revx-main{flex:1;min-width:0;}
 .revx-nome{font-size:.85rem;font-weight:500;color:var(--text);}
-.revx-meta{font-size:.72rem;color:var(--text-hint);margin-top:2px;}
+.revx-meta{display:flex;gap:1.5rem;font-size:.72rem;color:var(--text-hint);margin-top:2px;}
 .revx-status{font-size:.72rem;font-weight:500;white-space:nowrap;flex-shrink:0;}
 .revx-status.nova{color:var(--coral);}
 .revx-status.vista{color:var(--text-hint);}
@@ -1411,7 +1411,7 @@ async function carregarRevisoes() {
       '<span class="revx-dot' + (r.visto ? ' visto' : '') + '"></span>' +
       '<div class="revx-main">' +
         '<div class="revx-nome">' + esc(r.nome) + '</div>' +
-        '<div class="revx-meta">Rodada ' + r.rodada + ' · ' + r.count + ' ' + plural + '</div>' +
+        '<div class="revx-meta"><span>Rodada ' + r.rodada + '</span><span>' + r.count + ' ' + plural + '</span></div>' +
       '</div>' +
       '<span class="revx-status ' + (r.visto ? 'vista' : 'nova') + '">' + statusTxt + '</span>';
     item.addEventListener('click', function(){ abrirRevisaoAlbum(r.album_id); });
