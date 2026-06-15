@@ -346,14 +346,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #btn-revisoes{position:relative;}
 #btn-revisoes-badge{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;padding:0 4px;background:var(--coral);color:#fff;border-radius:20px;font-size:.56rem;font-weight:700;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 /* Lista de revisões (view-revisoes) */
-#revx-lista{display:flex;flex-direction:column;}
-.revx-item{display:flex;align-items:center;gap:1rem;padding:.9rem .75rem;margin:0 -.75rem;border-bottom:.5px solid var(--border);cursor:pointer;border-radius:6px;transition:background .15s;}
+#revx-lista{display:flex;flex-direction:column;background:var(--surface);border-radius:var(--radius);overflow:hidden;}
+.revx-item{background:var(--surface);padding:.85rem 1.25rem;display:flex;align-items:center;gap:1rem;border-bottom:.5px solid var(--border-strong);cursor:pointer;}
+.revx-item:last-child{border-bottom:none;}
 .revx-item:hover{background:var(--surface2);}
-.revx-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--coral);}
+.revx-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--coral);}
 .revx-dot.visto{background:var(--border-strong);}
-.revx-nome{font-size:.85rem;font-weight:500;color:var(--text);width:320px;flex-shrink:0;min-width:0;}
-.revx-col{font-size:.78rem;color:var(--text-hint);width:140px;flex-shrink:0;white-space:nowrap;}
-.revx-status{font-size:.78rem;font-weight:500;white-space:nowrap;width:100px;flex-shrink:0;text-align:right;}
+.revx-nome{font-size:.82rem;color:var(--text);width:320px;flex-shrink:0;}
+.revx-col{font-size:.72rem;color:var(--text-hint);width:140px;flex-shrink:0;white-space:nowrap;}
+.revx-status{font-size:.72rem;font-weight:500;white-space:nowrap;flex:1;text-align:right;}
 .revx-status.nova{color:var(--coral);}
 .revx-status.vista{color:var(--text-hint);}
 #banner-aprovado-editor{background:var(--teal-light);border-bottom:.5px solid var(--teal);padding:.45rem 1.25rem;font-size:.77rem;color:var(--teal);display:none;align-items:center;gap:.5rem;flex-shrink:0;}
