@@ -9550,7 +9550,9 @@ function atualizarPreview(){
   if(!d || !d.paleta){ el.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-hint);font-size:.8rem;">Configurando...</div>'; return; }
   var nColsPreview = _previewMode === 'mobile' ? 2 : (_designAtual && _designAtual.zoom_grid ? _designAtual.zoom_grid : 4);
   var fotos = (gal.fotos || []).slice(0, Math.max(18, nColsPreview * 4));
-  var coverUrl = r2proxy(gal.cover_url || (fotos[0] && (fotos[0].webUrl || fotos[0].url)) || '');
+  var _coverMatch = gal.cover_foto_url || gal.cover_url || '';
+  var _capaFoto = (gal.fotos||[]).find(function(f){ return f.url===_coverMatch||f.webUrl===_coverMatch||f.thumbUrl===_coverMatch; }) || fotos[0] || null;
+  var coverUrl = _capaFoto ? r2proxy(_capaFoto.thumbUrl || _capaFoto.webUrl || _capaFoto.url) : (gal.cover_url ? r2proxy(gal.cover_url) : '');
 
   // Tamanhos em px proporcionais ao container vs. galeria real
   // Mobile usa viewport de referência menor (390px), desktop usa ~1700px
