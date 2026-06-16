@@ -9717,8 +9717,7 @@ function atualizarPreview(){
 var _focalHandlers = null;
 
 function abrirPontoFocal(){
-  var galerias = g('galerias') || [];
-  var gal = galerias.find(function(g2){ return g2.id === _designGalId; });
+  var gal = _designGalObj;
   if(!gal) return;
   var _coverMatch = gal.cover_foto_url || gal.cover_url || '';
   var _capaFoto = (gal.fotos||[]).find(function(f){ return f.url===_coverMatch||f.webUrl===_coverMatch||f.thumbUrl===_coverMatch; }) || (gal.fotos && gal.fotos[0]) || null;
