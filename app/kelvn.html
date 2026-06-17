@@ -291,7 +291,9 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 /* INADIMPLENCIA */
 /* INSTAGRAM WIDGET */
 .ig-pill{font-size:.62rem;padding:2px 9px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-hint);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s;}
-.ig-pill.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+.ig-pill.active{background:transparent;color:var(--text);border-color:var(--border-strong);}
+.ig-pill:hover{background:var(--surface2);}
+.ig-pill.active:hover{background:var(--surface2);}
 .ig-kpi-row{display:grid;grid-template-columns:1fr 1fr;border-top:.5px solid var(--border);}
 .ig-kpi{padding:.7rem 1rem;border-right:.5px solid var(--border);}
 .ig-kpi:nth-child(2n){border-right:none;}
