@@ -14,6 +14,8 @@
     '.btn{font-family:\'DM Sans\',sans-serif;font-size:.78rem;padding:6px 15px;border-radius:var(--radius);border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;}',
     '.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text);}',
     '.btn.primary:hover{opacity:.82;}',
+    '#ov-feedback .btn.primary{background:transparent;color:var(--text);border-color:var(--border-strong);}',
+    '#ov-feedback .btn.primary:hover{background:var(--surface2);opacity:1;}',
     '.ig-pill{font-size:.62rem;padding:2px 9px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-hint);cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:background .15s,color .15s;}',
     '#fb-msg::placeholder{color:var(--text-hint);}',
     '#fb-tipos .ig-pill{transition:background .15s,color .15s;}',
