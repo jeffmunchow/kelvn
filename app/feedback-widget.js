@@ -8,6 +8,7 @@
     '.modal h2{font-family:\'Playfair Display\',serif;font-size:1.05rem;font-weight:600;margin-bottom:1.25rem;}',
     '.field{margin-bottom:.9rem;}',
     '.field label{display:block;font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}',
+    '#ov-feedback .field label{text-transform:none;letter-spacing:normal;}',
     '.field input,.field select{width:100%;font-family:\'DM Sans\',sans-serif;font-size:.88rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);outline:none;}',
     '.ma{display:flex;gap:8px;margin-top:1.5rem;justify-content:flex-end;flex-wrap:wrap;}',
     '.btn{font-family:\'DM Sans\',sans-serif;font-size:.78rem;padding:6px 15px;border-radius:var(--radius);border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;}',
