@@ -642,7 +642,7 @@ select.aj-input{cursor:pointer;}
                   <div style="font-size:1rem;font-weight:500;color:var(--text);margin-top:2px;" id="ma-camp-ativas">—</div>
                 </div>
               </div>
-              <canvas id="ma-canvas" height="90" style="width:100%;margin-top:.85rem;display:block;"></canvas>
+              <canvas id="ma-canvas" height="125" style="width:100%;margin-top:.85rem;display:block;"></canvas>
             </div>
             <div class="ig-kpi-row">
               <div class="ig-kpi"><div class="ig-kpi-l">Alcance</div><div class="ig-kpi-v" id="ma-alcance">—</div><div class="ig-kpi-d" id="ma-alcance-d"></div></div>
@@ -2763,7 +2763,7 @@ function maDrawChart(){
   if(!canvas) return;
   var data = _maDemo.gastoArr['v' + _maPeriod];
   var W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
-  var H = 90;
+  var H = 125;
   canvas.width  = W * window.devicePixelRatio;
   canvas.height = H * window.devicePixelRatio;
   canvas.style.width  = W + 'px';
