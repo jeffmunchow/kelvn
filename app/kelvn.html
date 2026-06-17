@@ -567,10 +567,10 @@ select.aj-input{cursor:pointer;}
             <button class="ig-pill" onclick="igPeriod(90,this)">90d</button>
           </div>
         </div>
-        <div id="ig-widget" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;">
+        <div id="ig-widget" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;height:360px;">
 
           <!-- Estado: não conectado -->
-          <div id="ig-no-conn" style="padding:2rem 1.25rem;text-align:center;">
+          <div id="ig-no-conn" style="padding:2rem 1.25rem;text-align:center;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.75rem;"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><circle cx="17.5" cy="6.5" r="1" fill="var(--text-hint)" stroke="none"/></svg>
             <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem;">Conta não conectada</div>
             <div style="font-size:.7rem;color:var(--text-hint);margin-bottom:1rem;">Conecte seu Instagram para acompanhar seguidores, alcance e interações.</div>
@@ -578,8 +578,8 @@ select.aj-input{cursor:pointer;}
           </div>
 
           <!-- Estado: conectado (dados demo) -->
-          <div id="ig-conn" style="display:none;">
-            <div style="padding:1.1rem 1.25rem .5rem;">
+          <div id="ig-conn" style="display:none;flex-direction:column;height:100%;">
+            <div style="padding:1.1rem 1.25rem .5rem;flex:1;display:flex;flex-direction:column;min-height:0;">
               <div style="display:flex;align-items:baseline;justify-content:space-between;">
                 <div>
                   <div style="font-family:'Playfair Display',serif;font-weight:600;font-size:.95rem;color:var(--text);" id="ig-handle">@seuinstagram</div>
@@ -590,7 +590,7 @@ select.aj-input{cursor:pointer;}
                   <div style="font-size:.65rem;margin-top:1px;" id="ig-seg-delta"></div>
                 </div>
               </div>
-              <canvas id="ig-canvas" height="120" style="width:100%;margin-top:.85rem;display:block;"></canvas>
+              <canvas id="ig-canvas" style="width:100%;margin-top:.85rem;display:block;flex:1;min-height:0;"></canvas>
             </div>
             <div class="ig-kpi-row">
               <div class="ig-kpi"><div class="ig-kpi-l">Alcance</div><div class="ig-kpi-v" id="ig-alcance">—</div><div class="ig-kpi-d" id="ig-alcance-d"></div></div>
@@ -619,10 +619,10 @@ select.aj-input{cursor:pointer;}
             <button class="ig-pill" onclick="maPeriod(30,this)">30d</button>
           </div>
         </div>
-        <div id="ma-widget" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;">
+        <div id="ma-widget" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;height:360px;">
 
           <!-- Estado: não conectado -->
-          <div id="ma-no-conn" style="padding:2rem 1.25rem;text-align:center;">
+          <div id="ma-no-conn" style="padding:2rem 1.25rem;text-align:center;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.75rem;"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8" cy="10" r="1.5" fill="var(--text-hint)" stroke="none"/><path d="M12 8l2 2 4-4"/></svg>
             <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem;">Conta não conectada</div>
             <div style="font-size:.7rem;color:var(--text-hint);margin-bottom:1rem;">Conecte seu Meta Ads para acompanhar gasto, alcance e performance dos anúncios.</div>
@@ -630,8 +630,8 @@ select.aj-input{cursor:pointer;}
           </div>
 
           <!-- Estado: conectado -->
-          <div id="ma-conn" style="display:none;">
-            <div style="padding:1.1rem 1.25rem .5rem;">
+          <div id="ma-conn" style="display:none;flex-direction:column;height:100%;">
+            <div style="padding:1.1rem 1.25rem .5rem;flex:1;display:flex;flex-direction:column;min-height:0;">
               <div style="display:flex;align-items:baseline;justify-content:space-between;">
                 <div>
                   <div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;">Gasto no período</div>
@@ -642,7 +642,7 @@ select.aj-input{cursor:pointer;}
                   <div style="font-size:1rem;font-weight:500;color:var(--text);margin-top:2px;" id="ma-camp-ativas">—</div>
                 </div>
               </div>
-              <canvas id="ma-canvas" height="125" style="width:100%;margin-top:.85rem;display:block;"></canvas>
+              <canvas id="ma-canvas" style="width:100%;margin-top:.85rem;display:block;flex:1;min-height:0;"></canvas>
             </div>
             <div class="ig-kpi-row">
               <div class="ig-kpi"><div class="ig-kpi-l">Alcance</div><div class="ig-kpi-v" id="ma-alcance">—</div><div class="ig-kpi-d" id="ma-alcance-d"></div></div>
@@ -2601,11 +2601,9 @@ function igDrawChart(){
   if(!canvas) return;
   var data = _igDemo.seguidores.slice(-_igPeriod);
   var W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
-  var H = 120;
+  var H = canvas.offsetHeight || 120;
   canvas.width  = W * window.devicePixelRatio;
   canvas.height = H * window.devicePixelRatio;
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
   var ctx = canvas.getContext('2d');
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
@@ -2687,13 +2685,13 @@ function igRender(){
   var pills   = document.getElementById('ig-period-wrap');
   if(!noConn || !connEl) return;
   if(!conn){
-    noConn.style.display = '';
+    noConn.style.display = 'flex';
     connEl.style.display = 'none';
     pills.style.display  = 'none';
     return;
   }
   noConn.style.display = 'none';
-  connEl.style.display = '';
+  connEl.style.display = 'flex';
   pills.style.display  = 'flex';
   var seg = _igDemo.seguidores;
   var ultimo = seg[seg.length-1];
@@ -2763,11 +2761,9 @@ function maDrawChart(){
   if(!canvas) return;
   var data = _maDemo.gastoArr['v' + _maPeriod];
   var W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
-  var H = 125;
+  var H = canvas.offsetHeight || 125;
   canvas.width  = W * window.devicePixelRatio;
   canvas.height = H * window.devicePixelRatio;
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
   var ctx = canvas.getContext('2d');
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
@@ -2800,13 +2796,13 @@ function maRender(){
   var pills  = document.getElementById('ma-period-wrap');
   if(!noConn || !connEl) return;
   if(!conn){
-    noConn.style.display = '';
+    noConn.style.display = 'flex';
     connEl.style.display = 'none';
     pills.style.display  = 'none';
     return;
   }
   noConn.style.display = 'none';
-  connEl.style.display = '';
+  connEl.style.display = 'flex';
   pills.style.display  = 'flex';
   maFillMetrics();
   setTimeout(maDrawChart, 50);
