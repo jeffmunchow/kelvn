@@ -1,53 +1,56 @@
 (function(){
-  // ── CSS ──────────────────────────────────────────────────────────────────────
+  // ── CSS — cópia exata dos estilos usados em kelvn.html ────────────────────────
   var style = document.createElement('style');
   style.textContent = [
-    '.fb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;align-items:center;justify-content:center;padding:1rem;}',
-    '.fb-overlay.open{display:flex;}',
-    '.fb-modal{background:var(--surface);border-radius:var(--radius,8px);border:.5px solid var(--border-strong);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:1.75rem;}',
-    '.fb-modal h2{font-family:\'Playfair Display\',serif;font-size:1.05rem;font-weight:600;margin-bottom:.35rem;}',
-    '.fb-modal p{font-size:.78rem;color:var(--text-muted);line-height:1.4;margin-bottom:1.25rem;}',
-    '.fb-modal .fb-field{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem;}',
-    '.fb-modal .fb-field label{font-size:.7rem;color:var(--text-muted);font-weight:500;}',
-    '.fb-modal .fb-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.5rem;}',
-    '.fb-pill{font-size:.62rem;padding:2px 9px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-hint);cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:background .15s,color .15s;}',
-    '.fb-pill:hover{background:var(--surface2);}',
-    '.fb-pill.active{background:transparent;color:var(--text);border-color:var(--border-strong);}',
-    '.fb-pill.active:hover{background:var(--surface2);}',
+    '.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;align-items:center;justify-content:center;padding:1rem;}',
+    '.overlay.open{display:flex;}',
+    '.modal{background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border-strong);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:1.75rem;}',
+    '.modal h2{font-family:\'Playfair Display\',serif;font-size:1.05rem;font-weight:600;margin-bottom:1.25rem;}',
+    '.field{margin-bottom:.9rem;}',
+    '.field label{display:block;font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}',
+    '.field input,.field select,.field textarea{width:100%;font-family:\'DM Sans\',sans-serif;font-size:.88rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);outline:none;}',
+    '.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--amber);}',
+    '.field textarea{resize:vertical;min-height:72px;}',
+    '.ma{display:flex;gap:8px;margin-top:1.5rem;justify-content:flex-end;flex-wrap:wrap;}',
+    '.btn{font-family:\'DM Sans\',sans-serif;font-size:.78rem;padding:6px 15px;border-radius:var(--radius);border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;}',
+    '.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text);}',
+    '.btn.primary:hover{opacity:.82;}',
+    '.ig-pill{font-size:.62rem;padding:2px 9px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-hint);cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:background .15s,color .15s;}',
     '#fb-msg::placeholder{color:var(--text-hint);}',
+    '#fb-tipos .ig-pill{transition:background .15s,color .15s;}',
+    '#fb-tipos .ig-pill:hover{background:var(--surface2);}',
+    '#fb-tipos .ig-pill.active{background:transparent;color:var(--text);border-color:var(--border-strong);}',
+    '#fb-tipos .ig-pill.active:hover{background:var(--surface2);}',
   ].join('');
   document.head.appendChild(style);
 
-  // ── HTML ─────────────────────────────────────────────────────────────────────
-  var wrap = document.createElement('div');
-  wrap.innerHTML = [
-    '<div class="fb-overlay" id="ov-feedback">',
-    '  <div class="fb-modal">',
-    '    <h2>Manda pra gente</h2>',
-    '    <p>O que você está achando? Ideia, problema ou só um elogio —<br>a gente lê tudo.</p>',
-    '    <div class="fb-field">',
-    '      <label>Tipo</label>',
-    '      <div id="fb-tipos" style="display:flex;gap:6px;flex-wrap:wrap;">',
-    '        <button type="button" class="fb-pill active" data-tipo="sugestao" onclick="fbSelTipo(this)">Sugestão</button>',
-    '        <button type="button" class="fb-pill" data-tipo="problema" onclick="fbSelTipo(this)">Problema</button>',
-    '        <button type="button" class="fb-pill" data-tipo="elogio" onclick="fbSelTipo(this)">Elogio</button>',
-    '        <button type="button" class="fb-pill" data-tipo="outro" onclick="fbSelTipo(this)">Outro</button>',
-    '      </div>',
-    '    </div>',
-    '    <div class="fb-field">',
-    '      <label>Sua mensagem</label>',
-    '      <textarea id="fb-msg" rows="5" placeholder="Conta pra gente com suas palavras…" style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:.85rem;border:.5px solid var(--border-strong);border-radius:var(--radius,8px);background:transparent;color:var(--text);outline:none;padding:.65rem .75rem;resize:vertical;line-height:1.5;box-sizing:border-box;"></textarea>',
-    '    </div>',
-    '    <div class="fb-actions">',
-    '      <button class="btn" onclick="fecharFeedback()">Cancelar</button>',
-    '      <button class="btn primary" id="fb-enviar" onclick="enviarFeedback()">Enviar</button>',
+  // ── HTML — estrutura idêntica à do kelvn.html ─────────────────────────────────
+  var el = document.createElement('div');
+  el.innerHTML = [
+    '<div class="overlay" id="ov-feedback"><div class="modal">',
+    '  <h2 style="margin-bottom:.35rem;">Manda pra gente</h2>',
+    '  <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:1.25rem;line-height:1.4;">O que você está achando? Ideia, problema ou só um elogio —<br>a gente lê tudo.</p>',
+    '  <div class="field">',
+    '    <label>Tipo</label>',
+    '    <div id="fb-tipos" style="display:flex;gap:6px;flex-wrap:wrap;">',
+    '      <button type="button" class="ig-pill active" data-tipo="sugestao" onclick="fbSelTipo(this)">Sugestão</button>',
+    '      <button type="button" class="ig-pill" data-tipo="problema" onclick="fbSelTipo(this)">Problema</button>',
+    '      <button type="button" class="ig-pill" data-tipo="elogio" onclick="fbSelTipo(this)">Elogio</button>',
+    '      <button type="button" class="ig-pill" data-tipo="outro" onclick="fbSelTipo(this)">Outro</button>',
     '    </div>',
     '  </div>',
-    '</div>',
+    '  <div class="field">',
+    '    <label>Sua mensagem</label>',
+    '    <textarea id="fb-msg" rows="5" placeholder="Conta pra gente com suas palavras…"></textarea>',
+    '  </div>',
+    '  <div class="ma">',
+    '    <button class="btn" onclick="fecharFeedback()">Cancelar</button>',
+    '    <button class="btn primary" id="fb-enviar" onclick="enviarFeedback()">Enviar</button>',
+    '  </div>',
+    '</div></div>',
   ].join('');
-  document.body.appendChild(wrap.firstElementChild);
+  document.body.appendChild(el.firstElementChild);
 
-  // Fechar ao clicar fora
   document.getElementById('ov-feedback').addEventListener('click', function(e){
     if(e.target === this) fecharFeedback();
   });
@@ -57,7 +60,7 @@
 
   window.abrirFeedback = function(){
     window._fbTipo = 'sugestao';
-    document.querySelectorAll('#fb-tipos .fb-pill').forEach(function(b){
+    document.querySelectorAll('#fb-tipos .ig-pill').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-tipo') === 'sugestao');
     });
     document.getElementById('fb-msg').value = '';
@@ -74,7 +77,7 @@
 
   window.fbSelTipo = function(btn){
     window._fbTipo = btn.getAttribute('data-tipo');
-    document.querySelectorAll('#fb-tipos .fb-pill').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('#fb-tipos .ig-pill').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
   };
 
@@ -89,10 +92,9 @@
     btn.disabled = true;
     btn.textContent = 'Enviando…';
     try{
-      var sb = window._sb;
       var token = '';
-      if(sb){
-        var sessionR = await sb.auth.getSession();
+      if(window._sb){
+        var sessionR = await window._sb.auth.getSession();
         token = sessionR.data && sessionR.data.session ? sessionR.data.session.access_token : '';
       }
       var contexto = typeof _curSection !== 'undefined' ? ('seção: ' + _curSection) : 'editor de álbuns';
