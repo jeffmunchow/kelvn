@@ -43,23 +43,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .snav-btn.active{background:var(--surface2);color:var(--text);}
 .snav-bottom{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
 
-/* ── Feedback overlay ────────────────────────────────────────────── */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;}
-.overlay.open{display:flex;}
-.overlay .modal{background:var(--surface);border:.5px solid var(--border-strong);border-radius:12px;padding:1.5rem 1.5rem 1.25rem;width:min(440px,92vw);display:flex;flex-direction:column;gap:1rem;}
-.overlay .modal h2{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin:0;}
-.overlay .modal p{font-size:.78rem;color:var(--text-muted);margin:0;line-height:1.4;}
-.overlay .modal .field{display:flex;flex-direction:column;gap:.4rem;}
-.overlay .modal .field label{font-size:.7rem;color:var(--text-muted);font-weight:500;}
-.overlay .modal .ma{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.25rem;}
-.ig-pill{font-size:.62rem;padding:2px 9px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-hint);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s;}
-.ig-pill.active{background:var(--text);color:var(--bg);border-color:var(--text);}
-#fb-msg::placeholder{color:var(--text-hint);}
-#fb-tipos .ig-pill{transition:background .15s,color .15s;}
-#fb-tipos .ig-pill:hover{background:var(--surface2);}
-#fb-tipos .ig-pill.active{background:transparent;color:var(--text);border-color:var(--border-strong);}
-#fb-tipos .ig-pill.active:hover{background:var(--surface2);}
-
 /* ── Main ────────────────────────────────────────────────────────── */
 #main{flex:1;margin-left:56px;min-width:0;overflow:hidden;display:flex;flex-direction:column;}
 
@@ -452,29 +435,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     </a>
   </div>
 </nav>
-
-<!-- ── Modal feedback ── -->
-<div class="overlay" id="ov-feedback"><div class="modal">
-  <h2 style="margin-bottom:.35rem;">Manda pra gente</h2>
-  <p style="margin-bottom:1.25rem;">O que você está achando? Ideia, problema ou só um elogio —<br>a gente lê tudo.</p>
-  <div class="field">
-    <label>Tipo</label>
-    <div id="fb-tipos" style="display:flex;gap:6px;flex-wrap:wrap;">
-      <button type="button" class="ig-pill active" data-tipo="sugestao" onclick="fbSelTipo(this)">Sugestão</button>
-      <button type="button" class="ig-pill" data-tipo="problema" onclick="fbSelTipo(this)">Problema</button>
-      <button type="button" class="ig-pill" data-tipo="elogio" onclick="fbSelTipo(this)">Elogio</button>
-      <button type="button" class="ig-pill" data-tipo="outro" onclick="fbSelTipo(this)">Outro</button>
-    </div>
-  </div>
-  <div class="field">
-    <label>Sua mensagem</label>
-    <textarea id="fb-msg" rows="5" placeholder="Conta pra gente com suas palavras…" style="width:100%;font-family:'DM Sans',sans-serif;font-size:.85rem;border:.5px solid var(--border-strong);border-radius:8px;background:transparent;color:var(--text);outline:none;padding:.65rem .75rem;resize:vertical;line-height:1.5;"></textarea>
-  </div>
-  <div class="ma">
-    <button class="btn" onclick="document.getElementById('ov-feedback').classList.remove('open')">Cancelar</button>
-    <button class="btn primary" id="fb-enviar" onclick="enviarFeedback()">Enviar</button>
-  </div>
-</div></div>
 
 <!-- ── Área principal ── -->
 <div id="main">
@@ -6582,52 +6542,10 @@ function esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Feedback ──────────────────────────────────────────────────────────────────
-var _fbTipo = 'sugestao';
-function abrirFeedback(){
-  _fbTipo = 'sugestao';
-  document.querySelectorAll('#fb-tipos .ig-pill').forEach(function(b){
-    b.classList.toggle('active', b.getAttribute('data-tipo') === 'sugestao');
-  });
-  document.getElementById('fb-msg').value = '';
-  var btn = document.getElementById('fb-enviar');
-  btn.textContent = 'Enviar';
-  btn.disabled = false;
-  document.getElementById('ov-feedback').classList.add('open');
-  setTimeout(function(){ document.getElementById('fb-msg').focus(); }, 50);
-}
-function fbSelTipo(btn){
-  _fbTipo = btn.getAttribute('data-tipo');
-  document.querySelectorAll('#fb-tipos .ig-pill').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-}
-async function enviarFeedback(){
-  var msg = document.getElementById('fb-msg').value.trim();
-  if(!msg){ alert('Escreva uma mensagem antes de enviar.'); return; }
-  var btn = document.getElementById('fb-enviar');
-  btn.disabled = true;
-  btn.textContent = 'Enviando…';
-  try{
-    var sessionR = await _sb.auth.getSession();
-    var token = sessionR.data && sessionR.data.session ? sessionR.data.session.access_token : '';
-    var resp = await fetch('/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ tipo: _fbTipo, mensagem: msg, contexto: 'editor de álbuns' }),
-    });
-    if(!resp.ok) throw new Error('falha');
-    document.getElementById('ov-feedback').classList.remove('open');
-    alert('Obrigado! Recebemos seu feedback.');
-  }catch(e){
-    btn.disabled = false;
-    btn.textContent = 'Enviar';
-    alert('Algo deu errado por aqui. Tente de novo em instantes.');
-  }
-}
-
 // ── Start ─────────────────────────────────────────────────────────────────────
 init();
 
 </script>
+<script src="/app/feedback-widget.js"></script>
 </body>
 </html>
