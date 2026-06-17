@@ -609,6 +609,54 @@ select.aj-input{cursor:pointer;}
     <div>
       <div class="col-title">Edições</div>
       <div id="r-edicoes" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
+
+      <!-- Widget Meta Ads -->
+      <div style="margin-top:1.25rem;">
+        <div class="col-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
+          <span>Meta Ads</span>
+          <div id="ma-period-wrap" style="display:none;gap:3px;align-items:center;">
+            <button class="ig-pill active" onclick="maPeriod(7,this)">7d</button>
+            <button class="ig-pill" onclick="maPeriod(30,this)">30d</button>
+          </div>
+        </div>
+        <div id="ma-widget" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;">
+
+          <!-- Estado: não conectado -->
+          <div id="ma-no-conn" style="padding:2rem 1.25rem;text-align:center;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.75rem;"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8" cy="10" r="1.5" fill="var(--text-hint)" stroke="none"/><path d="M12 8l2 2 4-4"/></svg>
+            <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem;">Conta não conectada</div>
+            <div style="font-size:.7rem;color:var(--text-hint);margin-bottom:1rem;">Conecte seu Meta Ads para acompanhar gasto, alcance e performance dos anúncios.</div>
+            <button class="btn" style="font-size:.75rem;" onclick="maConectar()">Conectar Meta Ads</button>
+          </div>
+
+          <!-- Estado: conectado -->
+          <div id="ma-conn" style="display:none;">
+            <div style="padding:1.1rem 1.25rem .5rem;">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;">
+                <div>
+                  <div style="font-size:.68rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;">Gasto no período</div>
+                  <div style="font-family:'Playfair Display',serif;font-weight:600;font-size:1.5rem;color:var(--text);margin-top:2px;" id="ma-gasto-total">—</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:.65rem;color:var(--text-hint);">campanhas ativas</div>
+                  <div style="font-size:1rem;font-weight:500;color:var(--text);margin-top:2px;" id="ma-camp-ativas">—</div>
+                </div>
+              </div>
+              <canvas id="ma-canvas" height="80" style="width:100%;margin-top:.85rem;display:block;"></canvas>
+            </div>
+            <div class="ig-kpi-row">
+              <div class="ig-kpi"><div class="ig-kpi-l">Alcance</div><div class="ig-kpi-v" id="ma-alcance">—</div><div class="ig-kpi-d" id="ma-alcance-d"></div></div>
+              <div class="ig-kpi"><div class="ig-kpi-l">Impressões</div><div class="ig-kpi-v" id="ma-impressoes">—</div><div class="ig-kpi-d" id="ma-impressoes-d"></div></div>
+              <div class="ig-kpi"><div class="ig-kpi-l">CTR</div><div class="ig-kpi-v" id="ma-ctr">—</div><div class="ig-kpi-d" id="ma-ctr-d"></div></div>
+              <div class="ig-kpi"><div class="ig-kpi-l">CPC</div><div class="ig-kpi-v" id="ma-cpc">—</div><div class="ig-kpi-d" id="ma-cpc-d"></div></div>
+            </div>
+            <div style="padding:.6rem 1rem;border-top:.5px solid var(--border);display:flex;justify-content:flex-end;">
+              <button style="font-size:.65rem;color:var(--text-hint);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;" onclick="maDesconectar()">Desconectar</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2296,6 +2344,7 @@ function rR(){
   rEdicoes();
   rMetaAnual();
   igRender();
+  maRender();
 }
 
 function _fasesIcons(e){
@@ -2657,6 +2706,110 @@ function igRender(){
   dEl.style.color = delta >= 0 ? 'var(--teal)' : 'var(--coral)';
   igFillMetrics();
   setTimeout(igDrawChart, 50);
+}
+
+// ── META ADS WIDGET ─────────────────────────────────────────────────────────
+var _maPeriod = 7;
+
+var _maDemo = (function(){
+  function rnd(mn,mx){ return Math.round(mn + Math.random()*(mx-mn)); }
+  var gasto7=[], gasto30=[];
+  for(var i=0;i<7;i++)  gasto7.push(+(18 + Math.random()*34).toFixed(2));
+  for(var i=0;i<30;i++) gasto30.push(+(12 + Math.random()*42).toFixed(2));
+  return {
+    campanhas: 3,
+    gasto:   { v7: gasto7.reduce(function(a,v){return a+v;},0).toFixed(2),  v30: gasto30.reduce(function(a,v){return a+v;},0).toFixed(2)  },
+    gastoArr:{ v7: gasto7, v30: gasto30 },
+    alcance: { v7:'4.2k',  v30:'14.8k', d7:'+18%', d30:'+12%' },
+    impressoes:{ v7:'11.6k',v30:'43k',  d7:'+22%', d30:'+9%'  },
+    ctr:     { v7:'2.4%',  v30:'2.1%',  d7:'+0.3pp', d30:'-0.2pp' },
+    cpc:     { v7:'R$ 1,82',v30:'R$ 2,04',d7:'-8%', d30:'+5%'  },
+  };
+})();
+
+function maFmt(n){ return 'R$ '+parseFloat(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function maConectar(){ s('ma_conectado', true);  maRender(); }
+function maDesconectar(){ s('ma_conectado', false); maRender(); }
+
+function maPeriod(days, btn){
+  _maPeriod = days;
+  document.querySelectorAll('#ma-period-wrap .ig-pill').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  maFillMetrics();
+  maDrawChart();
+}
+
+function maFillMetrics(){
+  var k = 'v' + _maPeriod, dk = 'd' + _maPeriod;
+  var d = _maDemo;
+  var total = parseFloat(d.gasto[k]);
+  document.getElementById('ma-gasto-total').textContent = maFmt(total);
+  document.getElementById('ma-camp-ativas').textContent = d.campanhas;
+  var neg = 'color:var(--coral)', pos = 'color:var(--teal)';
+  function deltaColor(v){ return (v.startsWith('-') && !v.includes('pp')) ? neg : pos; }
+  document.getElementById('ma-alcance').textContent    = d.alcance[k];
+  document.getElementById('ma-alcance-d').innerHTML   = '<span style="'+deltaColor(d.alcance[dk])+'">'+d.alcance[dk]+'</span> vs anterior';
+  document.getElementById('ma-impressoes').textContent = d.impressoes[k];
+  document.getElementById('ma-impressoes-d').innerHTML= '<span style="'+deltaColor(d.impressoes[dk])+'">'+d.impressoes[dk]+'</span> vs anterior';
+  document.getElementById('ma-ctr').textContent        = d.ctr[k];
+  document.getElementById('ma-ctr-d').innerHTML       = '<span style="'+deltaColor(d.ctr[dk])+'">'+d.ctr[dk]+'</span> vs anterior';
+  document.getElementById('ma-cpc').textContent        = d.cpc[k];
+  document.getElementById('ma-cpc-d').innerHTML       = '<span style="'+deltaColor(d.cpc[dk])+'">'+d.cpc[dk]+'</span> vs anterior';
+}
+
+function maDrawChart(){
+  var canvas = document.getElementById('ma-canvas');
+  if(!canvas) return;
+  var data = _maDemo.gastoArr['v' + _maPeriod];
+  var W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
+  var H = 80;
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  var padL = 6, padR = 6, padT = 6, padB = 4;
+  var cW = W - padL - padR;
+  var cH = H - padT - padB;
+  var mn = 0, mx = Math.max.apply(null, data) * 1.15;
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var barW = Math.max(2, (cW / data.length) * 0.55);
+  var gap   = cW / data.length;
+
+  data.forEach(function(v, i){
+    var x = padL + i * gap + (gap - barW) / 2;
+    var h = ((v - mn) / (mx - mn)) * cH;
+    var y = padT + cH - h;
+    var grad = ctx.createLinearGradient(0, y, 0, padT + cH);
+    grad.addColorStop(0, 'rgba(196,120,10,0.85)');
+    grad.addColorStop(1, 'rgba(196,120,10,0.25)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, h, [2,2,0,0]);
+    ctx.fill();
+  });
+}
+
+function maRender(){
+  var conn   = g('ma_conectado') === true;
+  var noConn = document.getElementById('ma-no-conn');
+  var connEl = document.getElementById('ma-conn');
+  var pills  = document.getElementById('ma-period-wrap');
+  if(!noConn || !connEl) return;
+  if(!conn){
+    noConn.style.display = '';
+    connEl.style.display = 'none';
+    pills.style.display  = 'none';
+    return;
+  }
+  noConn.style.display = 'none';
+  connEl.style.display = '';
+  pills.style.display  = 'flex';
+  maFillMetrics();
+  setTimeout(maDrawChart, 50);
 }
 
 function rPipeline(){
