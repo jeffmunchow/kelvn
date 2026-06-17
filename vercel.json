@@ -39,6 +39,10 @@
       "dest": "/api/gallery-ops?action=cover"
     },
     {
+      "src": "/api/feedback",
+      "dest": "/api/album-revisao?action=feedback"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },

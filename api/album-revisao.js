@@ -6,6 +6,7 @@
  * POST ?action=gerar               → gera/regenera token de revisão (autenticado)
  * POST ?action=notificar           → notifica fotógrafo após comentário/aprovação (anon, rate-limited)
  * POST ?action=preview-upload      → faz upload de JPEG de um spread para o R2 (autenticado)
+ * POST ?action=feedback            → registra feedback do fotógrafo + notifica admin (autenticado)
  */
 
 const { createClient } = require('@supabase/supabase-js');
@@ -42,9 +43,84 @@ module.exports = async function handler(req, res) {
   if (action === 'gerar')           return acGerar(req, res);
   if (action === 'notificar')       return acNotificar(req, res);
   if (action === 'preview-upload')  return acPreviewUpload(req, res);
+  if (action === 'feedback')        return acFeedback(req, res);
 
   return res.status(404).json({ error: 'Not found' });
 };
+
+// ── Feedback do fotógrafo ─────────────────────────────────────────────────────
+
+const FB_TIPOS = { sugestao: 'Sugestão', problema: 'Problema', elogio: 'Elogio', outro: 'Outro' };
+const FB_ADMIN_EMAIL = 'jeffmunchowweddings@gmail.com';
+
+async function acFeedback(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  try {
+    // Autenticação via JWT
+    const authHeader = req.headers['authorization'];
+    if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
+    const jwt = authHeader.slice(7);
+
+    const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    const { data: { user }, error: authErr } = await sb.auth.getUser(jwt);
+    if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { tipo, mensagem, contexto } = req.body || {};
+    const msg = (mensagem || '').trim();
+    if (!msg) return res.status(400).json({ error: 'Mensagem obrigatória' });
+    if (msg.length > 5000) return res.status(400).json({ error: 'Mensagem muito longa' });
+
+    const tipoKey = FB_TIPOS[tipo] ? tipo : 'outro';
+    const email = user.email || '';
+
+    // Grava no Supabase
+    const { error: insErr } = await sb.from('feedbacks').insert({
+      user_id: user.id,
+      email,
+      tipo: tipoKey,
+      mensagem: msg,
+      contexto: (contexto || '').slice(0, 300),
+    });
+    if (insErr) {
+      console.error('acFeedback insert error:', insErr);
+      return res.status(500).json({ error: 'Não foi possível salvar o feedback' });
+    }
+
+    // Notifica o admin por e-mail (não bloqueia se falhar)
+    try {
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Kelvn <oi@kelvn.com.br>',
+          to: [FB_ADMIN_EMAIL],
+          reply_to: email || undefined,
+          subject: `Novo feedback (${FB_TIPOS[tipoKey]}) — ${email || 'fotógrafo'}`,
+          html: `<div style="font-family:sans-serif;font-size:14px;color:#1A1814;">
+              <p><strong>Tipo:</strong> ${esc(FB_TIPOS[tipoKey])}</p>
+              <p><strong>De:</strong> ${esc(email || '—')}</p>
+              <p><strong>Contexto:</strong> ${esc(contexto || '—')}</p>
+              <hr style="border:none;border-top:1px solid #eee;margin:12px 0;">
+              <p style="white-space:pre-wrap;">${esc(msg)}</p>
+            </div>`,
+        }),
+      });
+      if (!r.ok) console.error('acFeedback resend error:', await r.text().catch(() => ''));
+    } catch (mailErr) {
+      console.error('acFeedback resend error:', mailErr);
+    }
+
+    return res.status(200).json({ ok: true });
+
+  } catch (error) {
+    console.error('acFeedback error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 // ── Gerar / regenerar token de revisão ───────────────────────────────────────
 
