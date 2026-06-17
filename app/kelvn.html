@@ -289,6 +289,17 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .notif{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:var(--bg);font-size:.78rem;padding:10px 18px;border-radius:var(--radius);z-index:9999;opacity:0;transition:opacity .3s,transform .3s;transform:translateY(8px);pointer-events:none;}
 .notif.show{opacity:1;transform:translateY(0);}
 /* INADIMPLENCIA */
+/* INSTAGRAM WIDGET */
+.ig-pill{font-size:.62rem;padding:2px 9px;border-radius:20px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-hint);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s,color .15s;}
+.ig-pill.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+.ig-kpi-row{display:grid;grid-template-columns:1fr 1fr;border-top:.5px solid var(--border);}
+.ig-kpi{padding:.7rem 1rem;border-right:.5px solid var(--border);}
+.ig-kpi:nth-child(2n){border-right:none;}
+.ig-kpi:nth-child(3),.ig-kpi:nth-child(4){border-top:.5px solid var(--border);}
+.ig-kpi-l{font-size:.62rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;}
+.ig-kpi-v{font-size:.88rem;font-weight:500;color:var(--text);margin-top:3px;}
+.ig-kpi-d{font-size:.62rem;color:var(--text-hint);margin-top:1px;}
+/* INADIMPLENCIA */
 .inad-card{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;}
 .inad-nome{font-size:.88rem;color:var(--text);}
 .inad-meta{font-size:.7rem;color:var(--text-hint);margin-top:3px;}
@@ -545,6 +556,55 @@ select.aj-input{cursor:pointer;}
     <div>
       <div class="col-title">Próximas atividades</div>
       <div id="r-agenda" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
+
+      <!-- Widget Instagram -->
+      <div style="margin-top:1.25rem;">
+        <div class="col-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
+          <span>Instagram</span>
+          <div id="ig-period-wrap" style="display:none;gap:3px;align-items:center;">
+            <button class="ig-pill active" onclick="igPeriod(7,this)">7d</button>
+            <button class="ig-pill" onclick="igPeriod(30,this)">30d</button>
+            <button class="ig-pill" onclick="igPeriod(90,this)">90d</button>
+          </div>
+        </div>
+        <div id="ig-widget" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;">
+
+          <!-- Estado: não conectado -->
+          <div id="ig-no-conn" style="padding:2rem 1.25rem;text-align:center;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.75rem;"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><circle cx="17.5" cy="6.5" r="1" fill="var(--text-hint)" stroke="none"/></svg>
+            <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem;">Conta não conectada</div>
+            <div style="font-size:.7rem;color:var(--text-hint);margin-bottom:1rem;">Conecte seu Instagram para acompanhar seguidores, alcance e interações.</div>
+            <button class="btn" style="font-size:.75rem;" onclick="igConectar()">Conectar Instagram</button>
+          </div>
+
+          <!-- Estado: conectado (dados demo) -->
+          <div id="ig-conn" style="display:none;">
+            <div style="padding:1.1rem 1.25rem .5rem;">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;">
+                <div>
+                  <div style="font-family:'Playfair Display',serif;font-weight:600;font-size:.95rem;color:var(--text);" id="ig-handle">@seuinstagram</div>
+                  <div style="font-size:.68rem;color:var(--text-hint);margin-top:1px;">Seguidores</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:1.1rem;font-weight:500;color:var(--text);" id="ig-seg-total">—</div>
+                  <div style="font-size:.65rem;margin-top:1px;" id="ig-seg-delta"></div>
+                </div>
+              </div>
+              <canvas id="ig-canvas" height="120" style="width:100%;margin-top:.85rem;display:block;"></canvas>
+            </div>
+            <div class="ig-kpi-row">
+              <div class="ig-kpi"><div class="ig-kpi-l">Alcance</div><div class="ig-kpi-v" id="ig-alcance">—</div><div class="ig-kpi-d" id="ig-alcance-d"></div></div>
+              <div class="ig-kpi"><div class="ig-kpi-l">Impressões</div><div class="ig-kpi-v" id="ig-impressoes">—</div><div class="ig-kpi-d" id="ig-impressoes-d"></div></div>
+              <div class="ig-kpi"><div class="ig-kpi-l">Reels &amp; Stories</div><div class="ig-kpi-v" id="ig-reels">—</div><div class="ig-kpi-d" id="ig-reels-d"></div></div>
+              <div class="ig-kpi"><div class="ig-kpi-l">Interações</div><div class="ig-kpi-v" id="ig-inter">—</div><div class="ig-kpi-d" id="ig-inter-d"></div></div>
+            </div>
+            <div style="padding:.6rem 1rem;border-top:.5px solid var(--border);display:flex;justify-content:flex-end;">
+              <button style="font-size:.65rem;color:var(--text-hint);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;" onclick="igDesconectar()">Desconectar</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
     <div>
       <div class="col-title">Edições</div>
@@ -2235,6 +2295,7 @@ function rR(){
 
   rEdicoes();
   rMetaAnual();
+  igRender();
 }
 
 function _fasesIcons(e){
@@ -2429,6 +2490,173 @@ function rMetaAnual(){
     t.style.display='block';t.style.left=Math.min(pct,90)+'%';
   };
   barraWrap.onmouseleave=function(){document.getElementById('meta-anual-tooltip').style.display='none';};
+}
+
+// ── INSTAGRAM WIDGET ────────────────────────────────────────────────────────
+var _igPeriod = 30;
+
+// Dados demo — substituir por chamada real à API depois
+var _igDemo = (function(){
+  var seg = [], v = 7840;
+  for(var i = 0; i < 90; i++){
+    v += Math.round((Math.random() - 0.28) * 60 + 18);
+    seg.push(Math.max(0, v));
+  }
+  return {
+    handle: '@jeffmunchow.foto',
+    seguidores: seg,
+    alcance:    { v7:2840,  v30:9200,  v90:24600,  d7:'+12%', d30:'+8%',  d90:'+21%' },
+    impressoes: { v7:6100,  v30:21400, v90:58000,  d7:'+9%',  d30:'+14%', d90:'+18%' },
+    reels:      { v7:4200,  v30:14800, v90:39000,  d7:'+31%', d30:'+22%', d90:'+44%' },
+    inter:      { v7:380,   v30:1240,  v90:3600,   d7:'+6%',  d30:'+11%', d90:'+19%' },
+  };
+})();
+
+function igFmt(n){ return n>=1000?(n/1000).toFixed(1).replace('.',',')+'k':String(n); }
+
+function igConectar(){
+  s('ig_conectado', true);
+  igRender();
+}
+
+function igDesconectar(){
+  s('ig_conectado', false);
+  igRender();
+}
+
+function igPeriod(days, btn){
+  _igPeriod = days;
+  document.querySelectorAll('.ig-pill').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  igDrawChart();
+  igFillMetrics();
+}
+
+function igFillMetrics(){
+  var k = 'v' + _igPeriod;
+  var dk = 'd' + _igPeriod;
+  var d = _igDemo;
+  var pos = 'color:var(--teal)';
+  document.getElementById('ig-alcance').textContent     = igFmt(d.alcance[k]);
+  document.getElementById('ig-alcance-d').innerHTML     = '<span style="'+pos+'">'+d.alcance[dk]+'</span> vs período anterior';
+  document.getElementById('ig-impressoes').textContent  = igFmt(d.impressoes[k]);
+  document.getElementById('ig-impressoes-d').innerHTML  = '<span style="'+pos+'">'+d.impressoes[dk]+'</span> vs período anterior';
+  document.getElementById('ig-reels').textContent       = igFmt(d.reels[k]);
+  document.getElementById('ig-reels-d').innerHTML       = '<span style="'+pos+'">'+d.reels[dk]+'</span> vs período anterior';
+  document.getElementById('ig-inter').textContent       = igFmt(d.inter[k]);
+  document.getElementById('ig-inter-d').innerHTML       = '<span style="'+pos+'">'+d.inter[dk]+'</span> vs período anterior';
+}
+
+function igDrawChart(){
+  var canvas = document.getElementById('ig-canvas');
+  if(!canvas) return;
+  var data = _igDemo.seguidores.slice(-_igPeriod);
+  var W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
+  var H = 120;
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  var padL = 34, padR = 8, padT = 6, padB = 4;
+  var cW = W - padL - padR;
+  var cH = H - padT - padB;
+  var mn = Math.min.apply(null, data);
+  var mx = Math.max.apply(null, data);
+  var range = mx - mn || 1;
+
+  // grade horizontal
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  var labelColor = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
+  ctx.strokeStyle = gridColor;
+  ctx.lineWidth = 0.5;
+  var steps = 5;
+  for(var i = 0; i <= steps; i++){
+    var y = padT + (cH / steps) * i;
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + cW, y); ctx.stroke();
+    var val = Math.round(mx - (range / steps) * i);
+    ctx.fillStyle = labelColor;
+    ctx.font = '9px DM Sans, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(igFmt(val), padL - 4, y + 3);
+  }
+
+  // grade vertical
+  var vSteps = Math.min(data.length - 1, 6);
+  for(var j = 0; j <= vSteps; j++){
+    var x = padL + (cW / vSteps) * j;
+    ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + cH); ctx.stroke();
+  }
+
+  // gradiente de preenchimento
+  var grad = ctx.createLinearGradient(0, padT, 0, padT + cH);
+  grad.addColorStop(0, 'rgba(196,120,10,0.18)');
+  grad.addColorStop(1, 'rgba(196,120,10,0)');
+
+  function px(i){ return padL + (i / (data.length - 1)) * cW; }
+  function py(v){ return padT + cH - ((v - mn) / range) * cH; }
+
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(data[0]));
+  for(var n = 1; n < data.length; n++){
+    var xc = (px(n-1) + px(n)) / 2;
+    ctx.bezierCurveTo(xc, py(data[n-1]), xc, py(data[n]), px(n), py(data[n]));
+  }
+  ctx.lineTo(px(data.length-1), padT + cH);
+  ctx.lineTo(px(0), padT + cH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // linha principal
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(data[0]));
+  for(var m = 1; m < data.length; m++){
+    var xc2 = (px(m-1) + px(m)) / 2;
+    ctx.bezierCurveTo(xc2, py(data[m-1]), xc2, py(data[m]), px(m), py(data[m]));
+  }
+  ctx.strokeStyle = '#C4780A';
+  ctx.lineWidth = 1.8;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // ponto final
+  var lastX = px(data.length-1), lastY = py(data[data.length-1]);
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 3.5, 0, Math.PI*2);
+  ctx.fillStyle = '#C4780A';
+  ctx.fill();
+}
+
+function igRender(){
+  var conn = g('ig_conectado') === true;
+  var noConn = document.getElementById('ig-no-conn');
+  var connEl  = document.getElementById('ig-conn');
+  var pills   = document.getElementById('ig-period-wrap');
+  if(!noConn || !connEl) return;
+  if(!conn){
+    noConn.style.display = '';
+    connEl.style.display = 'none';
+    pills.style.display  = 'none';
+    return;
+  }
+  noConn.style.display = 'none';
+  connEl.style.display = '';
+  pills.style.display  = 'flex';
+  var seg = _igDemo.seguidores;
+  var ultimo = seg[seg.length-1];
+  var penultimo = seg[seg.length-2] || ultimo;
+  var delta = ultimo - penultimo;
+  document.getElementById('ig-handle').textContent = _igDemo.handle;
+  document.getElementById('ig-seg-total').textContent = ultimo.toLocaleString('pt-BR');
+  var dEl = document.getElementById('ig-seg-delta');
+  dEl.textContent = (delta >= 0 ? '+' : '') + delta + ' hoje';
+  dEl.style.color = delta >= 0 ? 'var(--teal)' : 'var(--coral)';
+  igFillMetrics();
+  setTimeout(igDrawChart, 50);
 }
 
 function rPipeline(){
