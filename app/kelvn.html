@@ -2115,9 +2115,8 @@ select.aj-input{cursor:pointer;}
 
 <!-- MODAL COMPRA FINALIZADA -->
 <div class="overlay" id="ov-compra-ok"><div class="modal" style="text-align:center;padding:2.5rem 2rem;">
-  <div style="font-size:2.5rem;margin-bottom:1rem;">🎉</div>
-  <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:600;margin-bottom:.5rem;">Compra realizada!</div>
-  <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6;">Em instantes você receberá o link de acesso no seu email. Bom estudo!</div>
+  <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:600;margin-bottom:.5rem;">Tá feito.</div>
+  <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6;">Seu acesso já tá a caminho do seu e-mail. Bom estudo.</div>
   <button class="checkout-btn" onclick="cov('ov-compra-ok')">Fechar</button>
 </div></div>
 
@@ -2292,7 +2291,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.4.742';
+var APP_VERSION = 'v1.4.743';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3775,13 +3774,13 @@ async function enviarContrato(){
   var badge=document.getElementById('contrato-status-badge');
   badge.textContent='Aguardando assinatura';badge.style.background='var(--amber-light)';badge.style.color='var(--amber)';
   copiarLinkAssinatura();
-  notify('Link de assinatura copiado!');
+  notify('Link copiado.');
 }
 
 function copiarLinkAssinatura(){
   if(!_contratoRecord)return;
   var link='https://app.kelvn.com.br/assinar/'+_contratoRecord.token_assinatura;
-  navigator.clipboard.writeText(link).then(function(){notify('Link copiado para a área de transferência');}).catch(function(){prompt('Copie o link:',link);});
+  navigator.clipboard.writeText(link).then(function(){notify('Link copiado.');}).catch(function(){prompt('Copie o link:',link);});
 }
 
 // AJUSTES — Studio data
@@ -7488,7 +7487,7 @@ async function galDetIniciarUpload(files, secaoIdOverride){
       _upUpdateQuota();
       if(!erros) setTimeout(function(){if(pwrap2)pwrap2.style.display='none';},2500);
       rGalDetalhe();
-      notify(erros?done+' enviadas, '+erros+' erro(s).':total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
+      notify(erros?done+' enviadas, '+erros+' erro(s).':total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+'.');
     }
   });
 }
@@ -8608,7 +8607,7 @@ async function mgalIniciarUpload(files){
       _upUpdateQuota();
       if(!erros) setTimeout(function(){if(pwrapM2)pwrapM2.style.display='none';},2500);
       rGal();
-      if(!erros) notify(total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+' com sucesso.');
+      if(!erros) notify(total+' foto'+(total>1?'s':'')+' enviada'+(total>1?'s':'')+'.');
       else notify(erros+' foto'+(erros>1?'s':'')+' não foram enviadas.');
       cov('ov-gal');
       goDirecto('galerias');
