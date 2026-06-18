@@ -2292,7 +2292,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.4.739';
+var APP_VERSION = 'v1.4.741';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3502,7 +3502,7 @@ async function gerarContrato(){
       if(!resp.ok)throw new Error('template not found');
       html=await resp.text();
     }catch(e){
-      notify('Template não encontrado em /contrato_template.html');return;
+      notify('Não encontrei o modelo de contrato. Tenta recarregar a página.');return;
     }
   }
 
@@ -3527,7 +3527,7 @@ async function gerarContrato(){
     }).select().maybeSingle();
     if(res.error){
       console.error('[contrato] insert error:', JSON.stringify(res.error));
-      notify('Erro ao salvar contrato: '+res.error.message);
+      console.error('Erro ao salvar contrato:',res.error); notify('Não consegui salvar o contrato agora. Tenta de novo.');
     }
     _contratoRecord=res.data||null;
   }
@@ -3597,7 +3597,7 @@ async function _baixarContratoPdf(){
     setTimeout(function(){URL.revokeObjectURL(url);},1000);
   }catch(e){
     console.error('PDF error:',e);
-    notify('Erro ao gerar PDF: '+(e.message||'desconhecido'));
+    console.error('Erro ao gerar PDF:',e); notify('Não consegui gerar o PDF agora. Tenta de novo.');
   }finally{
     btn.textContent=orig;
     btn.disabled=false;
@@ -3613,7 +3613,7 @@ async function abrirEditorTemplate(){
       var r=await fetch('/contrato_template.html');
       if(!r.ok)throw new Error('HTTP '+r.status);
       _templateHtmlBase=await r.text();
-    }catch(e){notify('Erro ao carregar template: '+e.message);return;}
+    }catch(e){console.error('Erro ao carregar template:',e); notify('Não consegui carregar o modelo de contrato. Tenta recarregar a página.');return;}
   }
 
   // Extrai blocos de texto editáveis (p, li, h1-h6, td) com seu conteúdo HTML
@@ -3700,7 +3700,7 @@ function salvarTemplate(){
     document.getElementById('ov-template-editor').style.display='none';
     _syncTemplateStatus();
     notify('Template salvo');
-  }catch(e){console.error(e);notify('Erro ao salvar template');}
+  }catch(e){console.error(e);notify('Não consegui salvar o modelo. Tenta de novo.');}
 }
 
 function fecharEditorTemplate(){
@@ -3768,7 +3768,7 @@ async function enviarContrato(){
   if(!_contratoRecord||!_currentUser)return;
   var expira=new Date();expira.setDate(expira.getDate()+7);
   var res=await _sb.from('contratos').update({status:'enviado',token_expira_em:expira.toISOString()}).eq('id',_contratoRecord.id).select().maybeSingle();
-  if(res.error){notify('Erro ao enviar contrato.');return;}
+  if(res.error){console.error('Erro ao enviar contrato:',res.error); notify('Não consegui enviar o contrato. Tenta de novo.');return;}
   _contratoRecord=res.data;
   document.getElementById('contrato-btn-enviar').style.display='none';
   document.getElementById('contrato-btn-copiar-link').style.display='inline-flex';
@@ -7441,7 +7441,7 @@ async function galDetIniciarUpload(files, secaoIdOverride){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal){notify('Galeria não encontrada.');return;}
-  if(!gal.slug){notify('Esta galeria não tem slug — publique-a primeiro.');return;}
+  if(!gal.slug){notify('Publica a galeria primeiro pra ela ganhar um link.');return;}
 
   // secaoIdOverride vem de galDetProcessarEntries (pasta arrastada)
   // se não passado, usa o seletor de seção da UI
@@ -8575,7 +8575,7 @@ async function mgalIniciarUpload(files){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal){notify('Galeria não encontrada.');return;}
-  if(!gal.slug){notify('Esta galeria não tem slug — publique-a primeiro.');return;}
+  if(!gal.slug){notify('Publica a galeria primeiro pra ela ganhar um link.');return;}
 
   // Usa o widget global (upload-progress-wrap)
   var pwrapM=document.getElementById('upload-progress-wrap');
@@ -9157,6 +9157,15 @@ function showLogin(){
 function showForgot(){ document.getElementById('authLogin').style.display='none'; document.getElementById('authForgot').style.display=''; }
 function setMsg(id, msg, type){ var el=document.getElementById(id); el.textContent=msg; el.className='auth-msg '+(type||''); }
 
+function msgAuthErro(err){
+  var m=(err&&err.message)||'';
+  if(/invalid login credentials/i.test(m)) return 'E-mail ou senha não conferem. Tenta de novo.';
+  if(/email not confirmed/i.test(m)) return 'Falta confirmar seu e-mail. Dá uma olhada na caixa de entrada (e no spam).';
+  if(/rate limit|too many/i.test(m)) return 'Muitas tentativas seguidas. Espera um minutinho e tenta de novo.';
+  if(/network|fetch|failed to fetch/i.test(m)) return 'Sem conexão agora. Confere sua internet e tenta de novo.';
+  return 'Não consegui entrar agora. Tenta de novo em instantes.';
+}
+
 async function doLogin(){
   var btn=document.getElementById('loginBtn');
   var email=document.getElementById('loginEmail').value.trim();
@@ -9165,7 +9174,7 @@ async function doLogin(){
   btn.disabled=true; btn.textContent='Entrando...';
   try {
     var res=await _sb.auth.signInWithPassword({email:email,password:pass});
-    if(res.error){ setMsg('loginMsg',res.error.message,'error'); btn.disabled=false; btn.textContent='Entrar'; }
+    if(res.error){ setMsg('loginMsg',msgAuthErro(res.error),'error'); btn.disabled=false; btn.textContent='Entrar'; }
     else{ onLogin(res.data.user); }
   } catch(e) {
     setMsg('loginMsg','Erro ao conectar. Tenta de novo.','error');
@@ -9179,7 +9188,7 @@ async function doForgot(){
   if(!email){ setMsg('forgotMsg','Informe seu e-mail.','error'); return; }
   btn.disabled=true; btn.textContent='Enviando...';
   var res=await _sb.auth.resetPasswordForEmail(email,{redirectTo:'https://app.kelvn.com.br'});
-  if(res.error){ setMsg('forgotMsg',res.error.message,'error'); }
+  if(res.error){ setMsg('forgotMsg',msgAuthErro(res.error),'error'); }
   else{ setMsg('forgotMsg','Link enviado! Confere seu e-mail.','success'); }
   btn.disabled=false; btn.textContent='Enviar link de recuperação';
 }
