@@ -1500,7 +1500,7 @@ select.aj-input{cursor:pointer;}
       <!-- Pagamento -->
       <div id="aj-panel-pagamento" style="display:none;">
         <div class="aj-section-title">Pagamento</div>
-        <div class="aj-section-desc">Dados para recebimento exibidos nos contratos e propostas.</div>
+        <div class="aj-section-desc">Seus dados de recebimento. É o que aparece nos contratos e propostas que você envia.</div>
         <div class="aj-rows">
           <div class="aj-row"><span class="aj-label">Chave PIX</span><input class="aj-input" type="text" id="sd-studio-pix" placeholder="CPF, e-mail, telefone ou chave aleatória" oninput="saveSD()"></div>
           <div class="aj-row"><span class="aj-label">Dados bancários</span><input class="aj-input" type="text" id="sd-studio-banco" placeholder="Banco / Agência / Conta" oninput="saveSD()"></div>
@@ -1510,7 +1510,7 @@ select.aj-input{cursor:pointer;}
       <!-- Contratos -->
       <div id="aj-panel-contratos" style="display:none;">
         <div class="aj-section-title">Contratos</div>
-        <div class="aj-section-desc">Configurações usadas no gerador de contratos.</div>
+        <div class="aj-section-desc">Ajustes do gerador de contratos. Mexe aqui uma vez e segue.</div>
         <div class="aj-rows">
           <div class="aj-row"><span class="aj-label">Cidade do foro</span><input class="aj-input" type="text" id="sd-studio-foro" placeholder="ex: Pelotas" oninput="saveSD()"></div>
           <div class="aj-row">
@@ -2291,7 +2291,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.4.743';
+var APP_VERSION = 'v1.4.744';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3329,7 +3329,7 @@ function saveC(){
   var _eProspect=STATUS_PROSPECT.indexOf(o.status)>-1;
   if(_eProspect){criarEventoFollowup(o);}
   else if(_eraProspect&&!_eProspect){removerEventoFollowup(o.id);}
-  undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Cliente salvo');
+  undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Cliente salvo.');
   if(o.status==='Entregue'&&(!ex||ex.status!=='Entregue'))_triggerAutosPosEntrega(o.id);
   if(o.status==='Edição'&&(!ex||ex.status!=='Edição')){
     // Ao entrar em Edição: define questionário de feedback pós-entrega como Pendente
@@ -3359,7 +3359,7 @@ function delC(){
     s('clientes',g('clientes').filter(function(c){return c.id!==_cId;}));
     // Remove todos os eventos vinculados a esse cliente
     s('eventos',g('eventos').filter(function(e){return e.clienteId!==_cId;}));
-    undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído');
+    undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído.');
   });
 }
 function rPL(ps){_parc=ps.map(function(p){return Object.assign({},p);});bPD();}
@@ -3698,7 +3698,7 @@ function salvarTemplate(){
     s('contrato_template',result);
     document.getElementById('ov-template-editor').style.display='none';
     _syncTemplateStatus();
-    notify('Template salvo');
+    notify('Template salvo.');
   }catch(e){console.error(e);notify('Não consegui salvar o modelo. Tenta de novo.');}
 }
 
@@ -4365,9 +4365,9 @@ function saveE(){
   var o={id:_eId||uid(),titulo:document.getElementById('me-titulo').value.trim(),data:document.getElementById('me-data').value,tipo:document.getElementById('me-tipo').value,clienteId:document.getElementById('me-cliente').value,local:document.getElementById('me-local').value.trim(),notas:document.getElementById('me-notas').value.trim()};
   if(!o.titulo){alert('Informe o título.');return;}
   if(_eId){var i=es.findIndex(function(e){return e.id===_eId;});if(i>-1)es[i]=o;}else es.push(o);
-  undoBegin();s('eventos',es);undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento salvo');
+  undoBegin();s('eventos',es);undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento salvo.');
 }
-function delE(){confirmar('',function(){undoBegin();s('eventos',g('eventos').filter(function(e){return e.id!==_eId;}));undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Excluído');});}
+function delE(){confirmar('',function(){undoBegin();s('eventos',g('eventos').filter(function(e){return e.id!==_eId;}));undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Excluído.');});}
 var _pId=null;
 function rPe(){
   var flt=document.getElementById('pend-filter').value;
@@ -4417,9 +4417,9 @@ function savePend(){
   var o={id:_pId||uid(),desc:document.getElementById('mp-desc').value.trim(),clienteId:document.getElementById('mp-cliente').value,prazo:d2i(document.getElementById('mp-prazo').value),prio:document.getElementById('mp-prio').value,done:ex?ex.done:false};
   if(!o.desc){alert('Informe a descrição.');return;}
   if(_pId){var i=ps.findIndex(function(p){return p.id===_pId;});if(i>-1)ps[i]=o;}else ps.push(o);
-  undoBegin();s('pends',ps);undoCommit();cov('ov-p');rPe();rR();notify('Salvo');
+  undoBegin();s('pends',ps);undoCommit();cov('ov-p');rPe();rR();notify('Salvo.');
 }
-function delPend(){confirmar('',function(){undoBegin();s('pends',g('pends').filter(function(p){return p.id!==_pId;}));undoCommit();cov('ov-p');rPe();rR();notify('Excluído');});}
+function delPend(){confirmar('',function(){undoBegin();s('pends',g('pends').filter(function(p){return p.id!==_pId;}));undoCommit();cov('ov-p');rPe();rR();notify('Excluído.');});}
 
 // EDIÇÕES
 var _edId=null;
@@ -4452,9 +4452,9 @@ function saveEd(){
   var es=g('edicoes');
   var o={id:_edId||uid(),clienteId:document.getElementById('med-cliente').value,evento:document.getElementById('med-evento').value.trim(),fotos:document.getElementById('med-fotos').value,etapa:document.getElementById('med-etapa').value,editor:document.getElementById('med-editor').value.trim(),prazo:d2i(document.getElementById('med-prazo').value),notas:document.getElementById('med-notas').value.trim()};
   if(_edId){var i=es.findIndex(function(e){return e.id===_edId;});if(i>-1)es[i]=o;}else es.push(o);
-  undoBegin();s('edicoes',es);undoCommit();cov('ov-ed');rED();notify('Edição salva');
+  undoBegin();s('edicoes',es);undoCommit();cov('ov-ed');rED();notify('Edição salva.');
 }
-function delEd(){confirmar('',function(){undoBegin();s('edicoes',g('edicoes').filter(function(e){return e.id!==_edId;}));undoCommit();cov('ov-ed');rED();notify('Excluído');});}
+function delEd(){confirmar('',function(){undoBegin();s('edicoes',g('edicoes').filter(function(e){return e.id!==_edId;}));undoCommit();cov('ov-ed');rED();notify('Excluído.');});}
 
 // ENTREGAS
 var _entId=null;
@@ -4487,9 +4487,9 @@ function saveEnt(){
   var es=g('entregas');
   var o={id:_entId||uid(),clienteId:document.getElementById('ment-cliente').value,tipo:document.getElementById('ment-tipo').value,itens:document.getElementById('ment-itens').value.trim(),data:d2i(document.getElementById('ment-data').value),status:document.getElementById('ment-status').value,link:document.getElementById('ment-link').value.trim()};
   if(_entId){var i=es.findIndex(function(e){return e.id===_entId;});if(i>-1)es[i]=o;}else es.push(o);
-  undoBegin();s('entregas',es);undoCommit();cov('ov-ent');rENT();notify('Entrega salva');
+  undoBegin();s('entregas',es);undoCommit();cov('ov-ent');rENT();notify('Entrega salva.');
 }
-function delEnt(){confirmar('',function(){undoBegin();s('entregas',g('entregas').filter(function(e){return e.id!==_entId;}));undoCommit();cov('ov-ent');rENT();notify('Excluído');});}
+function delEnt(){confirmar('',function(){undoBegin();s('entregas',g('entregas').filter(function(e){return e.id!==_entId;}));undoCommit();cov('ov-ent');rENT();notify('Excluído.');});}
 var _fId=null;
 var _saudeCache=null;
 function rSaude(){
@@ -4856,9 +4856,9 @@ function saveF(){
   var o={id:_fId||uid(),desc:document.getElementById('mf-desc').value.trim(),valor:parseFloat(document.getElementById('mf-valor').value)||0,data:d2i(document.getElementById('mf-data').value),cat:document.getElementById('mf-cat').value,clienteId:document.getElementById('mf-cliente').value,tipo:document.getElementById('mf-tipo').value};
   if(!o.desc){alert('Informe a descrição.');return;}
   if(_fId){var i=fs.findIndex(function(e){return e.id===_fId;});if(i>-1)fs[i]=o;}else fs.push(o);
-  undoBegin();s('fin',fs);undoCommit();cov('ov-f');rF();rR();notify('Salvo');
+  undoBegin();s('fin',fs);undoCommit();cov('ov-f');rF();rR();notify('Salvo.');
 }
-function delF(){confirmar('',function(){undoBegin();s('fin',g('fin').filter(function(e){return e.id!==_fId;}));undoCommit();cov('ov-f');rF();rR();notify('Excluído');});}
+function delF(){confirmar('',function(){undoBegin();s('fin',g('fin').filter(function(e){return e.id!==_fId;}));undoCommit();cov('ov-f');rF();rR();notify('Excluído.');});}
 var _fpId=null;
 function rFP(){
   var per=document.getElementById('fp-period').value,now=new Date();
@@ -4883,9 +4883,9 @@ function saveFP(){
   var o={id:_fpId||uid(),desc:document.getElementById('mfp-desc').value.trim(),valor:parseFloat(document.getElementById('mfp-valor').value)||0,data:d2i(document.getElementById('mfp-data').value),cat:document.getElementById('mfp-cat').value,tipo:document.getElementById('mfp-tipo').value};
   if(!o.desc){alert('Informe a descrição.');return;}
   if(_fpId){var i=fs.findIndex(function(e){return e.id===_fpId;});if(i>-1)fs[i]=o;}else fs.push(o);
-  undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Salvo');
+  undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Salvo.');
 }
-function delFP(){confirmar('',function(){undoBegin();s('fin_pessoal',g('fin_pessoal').filter(function(e){return e.id!==_fpId;}));undoCommit();cov('ov-fp');rFP();notify('Excluído');});}
+function delFP(){confirmar('',function(){undoBegin();s('fin_pessoal',g('fin_pessoal').filter(function(e){return e.id!==_fpId;}));undoCommit();cov('ov-fp');rFP();notify('Excluído.');});}
 
 function rFluxo(){
   var hzEl=document.getElementById('fluxo-horizonte');
@@ -5437,9 +5437,9 @@ function savePK(){
   };
   if(!o.nome){alert('Informe o nome.');return;}
   if(_pkId){var i=ps.findIndex(function(p){return p.id===_pkId;});if(i>-1)ps[i]=o;}else ps.push(o);
-  undoBegin();s('pacotes',ps);undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Pacote salvo');
+  undoBegin();s('pacotes',ps);undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Pacote salvo.');
 }
-function delPK(){confirmar('',function(){undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Excluído');});}
+function delPK(){confirmar('',function(){undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Excluído.');});}
 
 // ── ADD-ONS ──────────────────────────────────────────────────────────────────
 var _aoId=null;
@@ -5543,9 +5543,9 @@ function saveEq(){
   var o={id:_eqId||uid(),nome:document.getElementById('meq-nome').value.trim(),funcao:document.getElementById('meq-funcao').value,email:document.getElementById('meq-email').value.trim(),tel:document.getElementById('meq-tel').value.trim(),notas:document.getElementById('meq-notas').value.trim()};
   if(!o.nome){alert('Informe o nome.');return;}
   if(_eqId){var i=es.findIndex(function(e){return e.id===_eqId;});if(i>-1)es[i]=o;}else es.push(o);
-  undoBegin();s('equipe',es);undoCommit();cov('ov-eq');rEQ();notify('Membro salvo');
+  undoBegin();s('equipe',es);undoCommit();cov('ov-eq');rEQ();notify('Membro salvo.');
 }
-function delEq(){confirmar('',function(){undoBegin();s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));undoCommit();cov('ov-eq');rEQ();notify('Excluído');});}
+function delEq(){confirmar('',function(){undoBegin();s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));undoCommit();cov('ov-eq');rEQ();notify('Excluído.');});}
 function saveMetas(){undoBegin();
   var fatMensal=parseFloat(document.getElementById('meta-fat-mensal').value)||0;
   var casamentosAno=parseInt(document.getElementById('meta-casamentos-ano').value)||0;
@@ -6270,9 +6270,9 @@ function saveQT(){
   var o={id:_qtId||uid(),nome:document.getElementById('mqt-nome').value.trim(),desc:document.getElementById('mqt-desc').value.trim(),perguntas:_qtPerguntas};
   if(!o.nome){alert('Informe o nome do template.');return;}
   if(_qtId){var i=ts.findIndex(function(t){return t.id===_qtId;});if(i>-1)ts[i]=o;}else ts.push(o);
-  undoBegin();s('q_templates',ts);undoCommit();cov('ov-qt');rQT();notify('Template salvo');
+  undoBegin();s('q_templates',ts);undoCommit();cov('ov-qt');rQT();notify('Template salvo.');
 }
-function delQT(){confirmar('',function(){undoBegin();s('q_templates',g('q_templates').filter(function(t){return t.id!==_qtId;}));undoCommit();cov('ov-qt');rQT();notify('Excluído');});}
+function delQT(){confirmar('',function(){undoBegin();s('q_templates',g('q_templates').filter(function(t){return t.id!==_qtId;}));undoCommit();cov('ov-qt');rQT();notify('Excluído.');});}
 
 // RESPOSTAS
 var _qrId=null;
@@ -6390,9 +6390,9 @@ function saveQR(){
   var o={id:_qrId||uid(),clienteId:document.getElementById('mqr-cliente').value,templateId:document.getElementById('mqr-template').value,data:d2i(document.getElementById('mqr-data').value),status:document.getElementById('mqr-status').value,respostas:_qrId?(rs.find(function(r){return r.id===_qrId;})||{}).respostas||{}:{}};
   if(!o.clienteId){alert('Selecione um cliente.');return;}
   if(_qrId){var i=rs.findIndex(function(r){return r.id===_qrId;});if(i>-1)rs[i]=o;}else rs.push(o);
-  undoBegin();s('q_respostas',rs);undoCommit();cov('ov-qr');rQR();notify('Salvo');
+  undoBegin();s('q_respostas',rs);undoCommit();cov('ov-qr');rQR();notify('Salvo.');
 }
-function delQR(){confirmar('',function(){undoBegin();s('q_respostas',g('q_respostas').filter(function(r){return r.id!==_qrId;}));undoCommit();cov('ov-qr');rQR();notify('Excluído');});}
+function delQR(){confirmar('',function(){undoBegin();s('q_respostas',g('q_respostas').filter(function(r){return r.id!==_qrId;}));undoCommit();cov('ov-qr');rQR();notify('Excluído.');});}
 function verRespostas(id){
   var r=g('q_respostas').find(function(x){return x.id===id;});if(!r)return;
   var t=g('q_templates').find(function(x){return x.id===r.templateId;});
@@ -6461,9 +6461,9 @@ function saveTR(){
   var o={id:_trId||uid(),nome:document.getElementById('mtr-nome').value.trim(),duracao:parseInt(document.getElementById('mtr-dur').value)||60,formato:document.getElementById('mtr-formato').value,cor:document.getElementById('mtr-cor').value,desc:document.getElementById('mtr-desc').value.trim()};
   if(!o.nome){alert('Informe o nome.');return;}
   if(_trId){var i=ts.findIndex(function(t){return t.id===_trId;});if(i>-1)ts[i]=o;}else ts.push(o);
-  undoBegin();s('tiposReuniao',ts);undoCommit();cov('ov-tr');rTR();notify('Tipo salvo');
+  undoBegin();s('tiposReuniao',ts);undoCommit();cov('ov-tr');rTR();notify('Tipo salvo.');
 }
-function delTR(){confirmar('',function(){undoBegin();s('tiposReuniao',g('tiposReuniao').filter(function(t){return t.id!==_trId;}));undoCommit();cov('ov-tr');rTR();notify('Excluído');});}
+function delTR(){confirmar('',function(){undoBegin();s('tiposReuniao',g('tiposReuniao').filter(function(t){return t.id!==_trId;}));undoCommit();cov('ov-tr');rTR();notify('Excluído.');});}
 
 // SLOTS
 function rSlots(){
@@ -6504,9 +6504,9 @@ function saveSlot(){
   undoBegin();s('slots',ss);
   // Também adiciona na agenda principal
   if(!_slId){var tr=g('tiposReuniao').find(function(x){return x.id===o.tipoId;})||{nome:'Reunião'};var es=g('eventos');es.push({id:uid(),titulo:tr.nome+(o.clienteId?' — '+cN(o.clienteId):''),data:o.data,tipo:'Reunião',clienteId:o.clienteId,local:o.local,notas:o.notas});s('eventos',es);}
-  undoCommit();cov('ov-sl');rSlots();notify('Sessão salva');
+  undoCommit();cov('ov-sl');rSlots();notify('Sessão salva.');
 }
-function delSlot(){confirmar('',function(){undoBegin();s('slots',g('slots').filter(function(s2){return s2.id!==_slId;}));undoCommit();cov('ov-sl');rSlots();notify('Excluído');});}
+function delSlot(){confirmar('',function(){undoBegin();s('slots',g('slots').filter(function(s2){return s2.id!==_slId;}));undoCommit();cov('ov-sl');rSlots();notify('Excluído.');});}
 
 // DISPONIBILIDADE
 var DIAS_SEMANA=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
