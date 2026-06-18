@@ -1291,6 +1291,15 @@ select.aj-input{cursor:pointer;}
 <!-- REDES & ANÚNCIOS -->
 <div class="panel" id="p-marketing">
 
+  <!-- ============ FUNIL DE VENDAS ============ -->
+  <div style="background:var(--surface);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem;">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.1rem;flex-wrap:wrap;gap:.5rem;">
+      <div class="col-title" style="margin:0;">Funil de vendas</div>
+      <div style="font-size:.72rem;color:var(--text-hint);">Alcance e cliques das redes conectadas · leads e fechamentos do seu CRM</div>
+    </div>
+    <div id="mk-funil"></div>
+  </div>
+
   <!-- ============ INSTAGRAM ============ -->
   <div style="margin-bottom:2.75rem;">
     <div class="sh">
@@ -2291,7 +2300,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.4.746';
+var APP_VERSION = 'v1.4.747';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3062,12 +3071,14 @@ function mkIgPeriod(days, btn){
   document.querySelectorAll('#mk-ig-period .ig-pill').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   mkIgFill();
+  rFunil();
 }
 function mkMaPeriod(days, btn){
   _mkMaPeriod = days;
   document.querySelectorAll('#mk-ma-period .ig-pill').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
   mkMaFill();
+  rFunil();
 }
 
 // barra horizontal rotulada (audiência / localização)
@@ -3148,6 +3159,66 @@ function rMarketing(){
     mkMaFill();
     setTimeout(mkMaDraw, 60);
   }
+  rFunil();
+}
+
+// converte '4.2k' / '43k' / '—' em número; mantém número já numérico
+function parseK(s){
+  if(typeof s === 'number') return s;
+  s = String(s||'').trim();
+  if(s === '' || s === '—') return 0;
+  var m = s.toLowerCase().match(/^([\d.,]+)\s*k$/);
+  if(m) return Math.round(parseFloat(m[1].replace(',','.')) * 1000);
+  return parseFloat(s.replace(',','.')) || 0;
+}
+function parsePct(s){ return parseFloat(String(s||'').replace('%','').replace(',','.')) || 0; }
+
+// funil de vendas: alcance/cliques das redes conectadas + leads/orçamentos/fechados reais do CRM
+function rFunil(){
+  var wrap = document.getElementById('mk-funil');
+  if(!wrap) return;
+  var igConn = g('ig_conectado') === true;
+  var maConn = g('ma_conectado') === true;
+  if(!igConn && !maConn){
+    wrap.innerHTML = '<div style="font-size:.78rem;color:var(--text-hint);font-style:italic;padding:.5rem 0;">Conecte o Instagram ou o Meta Ads acima para ver o funil completo.</div>';
+    return;
+  }
+  var alcance = 0, cliques = 0;
+  if(igConn){
+    var dIg = _igDemo, kIg = 'v' + _mkIgPeriod;
+    alcance += dIg.alcance[kIg] || 0;
+    cliques += dIg.cliques[kIg] || 0;
+  }
+  if(maConn){
+    var dMa = _maDemo, kMa = 'v' + _mkMaPeriod;
+    alcance += parseK(dMa.alcance[kMa]);
+    cliques += Math.round(parseK(dMa.impressoes[kMa]) * parsePct(dMa.ctr[kMa]) / 100);
+  }
+  var cs = g('clientes');
+  var leads = cs.length;
+  var orcamentos = cs.filter(function(c){ return !!c.pacote_id; }).length;
+  var fechados = cs.filter(function(c){ return c.assinado === true; }).length;
+
+  var estagios = [
+    {label:'Público alcançado',        val:alcance},
+    {label:'Interação (cliques)',      val:cliques},
+    {label:'Leads no CRM',             val:leads},
+    {label:'Orçamentos enviados',      val:orcamentos},
+    {label:'Projetos fechados',        val:fechados},
+  ];
+  var base = estagios[0].val || 1;
+  wrap.innerHTML = estagios.map(function(e, i){
+    var widthPct = Math.max(Math.round((e.val / base) * 100), e.val > 0 ? 3 : 0);
+    var pctPrev = i > 0 ? (estagios[i-1].val ? Math.round((e.val / estagios[i-1].val) * 100) : 0) : null;
+    return '<div style="margin-bottom:'+(i < estagios.length - 1 ? '.85rem' : '0')+';">'+
+      '<div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:5px;"><span style="color:var(--text-muted);">'+e.label+'</span><span style="color:var(--text);font-weight:500;">'+e.val.toLocaleString('pt-BR')+'</span></div>'+
+      '<div style="height:22px;background:var(--surface2);border-radius:6px;overflow:hidden;">'+
+        '<div style="height:100%;width:'+widthPct+'%;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;">'+
+          (pctPrev !== null && widthPct > 12 ? '<span style="font-size:.66rem;color:#fff;font-weight:500;">'+pctPrev+'%</span>' : '')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
 }
 
 function rPipeline(){
