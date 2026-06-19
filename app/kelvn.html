@@ -26,6 +26,7 @@
   --teal:#0A7864;--teal-light:#E3F4EF;
   --purple:#5255A0;--purple-light:#EEF0FF;
   --radius:8px;--radius-sm:5px;
+  --glass-bg:rgba(255,255,255,.78);
 }
 [data-theme="dark"]{
   --bg:#111009;--surface:#1A1814;--surface2:#211E18;
@@ -35,6 +36,7 @@
   --coral:#CC4A28;--coral-light:#1E0E08;
   --teal:#18926E;--teal-light:#091E15;
   --purple:#8A8DCC;--purple-light:#12142A;
+  --glass-bg:rgba(26,24,20,.78);
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;zoom:0.9;}
 /* APP LAYOUT */
@@ -65,19 +67,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 [data-theme="dark"] .thm-w .thm-moon{opacity:1;color:var(--amber);}
 /* BODY */
 .body{padding:1rem 2rem 2rem;width:100%;}
-@media(max-width:768px){.body{padding:1.25rem 1.25rem calc(74px + env(safe-area-inset-bottom));}.snav{display:none;}.main{margin-left:0;}.topbar{padding:.65rem 1.25rem;}}
+@media(max-width:768px){.body{padding:1.25rem 1.25rem calc(92px + env(safe-area-inset-bottom));}.snav{display:none;}.main{margin-left:0;}.topbar{padding:.65rem 1.25rem;}}
 
-/* ===== NAVEGAÇÃO MOBILE — barra inferior + folha "Mais" ===== */
+/* ===== NAVEGAÇÃO MOBILE — pill flutuante estilo iOS + folha "Mais" ===== */
 .mnav{display:none;}
 .msheet-ov{display:none;}
 .msheet{display:none;}
 @media(max-width:768px){
-  /* barra de abas inferior */
-  .mnav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--bg);border-top:.5px solid var(--border-strong);padding:6px 2px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;align-items:stretch;}
-  .mnav-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 0;color:var(--text-hint);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;}
+  /* barra de meta anual não aparece no mobile (sem espaço/sentido no rodapé) */
+  #meta-anual-wrap{display:none !important;}
+  /* pill flutuante de navegação */
+  .mnav{display:flex;position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:200;gap:2px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:6px;box-shadow:0 10px 28px rgba(0,0,0,.16);}
+  .mnav-btn{width:46px;height:46px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;color:var(--text-hint);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;}
   .mnav-btn svg{width:21px;height:21px;}
-  .mnav-btn span{font-size:.58rem;font-weight:500;letter-spacing:.01em;}
-  .mnav-btn.active{color:var(--amber);}
+  .mnav-btn span{display:none;}
+  .mnav-btn.active{background:var(--amber-light);color:var(--amber);}
   /* folha "Mais" */
   .msheet-ov{display:block;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .22s;}
   .msheet-ov.open{opacity:1;pointer-events:auto;}
@@ -94,8 +98,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .msheet-util .msheet-tile{flex:1;flex-direction:row;justify-content:center;gap:6px;padding:.7rem .4rem;}
   .msheet-util .msheet-tile svg{width:18px;height:18px;}
   .msheet-util .msheet-tile span{font-size:.66rem;}
-  /* barra de meta anual não colide com a tab bar */
-  #meta-anual-wrap{left:0 !important;right:0 !important;padding:0 1.25rem !important;bottom:calc(74px + env(safe-area-inset-bottom)) !important;}
 }
 .panel{display:none;}.panel.active{display:block;}
 /* BUTTONS */
@@ -603,7 +605,7 @@ select.aj-input{cursor:pointer;}
     <span>Financeiro</span>
   </button>
   <button class="mnav-btn" id="mn-mais" onclick="abrirMais()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
     <span>Mais</span>
   </button>
 </nav>
@@ -2420,7 +2422,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.0';
+var APP_VERSION = 'v1.5.1';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
