@@ -78,6 +78,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #meta-anual-wrap{display:none !important;}
   /* próximas atividades: máx 5 no mobile, mas widget mantém o tamanho de 5 itens mesmo com menos */
   #r-agenda{min-height:calc(5 * 3.9rem) !important;}
+  /* edições: máx 5 no mobile, mesma lógica de tamanho fixo; widget reposicionado abaixo de próximas atividades via JS (rR) */
+  #r-edicoes{min-height:calc(5 * 3.9rem) !important;}
+  #rw-edicoes{margin-top:1.25rem !important;}
   /* pill flutuante de navegação */
   .mnav{display:flex;position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;gap:4px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.16);transform:translateY(0) translateZ(0);transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;isolation:isolate;}
   .mnav.mnav-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom))) translateZ(0);}
@@ -731,8 +734,10 @@ select.aj-input{cursor:pointer;}
 <!-- Listas -->
   <div class="r-lists">
     <div>
-      <div class="col-title">Próximas atividades</div>
-      <div id="r-agenda" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
+      <div id="rw-ativ">
+        <div class="col-title">Próximas atividades</div>
+        <div id="r-agenda" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
+      </div>
 
       <!-- Widget Instagram -->
       <div style="margin-top:1.25rem;">
@@ -784,8 +789,10 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div>
-      <div class="col-title">Edições</div>
-      <div id="r-edicoes" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
+      <div id="rw-edicoes">
+        <div class="col-title">Edições</div>
+        <div id="r-edicoes" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
+      </div>
 
       <!-- Widget Meta Ads -->
       <div style="margin-top:1.25rem;">
@@ -2460,7 +2467,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.31';
+var APP_VERSION = 'v1.5.32';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -2782,6 +2789,13 @@ function rR(){
   rMetaAnual();
   igRender();
   maRender();
+
+  // mobile: widget de Edições logo abaixo de Próximas atividades
+  var rwEd=document.getElementById('rw-edicoes'),rwAt=document.getElementById('rw-ativ'),colDesk=document.querySelector('.r-lists>div:nth-child(2)');
+  if(rwEd&&rwAt&&colDesk){
+    if(window.innerWidth<=768)rwAt.parentNode.insertBefore(rwEd,rwAt.nextSibling);
+    else colDesk.insertBefore(rwEd,colDesk.firstChild);
+  }
 }
 
 function _fasesIcons(e){
@@ -2812,22 +2826,23 @@ function toggleFase(evKey,fase){
 }
 
 function rEdicoes(){
-  var eds=(g('edicoes')||[]).slice()
-    .sort(function(a,b){return (a.data||'').localeCompare(b.data||'');})
-    .slice(0,7);
-  var html=eds.length?eds.map(function(e){
-    return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+(e.evId||('_c_'+e.clienteId))+'\',\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
-      '<div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div>'+
-      '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
-      '<div class="ai-sub">'+(e.local||'')+'</div></div>'+
-      _fasesIcons(e)+
-    '</div>';
-  }).join(''):
-  '<div class="ai" style="cursor:default;opacity:.5;font-size:.78rem;">Arraste um casamento aqui para iniciar edição</div>';
+  var edsAll=(g('edicoes')||[]).slice()
+    .sort(function(a,b){return (a.data||'').localeCompare(b.data||'');});
+  function buildHtml(eds){
+    return eds.length?eds.map(function(e){
+      return '<div class="ai" draggable="true" ondragstart="dragFromEd(event,\''+(e.evId||('_c_'+e.clienteId))+'\',\''+e.clienteId+'\')" onclick="openC(\''+e.clienteId+'\')">'+
+        '<div class="ai-dot" style="background:var(--amber);margin-right:4px;"></div>'+
+        '<div class="ai-info"><div class="ai-title">'+e.titulo+'</div>'+
+        '<div class="ai-sub">'+(e.local||'')+'</div></div>'+
+        _fasesIcons(e)+
+      '</div>';
+    }).join(''):
+    '<div class="ai" style="cursor:default;opacity:.5;font-size:.78rem;">Arraste um casamento aqui para iniciar edição</div>';
+  }
   var el1=document.getElementById('r-edicoes');
   var el2=document.getElementById('ed-list');
-  if(el1){el1.innerHTML=html;setupEdDrop(el1);}
-  if(el2){el2.innerHTML=html;setupEdDrop(el2);}
+  if(el1){el1.innerHTML=buildHtml(edsAll.slice(0,window.innerWidth<=768?5:7));setupEdDrop(el1);}
+  if(el2){el2.innerHTML=buildHtml(edsAll.slice(0,7));setupEdDrop(el2);}
 }
 
 function setupEdDrop(el){
