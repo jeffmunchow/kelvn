@@ -871,7 +871,7 @@ select.aj-input{cursor:pointer;}
         <option disabled>──────</option>
         <option value="Finalizado">Arquivados</option>
       </select>
-      <button class="btn" style="color:var(--text);" onclick="openC()">+ Cliente</button>
+      <button class="btn" style="color:var(--text);white-space:nowrap;flex-shrink:0;" onclick="openC()">+ Cliente</button>
     </div>
   </div>
   <div class="tw" style="border:none;"><div class="ts"><table><thead><tr>
@@ -2467,7 +2467,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.33';
+var APP_VERSION = 'v1.5.34';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
