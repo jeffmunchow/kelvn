@@ -2446,7 +2446,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.16';
+var APP_VERSION = 'v1.5.17';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -2583,22 +2583,31 @@ function rInadClick(){
   else goDirecto('financeiro');
 }
 
-// esconde a tab bar ao rolar pra baixo, mostra ao rolar pra cima
-var _mnavLastY = window.scrollY || 0;
-var _mnavTicking = false;
-function _mnavOnScroll(){
-  var y = window.scrollY || 0;
-  var nav = document.getElementById('mnav');
-  if(nav){
-    if(y > _mnavLastY && y > 60) nav.classList.add('mnav-hide');
-    else if(y < _mnavLastY) nav.classList.remove('mnav-hide');
+// esconde a tab bar ao rolar pra baixo, mostra ao rolar pra cima — reaproveitável p/ qualquer container
+function mnavScrollWatcher(getY){
+  var lastY = getY() || 0;
+  var ticking = false;
+  function onScroll(){
+    var y = getY() || 0;
+    var nav = document.getElementById('mnav');
+    if(nav){
+      if(y > lastY && y > 60) nav.classList.add('mnav-hide');
+      else if(y < lastY) nav.classList.remove('mnav-hide');
+    }
+    lastY = y;
+    ticking = false;
   }
-  _mnavLastY = y;
-  _mnavTicking = false;
+  return function(){
+    if(!ticking){ requestAnimationFrame(onScroll); ticking = true; }
+  };
 }
-window.addEventListener('scroll', function(){
-  if(!_mnavTicking){ requestAnimationFrame(_mnavOnScroll); _mnavTicking = true; }
-}, {passive:true});
+// scroll da página (dashboard, clientes, agenda, etc.)
+window.addEventListener('scroll', mnavScrollWatcher(function(){ return window.scrollY; }), {passive:true});
+// scroll de dentro do chat da IA — o fundo fica travado enquanto ela está aberta
+(function(){
+  var aiMsgs = document.getElementById('aiMessages');
+  if(aiMsgs) aiMsgs.addEventListener('scroll', mnavScrollWatcher(function(){ return aiMsgs.scrollTop; }), {passive:true});
+})();
 
 function go(name){
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
