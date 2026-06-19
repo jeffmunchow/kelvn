@@ -426,8 +426,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-input-area{padding:.75rem 1rem;border-top:.5px solid var(--border);display:flex;gap:.6rem;align-items:flex-end;flex-shrink:0;}
 .ai-input{flex:1;padding:.6rem .85rem;border-radius:8px;border:.5px solid var(--border-strong);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.82rem;resize:none;outline:none;line-height:1.5;max-height:100px;transition:border-color .15s;}
 .ai-input:focus{border-color:var(--border-strong);}
-.ai-send{width:34px;height:34px;border-radius:8px;background:var(--text);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--bg);flex-shrink:0;transition:opacity .15s;}
-.ai-send:hover{opacity:.8;}
+.ai-send{width:34px;height:34px;border-radius:8px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text);flex-shrink:0;transition:background .15s,opacity .15s;}
+.ai-send:hover{background:var(--surface2);}
 .ai-send:disabled{opacity:.4;cursor:not-allowed;}
 .ai-mic{width:34px;height:34px;border-radius:8px;background:transparent;border:.5px solid var(--border-strong);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);flex-shrink:0;transition:background .15s,color .15s,border-color .15s;}
 .ai-mic:hover{background:var(--surface2);color:var(--text);}
@@ -2458,7 +2458,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.27';
+var APP_VERSION = 'v1.5.28';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -9799,6 +9799,7 @@ function openAI(){
 }
 
 function closeAI(){
+  if(typeof aiAbortVoice === 'function') aiAbortVoice();
   document.getElementById('aiPanel').classList.remove('open');
   document.getElementById('aiBackdrop').classList.remove('open');
   document.body.classList.remove('ai-open');
@@ -9862,8 +9863,17 @@ function aiStopVoice(){
   var mic = document.getElementById('aiMicBtn');
   if(mic) mic.classList.remove('listening');
   var input = document.getElementById('aiInput');
-  if(input){ input.setAttribute('placeholder', 'Pergunte aqui...'); input.focus(); }
+  if(input) input.setAttribute('placeholder', 'Pergunte aqui...');
 }
+
+// libera o microfone à força (privacidade) — usado ao fechar a IA, trocar de app/aba ou enviar
+function aiAbortVoice(){
+  if(_aiRecog && _aiListening){ try{ _aiRecog.abort(); }catch(e){} }
+  aiStopVoice();
+}
+// garante que o mic nunca fique ligado quando o app vai pro fundo ou a página é descartada
+document.addEventListener('visibilitychange', function(){ if(document.hidden) aiAbortVoice(); });
+window.addEventListener('pagehide', aiAbortVoice);
 
 function aiAddMessage(role, text, thinking){
   var msgs = document.getElementById('aiMessages');
@@ -9944,6 +9954,7 @@ function _renderMD(text){
 
 async function sendAIMessage(){
   if(_aiThinking) return;
+  if(typeof aiAbortVoice === 'function') aiAbortVoice();
   var input = document.getElementById('aiInput');
   var text = input.value.trim();
   if(!text) return;
