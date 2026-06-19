@@ -2516,7 +2516,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.47';
+var APP_VERSION = 'v1.5.48';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -4695,7 +4695,7 @@ function rA(){
     if(_edsAgIds.indexOf(e.id)>-1) return false;
     var d=new Date((e.data||'').length===10?e.data+'T12:00':e.data);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;
   }).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
-  if(window.innerWidth<=768)all=all.slice(0,8);
+  if(window.innerWidth<=768)all=all.slice(0,5);
   var el=document.getElementById('ag-list');
   if(!all.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhum evento ainda. Quando agendar o primeiro, ele aparece aqui.</div>';return;}
   el.innerHTML='<div>'+all.map(function(e){
