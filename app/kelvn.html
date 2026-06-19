@@ -109,9 +109,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #p-agenda .ag-col-list .tw{flex:none !important;overflow-y:visible !important;}
   /* ───── FINANCEIRO MOBILE ───── */
   /* abas rolam na horizontal em vez de espremer 7 pílulas */
-  #p-financeiro .pills{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  #p-financeiro .pills{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;}
   #p-financeiro .pills::-webkit-scrollbar{display:none;}
   #p-financeiro .pills .pill{flex:0 0 auto;white-space:nowrap;}
+  #p-financeiro .pills::after{content:'';position:absolute;top:0;right:0;bottom:0;width:28px;background:linear-gradient(to right,transparent,var(--surface));pointer-events:none;border-radius:0 var(--radius) var(--radius) 0;}
   /* grids de 2 colunas viram 1 coluna */
   #p-financeiro .fin-grid2{grid-template-columns:1fr !important;}
   /* card de saúde: empilha score e indicadores, indicadores em 2x2 */
@@ -2549,7 +2550,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.57';
+var APP_VERSION = 'v1.5.58';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
