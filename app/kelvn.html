@@ -39,8 +39,8 @@
   --glass-bg:rgba(26,24,20,.78);
 }
 /* selects do financeiro: troca a seta nativa (preta) por uma seta dupla na cor do tema */
-#p-financeiro select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3-3 3 3M2 6l3 3 3-3' stroke='%236B6660' stroke-width='1.3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px !important;}
-[data-theme="dark"] #p-financeiro select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3-3 3 3M2 6l3 3 3-3' stroke='%239E9892' stroke-width='1.3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");}
+#p-financeiro select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3-3 3 3M2 6l3 3 3-3' stroke='%236B6660' stroke-width='1.3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 9px center !important;background-color:transparent !important;padding-right:26px !important;}
+[data-theme="dark"] #p-financeiro select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3-3 3 3M2 6l3 3 3-3' stroke='%239E9892' stroke-width='1.3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;zoom:0.9;}
 /* APP LAYOUT */
 .app{display:flex;flex:1;min-height:100vh;}
@@ -119,10 +119,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #p-financeiro .saude-score-wrap{padding-right:0 !important;border-right:none !important;padding-bottom:1rem;border-bottom:.5px solid var(--border);}
   #p-financeiro .saude-inds{display:grid !important;grid-template-columns:1fr 1fr;gap:1rem .5rem;}
   #p-financeiro .saude-inds>div{border-right:none !important;text-align:left !important;padding:0 !important;}
-  /* linhas de controle: quebram e a busca ocupa a largura toda */
+  /* linhas de controle: quebram, busca em cima (largura toda), selects e botões em pares 50/50 */
   #p-financeiro .sh>div:last-child{flex-wrap:wrap;width:100%;gap:.5rem;}
   #p-financeiro .sh>div:last-child>div[style*="position:relative"]{flex:1 1 100%;}
   #p-financeiro #fin-search{width:100% !important;box-sizing:border-box;}
+  #p-financeiro .sh>div:last-child>select,
+  #p-financeiro .sh>div:last-child>button{flex:1 1 calc(50% - .25rem);min-width:0;}
   /* precificação e fluxo: tira o sticky e a altura fixa que cortam conteúdo no mobile */
   #p-financeiro #prec-result{position:static !important;top:auto !important;}
   #p-financeiro #fp-panel-fluxo .fin-grid2>div:last-child{height:auto !important;min-height:300px;position:static !important;}
@@ -2541,7 +2543,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.50';
+var APP_VERSION = 'v1.5.51';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
