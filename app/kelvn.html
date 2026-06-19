@@ -148,7 +148,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .r-inad-mobile{display:none;}
 @media(max-width:768px){
   .r-kpis{grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.1rem;}
-  .r-lists{grid-template-columns:1fr;gap:1.5rem;}
+  .r-lists{grid-template-columns:1fr;gap:0;}
   .r-inad-desktop{display:none;}
   .r-inad-mobile{display:block;}
 }
@@ -795,7 +795,7 @@ select.aj-input{cursor:pointer;}
       </div>
 
       <!-- Widget Meta Ads -->
-      <div style="margin-top:1.25rem;">
+      <div id="rw-maads" style="margin-top:1.25rem;">
         <div class="col-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
           <span>Meta Ads</span>
           <div id="ma-period-wrap" style="display:none;gap:3px;align-items:center;">
@@ -2467,7 +2467,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.32';
+var APP_VERSION = 'v1.5.33';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
