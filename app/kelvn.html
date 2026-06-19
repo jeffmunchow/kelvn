@@ -81,6 +81,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   /* edições: máx 5 no mobile, mesma lógica de tamanho fixo; widget reposicionado abaixo de próximas atividades via JS (rR) */
   #r-edicoes{min-height:calc(5 * 3.9rem) !important;}
   #rw-edicoes{margin-top:1.25rem !important;}
+  /* Clientes: toolbar de filtros quebra em 2 linhas, busca ocupa a linha toda; dropdown de status no padrão Kelvn em vez do select nativo */
+  #p-clientes .sh{flex-direction:column;align-items:stretch;}
+  #p-clientes .sh>div:last-child{flex-wrap:wrap;width:100%;}
+  #p-clientes .c-search-wrap{flex:1 1 100%;}
+  #p-clientes #c-search{width:100% !important;box-sizing:border-box;}
+  #p-clientes .c-status-native{display:none !important;}
+  #p-clientes .c-status-mobile{display:flex !important;}
   /* pill flutuante de navegação */
   .mnav{display:flex;position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;gap:4px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.16);transform:translateY(0) translateZ(0);transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;isolation:isolate;}
   .mnav.mnav-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom))) translateZ(0);}
@@ -852,12 +859,12 @@ select.aj-input{cursor:pointer;}
     <div class="st">Clientes</div>
     <div style="display:flex;align-items:center;gap:.6rem;">
       <!-- Busca -->
-      <div style="position:relative;">
+      <div class="c-search-wrap" style="position:relative;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="c-search" placeholder="Buscar cliente…" oninput="rC()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:190px;">
       </div>
       <!-- Filtro status -->
-      <select id="c-status" onchange="rC()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
+      <select id="c-status" onchange="rC()" class="c-status-native" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
         <option value="">Ativos</option>
         <option value="Prospect">Prospect</option>
         <option value="Sessão">Sessão</option>
@@ -871,6 +878,27 @@ select.aj-input{cursor:pointer;}
         <option disabled>──────</option>
         <option value="Finalizado">Arquivados</option>
       </select>
+      <!-- Filtro status — versão mobile, dropdown padrão Kelvn (não usa o select nativo) -->
+      <div class="c-status-mobile" style="position:relative;display:none;flex:1;" id="c-status-wrap">
+        <div id="c-status-btn" onclick="toggleCStatusDrop()" style="display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;height:30px;padding:6px 10px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--text-muted);user-select:none;">
+          <span id="c-status-label">Ativos</span>
+          <svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <div id="c-status-drop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.14);">
+          <div onclick="setCStatusDrop('','Ativos')" class="sdrop-opt">Ativos</div>
+          <div onclick="setCStatusDrop('Prospect','Prospect')" class="sdrop-opt">Prospect</div>
+          <div onclick="setCStatusDrop('Sessão','Sessão')" class="sdrop-opt" style="color:var(--coral);">Sessão</div>
+          <div onclick="setCStatusDrop('Religioso','Religioso')" class="sdrop-opt" style="color:var(--teal);">Religioso</div>
+          <div onclick="setCStatusDrop('Welcome','Welcome')" class="sdrop-opt" style="color:#D4709A;">Welcome</div>
+          <div onclick="setCStatusDrop('Casamento','Casamento')" class="sdrop-opt" style="color:var(--amber);">Casamento</div>
+          <div onclick="setCStatusDrop('After','After')" class="sdrop-opt" style="color:#6B9BAF;">After</div>
+          <div onclick="setCStatusDrop('Edição','Edição')" class="sdrop-opt" style="color:var(--coral);">Edição</div>
+          <div onclick="setCStatusDrop('Álbum design','Álbum design')" class="sdrop-opt" style="color:var(--purple);">Álbum design</div>
+          <div onclick="setCStatusDrop('Entregue','Entregue')" class="sdrop-opt" style="color:var(--teal);">Entregue</div>
+          <div style="border-top:.5px solid var(--border);"></div>
+          <div onclick="setCStatusDrop('Finalizado','Arquivados')" class="sdrop-opt" style="color:#5C5854;">Arquivados</div>
+        </div>
+      </div>
       <button class="btn" style="color:var(--text);white-space:nowrap;flex-shrink:0;" onclick="openC()">+ Cliente</button>
     </div>
   </div>
@@ -2467,7 +2495,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.34';
+var APP_VERSION = 'v1.5.35';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3515,6 +3543,22 @@ function rC(){
   }).join('');
 }
 var _STATUS_COLORS={'Prospect':'','Sessão':'var(--coral)','Religioso':'var(--teal)','Welcome':'#D4709A','Casamento':'var(--amber)','After':'#6B9BAF','Edição':'var(--coral)','Álbum design':'var(--purple)','Entregue':'var(--teal)','Finalizado':'#5C5854'};
+function toggleCStatusDrop(){
+  var d=document.getElementById('c-status-drop');
+  d.style.display=d.style.display==='none'?'block':'none';
+}
+function setCStatusDrop(val,label){
+  document.getElementById('c-status').value=val;
+  var lbl=document.getElementById('c-status-label');
+  lbl.textContent=label;
+  lbl.style.color=val?(_STATUS_COLORS[val]||'var(--text)'):'var(--text-muted)';
+  document.getElementById('c-status-drop').style.display='none';
+  rC();
+}
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('c-status-wrap');
+  if(wrap&&!wrap.contains(e.target))document.getElementById('c-status-drop').style.display='none';
+});
 function toggleStatusDrop(){
   var d=document.getElementById('mc-status-drop');
   d.style.display=d.style.display==='none'?'block':'none';
