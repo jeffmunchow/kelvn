@@ -2516,7 +2516,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.46';
+var APP_VERSION = 'v1.5.47';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -4454,6 +4454,8 @@ function _syncAgH(){
     var cal=document.querySelector('#p-agenda .ag-col-cal');
     var lst=document.querySelector('#p-agenda .ag-col-list');
     if(!cal||!lst) return;
+    // no mobile as colunas ficam empilhadas; igualar a altura da lista ao calendário gera vão enorme
+    if(window.innerWidth<=900){ lst.style.height=''; return; }
     var h=cal.offsetHeight;
     if(h>0) lst.style.height=h+'px';
   });
