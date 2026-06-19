@@ -65,7 +65,38 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 [data-theme="dark"] .thm-w .thm-moon{opacity:1;color:var(--amber);}
 /* BODY */
 .body{padding:1rem 2rem 2rem;width:100%;}
-@media(max-width:768px){.body{padding:1.25rem;}.snav{display:none;}.main{margin-left:0;}}
+@media(max-width:768px){.body{padding:1.25rem 1.25rem calc(74px + env(safe-area-inset-bottom));}.snav{display:none;}.main{margin-left:0;}.topbar{padding:.65rem 1.25rem;}}
+
+/* ===== NAVEGAÇÃO MOBILE — barra inferior + folha "Mais" ===== */
+.mnav{display:none;}
+.msheet-ov{display:none;}
+.msheet{display:none;}
+@media(max-width:768px){
+  /* barra de abas inferior */
+  .mnav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--bg);border-top:.5px solid var(--border-strong);padding:6px 2px calc(6px + env(safe-area-inset-bottom));justify-content:space-around;align-items:stretch;}
+  .mnav-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 0;color:var(--text-hint);cursor:pointer;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;}
+  .mnav-btn svg{width:21px;height:21px;}
+  .mnav-btn span{font-size:.58rem;font-weight:500;letter-spacing:.01em;}
+  .mnav-btn.active{color:var(--amber);}
+  /* folha "Mais" */
+  .msheet-ov{display:block;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .22s;}
+  .msheet-ov.open{opacity:1;pointer-events:auto;}
+  .msheet{display:block;position:fixed;left:0;right:0;bottom:0;z-index:211;background:var(--surface);border-radius:18px 18px 0 0;padding:10px 1.1rem calc(1.4rem + env(safe-area-inset-bottom));transform:translateY(101%);transition:transform .26s cubic-bezier(.32,.72,0,1);max-height:84vh;overflow-y:auto;}
+  .msheet.open{transform:translateY(0);}
+  .msheet-grip{width:36px;height:4px;border-radius:2px;background:var(--border-strong);margin:0 auto 1.2rem;}
+  .msheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;}
+  .msheet-tile{display:flex;flex-direction:column;align-items:center;gap:7px;padding:1rem .4rem;border-radius:12px;background:var(--surface2);color:var(--text-muted);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;-webkit-tap-highlight-color:transparent;}
+  .msheet-tile svg{width:22px;height:22px;color:var(--text);}
+  .msheet-tile span{font-size:.68rem;font-weight:500;text-align:center;line-height:1.2;}
+  .msheet-tile.active{background:var(--amber-light);color:var(--amber-deep);}
+  .msheet-tile.active svg{color:var(--amber);}
+  .msheet-util{display:flex;gap:.5rem;margin-top:.55rem;}
+  .msheet-util .msheet-tile{flex:1;flex-direction:row;justify-content:center;gap:6px;padding:.7rem .4rem;}
+  .msheet-util .msheet-tile svg{width:18px;height:18px;}
+  .msheet-util .msheet-tile span{font-size:.66rem;}
+  /* barra de meta anual não colide com a tab bar */
+  #meta-anual-wrap{left:0 !important;right:0 !important;padding:0 1.25rem !important;bottom:calc(74px + env(safe-area-inset-bottom)) !important;}
+}
 .panel{display:none;}.panel.active{display:block;}
 /* BUTTONS */
 .btn{font-family:'DM Sans',sans-serif;font-size:.78rem;padding:6px 15px;border-radius:var(--radius);border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;}
@@ -100,6 +131,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .kpi-v{font-size:1.45rem;font-weight:500;letter-spacing:-.025em;line-height:1;}
 .kpi-s{font-size:.62rem;color:var(--text-hint);margin-top:3px;}
 .ca{color:var(--amber);}.ct{color:var(--teal);}.cc{color:var(--coral);}.cp{color:var(--purple);}
+/* DASHBOARD (resumo) grids */
+.r-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+.r-lists{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;}
+@media(max-width:768px){
+  .r-kpis{grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1.1rem;}
+  .r-lists{grid-template-columns:1fr;gap:1.5rem;}
+}
 /* SECTION */
 .sh{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
 .st{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;}
@@ -546,6 +584,88 @@ select.aj-input{cursor:pointer;}
   </div>
 </nav>
 
+<!-- BARRA DE NAVEGAÇÃO MOBILE -->
+<nav class="mnav" id="mnav">
+  <button class="mnav-btn" id="mn-resumo" onclick="goDirecto('resumo')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Resumo</span>
+  </button>
+  <button class="mnav-btn" id="mn-clientes" onclick="goDirecto('clientes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Clientes</span>
+  </button>
+  <button class="mnav-btn" id="mn-agenda" onclick="goDirecto('agenda')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>Agenda</span>
+  </button>
+  <button class="mnav-btn" id="mn-financeiro" onclick="goDirecto('financeiro')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span>Financeiro</span>
+  </button>
+  <button class="mnav-btn" id="mn-mais" onclick="abrirMais()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    <span>Mais</span>
+  </button>
+</nav>
+
+<!-- FOLHA "MAIS" -->
+<div class="msheet-ov" id="msheet-ov" onclick="fecharMais()"></div>
+<div class="msheet" id="msheet">
+  <div class="msheet-grip"></div>
+  <div class="msheet-grid">
+    <button class="msheet-tile" id="ms-posproducao" onclick="maisGo('posproducao')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Pós-produção</span>
+    </button>
+    <button class="msheet-tile" id="ms-galerias" onclick="maisGo('galerias')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Galerias</span>
+    </button>
+    <a class="msheet-tile" href="/album.html">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path fill="currentColor" d="M9 3h2v18H9zm11.71 17.23l-3.8-8.15l-3.81-8.16l-.9.42l-.91.43l3.8 8.15l3.81 8.16l.9-.42zM6 3h2v18H6zM3 3h2v18H3z"/></svg>
+      <span>Álbuns</span>
+    </a>
+    <button class="msheet-tile" id="ms-questionarios" onclick="maisGo('questionarios')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>Questionários</span>
+    </button>
+    <button class="msheet-tile" id="ms-analises" onclick="maisGo('analises')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Análises</span>
+    </button>
+    <button class="msheet-tile" id="ms-marketing" onclick="maisGo('marketing')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <span>Redes &amp; Anúncios</span>
+    </button>
+    <button class="msheet-tile" id="ms-educacao" onclick="maisGo('educacao')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span>Educação</span>
+    </button>
+    <button class="msheet-tile" id="ms-ia" onclick="fecharMais();toggleAI()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <span>Assistente IA</span>
+    </button>
+    <button class="msheet-tile" id="ms-ajustes" onclick="maisGo('ajustes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Ajustes</span>
+    </button>
+  </div>
+  <div class="msheet-util">
+    <button class="msheet-tile" onclick="toggleTheme()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span>Tema</span>
+    </button>
+    <button class="msheet-tile" onclick="togglePrivacidade()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Ocultar</span>
+    </button>
+    <button class="msheet-tile" onclick="fecharMais();abrirFeedback()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <span>Feedback</span>
+    </button>
+  </div>
+</div>
+
 
 <!-- MAIN -->
 <div class="main" id="main-area">
@@ -561,7 +681,7 @@ select.aj-input{cursor:pointer;}
 <div class="panel active" id="p-resumo">
 
   <!-- KPIs operacionais -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;">
+  <div class="r-kpis">
     <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">A receber</div><div class="kpi-v ct" id="r-recv">R$ 0</div><div class="kpi-s">próximos 30 dias</div></div>
     <div class="kpi clickable" onclick="goDirecto('financeiro')"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
     <div class="kpi clickable" onclick="goDirecto('analises')" title="Ver metas completas"><div class="kpi-l">Meta do mês</div><div class="kpi-v" id="r-meta-v">—</div><div class="kpi-s" id="r-meta-s">configure em Análises</div></div>
@@ -569,7 +689,7 @@ select.aj-input{cursor:pointer;}
   </div>
 
 <!-- Listas -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+  <div class="r-lists">
     <div>
       <div class="col-title">Próximas atividades</div>
       <div id="r-agenda" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
@@ -2300,7 +2420,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.4.748';
+var APP_VERSION = 'v1.5.0';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -2403,8 +2523,33 @@ function goDirecto(name){
   _curSection=name;
   var barra=document.getElementById('meta-anual-wrap');
   if(barra)barra.style.display=(name==='resumo'||name==='analises')?'':'none';
+  syncMobileNav(name);
   go(name);
 }
+
+// ── navegação mobile (barra inferior + folha "Mais") ──────────────────────────
+function syncMobileNav(name){
+  var primarios=['resumo','clientes','agenda','financeiro'];
+  document.querySelectorAll('.mnav-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.msheet-tile').forEach(function(b){b.classList.remove('active');});
+  if(primarios.indexOf(name)>-1){
+    var mb=document.getElementById('mn-'+name);if(mb)mb.classList.add('active');
+  }else{
+    var mm=document.getElementById('mn-mais');if(mm)mm.classList.add('active');
+    var st=document.getElementById('ms-'+name);if(st)st.classList.add('active');
+  }
+}
+function abrirMais(){
+  document.getElementById('msheet-ov').classList.add('open');
+  document.getElementById('msheet').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function fecharMais(){
+  document.getElementById('msheet-ov').classList.remove('open');
+  document.getElementById('msheet').classList.remove('open');
+  document.body.style.overflow='';
+}
+function maisGo(name){ fecharMais(); goDirecto(name); }
 
 function go(name){
   document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
