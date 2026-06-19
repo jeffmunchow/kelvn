@@ -77,9 +77,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   /* barra de meta anual não aparece no mobile (sem espaço/sentido no rodapé) */
   #meta-anual-wrap{display:none !important;}
   /* pill flutuante de navegação */
-  .mnav{display:flex;position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:200;gap:2px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:6px;box-shadow:0 10px 28px rgba(0,0,0,.16);}
-  .mnav-btn{width:46px;height:46px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;color:var(--text-hint);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;}
-  .mnav-btn svg{width:21px;height:21px;}
+  .mnav{display:flex;position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;gap:4px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.16);}
+  .mnav-btn{flex:1;height:50px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;color:var(--text-hint);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;}
+  .mnav-btn svg{width:23px;height:23px;}
   .mnav-btn span{display:none;}
   .mnav-btn.active{background:var(--amber-light);color:var(--amber);}
   /* folha "Mais" */
@@ -2422,7 +2422,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.1';
+var APP_VERSION = 'v1.5.2';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
