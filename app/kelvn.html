@@ -119,11 +119,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #p-financeiro .saude-score-wrap{padding-right:0 !important;border-right:none !important;padding-bottom:1rem;border-bottom:.5px solid var(--border);}
   #p-financeiro .saude-inds{display:grid !important;grid-template-columns:1fr 1fr;gap:1rem .5rem;}
   #p-financeiro .saude-inds>div{border-right:none !important;text-align:left !important;padding:0 !important;}
-  /* linhas de controle: quebram, busca em cima (largura toda), selects e botões em pares 50/50 */
+  /* linha 1: busca + período + tipo juntos. linha 2: Saída e Entrada (50/50) */
   #p-financeiro .sh>div:last-child{flex-wrap:wrap;width:100%;gap:.5rem;}
-  #p-financeiro .sh>div:last-child>div[style*="position:relative"]{flex:1 1 100%;}
+  #p-financeiro .sh>div:last-child>div[style*="position:relative"]{flex:1 1 110px;min-width:0;}
   #p-financeiro #fin-search{width:100% !important;box-sizing:border-box;}
-  #p-financeiro .sh>div:last-child>select,
+  #p-financeiro .sh>div:last-child>select{flex:0 1 auto;min-width:0;}
   #p-financeiro .sh>div:last-child>button{flex:1 1 calc(50% - .25rem);min-width:0;}
   /* precificação e fluxo: tira o sticky e a altura fixa que cortam conteúdo no mobile */
   #p-financeiro #prec-result{position:static !important;top:auto !important;}
@@ -2543,7 +2543,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.51';
+var APP_VERSION = 'v1.5.52';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
