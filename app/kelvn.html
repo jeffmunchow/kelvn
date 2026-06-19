@@ -2514,7 +2514,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.42';
+var APP_VERSION = 'v1.5.43';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -4698,7 +4698,7 @@ function rA(){
     var isPrimary=!!e._fromCliente;
     var isAuto=!!e._isAuto;
     var isFollowupA=e.tipo==='followup_prospect';
-    var dl=fmtEvDate(e.data);
+    var dl=fmtEvDate(e.data).split(' – ')[0];
     var isHoje=(e.data||'').substring(0,10)===new Date().toISOString().substring(0,10);
     var col=isFollowupA?'var(--text-hint)':isAuto?'var(--text-hint)':isPrimary?(_PRIMARY_COLORS[e.tipo]||'var(--amber)'):'var(--text-hint)',past=d<now;
     var onclick=isFollowupA?'onclick="abrirModalFollowup(\''+e.id+'\')"':isAuto?'onclick="_openAutoCard(\''+e.id+'\')"':isPrimary?'onclick="openC(\''+e.clienteId+'\')"':'onclick="openE(\''+e.id+'\')"';
