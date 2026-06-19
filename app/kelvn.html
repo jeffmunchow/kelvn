@@ -400,8 +400,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   .ai-header{padding-top:calc(1.1rem + env(safe-area-inset-top)) !important;}
   /* o respiro pra tab bar fica no rodapé do painel (fora da caixa de digitar), pra ela não inflar de tamanho */
   .ai-input-area{padding:.75rem 1rem !important;transition:none !important;}
-  /* respiro = margem(14) + altura da tab bar(64) + folga(18) = 96px, pra caixa de digitar ficar acima da barra */
-  .ai-spanel{padding-bottom:calc(96px + env(safe-area-inset-bottom)) !important;transition:transform .3s cubic-bezier(.32,.72,0,1),padding-bottom .32s cubic-bezier(.4,0,.2,1) !important;}
+  /* respiro = margem(14) + altura da tab bar(64) + folga(8) = 86px, pra caixa de digitar ficar logo acima da barra */
+  .ai-spanel{padding-bottom:calc(86px + env(safe-area-inset-bottom)) !important;transition:transform .3s cubic-bezier(.32,.72,0,1),padding-bottom .32s cubic-bezier(.4,0,.2,1) !important;}
   body:has(.mnav.mnav-hide) .ai-spanel{padding-bottom:calc(.85rem + env(safe-area-inset-bottom)) !important;}
 }
 .ai-header{padding:1.1rem 1.25rem .9rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
@@ -2449,7 +2449,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.23';
+var APP_VERSION = 'v1.5.24';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
