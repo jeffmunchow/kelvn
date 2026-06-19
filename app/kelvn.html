@@ -394,12 +394,13 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 @media(max-width:768px){
   /* no mobile a IA abre como janela exclusiva (tela cheia), não como modal */
   .ai-backdrop{display:none !important;}
-  .ai-spanel{width:100% !important;max-width:none !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;height:100dvh !important;border-radius:0 !important;transform:translateY(100%) translateZ(0) !important;transition:transform .3s cubic-bezier(.32,.72,0,1) !important;will-change:transform !important;backface-visibility:hidden !important;-webkit-backface-visibility:hidden !important;isolation:isolate !important;contain:layout style paint !important;}
+  .ai-spanel{width:100% !important;max-width:none !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;height:100vh !important;height:100dvh !important;border-radius:0 !important;transform:translateY(100%) translateZ(0) !important;transition:transform .3s cubic-bezier(.32,.72,0,1) !important;will-change:transform !important;backface-visibility:hidden !important;-webkit-backface-visibility:hidden !important;isolation:isolate !important;contain:layout style paint !important;}
   .ai-spanel.open{transform:translateY(0) translateZ(0) !important;}
   .ai-header{padding-top:calc(1.1rem + env(safe-area-inset-top)) !important;}
-  /* a caixa de digitar fica acima da tab bar flutuante; desce quando a tab bar some ao rolar */
-  .ai-input-area{padding-bottom:calc(78px + env(safe-area-inset-bottom) + .75rem) !important;transition:padding-bottom .32s cubic-bezier(.4,0,.2,1) !important;}
-  body:has(.mnav.mnav-hide) .ai-input-area{padding-bottom:calc(.75rem + env(safe-area-inset-bottom)) !important;}
+  /* o respiro pra tab bar fica no rodapé do painel (fora da caixa de digitar), pra ela não inflar de tamanho */
+  .ai-input-area{padding:.75rem 1rem !important;transition:none !important;}
+  .ai-spanel{padding-bottom:calc(78px + env(safe-area-inset-bottom)) !important;transition:transform .3s cubic-bezier(.32,.72,0,1),padding-bottom .32s cubic-bezier(.4,0,.2,1) !important;}
+  body:has(.mnav.mnav-hide) .ai-spanel{padding-bottom:env(safe-area-inset-bottom) !important;}
 }
 .ai-header{padding:1.1rem 1.25rem .9rem;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0;}
 .ai-header-icon{width:30px;height:30px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -2446,7 +2447,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.18';
+var APP_VERSION = 'v1.5.19';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
