@@ -128,7 +128,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   /* aba Pessoal: período + Saída + Entrada na mesma linha; 3 KPIs lado a lado */
   #fp-panel-pes .sh>div:last-child>select,
   #fp-panel-pes .sh>div:last-child>button{flex:1 1 0 !important;min-width:0;box-sizing:border-box;}
-  #fp-panel-pes #fp-kpis{grid-template-columns:repeat(3,1fr) !important;}
   /* aba Balanço: período + Baixar CSV + Imprimir na mesma linha */
   #fp-panel-dre .sh>div:last-child>select,
   #fp-panel-dre .sh>div:last-child>button{flex:1 1 0 !important;min-width:0;box-sizing:border-box;}
@@ -2550,7 +2549,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.56';
+var APP_VERSION = 'v1.5.57';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
