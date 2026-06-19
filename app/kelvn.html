@@ -391,7 +391,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 @media(max-width:768px){
   /* no mobile a IA abre como janela exclusiva (tela cheia), não como modal */
   .ai-backdrop{display:none !important;}
-  .ai-spanel{width:100%;height:100%;max-width:none;top:0;left:0;border-radius:0;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
+  .ai-spanel{width:100%;max-width:none;top:0;left:0;right:0;bottom:0;height:auto;border-radius:0;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);}
   .ai-spanel.open{transform:translateY(0);}
   .ai-header{padding-top:calc(1.1rem + env(safe-area-inset-top));}
   /* a caixa de digitar fica acima da tab bar flutuante; desce quando a tab bar some ao rolar */
@@ -702,9 +702,9 @@ select.aj-input{cursor:pointer;}
     <div class="kpi clickable" onclick="rInadClick()">
       <div class="r-inad-desktop"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
       <div class="r-inad-mobile">
-        <div class="kpi-l">Assistente</div>
-        <div class="kpi-v ca" style="display:flex;align-items:center;gap:6px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>IA</div>
-        <div class="kpi-s">tire suas dúvidas</div>
+        <div class="kpi-l">Assistente IA</div>
+        <div class="kpi-v ca" style="display:flex;align-items:center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="kpi-s">Pergunte o que quiser…</div>
       </div>
     </div>
     <div class="kpi clickable" onclick="goDirecto('analises')" title="Ver metas completas"><div class="kpi-l">Meta do mês</div><div class="kpi-v" id="r-meta-v">—</div><div class="kpi-s" id="r-meta-s">configure em Análises</div></div>
@@ -2443,7 +2443,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.6';
+var APP_VERSION = 'v1.5.7';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
