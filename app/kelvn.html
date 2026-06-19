@@ -99,6 +99,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   /* Data e Status na mesma linha (Status à direita); empacotamento denso preenche a célula livre */
   #ov-c .mc-field-data{grid-column:1/2 !important;}
   #ov-c .mc-field-status{grid-column:2/3 !important;}
+  /* Agenda: dá mais espaço ao título/local em vez de espremer entre a data e o badge */
+  #p-agenda .ai{padding:.85rem 1rem;gap:.7rem;}
+  #p-agenda .ai-date{min-width:66px;}
   /* pill flutuante de navegação */
   .mnav{display:flex;position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;gap:4px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.16);transform:translateY(0) translateZ(0);transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;isolation:isolate;}
   .mnav.mnav-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom))) translateZ(0);}
@@ -927,9 +930,12 @@ select.aj-input{cursor:pointer;}
       <div class="sh">
         <div class="st">Agenda</div>
         <div style="display:flex;align-items:center;gap:.6rem;">
-          <select id="ag-filter" onchange="rA()" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
-            <option value="upcoming">Próximos</option><option value="all">Todos</option><option value="past">Passados</option>
-          </select>
+          <div class="sel-wrap" style="position:relative;display:inline-flex;align-items:center;">
+            <select id="ag-filter" onchange="rA()" class="sel-themed" style="padding:6px 26px 6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;">
+              <option value="upcoming">Próximos</option><option value="all">Todos</option><option value="past">Passados</option>
+            </select>
+            <svg width="10" height="10" viewBox="0 0 10 10" style="position:absolute;right:9px;pointer-events:none;color:var(--text-muted);opacity:.7;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
           <button class="btn" style="color:var(--text);" onclick="openE()">+ Evento</button>
         </div>
       </div>
@@ -2508,7 +2514,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.41';
+var APP_VERSION = 'v1.5.42';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
