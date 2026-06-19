@@ -104,6 +104,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #p-agenda .ai-date{min-width:66px;}
   /* widget da agenda hugga o conteúdo (até 8 eventos), sem flex esticando e gerando espaço em branco */
   #p-agenda .ag-col-list .tw{flex:none !important;overflow-y:visible !important;}
+  /* ───── FINANCEIRO MOBILE ───── */
+  /* abas rolam na horizontal em vez de espremer 7 pílulas */
+  #p-financeiro .pills{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  #p-financeiro .pills::-webkit-scrollbar{display:none;}
+  #p-financeiro .pills .pill{flex:0 0 auto;white-space:nowrap;}
+  /* grids de 2 colunas viram 1 coluna */
+  #p-financeiro .fin-grid2{grid-template-columns:1fr !important;}
+  /* card de saúde: empilha score e indicadores, indicadores em 2x2 */
+  #p-financeiro .saude-top{flex-direction:column;align-items:stretch !important;gap:1rem !important;}
+  #p-financeiro .saude-score-wrap{padding-right:0 !important;border-right:none !important;padding-bottom:1rem;border-bottom:.5px solid var(--border);}
+  #p-financeiro .saude-inds{display:grid !important;grid-template-columns:1fr 1fr;gap:1rem .5rem;}
+  #p-financeiro .saude-inds>div{border-right:none !important;text-align:left !important;padding:0 !important;}
+  /* linhas de controle: quebram e a busca ocupa a largura toda */
+  #p-financeiro .sh>div:last-child{flex-wrap:wrap;width:100%;gap:.5rem;}
+  #p-financeiro .sh>div:last-child>div[style*="position:relative"]{flex:1 1 100%;}
+  #p-financeiro #fin-search{width:100% !important;box-sizing:border-box;}
+  /* precificação e fluxo: tira o sticky e a altura fixa que cortam conteúdo no mobile */
+  #p-financeiro #prec-result{position:static !important;top:auto !important;}
+  #p-financeiro #fp-panel-fluxo .fin-grid2>div:last-child{height:auto !important;min-height:300px;position:static !important;}
+  /* tabelas: rolam na horizontal em vez de espremer as colunas */
+  #p-financeiro table{width:max-content;min-width:100%;}
+  #p-financeiro th,#p-financeiro td{white-space:nowrap;}
   /* pill flutuante de navegação */
   .mnav{display:flex;position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;gap:4px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.16);transform:translateY(0) translateZ(0);transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;isolation:isolate;}
   .mnav.mnav-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom))) translateZ(0);}
@@ -1007,13 +1029,13 @@ select.aj-input{cursor:pointer;}
   <!-- EMPRESA -->
   <div id="fp-panel-emp">
     <!-- TOPO: saúde + KPIs lado a lado -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+    <div class="fin-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
 
       <!-- Coluna esquerda: card de saúde -->
       <div style="background:var(--surface);border-radius:var(--radius);padding:1.25rem 1.5rem;">
-        <div style="display:flex;align-items:center;gap:20px;">
+        <div class="saude-top" style="display:flex;align-items:center;gap:20px;">
           <!-- Left: score + label -->
-          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding-right:20px;border-right:.5px solid var(--border);">
+          <div class="saude-score-wrap" style="display:flex;align-items:center;gap:12px;flex-shrink:0;padding-right:20px;border-right:.5px solid var(--border);">
             <div style="width:52px;height:52px;border-radius:12px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <div id="saude-score" style="font-size:20px;font-weight:500;color:var(--amber);">—</div>
             </div>
@@ -1023,7 +1045,7 @@ select.aj-input{cursor:pointer;}
             </div>
           </div>
           <!-- Right: 4 indicators -->
-          <div style="display:flex;align-items:flex-start;flex:1;">
+          <div class="saude-inds" style="display:flex;align-items:flex-start;flex:1;">
             <div style="flex:1;text-align:center;padding:0 .875rem;border-right:.5px solid var(--border);">
               <div style="font-size:10px;color:var(--text-hint);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;">Pró-labore</div>
               <div id="saude-p1" style="font-size:18px;font-weight:500;white-space:nowrap;margin-top:6px;color:var(--text);">—</div>
@@ -1088,7 +1110,7 @@ select.aj-input{cursor:pointer;}
         </select>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+    <div class="fin-grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
       <!-- Esquerda: lista (cresce livremente) -->
       <div id="fluxo-lista" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;"></div>
       <!-- Direita: gráfico (altura fixa) -->
@@ -1151,7 +1173,7 @@ select.aj-input{cursor:pointer;}
         <span style="font-size:.68rem;color:var(--text-hint);">Média dos últimos 6 meses</span>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+    <div class="fin-grid2 fin-grid2-prec" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
       <!-- Coluna esquerda: dois blocos de input -->
       <div style="display:flex;flex-direction:column;gap:1rem;">
         <!-- Bloco 1: O que você gasta -->
@@ -2516,7 +2538,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.48';
+var APP_VERSION = 'v1.5.49';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
