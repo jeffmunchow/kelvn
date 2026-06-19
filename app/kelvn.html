@@ -400,8 +400,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   .ai-header{padding-top:calc(1.1rem + env(safe-area-inset-top)) !important;}
   /* o respiro pra tab bar fica no rodapé do painel (fora da caixa de digitar), pra ela não inflar de tamanho */
   .ai-input-area{padding:.75rem 1rem !important;transition:none !important;align-items:stretch !important;}
-  /* botão enviar acompanha a altura da caixa, mantendo o quadrado 1:1 */
-  .ai-send{height:auto !important;width:auto !important;aspect-ratio:1 !important;}
+  /* botões (mic e enviar) acompanham a altura da caixa, mantendo o quadrado 1:1 */
+  .ai-send,.ai-mic{height:auto !important;width:auto !important;aspect-ratio:1 !important;}
   /* respiro = margem(14) + altura da tab bar(64) + folga(8) = 86px, pra caixa de digitar ficar logo acima da barra */
   .ai-spanel{padding-bottom:calc(86px + env(safe-area-inset-bottom)) !important;transition:transform .3s cubic-bezier(.32,.72,0,1),padding-bottom .32s cubic-bezier(.4,0,.2,1) !important;}
   body:has(.mnav.mnav-hide) .ai-spanel{padding-bottom:calc(.85rem + env(safe-area-inset-bottom)) !important;}
@@ -429,6 +429,10 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-send{width:34px;height:34px;border-radius:8px;background:var(--text);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--bg);flex-shrink:0;transition:opacity .15s;}
 .ai-send:hover{opacity:.8;}
 .ai-send:disabled{opacity:.4;cursor:not-allowed;}
+.ai-mic{width:34px;height:34px;border-radius:8px;background:transparent;border:.5px solid var(--border-strong);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);flex-shrink:0;transition:background .15s,color .15s,border-color .15s;}
+.ai-mic:hover{background:var(--surface2);color:var(--text);}
+.ai-mic.listening{background:var(--coral);border-color:var(--coral);color:#fff;animation:aiMicPulse 1.4s ease-in-out infinite;}
+@keyframes aiMicPulse{0%,100%{box-shadow:0 0 0 0 rgba(196,58,26,.45);}50%{box-shadow:0 0 0 6px rgba(196,58,26,0);}}
 
 [data-theme="dark"] .ai-msg.user .ai-bubble{background:#3A3530;color:var(--text);}
 [data-theme="dark"] .ai-msg.bot .ai-bubble{background:var(--surface2);}
@@ -478,6 +482,9 @@ select.aj-input{cursor:pointer;}
   </div>
 <div class="ai-input-area">
     <textarea class="ai-input" id="aiInput" placeholder="Pergunte aqui..." rows="1" onkeydown="aiKeyDown(event)" oninput="aiAutoResize(this)"></textarea>
+    <button class="ai-mic" id="aiMicBtn" onclick="aiToggleVoice()" title="Falar" style="display:none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
     <button class="ai-send" id="aiSendBtn" onclick="sendAIMessage()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
@@ -2451,7 +2458,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.25';
+var APP_VERSION = 'v1.5.26';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -9811,6 +9818,51 @@ function aiKeyDown(e){
 function aiAutoResize(el){
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+// ── Entrada por voz (Web Speech API) ──────────────────────────────────────────
+var _aiRecog = null, _aiListening = false;
+(function(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return; // navegador sem suporte → botão de mic fica oculto
+  var micBtn = document.getElementById('aiMicBtn');
+  if(micBtn) micBtn.style.display = '';
+  _aiRecog = new SR();
+  _aiRecog.lang = 'pt-BR';
+  _aiRecog.interimResults = true;
+  _aiRecog.continuous = false;
+  var _baseText = '';
+  _aiRecog.onresult = function(e){
+    var txt = '';
+    for(var i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+    var input = document.getElementById('aiInput');
+    input.value = (_baseText ? _baseText + ' ' : '') + txt;
+    aiAutoResize(input);
+  };
+  _aiRecog.onerror = function(){ aiStopVoice(); };
+  _aiRecog.onend = function(){ aiStopVoice(); };
+  window._aiRecogSetBase = function(t){ _baseText = t; };
+})();
+
+function aiToggleVoice(){
+  if(!_aiRecog) return;
+  if(_aiListening){ _aiRecog.stop(); return; }
+  var input = document.getElementById('aiInput');
+  if(window._aiRecogSetBase) window._aiRecogSetBase(input.value.trim());
+  try{
+    _aiRecog.start();
+    _aiListening = true;
+    document.getElementById('aiMicBtn').classList.add('listening');
+    document.getElementById('aiInput').setAttribute('placeholder', 'Ouvindo… pode falar');
+  }catch(err){ /* já iniciado */ }
+}
+
+function aiStopVoice(){
+  _aiListening = false;
+  var mic = document.getElementById('aiMicBtn');
+  if(mic) mic.classList.remove('listening');
+  var input = document.getElementById('aiInput');
+  if(input){ input.setAttribute('placeholder', 'Pergunte aqui...'); input.focus(); }
 }
 
 function aiAddMessage(role, text, thinking){
