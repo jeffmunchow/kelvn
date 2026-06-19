@@ -81,7 +81,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   .mnav-btn{flex:1;height:50px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;color:var(--text-hint);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;}
   .mnav-btn svg{width:23px;height:23px;}
   .mnav-btn span{display:none;}
-  .mnav-btn.active{background:var(--amber-light);color:var(--amber);}
+  .mnav-btn.active{color:var(--amber);}
   /* folha "Mais" */
   .msheet-ov{display:block;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .22s;}
   .msheet-ov.open{opacity:1;pointer-events:auto;}
@@ -588,7 +588,7 @@ select.aj-input{cursor:pointer;}
 
 <!-- BARRA DE NAVEGAÇÃO MOBILE -->
 <nav class="mnav" id="mnav">
-  <button class="mnav-btn" id="mn-resumo" onclick="goDirecto('resumo')">
+  <button class="mnav-btn active" id="mn-resumo" onclick="goDirecto('resumo')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     <span>Resumo</span>
   </button>
@@ -2422,7 +2422,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.2';
+var APP_VERSION = 'v1.5.3';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
