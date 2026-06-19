@@ -110,8 +110,8 @@ html{overflow-x:hidden;}
   #p-agenda .ag-col-list .tw{flex:none !important;overflow-y:visible !important;}
   /* ───── FINANCEIRO MOBILE ───── */
   /* só Empresa, Fluxo e Pessoal ficam visíveis; o resto entra no menu "Mais" */
-  #p-financeiro .pills{display:flex;}
-  #p-financeiro .pills .pill{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #p-financeiro .pills{display:flex;width:100% !important;box-sizing:border-box;}
+  #p-financeiro .pills .pill{flex:1 1 0;min-width:0;white-space:nowrap;overflow:visible;text-overflow:clip;padding:6px 4px !important;font-size:.74rem !important;}
   #fp-pill-dre,#fp-pill-prec,#fp-pill-imp,#fp-pill-inad{display:none !important;}
   #fp-more-wrap{display:flex !important;flex:1 1 0;min-width:0;position:relative;}
   #fp-more-btn{flex:1;min-width:0;}
@@ -1041,9 +1041,9 @@ select.aj-input{cursor:pointer;}
     <button class="pill"        id="fp-pill-imp"  onclick="switchFP('imp')">Impostos</button>
     <button class="pill"        id="fp-pill-inad" onclick="switchFP('inad')">Inadimplência</button>
     <div id="fp-more-wrap" style="display:none;">
-      <button class="pill" id="fp-more-btn" onclick="toggleFPMoreDrop()" style="display:flex;align-items:center;justify-content:center;gap:4px;">
-        <span id="fp-more-label">Mais</span>
-        <svg width="9" height="9" viewBox="0 0 10 10" style="opacity:.6;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button class="pill" id="fp-more-btn" onclick="toggleFPMoreDrop()" style="display:flex;align-items:center;justify-content:center;gap:3px;width:100%;">
+        <span id="fp-more-label" style="overflow:hidden;text-overflow:ellipsis;">Mais</span>
+        <svg width="8" height="8" viewBox="0 0 10 10" style="opacity:.6;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div id="fp-more-drop" style="display:none;">
         <div onclick="switchFPFromMore('dre','Balanço')" class="sdrop-opt">Balanço</div>
@@ -2565,7 +2565,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.61';
+var APP_VERSION = 'v1.5.62';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
