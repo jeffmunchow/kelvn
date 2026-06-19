@@ -883,7 +883,7 @@ select.aj-input{cursor:pointer;}
           <span id="c-status-label">Ativos</span>
           <svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <div id="c-status-drop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.14);">
+        <div id="c-status-drop" style="display:none;position:absolute;top:calc(100% + 4px);right:0;left:auto;min-width:170px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.14);">
           <div onclick="setCStatusDrop('','Ativos')" class="sdrop-opt">Ativos</div>
           <div onclick="setCStatusDrop('Prospect','Prospect')" class="sdrop-opt">Prospect</div>
           <div onclick="setCStatusDrop('Sessão','Sessão')" class="sdrop-opt" style="color:var(--coral);">Sessão</div>
@@ -2494,7 +2494,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.36';
+var APP_VERSION = 'v1.5.37';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
