@@ -109,11 +109,13 @@ html{overflow-x:hidden;}
   /* widget da agenda hugga o conteúdo (até 8 eventos), sem flex esticando e gerando espaço em branco */
   #p-agenda .ag-col-list .tw{flex:none !important;overflow-y:visible !important;}
   /* ───── FINANCEIRO MOBILE ───── */
-  /* abas rolam na horizontal em vez de espremer 7 pílulas */
-  #p-financeiro .pills{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:relative;touch-action:pan-x;overscroll-behavior-x:contain;}
-  #p-financeiro .pills::-webkit-scrollbar{display:none;}
-  #p-financeiro .pills .pill{flex:0 0 auto;white-space:nowrap;}
-  #p-financeiro .pills::after{content:'';position:sticky;right:0;flex:0 0 28px;align-self:stretch;background:linear-gradient(to right,transparent,var(--surface));pointer-events:none;border-radius:0 var(--radius) var(--radius) 0;}
+  /* só Empresa, Fluxo e Pessoal ficam visíveis; o resto entra no menu "Mais" */
+  #p-financeiro .pills{display:flex;}
+  #p-financeiro .pills .pill{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #fp-pill-dre,#fp-pill-prec,#fp-pill-imp,#fp-pill-inad{display:none !important;}
+  #fp-more-wrap{display:flex !important;flex:1 1 0;min-width:0;position:relative;}
+  #fp-more-btn{flex:1;min-width:0;}
+  #fp-more-drop{position:absolute;top:calc(100% + 4px);right:0;min-width:170px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.14);}
   /* grids de 2 colunas viram 1 coluna */
   #p-financeiro .fin-grid2{grid-template-columns:1fr !important;}
   /* card de saúde: empilha score e indicadores, indicadores em 2x2 */
@@ -1038,6 +1040,18 @@ select.aj-input{cursor:pointer;}
     <button class="pill"        id="fp-pill-prec" onclick="switchFP('prec')">Precificação</button>
     <button class="pill"        id="fp-pill-imp"  onclick="switchFP('imp')">Impostos</button>
     <button class="pill"        id="fp-pill-inad" onclick="switchFP('inad')">Inadimplência</button>
+    <div id="fp-more-wrap" style="display:none;">
+      <button class="pill" id="fp-more-btn" onclick="toggleFPMoreDrop()" style="display:flex;align-items:center;justify-content:center;gap:4px;">
+        <span id="fp-more-label">Mais</span>
+        <svg width="9" height="9" viewBox="0 0 10 10" style="opacity:.6;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div id="fp-more-drop" style="display:none;">
+        <div onclick="switchFPFromMore('dre','Balanço')" class="sdrop-opt">Balanço</div>
+        <div onclick="switchFPFromMore('prec','Precificação')" class="sdrop-opt">Precificação</div>
+        <div onclick="switchFPFromMore('imp','Impostos')" class="sdrop-opt">Impostos</div>
+        <div onclick="switchFPFromMore('inad','Inadimplência')" class="sdrop-opt">Inadimplência</div>
+      </div>
+    </div>
   </div>
   <!-- EMPRESA -->
   <div id="fp-panel-emp">
@@ -2551,7 +2565,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.60';
+var APP_VERSION = 'v1.5.61';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -2740,9 +2754,25 @@ function switchFP(name){
   });
   var ePan=document.getElementById('fp-panel-'+name);if(ePan)ePan.style.display='';
   var ap=document.getElementById('fp-pill-'+name);if(ap)ap.classList.add('active');
+  document.getElementById('fp-more-btn').classList.remove('active');
+  document.getElementById('fp-more-label').textContent='Mais';
   _curFP=name;
   if(name==='emp')rF();if(name==='fluxo')rFluxo();if(name==='pes')rFP();if(name==='dre')rDRE();if(name==='prec'){loadPrec();calcPrec();}if(name==='imp')calcImp();if(name==='inad')rInad();
 }
+function toggleFPMoreDrop(){
+  var d=document.getElementById('fp-more-drop');
+  d.style.display=d.style.display==='none'?'block':'none';
+}
+function switchFPFromMore(name,label){
+  switchFP(name);
+  document.getElementById('fp-more-btn').classList.add('active');
+  document.getElementById('fp-more-label').textContent=label;
+  document.getElementById('fp-more-drop').style.display='none';
+}
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('fp-more-wrap');
+  if(wrap&&!wrap.contains(e.target))document.getElementById('fp-more-drop').style.display='none';
+});
 function switchAG2(name){
   ['tipos','slots','disp'].forEach(function(n){document.getElementById('ag2-panel-'+n).style.display='none';document.getElementById('ag2-'+n).classList.remove('active');});
   document.getElementById('ag2-panel-'+name).style.display='';document.getElementById('ag2-'+name).classList.add('active');
