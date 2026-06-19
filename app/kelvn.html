@@ -394,8 +394,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 @media(max-width:768px){
   /* no mobile a IA abre como janela exclusiva (tela cheia), não como modal */
   .ai-backdrop{display:none !important;}
-  /* height compensa o zoom:0.9 global do body — sem isso a janela cobre só 90% da tela e o dashboard vaza na faixa de baixo (mesmo truque usado em .snav) */
-  .ai-spanel{width:100% !important;max-width:none !important;top:0 !important;left:0 !important;right:0 !important;bottom:auto !important;height:calc(100vh / 0.9) !important;border-radius:0 !important;transform:translateY(100%) !important;transition:transform .3s cubic-bezier(.32,.72,0,1) !important;}
+  /* height compensa o zoom:0.9 global do body; dvh respeita a barra do Safari (vh inclui a área atrás dela). vh fica de fallback */
+  .ai-spanel{width:100% !important;max-width:none !important;top:0 !important;left:0 !important;right:0 !important;bottom:auto !important;height:calc(100vh / 0.9) !important;height:calc(100dvh / 0.9) !important;border-radius:0 !important;transform:translateY(100%) !important;transition:transform .3s cubic-bezier(.32,.72,0,1) !important;}
   .ai-spanel.open{transform:translateY(0) !important;}
   .ai-header{padding-top:calc(1.1rem + env(safe-area-inset-top)) !important;}
   /* o respiro pra tab bar fica no rodapé do painel (fora da caixa de digitar), pra ela não inflar de tamanho */
@@ -2449,7 +2449,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.22';
+var APP_VERSION = 'v1.5.23';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
