@@ -125,6 +125,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   #p-financeiro #fin-search{width:100% !important;box-sizing:border-box;}
   #p-financeiro .sh>div:last-child>select{flex:0 1 auto;min-width:0;}
   #p-financeiro .sh>div:last-child>button{flex:1 1 40%;min-width:0;box-sizing:border-box;}
+  /* aba Pessoal: período + Saída + Entrada na mesma linha; 3 KPIs lado a lado */
+  #fp-panel-pes .sh>div:last-child>select,
+  #fp-panel-pes .sh>div:last-child>button{flex:1 1 0 !important;min-width:0;box-sizing:border-box;}
+  #fp-panel-pes #fp-kpis{grid-template-columns:repeat(3,1fr) !important;}
   /* precificação e fluxo: tira o sticky e a altura fixa que cortam conteúdo no mobile */
   #p-financeiro #prec-result{position:static !important;top:auto !important;}
   #p-financeiro #fp-panel-fluxo .fin-grid2>div:last-child{height:auto !important;min-height:300px;position:static !important;}
@@ -2543,7 +2547,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.54';
+var APP_VERSION = 'v1.5.55';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
