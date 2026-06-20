@@ -2549,7 +2549,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.67';
+var APP_VERSION = 'v1.5.68';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -9956,27 +9956,32 @@ function aiAutoResize(el){
 }
 
 // ── Entrada por voz (Web Speech API) ──────────────────────────────────────────
-var _aiRecog = null, _aiListening = false;
+var _aiRecog = null, _aiListening = false, _aiBaseText = '';
+function _aiCreateRecog(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return null;
+  var r = new SR();
+  r.lang = 'pt-BR';
+  r.interimResults = true;
+  r.continuous = false;
+  r.onresult = function(e){
+    var txt = '';
+    for(var i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+    var input = document.getElementById('aiInput');
+    input.value = (_aiBaseText ? _aiBaseText + ' ' : '') + txt;
+    aiAutoResize(input);
+  };
+  r.onerror = function(){ aiStopVoice(); };
+  r.onend = function(){ aiStopVoice(); };
+  return r;
+}
 (function(){
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR) return; // navegador sem suporte → botão de mic fica oculto
   var micBtn = document.getElementById('aiMicBtn');
   if(micBtn) micBtn.style.display = '';
-  _aiRecog = new SR();
-  _aiRecog.lang = 'pt-BR';
-  _aiRecog.interimResults = true;
-  _aiRecog.continuous = false;
-  var _baseText = '';
-  _aiRecog.onresult = function(e){
-    var txt = '';
-    for(var i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
-    var input = document.getElementById('aiInput');
-    input.value = (_baseText ? _baseText + ' ' : '') + txt;
-    aiAutoResize(input);
-  };
-  _aiRecog.onerror = function(){ aiStopVoice(); };
-  _aiRecog.onend = function(){ aiStopVoice(); };
-  window._aiRecogSetBase = function(t){ _baseText = t; };
+  _aiRecog = _aiCreateRecog();
+  window._aiRecogSetBase = function(t){ _aiBaseText = t; };
 })();
 
 function aiToggleVoice(){
@@ -10002,8 +10007,11 @@ function aiStopVoice(){
 
 // libera o microfone à força (privacidade) — usado ao fechar a IA, trocar de app/aba ou enviar
 function aiAbortVoice(){
-  if(_aiRecog && _aiListening){ try{ _aiRecog.abort(); }catch(e){} }
+  if(_aiRecog){ try{ _aiRecog.onresult=null;_aiRecog.onerror=null;_aiRecog.onend=null;_aiRecog.abort(); }catch(e){} }
   aiStopVoice();
+  // recria a instância: no iOS Safari, abort()/stop() nem sempre liberam o indicador de mic do sistema
+  // enquanto a mesma instância de SpeechRecognition continuar viva
+  _aiRecog = _aiCreateRecog();
 }
 // garante que o mic nunca fique ligado quando o app vai pro fundo ou a página é descartada
 document.addEventListener('visibilitychange', function(){ if(document.hidden) aiAbortVoice(); });
