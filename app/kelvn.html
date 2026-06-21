@@ -2551,7 +2551,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.70';
+var APP_VERSION = 'v1.5.71';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3433,11 +3433,11 @@ function mkIgFill(){
   var seg = d.seguidores, total = seg[seg.length-1];
   if(_privacidade){
     document.getElementById('mk-ig-kpis').innerHTML =
-      mkKpi('Seguidores', '••••', null, '') +
-      mkKpi('Alcance', '••••', null, '') +
-      mkKpi('Impressões', '••••', null, '') +
-      mkKpi('Interações', '••••', null, '') +
-      mkKpi('Visitas ao perfil', '••••', null, '');
+      mkKpi('Seguidores', '••••', '••', 'crescimento') +
+      mkKpi('Alcance', '••••', '••') +
+      mkKpi('Impressões', '••••', '••') +
+      mkKpi('Interações', '••••', '••') +
+      mkKpi('Visitas ao perfil', '••••', '••');
     document.getElementById('mk-ig-novos').textContent = '••••';
     document.getElementById('mk-ig-genero').innerHTML = d.genero.map(function(x){return mkBar(x.l,'••');}).join('');
     document.getElementById('mk-ig-idade').innerHTML  = d.idade.map(function(x){return mkBar(x.l,'••');}).join('');
@@ -3471,13 +3471,13 @@ function mkMaFill(){
   if(_privacidade){
     document.getElementById('mk-ma-kpis').innerHTML =
       mkKpi('Gasto no período', '••••', null, '') +
-      mkKpi('Alcance', '••••', null, '') +
-      mkKpi('Impressões', '••••', null, '') +
-      mkKpi('CTR', '••••', null, '') +
-      mkKpi('CPC', '••••', null, '') +
-      mkKpi('CPM', '••••', null, '') +
-      mkKpi('Conversões', '••••', null, '') +
-      mkKpi('Custo / conversão', '••••', null, '');
+      mkKpi('Alcance', '••••', '••') +
+      mkKpi('Impressões', '••••', '••') +
+      mkKpi('CTR', '••••', '••') +
+      mkKpi('CPC', '••••', '••') +
+      mkKpi('CPM', '••••', '••') +
+      mkKpi('Conversões', '••••', '••') +
+      mkKpi('Custo / conversão', '••••', '••');
     document.getElementById('mk-ma-campanhas').innerHTML = d.campanhasList.map(function(c){
       var stCls = c.status==='Ativa' ? 'bw' : 'bp';
       return '<tr><td style="color:var(--text);">'+c.nome+'</td><td><span class="badge '+stCls+'">'+c.status+'</span></td><td>••••</td><td>••••</td><td>••</td><td>••</td><td>••</td></tr>';
