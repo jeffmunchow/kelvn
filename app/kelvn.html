@@ -465,6 +465,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 #ov-f .field input:focus,#ov-f .field select:focus,#ov-f .field textarea:focus,
 #ov-fp .field input:focus,#ov-fp .field select:focus,#ov-fp .field textarea:focus,
 #fp-panel-imp .field input:focus,#fp-panel-imp .field select:focus{border-color:var(--border-strong);}
+/* Análises › Definir metas: sem borda âmbar no foco dos inputs */
+#an-metas-definir .fi:focus{border-color:var(--border-strong);}
 /* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
 #ov-f .modal,#ov-fp .modal{overflow:visible;}
 /* dropdown Kelvn dentro de campos de modal: igual a um .field select (surface2, largura total) */
@@ -2610,7 +2612,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.6';
+var APP_VERSION = 'v1.6.7';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
