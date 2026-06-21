@@ -54,6 +54,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .view-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
 .btn{display:inline-flex;align-items:center;gap:.4rem;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:6px 15px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;outline:none;transition:color .15s,opacity .15s;}
 .btn:hover{opacity:.85;color:var(--text);}
+.btn-criar-album{color:var(--text);}
+.btn-criar-album:hover{background:var(--surface2);color:var(--text);opacity:1;}
 .btn-sec{background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);}
 .btn-sec:hover{color:var(--text);opacity:1;}
 .gal-sort-opt{display:block;width:100%;text-align:left;background:none;border:none;padding:.45rem 1rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;}
@@ -549,7 +551,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         </div>
       </div>
       <div style="display:flex;gap:.6rem;margin-top:1.5rem;">
-        <button class="btn" onclick="criarAlbum()">Criar álbum</button>
+        <button class="btn btn-criar-album" onclick="criarAlbum()">Criar álbum</button>
         <button class="btn btn-sec" onclick="fecharModalNovo()">Cancelar</button>
       </div>
       <div id="novo-erro" style="margin-top:.75rem;font-size:.75rem;color:var(--coral);display:none;"></div>
