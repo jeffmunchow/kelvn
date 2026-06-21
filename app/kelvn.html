@@ -141,6 +141,9 @@ html{overflow-x:hidden;}
   /* tabelas: rolam na horizontal em vez de espremer as colunas */
   #p-financeiro table{width:max-content;min-width:100%;}
   #p-financeiro th,#p-financeiro td{white-space:nowrap;}
+  /* Questionários enviados: colunas rolam na horizontal em vez de espremer/quebrar texto */
+  #p-questionarios table{width:max-content;min-width:100%;}
+  #p-questionarios th,#p-questionarios td{white-space:nowrap;}
   /* Seleções de galerias: tabela vira lista de cards no mobile, sem colunas espremidas.
      !important porque a regra base .sel-cards{display:none} vem depois no arquivo e venceria a cascata. */
   .sel-table{display:none !important;}
@@ -2577,7 +2580,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.84';
+var APP_VERSION = 'v1.5.85';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
