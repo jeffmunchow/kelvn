@@ -2512,7 +2512,7 @@ function togglePrivacidade(){
   var _fpRender={emp:rF,fluxo:rFluxo,pes:rFP,dre:rDRE,prec:calcPrec,imp:calcImp,inad:rInad};
   var sec=_curSection;
   var renderMap={
-    resumo:rR,
+    resumo:function(){rR();igRender();maRender();},
     clientes:rC,
     agenda:function(){rA();rCalAno();},
     posproducao:function(){rPe();rEdicoes();},
@@ -2521,12 +2521,14 @@ function togglePrivacidade(){
     questionarios:function(){rQT();},
     agendamento:function(){rTR();rSlots();},
     galerias:rGal,
+    marketing:rMarketing,
     educacao:rEdu,
     ajustes:rSD
   };
   if(sec&&renderMap[sec])renderMap[sec]();
 }
 function $m(v){if(_privacidade)return '••••';return 'R$ '+parseFloat(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function $pv(v){return _privacidade?'••••':v;}
 function d2i(s){if(!s)return '';var p=s.split('/');if(p.length!==3)return s;return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
 function i2d(s){if(!s)return '';var p=s.split('-');if(p.length!==3)return s;return p[2]+'/'+p[1]+'/'+p[0];}
 function fd(s){if(!s)return '—';return s.includes('/')?s:i2d(s);}
@@ -2549,7 +2551,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.68';
+var APP_VERSION = 'v1.5.69';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3153,14 +3155,14 @@ function igFillMetrics(){
   var dk = 'd' + _igPeriod;
   var d = _igDemo;
   var pos = 'color:var(--teal)';
-  document.getElementById('ig-alcance').textContent     = igFmt(d.alcance[k]);
-  document.getElementById('ig-alcance-d').innerHTML     = '<span style="'+pos+'">'+d.alcance[dk]+'</span> vs período anterior';
-  document.getElementById('ig-impressoes').textContent  = igFmt(d.impressoes[k]);
-  document.getElementById('ig-impressoes-d').innerHTML  = '<span style="'+pos+'">'+d.impressoes[dk]+'</span> vs período anterior';
-  document.getElementById('ig-reels').textContent       = igFmt(d.reels[k]);
-  document.getElementById('ig-reels-d').innerHTML       = '<span style="'+pos+'">'+d.reels[dk]+'</span> vs período anterior';
-  document.getElementById('ig-inter').textContent       = igFmt(d.inter[k]);
-  document.getElementById('ig-inter-d').innerHTML       = '<span style="'+pos+'">'+d.inter[dk]+'</span> vs período anterior';
+  document.getElementById('ig-alcance').textContent     = $pv(igFmt(d.alcance[k]));
+  document.getElementById('ig-alcance-d').innerHTML     = _privacidade?'':'<span style="'+pos+'">'+d.alcance[dk]+'</span> vs período anterior';
+  document.getElementById('ig-impressoes').textContent  = $pv(igFmt(d.impressoes[k]));
+  document.getElementById('ig-impressoes-d').innerHTML  = _privacidade?'':'<span style="'+pos+'">'+d.impressoes[dk]+'</span> vs período anterior';
+  document.getElementById('ig-reels').textContent       = $pv(igFmt(d.reels[k]));
+  document.getElementById('ig-reels-d').innerHTML       = _privacidade?'':'<span style="'+pos+'">'+d.reels[dk]+'</span> vs período anterior';
+  document.getElementById('ig-inter').textContent       = $pv(igFmt(d.inter[k]));
+  document.getElementById('ig-inter-d').innerHTML       = _privacidade?'':'<span style="'+pos+'">'+d.inter[dk]+'</span> vs período anterior';
 }
 
 function igDrawChart(){ igDrawChartOn('ig-canvas', _igPeriod); }
@@ -3267,9 +3269,9 @@ function igRender(){
   var penultimo = seg[seg.length-2] || ultimo;
   var delta = ultimo - penultimo;
   document.getElementById('ig-handle').textContent = _igDemo.handle;
-  document.getElementById('ig-seg-total').textContent = ultimo.toLocaleString('pt-BR');
+  document.getElementById('ig-seg-total').textContent = $pv(ultimo.toLocaleString('pt-BR'));
   var dEl = document.getElementById('ig-seg-delta');
-  dEl.textContent = (delta >= 0 ? '+' : '') + delta + ' hoje';
+  dEl.textContent = _privacidade?'':(delta >= 0 ? '+' : '') + delta + ' hoje';
   dEl.style.color = delta >= 0 ? 'var(--teal)' : 'var(--coral)';
   igFillMetrics();
   setTimeout(igDrawChart, 50);
@@ -3321,18 +3323,18 @@ function maFillMetrics(){
   var k = 'v' + _maPeriod, dk = 'd' + _maPeriod;
   var d = _maDemo;
   var total = parseFloat(d.gasto[k]);
-  document.getElementById('ma-gasto-total').textContent = maFmt(total);
-  document.getElementById('ma-camp-ativas').textContent = d.campanhas;
+  document.getElementById('ma-gasto-total').textContent = $m(total);
+  document.getElementById('ma-camp-ativas').textContent = $pv(d.campanhas);
   var neg = 'color:var(--coral)', pos = 'color:var(--teal)';
   function deltaColor(v){ return (v.startsWith('-') && !v.includes('pp')) ? neg : pos; }
-  document.getElementById('ma-alcance').textContent    = d.alcance[k];
-  document.getElementById('ma-alcance-d').innerHTML   = '<span style="'+deltaColor(d.alcance[dk])+'">'+d.alcance[dk]+'</span> vs anterior';
-  document.getElementById('ma-impressoes').textContent = d.impressoes[k];
-  document.getElementById('ma-impressoes-d').innerHTML= '<span style="'+deltaColor(d.impressoes[dk])+'">'+d.impressoes[dk]+'</span> vs anterior';
-  document.getElementById('ma-ctr').textContent        = d.ctr[k];
-  document.getElementById('ma-ctr-d').innerHTML       = '<span style="'+deltaColor(d.ctr[dk])+'">'+d.ctr[dk]+'</span> vs anterior';
-  document.getElementById('ma-cpc').textContent        = d.cpc[k];
-  document.getElementById('ma-cpc-d').innerHTML       = '<span style="'+deltaColor(d.cpc[dk])+'">'+d.cpc[dk]+'</span> vs anterior';
+  document.getElementById('ma-alcance').textContent    = $pv(d.alcance[k]);
+  document.getElementById('ma-alcance-d').innerHTML   = _privacidade?'':'<span style="'+deltaColor(d.alcance[dk])+'">'+d.alcance[dk]+'</span> vs anterior';
+  document.getElementById('ma-impressoes').textContent = $pv(d.impressoes[k]);
+  document.getElementById('ma-impressoes-d').innerHTML= _privacidade?'':'<span style="'+deltaColor(d.impressoes[dk])+'">'+d.impressoes[dk]+'</span> vs anterior';
+  document.getElementById('ma-ctr').textContent        = $pv(d.ctr[k]);
+  document.getElementById('ma-ctr-d').innerHTML       = _privacidade?'':'<span style="'+deltaColor(d.ctr[dk])+'">'+d.ctr[dk]+'</span> vs anterior';
+  document.getElementById('ma-cpc').textContent        = $pv(d.cpc[k]);
+  document.getElementById('ma-cpc-d').innerHTML       = _privacidade?'':'<span style="'+deltaColor(d.cpc[dk])+'">'+d.cpc[dk]+'</span> vs anterior';
 }
 
 function maDrawChart(){ maDrawChartOn('ma-canvas', _maPeriod); }
@@ -3429,42 +3431,74 @@ function mkKpi(label, val, delta, sub){
 function mkIgFill(){
   var d = _igDemo, k='v'+_mkIgPeriod, dk='d'+_mkIgPeriod;
   var seg = d.seguidores, total = seg[seg.length-1];
-  document.getElementById('mk-ig-kpis').innerHTML =
-    mkKpi('Seguidores', total.toLocaleString('pt-BR'), d.novos[dk], 'crescimento') +
-    mkKpi('Alcance', igFmt(d.alcance[k]), d.alcance[dk]) +
-    mkKpi('Impressões', igFmt(d.impressoes[k]), d.impressoes[dk]) +
-    mkKpi('Interações', igFmt(d.inter[k]), d.inter[dk]) +
-    mkKpi('Visitas ao perfil', igFmt(d.visitas[k]), d.visitas[dk]);
-  document.getElementById('mk-ig-novos').textContent = '+'+d.novos[k].toLocaleString('pt-BR');
-  document.getElementById('mk-ig-genero').innerHTML = d.genero.map(function(x){return mkBar(x.l,x.pct);}).join('');
-  document.getElementById('mk-ig-idade').innerHTML  = d.idade.map(function(x){return mkBar(x.l,x.pct);}).join('');
-  document.getElementById('mk-ig-locais').innerHTML = d.locais.map(function(x){return mkBar(x.l,x.pct);}).join('');
-  document.getElementById('mk-ig-horario').textContent = d.melhorHorario;
-  document.getElementById('mk-ig-dia').textContent     = d.melhorDia;
-  document.getElementById('mk-ig-posts').innerHTML = d.topPosts.map(function(p){
-    return '<tr><td><span class="badge bc">'+p.tipo+'</span></td><td>'+p.data+'</td><td>'+igFmt(p.alcance)+'</td><td>'+(p.curtidas||'—')+'</td><td>'+p.coment+'</td><td>'+(p.salvos||'—')+'</td><td style="color:var(--text);font-weight:500;">'+p.taxa+'</td></tr>';
-  }).join('');
+  if(_privacidade){
+    document.getElementById('mk-ig-kpis').innerHTML =
+      mkKpi('Seguidores', '••••', null, '') +
+      mkKpi('Alcance', '••••', null, '') +
+      mkKpi('Impressões', '••••', null, '') +
+      mkKpi('Interações', '••••', null, '') +
+      mkKpi('Visitas ao perfil', '••••', null, '');
+    document.getElementById('mk-ig-novos').textContent = '••••';
+    document.getElementById('mk-ig-genero').innerHTML = d.genero.map(function(x){return mkBar(x.l,'••');}).join('');
+    document.getElementById('mk-ig-idade').innerHTML  = d.idade.map(function(x){return mkBar(x.l,'••');}).join('');
+    document.getElementById('mk-ig-locais').innerHTML = d.locais.map(function(x){return mkBar(x.l,'••');}).join('');
+    document.getElementById('mk-ig-posts').innerHTML = d.topPosts.map(function(p){
+      return '<tr><td><span class="badge bc">'+p.tipo+'</span></td><td>'+p.data+'</td><td>••••</td><td>••</td><td>••</td><td>••</td><td style="color:var(--text);font-weight:500;">••••</td></tr>';
+    }).join('');
+  }else{
+    document.getElementById('mk-ig-kpis').innerHTML =
+      mkKpi('Seguidores', total.toLocaleString('pt-BR'), d.novos[dk], 'crescimento') +
+      mkKpi('Alcance', igFmt(d.alcance[k]), d.alcance[dk]) +
+      mkKpi('Impressões', igFmt(d.impressoes[k]), d.impressoes[dk]) +
+      mkKpi('Interações', igFmt(d.inter[k]), d.inter[dk]) +
+      mkKpi('Visitas ao perfil', igFmt(d.visitas[k]), d.visitas[dk]);
+    document.getElementById('mk-ig-novos').textContent = '+'+d.novos[k].toLocaleString('pt-BR');
+    document.getElementById('mk-ig-genero').innerHTML = d.genero.map(function(x){return mkBar(x.l,x.pct);}).join('');
+    document.getElementById('mk-ig-idade').innerHTML  = d.idade.map(function(x){return mkBar(x.l,x.pct);}).join('');
+    document.getElementById('mk-ig-locais').innerHTML = d.locais.map(function(x){return mkBar(x.l,x.pct);}).join('');
+    document.getElementById('mk-ig-posts').innerHTML = d.topPosts.map(function(p){
+      return '<tr><td><span class="badge bc">'+p.tipo+'</span></td><td>'+p.data+'</td><td>'+igFmt(p.alcance)+'</td><td>'+(p.curtidas||'—')+'</td><td>'+p.coment+'</td><td>'+(p.salvos||'—')+'</td><td style="color:var(--text);font-weight:500;">'+p.taxa+'</td></tr>';
+    }).join('');
+  }
+  document.getElementById('mk-ig-horario').textContent = $pv(d.melhorHorario);
+  document.getElementById('mk-ig-dia').textContent     = $pv(d.melhorDia);
   mkIgDraw();
 }
 function mkIgDraw(){ igDrawChartOn('mk-ig-canvas', _mkIgPeriod); }
 
 function mkMaFill(){
   var d = _maDemo, k='v'+_mkMaPeriod, dk='d'+_mkMaPeriod;
-  document.getElementById('mk-ma-kpis').innerHTML =
-    mkKpi('Gasto no período', maFmt(d.gasto[k]), null, '') +
-    mkKpi('Alcance', d.alcance[k], d.alcance[dk]) +
-    mkKpi('Impressões', d.impressoes[k], d.impressoes[dk]) +
-    mkKpi('CTR', d.ctr[k], d.ctr[dk]) +
-    mkKpi('CPC', d.cpc[k], d.cpc[dk]) +
-    mkKpi('CPM', d.cpm[k], d.cpm[dk]) +
-    mkKpi('Conversões', d.conversoes[k], d.conversoes[dk]) +
-    mkKpi('Custo / conversão', d.custoConv[k], d.custoConv[dk]);
-  document.getElementById('mk-ma-total').textContent = maFmt(d.gasto[k]);
-  document.getElementById('mk-ma-camp').textContent  = d.campanhas;
-  document.getElementById('mk-ma-campanhas').innerHTML = d.campanhasList.map(function(c){
-    var stCls = c.status==='Ativa' ? 'bw' : 'bp';
-    return '<tr><td style="color:var(--text);">'+c.nome+'</td><td><span class="badge '+stCls+'">'+c.status+'</span></td><td>'+(c.gasto?maFmt(c.gasto):'—')+'</td><td>'+c.alcance+'</td><td>'+c.ctr+'</td><td>'+c.cpc+'</td><td>'+(c.conv||'—')+'</td></tr>';
-  }).join('');
+  if(_privacidade){
+    document.getElementById('mk-ma-kpis').innerHTML =
+      mkKpi('Gasto no período', '••••', null, '') +
+      mkKpi('Alcance', '••••', null, '') +
+      mkKpi('Impressões', '••••', null, '') +
+      mkKpi('CTR', '••••', null, '') +
+      mkKpi('CPC', '••••', null, '') +
+      mkKpi('CPM', '••••', null, '') +
+      mkKpi('Conversões', '••••', null, '') +
+      mkKpi('Custo / conversão', '••••', null, '');
+    document.getElementById('mk-ma-campanhas').innerHTML = d.campanhasList.map(function(c){
+      var stCls = c.status==='Ativa' ? 'bw' : 'bp';
+      return '<tr><td style="color:var(--text);">'+c.nome+'</td><td><span class="badge '+stCls+'">'+c.status+'</span></td><td>••••</td><td>••••</td><td>••</td><td>••</td><td>••</td></tr>';
+    }).join('');
+  }else{
+    document.getElementById('mk-ma-kpis').innerHTML =
+      mkKpi('Gasto no período', maFmt(d.gasto[k]), null, '') +
+      mkKpi('Alcance', d.alcance[k], d.alcance[dk]) +
+      mkKpi('Impressões', d.impressoes[k], d.impressoes[dk]) +
+      mkKpi('CTR', d.ctr[k], d.ctr[dk]) +
+      mkKpi('CPC', d.cpc[k], d.cpc[dk]) +
+      mkKpi('CPM', d.cpm[k], d.cpm[dk]) +
+      mkKpi('Conversões', d.conversoes[k], d.conversoes[dk]) +
+      mkKpi('Custo / conversão', d.custoConv[k], d.custoConv[dk]);
+    document.getElementById('mk-ma-campanhas').innerHTML = d.campanhasList.map(function(c){
+      var stCls = c.status==='Ativa' ? 'bw' : 'bp';
+      return '<tr><td style="color:var(--text);">'+c.nome+'</td><td><span class="badge '+stCls+'">'+c.status+'</span></td><td>'+(c.gasto?maFmt(c.gasto):'—')+'</td><td>'+c.alcance+'</td><td>'+c.ctr+'</td><td>'+c.cpc+'</td><td>'+(c.conv||'—')+'</td></tr>';
+    }).join('');
+  }
+  document.getElementById('mk-ma-total').textContent = $m(d.gasto[k]);
+  document.getElementById('mk-ma-camp').textContent  = $pv(d.campanhas);
   mkMaDraw();
 }
 function mkMaDraw(){ maDrawChartOn('mk-ma-canvas', _mkMaPeriod); }
