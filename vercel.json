@@ -64,7 +64,8 @@
     {
       "src": "/",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
-      "dest": "/app/kelvn.html"
+      "dest": "/app/kelvn.html",
+      "headers": { "Cache-Control": "no-cache, must-revalidate" }
     },
     {
       "src": "/assinar/(.*)",

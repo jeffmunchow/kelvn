@@ -2563,7 +2563,24 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.75';
+var APP_VERSION = 'v1.5.76';
+
+// ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
+// PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
+// a versão publicada sempre que o app volta ao primeiro plano e recarrega
+// sozinho se houver uma mais nova — sem precisar fechar o app manualmente.
+async function _checkForUpdate(){
+  try{
+    var res = await fetch('/?_v=' + Date.now(), { cache: 'no-store' });
+    var html = await res.text();
+    var m = html.match(/var APP_VERSION = '([^']+)'/);
+    if(m && m[1] && m[1] !== APP_VERSION) location.reload();
+  }catch(e){ /* offline ou falha de rede — ignora */ }
+}
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden) _checkForUpdate();
+});
+window.addEventListener('focus', _checkForUpdate);
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
