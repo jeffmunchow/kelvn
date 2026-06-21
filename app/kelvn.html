@@ -223,6 +223,7 @@ td{padding:10px 12px;border-bottom:.5px solid var(--border);color:var(--text-mut
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:var(--surface2);cursor:pointer;}
 .tdn{color:var(--text);}
+#fin-tbody .tdn,#fp-tbody .tdn{max-width:220px;white-space:normal;word-break:break-word;}
 .tsub{font-size:.72rem;color:var(--text-hint);margin-top:1px;}
 .empty{padding:2.5rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;}
 /* BADGE */
@@ -1107,7 +1108,7 @@ select.aj-input{cursor:pointer;}
     </div>
 
     <!-- TABELA -->
-    <div class="tw" style="border:none;"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fin-tbody"></tbody></table></div></div>
+    <div class="tw" style="border:none;"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Categoria</th><th>Cliente</th><th>Tipo</th><th></th></tr></thead><tbody id="fin-tbody"></tbody></table></div></div>
   </div>
   <!-- FLUXO DE CAIXA -->
   <div id="fp-panel-fluxo" style="display:none;">
@@ -1148,7 +1149,7 @@ select.aj-input{cursor:pointer;}
         <button class="btn" style="color:var(--text);" onclick="openFP('entrada')">↑ Entrada</button>
       </div>
     </div>
-    <div class="tw" style="border:none;"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="fp-tbody"></tbody></table></div></div>
+    <div class="tw" style="border:none;"><div class="ts"><table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Categoria</th><th>Tipo</th><th></th></tr></thead><tbody id="fp-tbody"></tbody></table></div></div>
   </div>
   <!-- DRE -->
   <div id="fp-panel-dre" style="display:none;">
@@ -2553,7 +2554,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.72';
+var APP_VERSION = 'v1.5.73';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -5267,7 +5268,7 @@ function rF(){
   tb.innerHTML=fs.map(function(e){
     var col=e.tipo==='entrada'?'var(--teal)':'var(--coral)',sign=e.tipo==='entrada'?'+':'−';
     var autoBadge=e.auto?' <span title="Criada automaticamente a partir de uma parcela" style="font-size:.58rem;color:var(--text-hint);border:.5px solid var(--border-strong);border-radius:3px;padding:1px 4px;margin-left:5px;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle;">auto</span>':'';
-    return '<tr onclick="openF(null,\''+e.id+'\')"><td>'+fd(e.data)+'</td><td class="tdn">'+(e.desc||'—')+autoBadge+'</td><td>'+(e.cat||'—')+'</td><td>'+(e.clienteId?cN(e.clienteId):'—')+'</td><td><span class="badge" style="background:'+(e.tipo==='entrada'?'var(--teal-light)':'var(--coral-light)')+';color:'+col+';">'+e.tipo+'</span></td><td style="color:'+col+';font-weight:500;">'+sign+' '+$m(e.valor)+'</td><td><button class="ra" onclick="event.stopPropagation();openF(null,\''+e.id+'\')">Editar</button></td></tr>';
+    return '<tr onclick="openF(null,\''+e.id+'\')"><td>'+fd(e.data)+'</td><td class="tdn">'+(e.desc||'—')+autoBadge+'</td><td style="color:'+col+';font-weight:500;">'+sign+' '+$m(e.valor)+'</td><td>'+(e.cat||'—')+'</td><td>'+(e.clienteId?cN(e.clienteId):'—')+'</td><td><span class="badge" style="background:'+(e.tipo==='entrada'?'var(--teal-light)':'var(--coral-light)')+';color:'+col+';">'+e.tipo+'</span></td><td><button class="ra" onclick="event.stopPropagation();openF(null,\''+e.id+'\')">Editar</button></td></tr>';
   }).join('');
 }
 function _buildCatOpts(tipo){
@@ -5325,7 +5326,7 @@ function rFP(){
   document.getElementById('fp-kpis').innerHTML='<div class="fki"><div class="fkl">Receita pessoal</div><div class="fkv ct">'+$m(tin)+'</div></div><div class="fki"><div class="fkl">Despesas</div><div class="fkv cc">'+$m(tout)+'</div></div><div class="fki"><div class="fkl">Saldo pessoal</div><div class="fkv ca">'+$m(tin-tout)+'</div></div>';
   var tb=document.getElementById('fp-tbody');
   if(!fs.length){tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum lançamento pessoal ainda.</td></tr>';return;}
-  tb.innerHTML=fs.map(function(e){var col=e.tipo==='entrada'?'var(--teal)':'var(--coral)',sign=e.tipo==='entrada'?'+':'−';return '<tr onclick="openFP(null,\''+e.id+'\')"><td>'+fd(e.data)+'</td><td class="tdn">'+(e.desc||'—')+'</td><td>'+(e.cat||'—')+'</td><td><span class="badge" style="background:'+(e.tipo==='entrada'?'var(--teal-light)':'var(--coral-light)')+';color:'+col+';">'+e.tipo+'</span></td><td style="color:'+col+';font-weight:500;">'+sign+' '+$m(e.valor)+'</td></tr>';}).join('');
+  tb.innerHTML=fs.map(function(e){var col=e.tipo==='entrada'?'var(--teal)':'var(--coral)',sign=e.tipo==='entrada'?'+':'−';return '<tr onclick="openFP(null,\''+e.id+'\')"><td>'+fd(e.data)+'</td><td class="tdn">'+(e.desc||'—')+'</td><td style="color:'+col+';font-weight:500;">'+sign+' '+$m(e.valor)+'</td><td>'+(e.cat||'—')+'</td><td><span class="badge" style="background:'+(e.tipo==='entrada'?'var(--teal-light)':'var(--coral-light)')+';color:'+col+';">'+e.tipo+'</span></td></tr>';}).join('');
 }
 function openFP(tipo,id){
   _fpId=id||null;
