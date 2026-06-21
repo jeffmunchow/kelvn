@@ -54,7 +54,8 @@
     {
       "src": "/album.html",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
-      "dest": "/app/album.html"
+      "dest": "/app/album.html",
+      "headers": { "Cache-Control": "no-cache, must-revalidate" }
     },
     {
       "src": "/galeria/(.*)",
