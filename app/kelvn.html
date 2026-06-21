@@ -471,6 +471,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .field .kvsel-wrap{width:100%;}
 .field .kvsel-btn{width:100%;height:auto;background:var(--surface2);border-radius:var(--radius-sm);font-size:.88rem;font-weight:400;padding:8px 11px;color:var(--text);}
 .field .kvsel-drop{left:0;right:0;min-width:0;max-width:none;max-height:240px;overflow-y:auto;}
+/* seletor de ano da Sazonalidade: botão convertido casa com o .fi original (superfície, .75rem, 28px) */
+#kvwrap-an-sazon-ano .kvsel-btn{background:var(--surface);font-size:.75rem;height:28px;color:var(--text);}
 #fb-msg::placeholder{color:var(--text-hint);}
 #fb-tipos .ig-pill{transition:background .15s,color .15s;}
 #fb-tipos .ig-pill:hover{background:var(--surface2);}
@@ -2606,7 +2608,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.4';
+var APP_VERSION = 'v1.6.5';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3780,9 +3782,9 @@ document.addEventListener('click',function(e){
 });
 function _kvInitSelects(){
   // dropdown glass só no mobile (desktop mantém o select nativo)
-  ['ag-filter','pend-filter','qr-status-filter','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id); });
-  // Financeiro: dropdown padrão Kelvn também no desktop
-  ['fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  ['ag-filter','pend-filter','qr-status-filter'].forEach(function(id){ kvEnhanceSelect(id); });
+  // Financeiro + Sazonalidade (Análises): dropdown padrão Kelvn também no desktop
+  ['fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Selects dos modais de Entrada/Saída
   ['mf-cat','mf-cliente','mfp-cat'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Calculadora de Impostos: regime tributário
