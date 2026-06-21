@@ -146,7 +146,10 @@ html{overflow-x:hidden;}
   .sel-table{display:none !important;}
   .sel-cards{display:block !important;}
   /* todos os menus dropdown do mobile com o mesmo vidro dos elementos flutuantes iOS */
-  #gal-sort-menu,#c-status-drop,#fp-more-drop,#mc-status-drop,.glass-drop{background:var(--glass-bg) !important;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 10px 28px rgba(0,0,0,.16) !important;}
+  #gal-sort-menu,#c-status-drop,#fp-more-drop,#mc-status-drop,.glass-drop,.kvsel-drop{background:var(--glass-bg) !important;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 10px 28px rgba(0,0,0,.16) !important;}
+  /* no mobile, selects nativos convertidos: esconde o nativo, mostra o dropdown glass */
+  .kvsel-native{display:none !important;}
+  .kvsel-wrap{display:flex !important;flex:0 0 auto;}
   /* menu Ordenar: ancorado à esquerda + limitado à largura da tela para não vazar */
   #gal-sort-menu{left:0 !important;right:auto !important;min-width:0 !important;width:max-content;max-width:calc(100vw - 2.5rem) !important;}
   /* pill flutuante de navegação */
@@ -185,6 +188,12 @@ html{overflow-x:hidden;}
 #gal-zoom-slider:hover::-webkit-slider-thumb{background:var(--amber);}
 #gal-zoom-slider:hover::-moz-range-thumb{background:var(--amber);}
 .sdrop-opt{padding:7px 10px;font-size:.78rem;cursor:pointer;}
+.sdrop-opt:hover{background:var(--surface2);}
+.sdrop-opt.active{color:var(--text);font-weight:500;}
+/* dropdown customizado genérico que substitui selects nativos no mobile (visual glass) */
+.kvsel-wrap{position:relative;display:none;}
+.kvsel-btn{display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;height:30px;padding:6px 10px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--text-muted);user-select:none;white-space:nowrap;}
+.kvsel-drop{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:150px;max-width:calc(100vw - 2.5rem);background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.14);}
 .gal-lote-opt{padding:7px 14px;cursor:pointer;color:var(--text-muted);}
 .gal-lote-opt:hover{background:var(--surface2);color:var(--text);}
 .btn:hover{background:var(--surface2);color:var(--text);}
@@ -2568,7 +2577,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.83';
+var APP_VERSION = 'v1.5.84';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3681,6 +3690,70 @@ function rC(){
   }).join('');
 }
 var _STATUS_COLORS={'Prospect':'','Sessão':'var(--coral)','Religioso':'var(--teal)','Welcome':'#D4709A','Casamento':'var(--amber)','After':'#6B9BAF','Edição':'var(--coral)','Álbum design':'var(--purple)','Entregue':'var(--teal)','Finalizado':'#5C5854'};
+// ── DROPDOWN GLASS GENÉRICO ─────────────────────────────────────────────────
+// Converte um <select> nativo num dropdown customizado (visível só no mobile, visual glass),
+// mantendo o <select> como fonte da verdade: o custom escreve nele e dispara o 'change',
+// então toda a lógica de filtro existente (onchange="rA()" etc.) continua funcionando.
+function kvEnhanceSelect(selectId){
+  var sel=document.getElementById(selectId);
+  if(!sel||sel.dataset.kv) return;
+  sel.dataset.kv='1';
+  // o que esconder/após o que inserir: se o select estiver dentro de um .sel-wrap
+  // (com seta SVG própria), some com o wrapper inteiro para a seta não ficar órfã
+  var anchor=sel.closest('.sel-wrap')||sel;
+  anchor.classList.add('kvsel-native');
+  var cur=sel.options[sel.selectedIndex];
+  var wrap=document.createElement('div');
+  wrap.className='kvsel-wrap';
+  wrap.id='kvwrap-'+selectId;
+  wrap.innerHTML=
+    '<div class="kvsel-btn" onclick="kvSelToggle(\''+selectId+'\')">'
+    +'<span id="kvlbl-'+selectId+'">'+(cur?cur.text:'')+'</span>'
+    +'<svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    +'</div>'
+    +'<div class="kvsel-drop" id="kvdrop-'+selectId+'"></div>';
+  anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+}
+function kvSelToggle(selectId){
+  var sel=document.getElementById(selectId);
+  var drop=document.getElementById('kvdrop-'+selectId);
+  if(!sel||!drop) return;
+  if(drop.style.display==='block'){ drop.style.display='none'; return; }
+  document.querySelectorAll('.kvsel-drop').forEach(function(d){d.style.display='none';});
+  // reconstrói as opções a partir do estado atual do select (cobre opções dinâmicas, ex.: anos)
+  var html='';
+  for(var i=0;i<sel.options.length;i++){
+    var o=sel.options[i];
+    if(o.disabled){ html+='<div style="border-top:.5px solid var(--border);"></div>'; continue; }
+    var active=o.value===sel.value;
+    html+='<div class="sdrop-opt'+(active?' active':'')+'" onclick="kvSelPick(\''+selectId+'\','+i+')">'+o.text+'</div>';
+  }
+  drop.innerHTML=html;
+  drop.style.display='block';
+}
+function kvSelPick(selectId, idx){
+  var sel=document.getElementById(selectId);
+  sel.selectedIndex=idx;
+  var lbl=document.getElementById('kvlbl-'+selectId);
+  if(lbl) lbl.textContent=sel.options[idx].text;
+  var drop=document.getElementById('kvdrop-'+selectId);
+  if(drop) drop.style.display='none';
+  sel.dispatchEvent(new Event('change'));
+}
+// mantém o rótulo do botão em sincronia quando o valor do select muda por código
+function kvSelSyncLabel(selectId){
+  var sel=document.getElementById(selectId),lbl=document.getElementById('kvlbl-'+selectId);
+  if(sel&&lbl&&sel.options[sel.selectedIndex]) lbl.textContent=sel.options[sel.selectedIndex].text;
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.kvsel-wrap')) document.querySelectorAll('.kvsel-drop').forEach(function(d){d.style.display='none';});
+});
+function _kvInitSelects(){
+  ['ag-filter','pend-filter','qr-status-filter','an-sazon-ano'].forEach(kvEnhanceSelect);
+}
+if(document.readyState!=='loading') _kvInitSelects();
+else document.addEventListener('DOMContentLoaded', _kvInitSelects);
+
 function toggleCStatusDrop(){
   var d=document.getElementById('c-status-drop');
   d.style.display=d.style.display==='none'?'block':'none';
@@ -6232,6 +6305,7 @@ function rAnSazonalidade(){
     var prevVal=sel.value||String(nowY);
     sel.innerHTML=anosArr.map(function(a){return '<option value="'+a+'">'+a+'</option>';}).join('');
     sel.value=(anosArr.indexOf(parseInt(prevVal))>-1)?prevVal:String(nowY);
+    kvSelSyncLabel('an-sazon-ano');
   }
 
   var anoSel=sel?parseInt(sel.value):nowY;
