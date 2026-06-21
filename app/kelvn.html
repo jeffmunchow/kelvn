@@ -2563,7 +2563,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.76';
+var APP_VERSION = 'v1.5.77';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -8066,7 +8066,11 @@ function rGal(manter){
     // cover_url: pode ser URL de proxy otimizada — usada direto se não achar foto local
     var _coverMatch=gal.cover_foto_url||gal.cover_url||'';
     var capaFoto=(gal.fotos||[]).find(function(f){return f.url===_coverMatch||f.webUrl===_coverMatch||f.thumbUrl===_coverMatch;})||null;
-    var capaImg=capaFoto?r2proxy(capaFoto.thumbUrl||capaFoto.url):(gal.cover_url?r2proxy(gal.cover_url):'');
+    // Prefere a capa otimizada (2000px) gerada ao definir a capa. Cai para a versão web
+    // ou original da foto; a miniatura é só último recurso, pois pixeliza no card full-width do mobile.
+    var capaImg = gal.cover_url ? r2proxy(gal.cover_url)
+                : capaFoto ? r2proxy(capaFoto.webUrl||capaFoto.url||capaFoto.thumbUrl)
+                : '';
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border-radius:0;overflow:hidden;">'
       +'<div style="aspect-ratio:3/2;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;" onclick="entrarGaleria(\''+gal.id+'\')">'
