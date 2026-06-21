@@ -473,6 +473,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .field .kvsel-drop{left:0;right:0;min-width:0;max-width:none;max-height:240px;overflow-y:auto;}
 /* seletor de ano da Sazonalidade: botão convertido casa com o .fi original (superfície, .75rem, 28px) */
 #kvwrap-an-sazon-ano .kvsel-btn{background:var(--surface);font-size:.75rem;height:28px;color:var(--text);}
+/* ancora o menu pela direita do botão (fica no canto direito do card) para não vazar pra fora */
+#kvwrap-an-sazon-ano .kvsel-drop{left:auto;right:0;min-width:120px;}
 #fb-msg::placeholder{color:var(--text-hint);}
 #fb-tipos .ig-pill{transition:background .15s,color .15s;}
 #fb-tipos .ig-pill:hover{background:var(--surface2);}
@@ -2608,7 +2610,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.5';
+var APP_VERSION = 'v1.6.6';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
