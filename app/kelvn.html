@@ -2551,7 +2551,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.69';
+var APP_VERSION = 'v1.5.70';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -3156,13 +3156,13 @@ function igFillMetrics(){
   var d = _igDemo;
   var pos = 'color:var(--teal)';
   document.getElementById('ig-alcance').textContent     = $pv(igFmt(d.alcance[k]));
-  document.getElementById('ig-alcance-d').innerHTML     = _privacidade?'':'<span style="'+pos+'">'+d.alcance[dk]+'</span> vs período anterior';
+  document.getElementById('ig-alcance-d').innerHTML     = '<span style="'+pos+'">'+(_privacidade?'••••':d.alcance[dk])+'</span> vs período anterior';
   document.getElementById('ig-impressoes').textContent  = $pv(igFmt(d.impressoes[k]));
-  document.getElementById('ig-impressoes-d').innerHTML  = _privacidade?'':'<span style="'+pos+'">'+d.impressoes[dk]+'</span> vs período anterior';
+  document.getElementById('ig-impressoes-d').innerHTML  = '<span style="'+pos+'">'+(_privacidade?'••••':d.impressoes[dk])+'</span> vs período anterior';
   document.getElementById('ig-reels').textContent       = $pv(igFmt(d.reels[k]));
-  document.getElementById('ig-reels-d').innerHTML       = _privacidade?'':'<span style="'+pos+'">'+d.reels[dk]+'</span> vs período anterior';
+  document.getElementById('ig-reels-d').innerHTML       = '<span style="'+pos+'">'+(_privacidade?'••••':d.reels[dk])+'</span> vs período anterior';
   document.getElementById('ig-inter').textContent       = $pv(igFmt(d.inter[k]));
-  document.getElementById('ig-inter-d').innerHTML       = _privacidade?'':'<span style="'+pos+'">'+d.inter[dk]+'</span> vs período anterior';
+  document.getElementById('ig-inter-d').innerHTML       = '<span style="'+pos+'">'+(_privacidade?'••••':d.inter[dk])+'</span> vs período anterior';
 }
 
 function igDrawChart(){ igDrawChartOn('ig-canvas', _igPeriod); }
@@ -3271,7 +3271,7 @@ function igRender(){
   document.getElementById('ig-handle').textContent = _igDemo.handle;
   document.getElementById('ig-seg-total').textContent = $pv(ultimo.toLocaleString('pt-BR'));
   var dEl = document.getElementById('ig-seg-delta');
-  dEl.textContent = _privacidade?'':(delta >= 0 ? '+' : '') + delta + ' hoje';
+  dEl.textContent = _privacidade?'•••• hoje':(delta >= 0 ? '+' : '') + delta + ' hoje';
   dEl.style.color = delta >= 0 ? 'var(--teal)' : 'var(--coral)';
   igFillMetrics();
   setTimeout(igDrawChart, 50);
@@ -3328,13 +3328,13 @@ function maFillMetrics(){
   var neg = 'color:var(--coral)', pos = 'color:var(--teal)';
   function deltaColor(v){ return (v.startsWith('-') && !v.includes('pp')) ? neg : pos; }
   document.getElementById('ma-alcance').textContent    = $pv(d.alcance[k]);
-  document.getElementById('ma-alcance-d').innerHTML   = _privacidade?'':'<span style="'+deltaColor(d.alcance[dk])+'">'+d.alcance[dk]+'</span> vs anterior';
+  document.getElementById('ma-alcance-d').innerHTML   = '<span style="'+deltaColor(d.alcance[dk])+'">'+(_privacidade?'••••':d.alcance[dk])+'</span> vs anterior';
   document.getElementById('ma-impressoes').textContent = $pv(d.impressoes[k]);
-  document.getElementById('ma-impressoes-d').innerHTML= _privacidade?'':'<span style="'+deltaColor(d.impressoes[dk])+'">'+d.impressoes[dk]+'</span> vs anterior';
+  document.getElementById('ma-impressoes-d').innerHTML= '<span style="'+deltaColor(d.impressoes[dk])+'">'+(_privacidade?'••••':d.impressoes[dk])+'</span> vs anterior';
   document.getElementById('ma-ctr').textContent        = $pv(d.ctr[k]);
-  document.getElementById('ma-ctr-d').innerHTML       = _privacidade?'':'<span style="'+deltaColor(d.ctr[dk])+'">'+d.ctr[dk]+'</span> vs anterior';
+  document.getElementById('ma-ctr-d').innerHTML       = '<span style="'+deltaColor(d.ctr[dk])+'">'+(_privacidade?'••••':d.ctr[dk])+'</span> vs anterior';
   document.getElementById('ma-cpc').textContent        = $pv(d.cpc[k]);
-  document.getElementById('ma-cpc-d').innerHTML       = _privacidade?'':'<span style="'+deltaColor(d.cpc[dk])+'">'+d.cpc[dk]+'</span> vs anterior';
+  document.getElementById('ma-cpc-d').innerHTML       = '<span style="'+deltaColor(d.cpc[dk])+'">'+(_privacidade?'••••':d.cpc[dk])+'</span> vs anterior';
 }
 
 function maDrawChart(){ maDrawChartOn('ma-canvas', _maPeriod); }
