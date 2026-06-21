@@ -461,6 +461,15 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 #ov-f .btn.primary:hover{background:var(--surface2);opacity:1;}
 #ov-fp .btn.primary{background:transparent;color:var(--text);border-color:var(--border-strong);}
 #ov-fp .btn.primary:hover{background:var(--surface2);opacity:1;}
+/* modais de Entrada/Saída: sem borda âmbar no foco — mantém a borda padrão */
+#ov-f .field input:focus,#ov-f .field select:focus,#ov-f .field textarea:focus,
+#ov-fp .field input:focus,#ov-fp .field select:focus,#ov-fp .field textarea:focus{border-color:var(--border-strong);}
+/* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
+#ov-f .modal,#ov-fp .modal{overflow:visible;}
+/* dropdown Kelvn dentro de campos de modal: igual a um .field select (surface2, largura total) */
+.field .kvsel-wrap{width:100%;}
+.field .kvsel-btn{width:100%;height:auto;background:var(--surface2);border-radius:var(--radius-sm);font-size:.88rem;font-weight:400;padding:8px 11px;color:var(--text);}
+.field .kvsel-drop{left:0;right:0;min-width:0;max-width:none;max-height:240px;overflow-y:auto;}
 #fb-msg::placeholder{color:var(--text-hint);}
 #fb-tipos .ig-pill{transition:background .15s,color .15s;}
 #fb-tipos .ig-pill:hover{background:var(--surface2);}
@@ -2596,7 +2605,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.2';
+var APP_VERSION = 'v1.6.3';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3773,6 +3782,8 @@ function _kvInitSelects(){
   ['ag-filter','pend-filter','qr-status-filter','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id); });
   // Financeiro: dropdown padrão Kelvn também no desktop
   ['fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  // Selects dos modais de Entrada/Saída
+  ['mf-cat','mf-cliente','mfp-cat'].forEach(function(id){ kvEnhanceSelect(id, true); });
 }
 if(document.readyState!=='loading') _kvInitSelects();
 else document.addEventListener('DOMContentLoaded', _kvInitSelects);
@@ -5433,6 +5444,7 @@ function openF(tipo,id){
     document.getElementById('mf-tipo').value=t2;
     document.getElementById('mf-del').style.display='none';
   }
+  kvSelSyncLabel('mf-cat');kvSelSyncLabel('mf-cliente');
   document.getElementById('ov-f').classList.add('open');
 }
 function saveF(){
@@ -5460,6 +5472,7 @@ function openFP(tipo,id){
   var td=new Date(),ts=String(td.getDate()).padStart(2,'0')+'/'+String(td.getMonth()+1).padStart(2,'0')+'/'+td.getFullYear();
   if(id){var e=g('fin_pessoal').find(function(x){return x.id===id;});if(!e)return;document.getElementById('mfp-t').textContent='Editar';document.getElementById('mfp-desc').value=e.desc||'';document.getElementById('mfp-valor').value=e.valor||'';document.getElementById('mfp-data').value=fd(e.data);document.getElementById('mfp-cat').value=e.cat||'Pró-labore';document.getElementById('mfp-tipo').value=e.tipo||'entrada';document.getElementById('mfp-del').style.display='inline-flex';}
   else{document.getElementById('mfp-t').textContent=tipo==='entrada'?'Nova Entrada Pessoal':'Nova Saída Pessoal';document.getElementById('mfp-desc').value='';document.getElementById('mfp-valor').value='';document.getElementById('mfp-data').value=ts;document.getElementById('mfp-cat').value=tipo==='entrada'?'Pró-labore':'Moradia';document.getElementById('mfp-tipo').value=tipo||'entrada';document.getElementById('mfp-del').style.display='none';}
+  kvSelSyncLabel('mfp-cat');
   document.getElementById('ov-fp').classList.add('open');
 }
 function saveFP(){
