@@ -127,13 +127,16 @@ html{overflow-x:hidden;}
   #p-financeiro .sh>div:last-child{flex-wrap:wrap;width:100%;gap:.5rem;}
   #p-financeiro .sh>div:last-child>div[style*="position:relative"]{flex:1 1 110px;min-width:0;}
   #p-financeiro #fin-search{width:100% !important;box-sizing:border-box;}
-  #p-financeiro .sh>div:last-child>select{flex:0 1 auto;min-width:0;}
+  #p-financeiro .sh>div:last-child>select,
+  #p-financeiro .sh>div:last-child>.kvsel-wrap{flex:0 1 auto;min-width:0;}
   #p-financeiro .sh>div:last-child>button{flex:1 1 40%;min-width:0;box-sizing:border-box;}
   /* aba Pessoal: período + Saída + Entrada na mesma linha; 3 KPIs lado a lado */
   #fp-panel-pes .sh>div:last-child>select,
+  #fp-panel-pes .sh>div:last-child>.kvsel-wrap,
   #fp-panel-pes .sh>div:last-child>button{flex:1 1 0 !important;min-width:0;box-sizing:border-box;}
   /* aba Balanço: período + Baixar CSV + Imprimir na mesma linha */
   #fp-panel-dre .sh>div:last-child>select,
+  #fp-panel-dre .sh>div:last-child>.kvsel-wrap,
   #fp-panel-dre .sh>div:last-child>button{flex:1 1 0 !important;min-width:0;box-sizing:border-box;}
   /* precificação e fluxo: tira o sticky e a altura fixa que cortam conteúdo no mobile */
   #p-financeiro #prec-result{position:static !important;top:auto !important;}
@@ -195,6 +198,9 @@ html{overflow-x:hidden;}
 .sdrop-opt.active{color:var(--text);font-weight:500;}
 /* dropdown customizado genérico que substitui selects nativos no mobile (visual glass) */
 .kvsel-wrap{position:relative;display:none;}
+/* variante "always": dropdown Kelvn também no desktop (ex.: filtros do Financeiro) */
+.kvsel-native-always{display:none !important;}
+.kvsel-wrap-always{display:flex !important;}
 .kvsel-btn{display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;height:30px;padding:6px 10px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--text-muted);user-select:none;white-space:nowrap;}
 .kvsel-drop{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:150px;max-width:calc(100vw - 2.5rem);background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.14);}
 .gal-lote-opt{padding:7px 14px;cursor:pointer;color:var(--text-muted);}
@@ -2586,7 +2592,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.0';
+var APP_VERSION = 'v1.6.1';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3703,17 +3709,18 @@ var _STATUS_COLORS={'Prospect':'','Sessão':'var(--coral)','Religioso':'var(--te
 // Converte um <select> nativo num dropdown customizado (visível só no mobile, visual glass),
 // mantendo o <select> como fonte da verdade: o custom escreve nele e dispara o 'change',
 // então toda a lógica de filtro existente (onchange="rA()" etc.) continua funcionando.
-function kvEnhanceSelect(selectId){
+function kvEnhanceSelect(selectId, desktopToo){
   var sel=document.getElementById(selectId);
   if(!sel||sel.dataset.kv) return;
   sel.dataset.kv='1';
   // o que esconder/após o que inserir: se o select estiver dentro de um .sel-wrap
   // (com seta SVG própria), some com o wrapper inteiro para a seta não ficar órfã
   var anchor=sel.closest('.sel-wrap')||sel;
-  anchor.classList.add('kvsel-native');
+  // desktopToo=true: dropdown Kelvn também no desktop (não só no mobile)
+  anchor.classList.add(desktopToo?'kvsel-native-always':'kvsel-native');
   var cur=sel.options[sel.selectedIndex];
   var wrap=document.createElement('div');
-  wrap.className='kvsel-wrap';
+  wrap.className='kvsel-wrap'+(desktopToo?' kvsel-wrap-always':'');
   wrap.id='kvwrap-'+selectId;
   wrap.innerHTML=
     '<div class="kvsel-btn" onclick="kvSelToggle(\''+selectId+'\')">'
@@ -3758,7 +3765,10 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('.kvsel-wrap')) document.querySelectorAll('.kvsel-drop').forEach(function(d){d.style.display='none';});
 });
 function _kvInitSelects(){
-  ['ag-filter','pend-filter','qr-status-filter','an-sazon-ano'].forEach(kvEnhanceSelect);
+  // dropdown glass só no mobile (desktop mantém o select nativo)
+  ['ag-filter','pend-filter','qr-status-filter','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id); });
+  // Financeiro: dropdown padrão Kelvn também no desktop
+  ['fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period'].forEach(function(id){ kvEnhanceSelect(id, true); });
 }
 if(document.readyState!=='loading') _kvInitSelects();
 else document.addEventListener('DOMContentLoaded', _kvInitSelects);
