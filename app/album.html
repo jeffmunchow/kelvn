@@ -54,9 +54,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .view-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
 .btn{display:inline-flex;align-items:center;gap:.4rem;background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);border-radius:8px;padding:6px 15px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;outline:none;transition:color .15s,opacity .15s;}
 .btn:hover{opacity:.85;color:var(--text);}
-/* letra idêntica à do tamanho selecionado (.tam-opt.sel): cor var(--text), .75rem, peso normal */
-.btn-criar-album{color:var(--text);background:transparent;font-size:.75rem;font-weight:400;}
-.btn-criar-album:hover{background:var(--surface2);color:var(--text);opacity:1;}
+/* estilo idêntico ao do tamanho selecionado (.tam-opt.sel): letra var(--text) sobre leve fundo surface2 */
+.btn-criar-album{color:var(--text)!important;background:var(--surface2)!important;border-color:var(--border-strong)!important;font-size:.75rem;font-weight:400;}
+.btn-criar-album:hover{background:var(--surface3)!important;color:var(--text)!important;opacity:1;}
 .btn-sec{background:transparent;color:var(--text-muted);border:.5px solid var(--border-strong);}
 .btn-sec:hover{color:var(--text);opacity:1;}
 .gal-sort-opt{display:block;width:100%;text-align:left;background:none;border:none;padding:.45rem 1rem;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;}
@@ -877,7 +877,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.5.97';
+var ALBUM_VERSION = '1.5.99';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
