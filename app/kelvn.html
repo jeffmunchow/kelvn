@@ -145,8 +145,10 @@ html{overflow-x:hidden;}
      !important porque a regra base .sel-cards{display:none} vem depois no arquivo e venceria a cascata. */
   .sel-table{display:none !important;}
   .sel-cards{display:block !important;}
-  /* menu Ordenar das Galerias: vidro iOS + ancorado à esquerda para não vazar pra fora da tela */
-  #gal-sort-menu{background:var(--glass-bg) !important;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 10px 28px rgba(0,0,0,.16) !important;left:0 !important;right:auto !important;min-width:0 !important;width:max-content;max-width:calc(100vw - 2.5rem) !important;}
+  /* todos os menus dropdown do mobile com o mesmo vidro dos elementos flutuantes iOS */
+  #gal-sort-menu,#c-status-drop,#fp-more-drop,#mc-status-drop,.glass-drop{background:var(--glass-bg) !important;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);box-shadow:0 10px 28px rgba(0,0,0,.16) !important;}
+  /* menu Ordenar: ancorado à esquerda + limitado à largura da tela para não vazar */
+  #gal-sort-menu{left:0 !important;right:auto !important;min-width:0 !important;width:max-content;max-width:calc(100vw - 2.5rem) !important;}
   /* pill flutuante de navegação */
   .mnav{display:flex;position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;gap:4px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.16);transform:translateY(0) translateZ(0);transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;isolation:isolate;}
   .mnav.mnav-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom))) translateZ(0);}
@@ -2566,7 +2568,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.82';
+var APP_VERSION = 'v1.5.83';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3660,7 +3662,7 @@ function rCEventos(){
       +'<span id="cev-lbl-'+i+'" style="color:'+col+';">'+ev.status+'</span>'
       +'<svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.4;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>'
       +'</div>'
-      +'<div id="cev-drop-'+i+'" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);">'+dropOpts+'</div>'
+      +'<div id="cev-drop-'+i+'" class="glass-drop" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);">'+dropOpts+'</div>'
       +'</div>';
     return '<div class="field"><input type="text" class="sd" maxlength="10" placeholder="DD/MM/AAAA" value="'+i2d(ev.data||'')+'" oninput="sdM(this)" onchange="_cEventos['+i+'].data=d2i(this.value)"></div>'
       +'<div class="field"><input type="text" placeholder="Igreja, espaço, cidade" value="'+(ev.local||'')+'" oninput="_cEventos['+i+'].local=this.value"></div>'
