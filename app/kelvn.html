@@ -141,6 +141,9 @@ html{overflow-x:hidden;}
   /* tabelas: rolam na horizontal em vez de espremer as colunas */
   #p-financeiro table{width:max-content;min-width:100%;}
   #p-financeiro th,#p-financeiro td{white-space:nowrap;}
+  /* Seleções de galerias: tabela vira lista de cards no mobile, sem colunas espremidas */
+  .sel-table{display:none;}
+  .sel-cards{display:block;}
   /* pill flutuante de navegação */
   .mnav{display:flex;position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:200;gap:4px;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:.5px solid var(--border-strong);border-radius:999px;padding:7px;box-shadow:0 10px 28px rgba(0,0,0,.16);transform:translateY(0) translateZ(0);transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;isolation:isolate;}
   .mnav.mnav-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom))) translateZ(0);}
@@ -226,6 +229,12 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 #fin-tbody .tdn,#fp-tbody .tdn{max-width:220px;white-space:normal;word-break:break-word;}
 .tsub{font-size:.72rem;color:var(--text-hint);margin-top:1px;}
 .empty{padding:2.5rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;}
+.sel-cards{display:none;}
+.sel-card{padding:.9rem 1.1rem;border-bottom:.5px solid var(--border);cursor:pointer;}
+.sel-card:last-child{border-bottom:none;}
+.sel-card:hover{background:var(--surface2);}
+.sel-card-email{color:var(--text);font-size:.84rem;font-weight:500;word-break:break-all;}
+.sel-card-sub{color:var(--text-muted);font-size:.74rem;margin-top:3px;}
 /* BADGE */
 .badge{display:inline-block;font-size:.61rem;padding:2px 8px;border-radius:20px;white-space:nowrap;}
 .bp{background:var(--surface2);color:var(--text-hint);}
@@ -2554,7 +2563,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.74';
+var APP_VERSION = 'v1.5.75';
 
 function abrirFeedback(){
   _fbTipo = 'sugestao';
@@ -8731,20 +8740,27 @@ function renderTodasSelecoes(selecoes){
     body.innerHTML='<div style="padding:3rem 0;text-align:center;color:var(--text-hint);font-size:.78rem;">Nenhum cliente fez seleções ainda.</div>';
     return;
   }
-  var html='<div class="tw"><div class="ts"><table>'
+  var html='<div class="sel-table tw"><div class="ts"><table>'
     +'<thead><tr><th>Cliente</th><th>Galeria</th><th>Fotos selecionadas</th><th>Última atualização</th></tr></thead>'
     +'<tbody>';
+  var cardsHtml='<div class="sel-cards">';
   selecoes.forEach(function(sel){
     var data=sel.atualizado_em?new Date(sel.atualizado_em).toLocaleDateString('pt-BR'):'—';
+    var fotosTxt=sel.total_fotos+' foto'+(sel.total_fotos!==1?'s':'');
     html+='<tr class="tdn" style="cursor:pointer;" onclick="entrarGaleriaPorSlug(\''+esc(sel.galeria_slug)+'\',\''+esc(sel.email)+'\')">'
       +'<td style="color:var(--text);">'+esc(sel.email)+'</td>'
       +'<td>'+esc(sel.galeria_nome)+'</td>'
-      +'<td>'+sel.total_fotos+' foto'+(sel.total_fotos!==1?'s':'')+'</td>'
+      +'<td>'+fotosTxt+'</td>'
       +'<td>'+data+'</td>'
       +'</tr>';
+    cardsHtml+='<div class="sel-card" onclick="entrarGaleriaPorSlug(\''+esc(sel.galeria_slug)+'\',\''+esc(sel.email)+'\')">'
+      +'<div class="sel-card-email">'+esc(sel.email)+'</div>'
+      +'<div class="sel-card-sub">'+esc(sel.galeria_nome)+' · '+fotosTxt+' · '+data+'</div>'
+      +'</div>';
   });
   html+='</tbody></table></div></div>';
-  body.innerHTML=html;
+  cardsHtml+='</div>';
+  body.innerHTML=html+cardsHtml;
 }
 
 async function entrarGaleriaPorSlug(slug, email){
