@@ -2564,7 +2564,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.5.78';
+var APP_VERSION = 'v1.5.79';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -8067,10 +8067,11 @@ function rGal(manter){
     // cover_url: pode ser URL de proxy otimizada — usada direto se não achar foto local
     var _coverMatch=gal.cover_foto_url||gal.cover_url||'';
     var capaFoto=(gal.fotos||[]).find(function(f){return f.url===_coverMatch||f.webUrl===_coverMatch||f.thumbUrl===_coverMatch;})||null;
-    // Prefere a capa otimizada (2000px) gerada ao definir a capa. Cai para a versão web
-    // ou original da foto; a miniatura é só último recurso, pois pixeliza no card full-width do mobile.
-    var capaImg = gal.cover_url ? r2proxy(gal.cover_url)
-                : capaFoto ? r2proxy(capaFoto.webUrl||capaFoto.url||capaFoto.thumbUrl)
+    // Usa a versão web (ou original) da foto da capa — que sempre existe — em vez da miniatura,
+    // que pixeliza no card full-width do mobile. cover_url só como último recurso, pois em
+    // galerias antigas pode apontar para uma capa otimizada que nunca foi gerada (imagem quebrada).
+    var capaImg = capaFoto ? r2proxy(capaFoto.webUrl||capaFoto.url||capaFoto.thumbUrl)
+                : gal.cover_url ? r2proxy(gal.cover_url)
                 : '';
     var fotos=(gal.fotos||[]).length;
     return '<div style="background:var(--surface);border-radius:0;overflow:hidden;">'
