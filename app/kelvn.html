@@ -461,9 +461,10 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 #ov-f .btn.primary:hover{background:var(--surface2);opacity:1;}
 #ov-fp .btn.primary{background:transparent;color:var(--text);border-color:var(--border-strong);}
 #ov-fp .btn.primary:hover{background:var(--surface2);opacity:1;}
-/* modais de Entrada/Saída: sem borda âmbar no foco — mantém a borda padrão */
+/* modais de Entrada/Saída e calculadora de Impostos: sem borda âmbar no foco — mantém a borda padrão */
 #ov-f .field input:focus,#ov-f .field select:focus,#ov-f .field textarea:focus,
-#ov-fp .field input:focus,#ov-fp .field select:focus,#ov-fp .field textarea:focus{border-color:var(--border-strong);}
+#ov-fp .field input:focus,#ov-fp .field select:focus,#ov-fp .field textarea:focus,
+#fp-panel-imp .field input:focus,#fp-panel-imp .field select:focus{border-color:var(--border-strong);}
 /* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
 #ov-f .modal,#ov-fp .modal{overflow:visible;}
 /* dropdown Kelvn dentro de campos de modal: igual a um .field select (surface2, largura total) */
@@ -2605,7 +2606,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.3';
+var APP_VERSION = 'v1.6.4';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3784,6 +3785,8 @@ function _kvInitSelects(){
   ['fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Selects dos modais de Entrada/Saída
   ['mf-cat','mf-cliente','mfp-cat'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  // Calculadora de Impostos: regime tributário
+  kvEnhanceSelect('imp-regime', true);
 }
 if(document.readyState!=='loading') _kvInitSelects();
 else document.addEventListener('DOMContentLoaded', _kvInitSelects);
