@@ -147,6 +147,9 @@ html{overflow-x:hidden;}
   /* Questionários enviados: colunas rolam na horizontal em vez de espremer/quebrar texto */
   #p-questionarios table{width:max-content;min-width:100%;}
   #p-questionarios th,#p-questionarios td{white-space:nowrap;}
+  /* Educação: 2 ebooks lado a lado em vez de 1 por linha */
+  #p-educacao #edu-grid>div[style*="flex-wrap:wrap"]{gap:.85rem !important;}
+  #p-educacao .book-card{width:calc(50% - .425rem) !important;box-sizing:border-box;}
   /* Seleções de galerias: tabela vira lista de cards no mobile, sem colunas espremidas.
      !important porque a regra base .sel-cards{display:none} vem depois no arquivo e venceria a cascata. */
   .sel-table{display:none !important;}
@@ -2612,7 +2615,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.7';
+var APP_VERSION = 'v1.6.8';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
