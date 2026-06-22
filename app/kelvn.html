@@ -147,10 +147,9 @@ html{overflow-x:hidden;}
   /* Questionários enviados: colunas rolam na horizontal em vez de espremer/quebrar texto */
   #p-questionarios table{width:max-content;min-width:100%;}
   #p-questionarios th,#p-questionarios td{white-space:nowrap;}
-  /* Educação: 2 ebooks lado a lado em vez de 1 por linha — grid em vez de flex+%
-     evita as pegadinhas de flex-basis/gap e garante exatamente 2 colunas */
-  #p-educacao #edu-grid>div[style*="flex-wrap:wrap"]{display:grid !important;grid-template-columns:1fr 1fr !important;gap:.85rem !important;}
-  #p-educacao .book-card{width:100% !important;box-sizing:border-box;}
+  /* Educação: 2 ebooks lado a lado em vez de 1 por linha — grid de 2 colunas no container .edu-books-row */
+  #p-educacao .edu-books-row{display:grid !important;grid-template-columns:1fr 1fr !important;gap:.85rem !important;}
+  #p-educacao .edu-books-row .book-card{width:100% !important;box-sizing:border-box;}
   /* Seleções de galerias: tabela vira lista de cards no mobile, sem colunas espremidas.
      !important porque a regra base .sel-cards{display:none} vem depois no arquivo e venceria a cascata. */
   .sel-table{display:none !important;}
@@ -2616,7 +2615,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.6.9';
+var APP_VERSION = 'v1.7.0';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA ──────────────────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -9270,6 +9269,7 @@ function rEdu(){
   ];
 
   var wrap=document.createElement('div');
+  wrap.className='edu-books-row';
   wrap.style.cssText='grid-column:1/-1;display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;';
 
   available.forEach(function(eb){
