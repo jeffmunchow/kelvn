@@ -349,14 +349,18 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 @media(max-width:900px){.three{grid-template-columns:1fr 1fr;}}
 @media(max-width:768px){.two,.three{grid-template-columns:1fr;}}
 @media(max-width:768px){#an-receita-wrap,#an-graficos-wrap{grid-template-columns:1fr !important;}#an-kpis-estrategicos{grid-template-columns:1fr !important;}}
-/* iPad em retrato: o Financeiro (saúde + KPIs lado a lado) fica apertado e os valores vazam.
-   Empilha em 1 coluna como no mobile, mas mantém a sidebar/chrome de desktop. */
-@media(min-width:769px) and (max-width:1024px) and (orientation:portrait){
+/* iPad (qualquer orientação): o Financeiro (saúde + KPIs lado a lado) fica apertado e os
+   valores vazam pela borda. Em retrato pega pela largura; em paisagem (até ~1366px) o
+   pointer:coarse identifica o toque sem afetar laptops/desktop com mouse. Empilha em 1
+   coluna mantendo a sidebar/chrome de desktop.
+   Defesa extra: minmax(0,1fr) impede os tracks de estourarem a largura quando ficam 2 colunas. */
+.fin-grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;}
+@media(min-width:769px) and (max-width:1024px) and (orientation:portrait),
+       (min-width:769px) and (max-width:1366px) and (pointer:coarse){
   #p-financeiro .fin-grid2{grid-template-columns:1fr !important;}
   #p-financeiro .saude-top{flex-direction:column;align-items:stretch !important;gap:1rem !important;}
   #p-financeiro .saude-score-wrap{padding-right:0 !important;border-right:none !important;padding-bottom:1rem;border-bottom:.5px solid var(--border);}
-  #p-financeiro .saude-inds{display:grid !important;grid-template-columns:1fr 1fr;gap:1rem .5rem;}
-  #p-financeiro .saude-inds>div{border-right:none !important;text-align:left !important;padding:0 !important;}
+  #p-financeiro .saude-inds>div{min-width:0;}
 }
 /* Espaço no rodapé das telas que mostram a barra fixa de meta anual, pra o conteúdo
    nunca encostar/ser tampado por ela (Dashboard e Análises). */
@@ -2628,7 +2632,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.7.3';
+var APP_VERSION = 'v1.7.4';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
