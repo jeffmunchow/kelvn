@@ -349,18 +349,24 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 @media(max-width:900px){.three{grid-template-columns:1fr 1fr;}}
 @media(max-width:768px){.two,.three{grid-template-columns:1fr;}}
 @media(max-width:768px){#an-receita-wrap,#an-graficos-wrap{grid-template-columns:1fr !important;}#an-kpis-estrategicos{grid-template-columns:1fr !important;}}
-/* iPad (qualquer orientação): o Financeiro (saúde + KPIs lado a lado) fica apertado e os
-   valores vazam pela borda. Em retrato pega pela largura; em paisagem (até ~1366px) o
-   pointer:coarse identifica o toque sem afetar laptops/desktop com mouse. Empilha em 1
-   coluna mantendo a sidebar/chrome de desktop.
-   Defesa extra: minmax(0,1fr) impede os tracks de estourarem a largura quando ficam 2 colunas. */
+/* iPad: o Financeiro mantém saúde + KPIs LADO A LADO (2 colunas), como no desktop.
+   O que causava o vazamento era o grid 1fr inchar até o conteúdo (rótulos nowrap),
+   empurrando o card de KPIs pra fora da tela. minmax(0,1fr) trava cada widget em 50%
+   e o conteúdo é encolhido pra caber dentro do widget — sem empilhar nem aumentar. */
 .fin-grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;}
-@media(min-width:769px) and (max-width:1024px) and (orientation:portrait),
-       (min-width:769px) and (max-width:1366px) and (pointer:coarse){
-  #p-financeiro .fin-grid2{grid-template-columns:1fr !important;}
-  #p-financeiro .saude-top{flex-direction:column;align-items:stretch !important;gap:1rem !important;}
-  #p-financeiro .saude-score-wrap{padding-right:0 !important;border-right:none !important;padding-bottom:1rem;border-bottom:.5px solid var(--border);}
-  #p-financeiro .saude-inds>div{min-width:0;}
+.fin-grid2>div{min-width:0;}
+@media(min-width:769px) and (max-width:1366px) and (pointer:coarse){
+  /* indicadores da saúde: menos padding e podem encolher pra caber os 4 lado a lado */
+  #p-financeiro .saude-inds>div{padding:0 .5rem !important;min-width:0;}
+  /* KPIs (Entradas/Saídas/Saldo/Projeção) em 2x2 que não estoura a célula */
+  #p-financeiro #fin-kpis{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;}
+  #p-financeiro #fin-kpis .fki{min-width:0;}
+}
+/* iPad em retrato: a metade da largura é estreita pros 4 indicadores numa linha só;
+   eles quebram em 2x2 DENTRO do card de saúde (os widgets seguem lado a lado). */
+@media(min-width:769px) and (max-width:1024px) and (orientation:portrait){
+  #p-financeiro .saude-inds{display:grid !important;grid-template-columns:1fr 1fr;gap:.85rem .5rem;}
+  #p-financeiro .saude-inds>div{border-right:none !important;text-align:left !important;padding:0 !important;}
 }
 /* Espaço no rodapé das telas que mostram a barra fixa de meta anual, pra o conteúdo
    nunca encostar/ser tampado por ela (Dashboard e Análises). */
@@ -2632,7 +2638,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.7.4';
+var APP_VERSION = 'v1.7.5';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
