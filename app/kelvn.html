@@ -2632,7 +2632,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.7.6';
+var APP_VERSION = 'v1.8.0';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -9588,6 +9588,8 @@ var _KEY_MAP = {
 var _cache = {};
 var _syncTimers = {};
 var _realtimeChannel = null;
+var _base = {};
+var _MERGE_KEYS = {clientes:1,eventos:1,fin:1,fin_pessoal:1,pacotes:1,equipe:1,tiposReuniao:1,slots:1,automacoes:1,q_templates:1,q_respostas:1,galerias:1,edicoes:1,entregas:1,pends:1,todos:1};
 function g(k){
   if(_cache[k] !== undefined) return _cache[k];
   try{ var uid=_currentUser?_currentUser.id+'_':''; var raw=localStorage.getItem('kelvn_'+uid+k); if(raw) return JSON.parse(raw); }
@@ -9662,11 +9664,20 @@ function _syncKey(k,v){
   clearTimeout(_syncTimers[k]);
   _syncPending[k]=true;
   _syncTimers[k]=setTimeout(async function(){
-    var map=_KEY_MAP[k]; if(!map) return;
+    var map=_KEY_MAP[k]; if(!map){ _syncPending[k]=false; return; }
     try{
+      var valor=_cache[k];
+      if(_MERGE_KEYS[k]){
+        var sel=await _sb.from(map.table).select(map.col).eq('user_id',_currentUser.id).maybeSingle();
+        var remote=(sel&&sel.data)?sel.data[map.col]:undefined;
+        valor=_threeWayMerge(_baseGet(k), _cache[k], remote);
+        _cache[k]=valor;
+        try{ localStorage.setItem(_lsKey(k), JSON.stringify(valor)); }catch(e){}
+      }
       var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
-      row[map.col]=v;
+      row[map.col]=valor;
       await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+      _baseSet(k, valor);
     }catch(e){ }
     finally{ _syncPending[k]=false; }
   },800);
@@ -9684,65 +9695,80 @@ function _loadFromLocalCache(){
   return hasAny;
 }
 
-function _applySupabaseData(m){
-  if(m.clientes)           _cache.clientes    =m.clientes.data||[];
-  if(m.eventos)            _cache.eventos     =m.eventos.data||[];
-  if(m.financeiro)         _cache.fin         =m.financeiro.data||[];
-  if(m.financeiro_pessoal) _cache.fin_pessoal =m.financeiro_pessoal.data||[];
-  if(m.posproducao){
-    _cache.edicoes =m.posproducao.edicoes ||[];
-    _cache.entregas=m.posproducao.entregas||[];
-    _cache.pends   =m.posproducao.pends   ||[];
-    _cache.todos   =m.posproducao.todos   ||[];
-  }
-  if(m.configuracoes){
-    _cache.pacotes     =m.configuracoes.pacotes      ||[];
-    _cache.equipe      =m.configuracoes.equipe       ||[];
-    _cache.tiposReuniao=m.configuracoes.tipos_reuniao||[];
-    _cache.slots       =m.configuracoes.slots        ||[];
-    _cache.sd          =m.configuracoes.sd           ||{};
-    _cache.automacoes  =m.configuracoes.automacoes   ||[];
-  }
-  if(m.questionarios){
-    _cache.q_templates=m.questionarios.templates||[];
-    _cache.q_respostas=m.questionarios.respostas||[];
-  }
-  if(m.galerias){
-    _cache.galerias=m.galerias.data||[];
+function _allId(a){ for(var i=0;i<a.length;i++){ if(!a[i]||a[i].id==null) return false; } return true; }
+function _threeWayMerge(base,local,remote){
+  base=Array.isArray(base)?base:[]; local=Array.isArray(local)?local:[]; remote=Array.isArray(remote)?remote:[];
+  if(!_allId(base)||!_allId(local)||!_allId(remote)) return local; // shape inesperado → mantém local
+  var bi={}; base.forEach(function(it){ bi[it.id]=it; });
+  var li={}; local.forEach(function(it){ li[it.id]=it; });
+  var out={}, order=[];
+  remote.forEach(function(it){ out[it.id]=it; order.push(it.id); });
+  Object.keys(bi).forEach(function(id){ if(!(id in li) && (id in out)) delete out[id]; }); // deleção local
+  local.forEach(function(it){
+    var id=it.id, inBase=(id in bi);
+    if(!inBase){ if(!(id in out)) order.push(id); out[id]=it; }
+    else if(JSON.stringify(it)!==JSON.stringify(bi[id])){ if(!(id in out)) order.push(id); out[id]=it; }
+  });
+  return order.filter(function(id){ return id in out; }).map(function(id){ return out[id]; });
+}
+function _baseGet(k){
+  if(_base[k]!==undefined) return _base[k];
+  try{ var raw=localStorage.getItem(_lsKey('__base_'+k)); if(raw){ _base[k]=JSON.parse(raw); return _base[k]; } }catch(e){}
+  return undefined;
+}
+function _baseSet(k,v){ _base[k]=v; try{ localStorage.setItem(_lsKey('__base_'+k), JSON.stringify(v)); }catch(e){} }
+function _mergeIncoming(k, remoteVal, def){
+  if(_syncPending[k]) return; // não mexe se há sync local em voo
+  if(_MERGE_KEYS[k]){
+    var rv=Array.isArray(remoteVal)?remoteVal:[];
+    var merged=_threeWayMerge(_baseGet(k), _cache[k], rv);
+    _cache[k]=merged; _baseSet(k, rv);
+    try{ localStorage.setItem(_lsKey(k), JSON.stringify(merged)); }catch(e){}
+    if(JSON.stringify(merged)!==JSON.stringify(rv)) _syncKey(k, merged); // tinha mudança local → reenvia
+  } else {
+    _cache[k]=(remoteVal!=null?remoteVal:(def!==undefined?def:remoteVal));
+    try{ localStorage.setItem(_lsKey(k), JSON.stringify(_cache[k])); }catch(e){}
   }
 }
-
+function _loadKey(k, remoteVal){
+  var rv=Array.isArray(remoteVal)?remoteVal:[];
+  var b=_baseGet(k);
+  if(b===undefined){ _cache[k]=rv; }
+  else { var merged=_threeWayMerge(b, _cache[k], rv); _cache[k]=merged; if(JSON.stringify(merged)!==JSON.stringify(rv)) _syncKey(k, merged); }
+  _baseSet(k, rv);
+  try{ localStorage.setItem(_lsKey(k), JSON.stringify(_cache[k])); }catch(e){}
+}
+function _loadScalar(k, remoteVal, def){
+  var v=(remoteVal!==undefined&&remoteVal!==null)?remoteVal:def;
+  _cache[k]=v;
+  try{ localStorage.setItem(_lsKey(k), JSON.stringify(v)); }catch(e){}
+}
 async function _loadFromSupabase(){
   if(!_currentUser) return;
   var tables=['clientes','eventos','financeiro','financeiro_pessoal','posproducao','configuracoes','questionarios','galerias'];
   try{
     var results=await Promise.all(tables.map(t=>_sb.from(t).select('*').eq('user_id',_currentUser.id).maybeSingle()));
     var m={};
-    tables.forEach(function(t,i){ m[t]=results[i].data; });
-    _applySupabaseData(m);
-    // Persiste no localStorage como cache
-    var keyMap={'clientes':'clientes','eventos':'eventos','financeiro':'fin','financeiro_pessoal':'fin_pessoal'};
-    Object.keys(keyMap).forEach(function(t){
-      if(m[t]) localStorage.setItem(_lsKey(keyMap[t]), JSON.stringify(m[t].data||[]));
-    });
-    if(m.posproducao){
-      ['edicoes','entregas','pends','todos'].forEach(function(k){
-        localStorage.setItem(_lsKey(k), JSON.stringify(m.posproducao[k]||[]));
-      });
-    }
-    if(m.configuracoes){
-      var cmap={pacotes:'pacotes',equipe:'equipe',tipos_reuniao:'tiposReuniao',slots:'slots',sd:'sd',eq_col_w:'eq_col_w'};
-      Object.keys(cmap).forEach(function(col){
-        localStorage.setItem(_lsKey(cmap[col]), JSON.stringify(m.configuracoes[col]||[]));
-      });
-      var ct=m.configuracoes.contrato_template||'';
-      _cache.contrato_template=ct;
-      localStorage.setItem(_lsKey('contrato_template'),JSON.stringify(ct));
-    }
-    if(m.questionarios){
-      localStorage.setItem(_lsKey('q_templates'), JSON.stringify(m.questionarios.templates||[]));
-      localStorage.setItem(_lsKey('q_respostas'), JSON.stringify(m.questionarios.respostas||[]));
-    }
+    tables.forEach(function(t,i){ m[t]=results[i].data||{}; });
+    _loadKey('clientes',     m.clientes.data);
+    _loadKey('eventos',      m.eventos.data);
+    _loadKey('fin',          m.financeiro.data);
+    _loadKey('fin_pessoal',  m.financeiro_pessoal.data);
+    _loadKey('edicoes',      m.posproducao.edicoes);
+    _loadKey('entregas',     m.posproducao.entregas);
+    _loadKey('pends',        m.posproducao.pends);
+    _loadKey('todos',        m.posproducao.todos);
+    _loadKey('pacotes',      m.configuracoes.pacotes);
+    _loadKey('equipe',       m.configuracoes.equipe);
+    _loadKey('tiposReuniao', m.configuracoes.tipos_reuniao);
+    _loadKey('slots',        m.configuracoes.slots);
+    _loadKey('automacoes',   m.configuracoes.automacoes);
+    _loadKey('q_templates',  m.questionarios.templates);
+    _loadKey('q_respostas',  m.questionarios.respostas);
+    _loadKey('galerias',     m.galerias.data);
+    _loadScalar('sd',                m.configuracoes.sd,                {});
+    _loadScalar('eq_col_w',          m.configuracoes.eq_col_w,          []);
+    _loadScalar('contrato_template', m.configuracoes.contrato_template, '');
   }catch(e){ }
 }
 function _setupRealtime(){
@@ -9755,14 +9781,14 @@ function _setupRealtime(){
       {event:'UPDATE',schema:'public',table:table,filter:'user_id=eq.'+_currentUser.id},
       function(payload){
         var r=payload.new;
-        if(table==='clientes')           _cache.clientes    =r.data||[];
-        if(table==='eventos')            { _cache.eventos=r.data||[]; rCalAno(); }
-        if(table==='financeiro')         _cache.fin         =r.data||[];
-        if(table==='financeiro_pessoal') _cache.fin_pessoal =r.data||[];
-        if(table==='posproducao')        { if(!_syncPending['edicoes'])  _cache.edicoes =r.edicoes ||[]; if(!_syncPending['entregas']) _cache.entregas=r.entregas||[]; if(!_syncPending['pends']) _cache.pends=r.pends||[]; if(!_syncPending['todos']) _cache.todos=r.todos||[]; }
-        if(table==='configuracoes')      { _cache.pacotes=r.pacotes||[]; _cache.equipe=r.equipe||[]; _cache.tiposReuniao=r.tipos_reuniao||[]; _cache.slots=r.slots||[]; _cache.sd=r.sd||{}; _cache.automacoes=r.automacoes||[]; }
-        if(table==='questionarios')      { _cache.q_templates=r.templates||[]; _cache.q_respostas=r.respostas||[]; }
-        if(table==='galerias')           { _cache.galerias=r.data||[]; }
+        if(table==='clientes')           _mergeIncoming('clientes', r.data);
+        if(table==='eventos')          { _mergeIncoming('eventos', r.data); rCalAno(); }
+        if(table==='financeiro')         _mergeIncoming('fin', r.data);
+        if(table==='financeiro_pessoal') _mergeIncoming('fin_pessoal', r.data);
+        if(table==='posproducao')      { _mergeIncoming('edicoes', r.edicoes); _mergeIncoming('entregas', r.entregas); _mergeIncoming('pends', r.pends); _mergeIncoming('todos', r.todos); }
+        if(table==='configuracoes')    { _mergeIncoming('pacotes', r.pacotes); _mergeIncoming('equipe', r.equipe); _mergeIncoming('tiposReuniao', r.tipos_reuniao); _mergeIncoming('slots', r.slots); _mergeIncoming('sd', r.sd, {}); _mergeIncoming('automacoes', r.automacoes); }
+        if(table==='questionarios')    { _mergeIncoming('q_templates', r.templates); _mergeIncoming('q_respostas', r.respostas); }
+        if(table==='galerias')           _mergeIncoming('galerias', r.data);
         rR();
       }
     );
