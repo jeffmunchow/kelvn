@@ -23,6 +23,22 @@
       "continue": true
     },
     {
+      "src": "/",
+      "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.cloudinary.com https://*.r2.cloudflarestorage.com https://*.r2.dev; object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
+      },
+      "continue": true
+    },
+    {
+      "src": "/album.html",
+      "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.r2.cloudflarestorage.com https://*.r2.dev; object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
+      },
+      "continue": true
+    },
+    {
       "src": "/api/newsletter(.*)",
       "dest": "/api/album-revisao$1"
     },
