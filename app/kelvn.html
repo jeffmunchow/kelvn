@@ -2632,7 +2632,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.8.2';
+var APP_VERSION = 'v1.8.3';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -9686,7 +9686,7 @@ function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
 
 function _loadFromLocalCache(){
   // Carrega dados do localStorage instantaneamente
-  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','eq_col_w','contrato_template'];
+  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','eq_col_w','contrato_template','galerias','automacoes'];
   var hasAny=false;
   keys.forEach(function(k){
     var raw=localStorage.getItem(_lsKey(k));
