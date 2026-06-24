@@ -877,7 +877,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.2';
+var ALBUM_VERSION = '1.7.3';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
