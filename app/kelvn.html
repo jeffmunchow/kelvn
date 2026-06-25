@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="/icon.png">
 <link rel="manifest" href="/manifest.json">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Kelvn — Studio</title>
 <script src="/vendor/supabase.js"></script>
 <link href="/vendor/fonts.css" rel="stylesheet">
@@ -35,7 +35,7 @@
   --coral:#CC4A28;--coral-light:#1E0E08;
   --teal:#18926E;--teal-light:#091E15;
   --purple:#8A8DCC;--purple-light:#12142A;
-  --glass-bg:rgba(26,24,20,.78);
+  --glass-bg:rgba(26,22,16,.78);
 }
 /* selects do app inteiro: troca a seta nativa (preta) por uma seta dupla na cor do tema */
 select{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3-3 3 3M2 6l3 3 3-3' stroke='%236B6660' stroke-width='1.3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 9px center !important;background-color:transparent !important;padding-right:26px !important;}
@@ -71,7 +71,7 @@ html{overflow-x:hidden;}
 [data-theme="dark"] .thm-w .thm-moon{opacity:1;color:var(--amber);}
 /* BODY */
 .body{padding:1rem 2rem 2rem;width:100%;}
-@media(max-width:768px){.body{padding:1.25rem 1.25rem calc(92px + env(safe-area-inset-bottom));}.snav{display:none;}.main{margin-left:0;}.topbar{padding:.65rem 1.25rem;}}
+@media(max-width:768px){.body{padding:1.25rem 1.25rem calc(92px + env(safe-area-inset-bottom));}.snav{display:none;}.main{margin-left:0;}.topbar{padding:calc(.65rem + env(safe-area-inset-top)) 1.25rem .65rem;}}
 
 /* ===== NAVEGAÇÃO MOBILE — pill flutuante estilo iOS + folha "Mais" ===== */
 .mnav{display:none;}
@@ -2722,7 +2722,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.9.2';
+var APP_VERSION = 'v1.9.5';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
