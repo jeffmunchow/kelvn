@@ -2066,12 +2066,7 @@ select.aj-input{cursor:pointer;}
 <div class="overlay" id="ov-e"><div class="modal">
   <h2 id="me-t">Novo Evento</h2>
   <div class="field"><label>Título</label><input type="text" id="me-titulo" placeholder="ex: Casamento Silva & Souza"></div>
-  <div class="field"><label>Data e hora</label>
-    <div style="display:flex;gap:.6rem;">
-      <input type="text" class="sd" maxlength="10" id="me-data-d" placeholder="DD/MM/AAAA" autocomplete="off" oninput="sdM(this)" style="flex:1;width:auto;">
-      <input type="text" class="sh" maxlength="5" id="me-data-h" placeholder="HH:MM" autocomplete="off" oninput="shM(this)" style="flex:0 0 88px;width:auto;">
-    </div>
-  </div>
+  <div class="field"><label>Data e hora</label><input type="datetime-local" id="me-data" lang="pt-BR"></div>
   <div class="field"><label>Tipo</label><select id="me-tipo"><option>Reunião</option><option>Entrega</option><option>Outro</option></select></div>
   <div class="field"><label>Cliente</label><select id="me-cliente"><option value="">— nenhum —</option></select></div>
   <div class="field"><label>Local</label><input type="text" id="me-local" placeholder="Igreja, estúdio, online..."></div>
@@ -2638,7 +2633,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.8.13';
+var APP_VERSION = 'v1.8.14';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3820,8 +3815,8 @@ function _kvInitSelects(){
   ['fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Selects dos modais de Entrada/Saída
   ['mf-cat','mf-cliente','mfp-cat'].forEach(function(id){ kvEnhanceSelect(id, true); });
-  // Modal de Evento: dropdown Kelvn no Cliente
-  kvEnhanceSelect('me-cliente', true);
+  // Modal de Evento: dropdown Kelvn no Cliente e no Tipo
+  ['me-cliente','me-tipo'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Calculadora de Impostos: regime tributário
   kvEnhanceSelect('imp-regime', true);
 }
@@ -4001,7 +3996,6 @@ function bPD(){
   }).join('');recalcP();
 }
 function sdM(el){var v=el.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+'/'+v.slice(2);if(v.length>=6)v=v.slice(0,5)+'/'+v.slice(5,9);el.value=v;}
-function shM(el){var v=el.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+':'+v.slice(2,4);el.value=v;}
 function tgP(i){
   _parc[i].pago=!_parc[i].pago;
   // Auto-cria ou remove entrada no Financeiro
@@ -4983,28 +4977,23 @@ function openE(id){
   _eId=id||null;fillSel();
   if(id){
     var e=g('eventos').find(function(x){return x.id===id;});if(!e)return;
-    var dt=e.data||'',dtParts=dt.split('T');
     document.getElementById('me-t').textContent='Editar Evento';
-    document.getElementById('me-titulo').value=e.titulo||'';
-    document.getElementById('me-data-d').value=dtParts[0]?i2d(dtParts[0]):'';
-    document.getElementById('me-data-h').value=dtParts[1]?dtParts[1].slice(0,5):'';
+    document.getElementById('me-titulo').value=e.titulo||'';document.getElementById('me-data').value=e.data||'';
     document.getElementById('me-tipo').value=e.tipo||'Casamento';document.getElementById('me-cliente').value=e.clienteId||'';
     document.getElementById('me-local').value=e.local||'';document.getElementById('me-notas').value=e.notas||'';
     document.getElementById('me-del').style.display='inline-flex';
   }else{
     document.getElementById('me-t').textContent='Novo Evento';
     ['me-titulo','me-local','me-notas'].forEach(function(i){document.getElementById(i).value='';});
-    document.getElementById('me-data-d').value='';document.getElementById('me-data-h').value='';document.getElementById('me-tipo').value='Reunião';
+    document.getElementById('me-data').value='';document.getElementById('me-tipo').value='Reunião';
     document.getElementById('me-del').style.display='none';
   }
-  kvSelSyncLabel('me-cliente');
+  kvSelSyncLabel('me-cliente');kvSelSyncLabel('me-tipo');
   document.getElementById('ov-e').classList.add('open');
 }
 function saveE(){
   var es=g('eventos');
-  var dD=document.getElementById('me-data-d').value,dH=document.getElementById('me-data-h').value;
-  var dataIso=dD?d2i(dD)+'T'+(dH||'00:00'):'';
-  var o={id:_eId||uid(),titulo:document.getElementById('me-titulo').value.trim(),data:dataIso,tipo:document.getElementById('me-tipo').value,clienteId:document.getElementById('me-cliente').value,local:document.getElementById('me-local').value.trim(),notas:document.getElementById('me-notas').value.trim()};
+  var o={id:_eId||uid(),titulo:document.getElementById('me-titulo').value.trim(),data:document.getElementById('me-data').value,tipo:document.getElementById('me-tipo').value,clienteId:document.getElementById('me-cliente').value,local:document.getElementById('me-local').value.trim(),notas:document.getElementById('me-notas').value.trim()};
   if(!o.titulo){alert('Informe o título.');return;}
   if(_eId){var i=es.findIndex(function(e){return e.id===_eId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('eventos',es);undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento salvo.');
