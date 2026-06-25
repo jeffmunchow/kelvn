@@ -45,7 +45,7 @@ html{overflow-x:hidden;}
 /* APP LAYOUT */
 .app{display:flex;flex:1;min-height:100vh;}
 /* NARROW SIDEBAR */
-.snav{width:56px;flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border-strong);display:flex;flex-direction:column;align-items:center;padding:1rem 0;position:fixed;top:0;left:0;height:calc(100vh / 0.9);height:calc(100dvh / 0.9);z-index:100;gap:2px;overflow-y:auto;scrollbar-width:none;}
+.snav{width:56px;flex-shrink:0;background:var(--bg);border-right:.5px solid var(--border-strong);display:flex;flex-direction:column;align-items:center;padding:calc(1rem + env(safe-area-inset-top)) 0 1rem;position:fixed;top:0;left:0;height:calc(100vh / 0.9);height:calc(100dvh / 0.9);z-index:100;gap:2px;overflow-y:auto;scrollbar-width:none;}
 .snav::-webkit-scrollbar{display:none;}
 .snav-logo{font-family:'Cherry Bomb One',cursive;font-size:1.6rem;color:var(--amber);margin-bottom:.75rem;padding:.25rem 0;line-height:1;}
 .snav-sep{width:28px;height:.5px;background:var(--border-strong);margin:.5rem 0;}
@@ -58,7 +58,7 @@ html{overflow-x:hidden;}
 /* MAIN CONTENT */
 .main{flex:1;margin-left:56px;min-width:0;max-width:100%;overflow-x:hidden;}
 /* TOPBAR */
-.topbar{padding:.65rem 2rem;background:var(--bg);position:sticky;top:0;z-index:50;}
+.topbar{padding:calc(.65rem + env(safe-area-inset-top)) 2rem .65rem;background:var(--bg);position:sticky;top:0;z-index:50;}
 .topbar-sub{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:var(--text);}
 /* Toggle tema com ícones sol/lua */
 .thm-w{position:relative;width:58px;height:28px;background:var(--border-strong);border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;flex-shrink:0;border:none;padding:0;}
@@ -2722,7 +2722,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.9.5';
+var APP_VERSION = 'v1.9.6';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
