@@ -2632,7 +2632,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.8.3';
+var APP_VERSION = 'v1.8.4';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -9685,8 +9685,11 @@ function _syncKey(k,v){
 function _lsKey(k){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+k; }
 
 function _loadFromLocalCache(){
-  // Carrega dados do localStorage instantaneamente
-  var keys=['clientes','eventos','fin','fin_pessoal','edicoes','entregas','pends','todos','pacotes','equipe','tiposReuniao','slots','sd','q_templates','q_respostas','eq_col_w','contrato_template','galerias','automacoes'];
+  // Carrega dados do localStorage instantaneamente.
+  // A lista de chaves é derivada de _KEY_MAP (fonte única da verdade) — assim é
+  // impossível esquecer de adicionar uma chave nova aqui no futuro. Foi essa
+  // duplicação manual que causou a perda de galerias em jun/2026.
+  var keys=Object.keys(_KEY_MAP);
   var hasAny=false;
   keys.forEach(function(k){
     var raw=localStorage.getItem(_lsKey(k));
@@ -9721,6 +9724,11 @@ function _mergeIncoming(k, remoteVal, def){
   if(_syncPending[k]) return; // não mexe se há sync local em voo
   if(_MERGE_KEYS[k]){
     var rv=Array.isArray(remoteVal)?remoteVal:[];
+    if(_shouldTakeRemote(_cache[k], _baseGet(k), rv)){ // guarda anti-perda (mesma do _loadKey)
+      _cache[k]=rv; _baseSet(k, rv);
+      try{ localStorage.setItem(_lsKey(k), JSON.stringify(rv)); }catch(e){}
+      return;
+    }
     var merged=_threeWayMerge(_baseGet(k), _cache[k], rv);
     _cache[k]=merged; _baseSet(k, rv);
     try{ localStorage.setItem(_lsKey(k), JSON.stringify(merged)); }catch(e){}
@@ -9730,10 +9738,20 @@ function _mergeIncoming(k, remoteVal, def){
     try{ localStorage.setItem(_lsKey(k), JSON.stringify(_cache[k])); }catch(e){}
   }
 }
+// GUARDA ANTI-PERDA: decide se devemos confiar no servidor direto, sem mergear.
+// Um carregamento NUNCA pode apagar dados do servidor. O merge interpreta
+// "local vazio" como "tudo deletado" e propaga o vazio — mas o local pode estar
+// vazio só porque não foi carregado ainda. Nesses casos, confiamos no remoto.
+function _shouldTakeRemote(local, base, remote){
+  if(base===undefined) return true;        // primeira carga — não há base para comparar
+  if(local===undefined) return true;        // cache não foi carregado nesta sessão
+  if(Array.isArray(local) && local.length===0 && Array.isArray(remote) && remote.length>0) return true; // local vazio vs remoto cheio = suspeito, nunca apaga
+  return false;
+}
 function _loadKey(k, remoteVal){
   var rv=Array.isArray(remoteVal)?remoteVal:[];
   var b=_baseGet(k);
-  if(b===undefined){ _cache[k]=rv; }
+  if(_shouldTakeRemote(_cache[k], b, rv)){ _cache[k]=rv; }
   else { var merged=_threeWayMerge(b, _cache[k], rv); _cache[k]=merged; if(JSON.stringify(merged)!==JSON.stringify(rv)) _syncKey(k, merged); }
   _baseSet(k, rv);
   try{ localStorage.setItem(_lsKey(k), JSON.stringify(_cache[k])); }catch(e){}
