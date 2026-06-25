@@ -206,6 +206,24 @@ html{overflow-x:hidden;}
 .kvsel-wrap-always{display:flex !important;}
 .kvsel-btn{display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;height:30px;padding:6px 10px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--text-muted);user-select:none;white-space:nowrap;}
 .kvsel-drop{display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:150px;max-width:calc(100vw - 2.5rem);background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.14);}
+/* MEDT — calendário próprio (data e hora) do modal de Evento, substitui o datetime-local nativo */
+.medt-wrap{position:relative;}
+.medt-btn{display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);user-select:none;}
+.medt-pop{display:none;position:absolute;top:calc(100% + 4px);left:0;width:260px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.14);padding:.85rem;}
+.medt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
+.medt-head span{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:600;color:var(--text);}
+.medt-head button{background:transparent;border:.5px solid var(--border-strong);border-radius:6px;width:22px;height:22px;color:var(--text-muted);cursor:pointer;font-size:.8rem;line-height:1;}
+.medt-head button:hover{background:var(--surface2);color:var(--text);}
+.medt-wd{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.62rem;color:var(--text-hint);margin-bottom:.3rem;}
+.medt-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.medt-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--text-muted);border-radius:6px;cursor:pointer;background:transparent;border:none;}
+.medt-day:hover{background:var(--surface2);color:var(--text);}
+.medt-day.sel{background:var(--amber);color:#fff;}
+.medt-day.fora{color:var(--text-hint);opacity:.4;}
+.medt-hora-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-top:.7rem;padding-top:.7rem;border-top:.5px solid var(--border);}
+.medt-hora-row span{font-size:.72rem;color:var(--text-muted);}
+.medt-wrap .medt-hora-row input{width:64px;text-align:center;font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:5px 8px;color:var(--text);outline:none;}
+.medt-ok{width:100%;margin-top:.7rem;justify-content:center;}
 .gal-lote-opt{padding:7px 14px;cursor:pointer;color:var(--text-muted);}
 .gal-lote-opt:hover{background:var(--surface2);color:var(--text);}
 .btn:hover{background:var(--surface2);color:var(--text);}
@@ -488,7 +506,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 /* Análises › Definir metas: sem borda âmbar no foco dos inputs */
 #an-metas-definir .fi:focus{border-color:var(--border-strong);}
 /* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
-#ov-f .modal,#ov-fp .modal,#ov-e .modal{overflow:visible;}
+#ov-f .modal,#ov-fp .modal,#ov-e .modal,#ov-sl .modal{overflow:visible;}
 /* dropdown Kelvn dentro de campos de modal: igual a um .field select (surface2, largura total) */
 .field .kvsel-wrap{width:100%;}
 .field .kvsel-btn{width:100%;height:auto;background:var(--surface2);border-radius:var(--radius-sm);font-size:.88rem;font-weight:400;padding:8px 11px;color:var(--text);}
@@ -1964,7 +1982,7 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div class="field" style="display:flex;align-items:flex-end;gap:.4rem;">
-      <div style="flex:1;min-width:0;"><label>Valor total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()" style="width:100%;"></div>
+      <div style="flex:1;min-width:0;"><label style="white-space:nowrap;">Total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()" style="width:100%;"></div>
       <button onclick="addCEvento()" title="Adicionar evento" style="background:none;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text-muted);width:28px;height:28px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:1px;transition:all .15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">+</button>
     </div>
     <div id="mc-eventos-extra" style="display:contents;"></div>
@@ -2066,7 +2084,26 @@ select.aj-input{cursor:pointer;}
 <div class="overlay" id="ov-e"><div class="modal">
   <h2 id="me-t">Novo Evento</h2>
   <div class="field"><label>Título</label><input type="text" id="me-titulo" placeholder="ex: Casamento Silva & Souza"></div>
-  <div class="field"><label>Data e hora</label><input type="datetime-local" id="me-data" lang="pt-BR"></div>
+  <div class="field">
+    <label>Data e hora</label>
+    <div class="medt-wrap" id="medt-wrap">
+      <div class="medt-btn" onclick="medtToggle()"><span id="medt-lbl">Selecionar data e hora</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-pop" id="medt-pop">
+        <div class="medt-head">
+          <button type="button" onclick="medtNav(-1)">‹</button>
+          <span id="medt-mes"></span>
+          <button type="button" onclick="medtNav(1)">›</button>
+        </div>
+        <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="medt-days" id="medt-days"></div>
+        <div class="medt-hora-row">
+          <span>Hora</span>
+          <input type="text" id="medt-hora" maxlength="5" placeholder="HH:MM" autocomplete="off" oninput="medtHoraMask(this)" onchange="medtSetHora()">
+        </div>
+        <button type="button" class="btn primary medt-ok" onclick="medtToggle()">OK</button>
+      </div>
+    </div>
+  </div>
   <div class="field"><label>Tipo</label><select id="me-tipo"><option>Reunião</option><option>Entrega</option><option>Outro</option></select></div>
   <div class="field"><label>Cliente</label><select id="me-cliente"><option value="">— nenhum —</option></select></div>
   <div class="field"><label>Local</label><input type="text" id="me-local" placeholder="Igreja, estúdio, online..."></div>
@@ -2397,7 +2434,26 @@ select.aj-input{cursor:pointer;}
   <h2 id="msl-t">Nova sessão</h2>
   <div class="field"><label>Tipo de reunião</label><select id="msl-tipo"><option value="">— selecione —</option></select></div>
   <div class="field"><label>Cliente</label><select id="msl-cliente"><option value="">— nenhum —</option></select></div>
-  <div class="field"><label>Data e hora</label><input type="datetime-local" id="msl-data"></div>
+  <div class="field">
+    <label>Data e hora</label>
+    <div class="medt-wrap" id="medt2-wrap">
+      <div class="medt-btn" onclick="medt2Toggle()"><span id="medt2-lbl">Selecionar data e hora</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-pop" id="medt2-pop">
+        <div class="medt-head">
+          <button type="button" onclick="medt2Nav(-1)">‹</button>
+          <span id="medt2-mes"></span>
+          <button type="button" onclick="medt2Nav(1)">›</button>
+        </div>
+        <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="medt-days" id="medt2-days"></div>
+        <div class="medt-hora-row">
+          <span>Hora</span>
+          <input type="text" id="medt2-hora" maxlength="5" placeholder="HH:MM" autocomplete="off" oninput="medtHoraMask(this)" onchange="medt2SetHora()">
+        </div>
+        <button type="button" class="btn primary medt-ok" onclick="medt2Toggle()">OK</button>
+      </div>
+    </div>
+  </div>
   <div class="field"><label>Local / link</label><input type="text" id="msl-local" placeholder="ex: Google Meet, Estúdio, Café..."></div>
   <div class="field"><label>Status</label><select id="msl-status"><option>Confirmado</option><option>Pendente</option><option>Cancelado</option><option>Realizado</option></select></div>
   <div class="field"><label>Notas</label><textarea id="msl-notas" rows="2"></textarea></div>
@@ -2633,7 +2689,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.8.14';
+var APP_VERSION = 'v1.8.17';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3807,7 +3863,131 @@ function kvSelSyncLabel(selectId){
 }
 document.addEventListener('click',function(e){
   if(!e.target.closest('.kvsel-wrap')) document.querySelectorAll('.kvsel-drop').forEach(function(d){d.style.display='none';});
+  if(!e.target.closest('.medt-wrap')) document.querySelectorAll('.medt-pop').forEach(function(p){p.style.display='none';});
 });
+
+// ── MEDT — calendário próprio (data e hora) do modal de Evento ──────────────
+var _medtY=null,_medtM=null,_medtD=null,_medtViewY=new Date().getFullYear(),_medtViewM=new Date().getMonth(),_medtHora='';
+var MEDT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function medtInit(isoStr){
+  var parts=(isoStr||'').split('T');
+  if(parts[0]){
+    var dp=parts[0].split('-');
+    _medtY=parseInt(dp[0],10);_medtM=parseInt(dp[1],10)-1;_medtD=parseInt(dp[2],10);
+    _medtViewY=_medtY;_medtViewM=_medtM;
+  }else{
+    _medtY=_medtM=_medtD=null;_medtViewY=new Date().getFullYear();_medtViewM=new Date().getMonth();
+  }
+  _medtHora=parts[1]?parts[1].slice(0,5):'';
+  document.getElementById('medt-hora').value=_medtHora;
+  medtUpdateLabel();
+}
+function medtUpdateLabel(){
+  var lbl=document.getElementById('medt-lbl');
+  if(_medtY===null){lbl.textContent='Selecionar data e hora';return;}
+  var dStr=String(_medtD).padStart(2,'0')+'/'+String(_medtM+1).padStart(2,'0')+'/'+_medtY;
+  lbl.textContent=dStr+(_medtHora?' às '+_medtHora:'');
+}
+function medtToggle(){
+  var pop=document.getElementById('medt-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medtRenderCal();
+  pop.style.display='block';
+}
+function medtNav(delta){
+  _medtViewM+=delta;
+  if(_medtViewM<0){_medtViewM=11;_medtViewY--;}
+  if(_medtViewM>11){_medtViewM=0;_medtViewY++;}
+  medtRenderCal();
+}
+function medtRenderCal(){
+  document.getElementById('medt-mes').textContent=MEDT_MESES[_medtViewM]+' '+_medtViewY;
+  var primeiro=new Date(_medtViewY,_medtViewM,1).getDay();
+  var totalDias=new Date(_medtViewY,_medtViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtViewY,_medtViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medtY===_medtViewY&&_medtM===_medtViewM&&_medtD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtPick('+_medtViewY+','+_medtViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medt-days').innerHTML=html;
+}
+function medtPick(y,m,d){
+  _medtY=y;_medtM=m;_medtD=d;
+  medtRenderCal();medtUpdateLabel();
+}
+function medtHoraMask(el){var v=el.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+':'+v.slice(2,4);el.value=v;}
+function medtSetHora(){ _medtHora=document.getElementById('medt-hora').value.trim(); medtUpdateLabel(); }
+function medtGetIso(){
+  if(_medtY===null) return '';
+  var dStr=_medtY+'-'+String(_medtM+1).padStart(2,'0')+'-'+String(_medtD).padStart(2,'0');
+  return dStr+'T'+(_medtHora||'00:00');
+}
+
+// ── MEDT2 — mesma lógica, segunda instância (modal "Agendar Slot") ──────────
+var _medt2Y=null,_medt2M=null,_medt2D=null,_medt2ViewY=new Date().getFullYear(),_medt2ViewM=new Date().getMonth(),_medt2Hora='';
+function medt2Init(isoStr){
+  var parts=(isoStr||'').split('T');
+  if(parts[0]){
+    var dp=parts[0].split('-');
+    _medt2Y=parseInt(dp[0],10);_medt2M=parseInt(dp[1],10)-1;_medt2D=parseInt(dp[2],10);
+    _medt2ViewY=_medt2Y;_medt2ViewM=_medt2M;
+  }else{
+    _medt2Y=_medt2M=_medt2D=null;_medt2ViewY=new Date().getFullYear();_medt2ViewM=new Date().getMonth();
+  }
+  _medt2Hora=parts[1]?parts[1].slice(0,5):'';
+  document.getElementById('medt2-hora').value=_medt2Hora;
+  medt2UpdateLabel();
+}
+function medt2UpdateLabel(){
+  var lbl=document.getElementById('medt2-lbl');
+  if(_medt2Y===null){lbl.textContent='Selecionar data e hora';return;}
+  var dStr=String(_medt2D).padStart(2,'0')+'/'+String(_medt2M+1).padStart(2,'0')+'/'+_medt2Y;
+  lbl.textContent=dStr+(_medt2Hora?' às '+_medt2Hora:'');
+}
+function medt2Toggle(){
+  var pop=document.getElementById('medt2-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medt2RenderCal();
+  pop.style.display='block';
+}
+function medt2Nav(delta){
+  _medt2ViewM+=delta;
+  if(_medt2ViewM<0){_medt2ViewM=11;_medt2ViewY--;}
+  if(_medt2ViewM>11){_medt2ViewM=0;_medt2ViewY++;}
+  medt2RenderCal();
+}
+function medt2RenderCal(){
+  document.getElementById('medt2-mes').textContent=MEDT_MESES[_medt2ViewM]+' '+_medt2ViewY;
+  var primeiro=new Date(_medt2ViewY,_medt2ViewM,1).getDay();
+  var totalDias=new Date(_medt2ViewY,_medt2ViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medt2ViewY,_medt2ViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medt2Y===_medt2ViewY&&_medt2M===_medt2ViewM&&_medt2D===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medt2Pick('+_medt2ViewY+','+_medt2ViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medt2-days').innerHTML=html;
+}
+function medt2Pick(y,m,d){
+  _medt2Y=y;_medt2M=m;_medt2D=d;
+  medt2RenderCal();medt2UpdateLabel();
+}
+function medt2SetHora(){ _medt2Hora=document.getElementById('medt2-hora').value.trim(); medt2UpdateLabel(); }
+function medt2GetIso(){
+  if(_medt2Y===null) return '';
+  var dStr=_medt2Y+'-'+String(_medt2M+1).padStart(2,'0')+'-'+String(_medt2D).padStart(2,'0');
+  return dStr+'T'+(_medt2Hora||'00:00');
+}
+
 function _kvInitSelects(){
   // dropdown glass só no mobile (desktop mantém o select nativo)
   ['ag-filter','pend-filter','qr-status-filter'].forEach(function(id){ kvEnhanceSelect(id); });
@@ -4978,14 +5158,14 @@ function openE(id){
   if(id){
     var e=g('eventos').find(function(x){return x.id===id;});if(!e)return;
     document.getElementById('me-t').textContent='Editar Evento';
-    document.getElementById('me-titulo').value=e.titulo||'';document.getElementById('me-data').value=e.data||'';
+    document.getElementById('me-titulo').value=e.titulo||'';medtInit(e.data||'');
     document.getElementById('me-tipo').value=e.tipo||'Casamento';document.getElementById('me-cliente').value=e.clienteId||'';
     document.getElementById('me-local').value=e.local||'';document.getElementById('me-notas').value=e.notas||'';
     document.getElementById('me-del').style.display='inline-flex';
   }else{
     document.getElementById('me-t').textContent='Novo Evento';
     ['me-titulo','me-local','me-notas'].forEach(function(i){document.getElementById(i).value='';});
-    document.getElementById('me-data').value='';document.getElementById('me-tipo').value='Reunião';
+    medtInit('');document.getElementById('me-tipo').value='Reunião';
     document.getElementById('me-del').style.display='none';
   }
   kvSelSyncLabel('me-cliente');kvSelSyncLabel('me-tipo');
@@ -4993,7 +5173,7 @@ function openE(id){
 }
 function saveE(){
   var es=g('eventos');
-  var o={id:_eId||uid(),titulo:document.getElementById('me-titulo').value.trim(),data:document.getElementById('me-data').value,tipo:document.getElementById('me-tipo').value,clienteId:document.getElementById('me-cliente').value,local:document.getElementById('me-local').value.trim(),notas:document.getElementById('me-notas').value.trim()};
+  var o={id:_eId||uid(),titulo:document.getElementById('me-titulo').value.trim(),data:medtGetIso(),tipo:document.getElementById('me-tipo').value,clienteId:document.getElementById('me-cliente').value,local:document.getElementById('me-local').value.trim(),notas:document.getElementById('me-notas').value.trim()};
   if(!o.titulo){alert('Informe o título.');return;}
   if(_eId){var i=es.findIndex(function(e){return e.id===_eId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('eventos',es);undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento salvo.');
@@ -7126,13 +7306,13 @@ function openSlot(id){
   var ts=g('tiposReuniao');
   var tsel=document.getElementById('msl-tipo');
   tsel.innerHTML='<option value="">— selecione —</option>'+ts.map(function(t){return '<option value="'+t.id+'">'+t.nome+' ('+t.duracao+'min)</option>';}).join('');
-  if(id){var sl=g('slots').find(function(x){return x.id===id;});if(!sl)return;document.getElementById('msl-t').textContent='Editar sessão';tsel.value=sl.tipoId||'';document.getElementById('msl-cliente').value=sl.clienteId||'';document.getElementById('msl-data').value=sl.data||'';document.getElementById('msl-local').value=sl.local||'';document.getElementById('msl-status').value=sl.status||'Confirmado';document.getElementById('msl-notas').value=sl.notas||'';document.getElementById('msl-del').style.display='inline-flex';}
-  else{document.getElementById('msl-t').textContent='Nova sessão';['msl-local','msl-notas'].forEach(function(i){document.getElementById(i).value='';});tsel.value='';document.getElementById('msl-cliente').value='';document.getElementById('msl-data').value='';document.getElementById('msl-status').value='Confirmado';document.getElementById('msl-del').style.display='none';}
+  if(id){var sl=g('slots').find(function(x){return x.id===id;});if(!sl)return;document.getElementById('msl-t').textContent='Editar sessão';tsel.value=sl.tipoId||'';document.getElementById('msl-cliente').value=sl.clienteId||'';medt2Init(sl.data||'');document.getElementById('msl-local').value=sl.local||'';document.getElementById('msl-status').value=sl.status||'Confirmado';document.getElementById('msl-notas').value=sl.notas||'';document.getElementById('msl-del').style.display='inline-flex';}
+  else{document.getElementById('msl-t').textContent='Nova sessão';['msl-local','msl-notas'].forEach(function(i){document.getElementById(i).value='';});tsel.value='';document.getElementById('msl-cliente').value='';medt2Init('');document.getElementById('msl-status').value='Confirmado';document.getElementById('msl-del').style.display='none';}
   document.getElementById('ov-sl').classList.add('open');
 }
 function saveSlot(){
   var ss=g('slots');
-  var o={id:_slId||uid(),tipoId:document.getElementById('msl-tipo').value,clienteId:document.getElementById('msl-cliente').value,data:document.getElementById('msl-data').value,local:document.getElementById('msl-local').value.trim(),status:document.getElementById('msl-status').value,notas:document.getElementById('msl-notas').value.trim()};
+  var o={id:_slId||uid(),tipoId:document.getElementById('msl-tipo').value,clienteId:document.getElementById('msl-cliente').value,data:medt2GetIso(),local:document.getElementById('msl-local').value.trim(),status:document.getElementById('msl-status').value,notas:document.getElementById('msl-notas').value.trim()};
   if(!o.data){alert('Informe a data e hora.');return;}
   if(_slId){var i=ss.findIndex(function(s2){return s2.id===_slId;});if(i>-1)ss[i]=o;}else ss.push(o);
   undoBegin();s('slots',ss);
