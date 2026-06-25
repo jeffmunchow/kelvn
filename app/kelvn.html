@@ -2221,7 +2221,21 @@ select.aj-input{cursor:pointer;}
   <h2 id="mf-t">Nova Entrada</h2>
   <div class="field"><label>Descrição</label><input type="text" id="mf-desc" placeholder="ex: Sinal Maria &amp; João"></div>
   <div class="field"><label>Valor (R$)</label><input type="number" id="mf-valor" placeholder="0"></div>
-  <div class="field"><label>Data</label><input type="text" class="sd" maxlength="10" id="mf-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+  <div class="field">
+    <label>Data</label>
+    <div class="medt-wrap" id="medtF-wrap">
+      <div class="medt-btn" onclick="medtFToggle()"><span id="medtF-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-pop" id="medtF-pop">
+        <div class="medt-head">
+          <button type="button" onclick="medtFNav(-1)">‹</button>
+          <span id="medtF-mes"></span>
+          <button type="button" onclick="medtFNav(1)">›</button>
+        </div>
+        <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="medt-days" id="medtF-days"></div>
+      </div>
+    </div>
+  </div>
   <div class="field"><label>Categoria</label><select id="mf-cat"></select></div>
   <div class="field"><label>Cliente</label><select id="mf-cliente"><option value="">Nenhum</option></select></div>
   <input type="hidden" id="mf-tipo" value="entrada">
@@ -2238,7 +2252,21 @@ select.aj-input{cursor:pointer;}
   <h2 id="mfp-t">Nova Entrada Pessoal</h2>
   <div class="field"><label>Descrição</label><input type="text" id="mfp-desc" placeholder="ex: Pró-labore"></div>
   <div class="field"><label>Valor (R$)</label><input type="number" id="mfp-valor" placeholder="0"></div>
-  <div class="field"><label>Data</label><input type="text" class="sd" maxlength="10" id="mfp-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+  <div class="field">
+    <label>Data</label>
+    <div class="medt-wrap" id="medtFP-wrap">
+      <div class="medt-btn" onclick="medtFPToggle()"><span id="medtFP-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-pop" id="medtFP-pop">
+        <div class="medt-head">
+          <button type="button" onclick="medtFPNav(-1)">‹</button>
+          <span id="medtFP-mes"></span>
+          <button type="button" onclick="medtFPNav(1)">›</button>
+        </div>
+        <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="medt-days" id="medtFP-days"></div>
+      </div>
+    </div>
+  </div>
   <div class="field"><label>Categoria</label><select id="mfp-cat">
     <option>Pró-labore</option><option>Moradia</option><option>Alimentação</option><option>Transporte</option>
     <option>Saúde</option><option>Lazer</option><option>Educação</option><option>Poupança</option><option>Outro</option>
@@ -2694,7 +2722,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.9.0';
+var APP_VERSION = 'v1.9.2';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -4208,6 +4236,116 @@ function medtGPick(y,m,d){
 function medtGGetValue(){
   if(_medtGY===null) return '';
   return String(_medtGD).padStart(2,'0')+'/'+String(_medtGM+1).padStart(2,'0')+'/'+_medtGY;
+}
+
+// ── MEDTF — calendário próprio, sem hora, campo "Data" do modal de Entrada/Saída (Financeiro) ──
+var _medtFY=null,_medtFM=null,_medtFD=null,_medtFViewY=new Date().getFullYear(),_medtFViewM=new Date().getMonth();
+function medtFInit(isoStr){
+  if(isoStr){
+    var dp=isoStr.split('-');
+    _medtFY=parseInt(dp[0],10);_medtFM=parseInt(dp[1],10)-1;_medtFD=parseInt(dp[2],10);
+    _medtFViewY=_medtFY;_medtFViewM=_medtFM;
+  }else{
+    _medtFY=_medtFM=_medtFD=null;_medtFViewY=new Date().getFullYear();_medtFViewM=new Date().getMonth();
+  }
+  medtFUpdateLabel();
+}
+function medtFUpdateLabel(){
+  var lbl=document.getElementById('medtF-lbl');
+  if(_medtFY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
+  lbl.textContent=String(_medtFD).padStart(2,'0')+'/'+String(_medtFM+1).padStart(2,'0')+'/'+_medtFY;
+}
+function medtFToggle(){
+  var pop=document.getElementById('medtF-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medtFRenderCal();
+  pop.style.display='block';
+}
+function medtFNav(delta){
+  _medtFViewM+=delta;
+  if(_medtFViewM<0){_medtFViewM=11;_medtFViewY--;}
+  if(_medtFViewM>11){_medtFViewM=0;_medtFViewY++;}
+  medtFRenderCal();
+}
+function medtFRenderCal(){
+  document.getElementById('medtF-mes').textContent=MEDT_MESES[_medtFViewM]+' '+_medtFViewY;
+  var primeiro=new Date(_medtFViewY,_medtFViewM,1).getDay();
+  var totalDias=new Date(_medtFViewY,_medtFViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtFViewY,_medtFViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medtFY===_medtFViewY&&_medtFM===_medtFViewM&&_medtFD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtFPick('+_medtFViewY+','+_medtFViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtF-days').innerHTML=html;
+}
+function medtFPick(y,m,d){
+  _medtFY=y;_medtFM=m;_medtFD=d;
+  medtFRenderCal();medtFUpdateLabel();
+}
+function medtFGetValue(){
+  if(_medtFY===null) return '';
+  return String(_medtFD).padStart(2,'0')+'/'+String(_medtFM+1).padStart(2,'0')+'/'+_medtFY;
+}
+
+// ── MEDTFP — calendário próprio, sem hora, campo "Data" do modal de Entrada/Saída Pessoal ──
+var _medtFPY=null,_medtFPM=null,_medtFPD=null,_medtFPViewY=new Date().getFullYear(),_medtFPViewM=new Date().getMonth();
+function medtFPInit(isoStr){
+  if(isoStr){
+    var dp=isoStr.split('-');
+    _medtFPY=parseInt(dp[0],10);_medtFPM=parseInt(dp[1],10)-1;_medtFPD=parseInt(dp[2],10);
+    _medtFPViewY=_medtFPY;_medtFPViewM=_medtFPM;
+  }else{
+    _medtFPY=_medtFPM=_medtFPD=null;_medtFPViewY=new Date().getFullYear();_medtFPViewM=new Date().getMonth();
+  }
+  medtFPUpdateLabel();
+}
+function medtFPUpdateLabel(){
+  var lbl=document.getElementById('medtFP-lbl');
+  if(_medtFPY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
+  lbl.textContent=String(_medtFPD).padStart(2,'0')+'/'+String(_medtFPM+1).padStart(2,'0')+'/'+_medtFPY;
+}
+function medtFPToggle(){
+  var pop=document.getElementById('medtFP-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medtFPRenderCal();
+  pop.style.display='block';
+}
+function medtFPNav(delta){
+  _medtFPViewM+=delta;
+  if(_medtFPViewM<0){_medtFPViewM=11;_medtFPViewY--;}
+  if(_medtFPViewM>11){_medtFPViewM=0;_medtFPViewY++;}
+  medtFPRenderCal();
+}
+function medtFPRenderCal(){
+  document.getElementById('medtFP-mes').textContent=MEDT_MESES[_medtFPViewM]+' '+_medtFPViewY;
+  var primeiro=new Date(_medtFPViewY,_medtFPViewM,1).getDay();
+  var totalDias=new Date(_medtFPViewY,_medtFPViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtFPViewY,_medtFPViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medtFPY===_medtFPViewY&&_medtFPM===_medtFPViewM&&_medtFPD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtFPPick('+_medtFPViewY+','+_medtFPViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtFP-days').innerHTML=html;
+}
+function medtFPPick(y,m,d){
+  _medtFPY=y;_medtFPM=m;_medtFPD=d;
+  medtFPRenderCal();medtFPUpdateLabel();
+}
+function medtFPGetValue(){
+  if(_medtFPY===null) return '';
+  return String(_medtFPD).padStart(2,'0')+'/'+String(_medtFPM+1).padStart(2,'0')+'/'+_medtFPY;
 }
 
 function _kvInitSelects(){
@@ -5873,7 +6011,7 @@ function openF(tipo,id){
     document.getElementById('mf-t').textContent='Editar Lançamento';
     document.getElementById('mf-desc').value=e.desc||'';
     document.getElementById('mf-valor').value=e.valor||'';
-    document.getElementById('mf-data').value=fd(e.data);
+    medtFInit(e.data||'');
     document.getElementById('mf-cat').value=e.cat||'Contrato';
     document.getElementById('mf-cliente').value=e.clienteId||'';
     document.getElementById('mf-tipo').value=t;
@@ -5884,7 +6022,7 @@ function openF(tipo,id){
     document.getElementById('mf-t').textContent=t2==='entrada'?'Nova Entrada':'Nova Saída';
     document.getElementById('mf-desc').value='';
     document.getElementById('mf-valor').value='';
-    document.getElementById('mf-data').value=ts;
+    medtFInit(d2i(ts));
     document.getElementById('mf-cat').value=t2==='entrada'?'Freela':'Equipamento';
     document.getElementById('mf-cliente').value='';
     document.getElementById('mf-tipo').value=t2;
@@ -5895,7 +6033,7 @@ function openF(tipo,id){
 }
 function saveF(){
   var fs=g('fin');
-  var o={id:_fId||uid(),desc:document.getElementById('mf-desc').value.trim(),valor:parseFloat(document.getElementById('mf-valor').value)||0,data:d2i(document.getElementById('mf-data').value),cat:document.getElementById('mf-cat').value,clienteId:document.getElementById('mf-cliente').value,tipo:document.getElementById('mf-tipo').value};
+  var o={id:_fId||uid(),desc:document.getElementById('mf-desc').value.trim(),valor:parseFloat(document.getElementById('mf-valor').value)||0,data:d2i(medtFGetValue()),cat:document.getElementById('mf-cat').value,clienteId:document.getElementById('mf-cliente').value,tipo:document.getElementById('mf-tipo').value};
   if(!o.desc){alert('Informe a descrição.');return;}
   if(_fId){var i=fs.findIndex(function(e){return e.id===_fId;});if(i>-1)fs[i]=o;}else fs.push(o);
   undoBegin();s('fin',fs);undoCommit();cov('ov-f');rF();rR();notify('Salvo.');
@@ -5916,14 +6054,14 @@ function rFP(){
 function openFP(tipo,id){
   _fpId=id||null;
   var td=new Date(),ts=String(td.getDate()).padStart(2,'0')+'/'+String(td.getMonth()+1).padStart(2,'0')+'/'+td.getFullYear();
-  if(id){var e=g('fin_pessoal').find(function(x){return x.id===id;});if(!e)return;document.getElementById('mfp-t').textContent='Editar';document.getElementById('mfp-desc').value=e.desc||'';document.getElementById('mfp-valor').value=e.valor||'';document.getElementById('mfp-data').value=fd(e.data);document.getElementById('mfp-cat').value=e.cat||'Pró-labore';document.getElementById('mfp-tipo').value=e.tipo||'entrada';document.getElementById('mfp-del').style.display='inline-flex';}
-  else{document.getElementById('mfp-t').textContent=tipo==='entrada'?'Nova Entrada Pessoal':'Nova Saída Pessoal';document.getElementById('mfp-desc').value='';document.getElementById('mfp-valor').value='';document.getElementById('mfp-data').value=ts;document.getElementById('mfp-cat').value=tipo==='entrada'?'Pró-labore':'Moradia';document.getElementById('mfp-tipo').value=tipo||'entrada';document.getElementById('mfp-del').style.display='none';}
+  if(id){var e=g('fin_pessoal').find(function(x){return x.id===id;});if(!e)return;document.getElementById('mfp-t').textContent='Editar';document.getElementById('mfp-desc').value=e.desc||'';document.getElementById('mfp-valor').value=e.valor||'';medtFPInit(e.data||'');document.getElementById('mfp-cat').value=e.cat||'Pró-labore';document.getElementById('mfp-tipo').value=e.tipo||'entrada';document.getElementById('mfp-del').style.display='inline-flex';}
+  else{document.getElementById('mfp-t').textContent=tipo==='entrada'?'Nova Entrada Pessoal':'Nova Saída Pessoal';document.getElementById('mfp-desc').value='';document.getElementById('mfp-valor').value='';medtFPInit(d2i(ts));document.getElementById('mfp-cat').value=tipo==='entrada'?'Pró-labore':'Moradia';document.getElementById('mfp-tipo').value=tipo||'entrada';document.getElementById('mfp-del').style.display='none';}
   kvSelSyncLabel('mfp-cat');
   document.getElementById('ov-fp').classList.add('open');
 }
 function saveFP(){
   var fs=g('fin_pessoal');
-  var o={id:_fpId||uid(),desc:document.getElementById('mfp-desc').value.trim(),valor:parseFloat(document.getElementById('mfp-valor').value)||0,data:d2i(document.getElementById('mfp-data').value),cat:document.getElementById('mfp-cat').value,tipo:document.getElementById('mfp-tipo').value};
+  var o={id:_fpId||uid(),desc:document.getElementById('mfp-desc').value.trim(),valor:parseFloat(document.getElementById('mfp-valor').value)||0,data:d2i(medtFPGetValue()),cat:document.getElementById('mfp-cat').value,tipo:document.getElementById('mfp-tipo').value};
   if(!o.desc){alert('Informe a descrição.');return;}
   if(_fpId){var i=fs.findIndex(function(e){return e.id===_fpId;});if(i>-1)fs[i]=o;}else fs.push(o);
   undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Salvo.');
