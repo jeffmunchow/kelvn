@@ -209,6 +209,8 @@ html{overflow-x:hidden;}
 /* MEDT — calendário próprio (data e hora) do modal de Evento, substitui o datetime-local nativo */
 .medt-wrap{position:relative;}
 .medt-btn{display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;width:100%;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);user-select:none;}
+.medt-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.medt-btn span.ph{color:var(--text-hint);}
 .medt-pop{display:none;position:absolute;top:calc(100% + 4px);left:0;width:260px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.14);padding:.85rem;}
 .medt-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
 .medt-head span{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:600;color:var(--text);}
@@ -362,6 +364,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 [data-theme="dark"] .ag-day.has-event{background:var(--surface2);color:var(--text-muted);}
 @media(max-width:900px){.ag-split{grid-template-columns:1fr;}}
 @media(max-width:768px){.ag-cal-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:1100px){.edu-books-row{grid-template-columns:repeat(4,1fr) !important;}}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;}
 @media(max-width:900px){.three{grid-template-columns:1fr 1fr;}}
 @media(max-width:768px){.two,.three{grid-template-columns:1fr;}}
@@ -402,6 +405,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .modal h2{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;margin-bottom:1.25rem;}
 .field{margin-bottom:.9rem;}
 .field label{display:block;font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}
+.field input::placeholder,.field textarea::placeholder{color:var(--text-hint);opacity:1;}
 .field input,.field select,.field textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);outline:none;}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--amber);}
 .field textarea{resize:vertical;min-height:72px;}
@@ -414,6 +418,9 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 /* PARCELAS */
 .prow{display:grid;grid-template-columns:1fr 1fr auto 28px;gap:6px;align-items:center;margin-bottom:6px;}
 .prow input{font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 9px;color:var(--text);outline:none;}
+.prow .medtp-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 9px;color:var(--text);text-align:left;cursor:pointer;width:100%;}
+.prow .medtp-btn.empty{color:var(--text-hint);}
+#medtP-pop{position:fixed;display:none;width:230px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:300;box-shadow:0 4px 12px rgba(0,0,0,.14);padding:.85rem;}
 .pchk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .pchk.paid{background:var(--teal);border-color:var(--teal);}
 .pdel{background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:.8rem;width:24px;height:24px;}
@@ -498,15 +505,19 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 #ov-f .btn.primary:hover{background:var(--surface2);opacity:1;}
 #ov-fp .btn.primary{background:transparent;color:var(--text);border-color:var(--border-strong);}
 #ov-fp .btn.primary:hover{background:var(--surface2);opacity:1;}
-/* modais de Entrada/Saída, calculadora de Impostos e Evento: sem borda âmbar no foco — mantém a borda padrão */
+/* modais de Entrada/Saída, calculadora de Impostos, Evento e Cliente: sem borda âmbar no foco — mantém a borda padrão */
 #ov-f .field input:focus,#ov-f .field select:focus,#ov-f .field textarea:focus,
 #ov-fp .field input:focus,#ov-fp .field select:focus,#ov-fp .field textarea:focus,
 #fp-panel-imp .field input:focus,#fp-panel-imp .field select:focus,
-#ov-e .field input:focus,#ov-e .field select:focus,#ov-e .field textarea:focus{border-color:var(--border-strong);}
+#ov-e .field input:focus,#ov-e .field select:focus,#ov-e .field textarea:focus,
+#ov-c .field input:focus,#ov-c .field select:focus,#ov-c .field textarea:focus,
+#ov-p .field input:focus,#ov-p .field select:focus,#ov-p .field textarea:focus,
+#ov-gal .field input:focus,#ov-gal .field select:focus,#ov-gal .field textarea:focus,
+#ov-qt .field input:focus,#ov-qt .field select:focus,#ov-qt .field textarea:focus{border-color:var(--border-strong);}
 /* Análises › Definir metas: sem borda âmbar no foco dos inputs */
 #an-metas-definir .fi:focus{border-color:var(--border-strong);}
 /* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
-#ov-f .modal,#ov-fp .modal,#ov-e .modal,#ov-sl .modal{overflow:visible;}
+#ov-f .modal,#ov-fp .modal,#ov-e .modal,#ov-sl .modal,#ov-p .modal,#ov-gal .modal{overflow:visible;}
 /* dropdown Kelvn dentro de campos de modal: igual a um .field select (surface2, largura total) */
 .field .kvsel-wrap{width:100%;}
 .field .kvsel-btn{width:100%;height:auto;background:var(--surface2);border-radius:var(--radius-sm);font-size:.88rem;font-weight:400;padding:8px 11px;color:var(--text);}
@@ -1002,7 +1013,7 @@ select.aj-input{cursor:pointer;}
         <input type="text" id="c-search" placeholder="Buscar cliente…" oninput="rC()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:190px;">
       </div>
       <!-- Filtro status -->
-      <select id="c-status" onchange="rC()" class="c-status-native" style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;cursor:pointer;">
+      <select id="c-status" onchange="rC()" class="c-status-native" style="display:none;">
         <option value="">Ativos</option>
         <option value="Prospect">Prospect</option>
         <option value="Sessão">Sessão</option>
@@ -1017,7 +1028,7 @@ select.aj-input{cursor:pointer;}
         <option value="Finalizado">Arquivados</option>
       </select>
       <!-- Filtro status — versão mobile, dropdown padrão Kelvn (não usa o select nativo) -->
-      <div class="c-status-mobile" style="position:relative;display:none;flex:1;" id="c-status-wrap">
+      <div class="c-status-mobile" style="position:relative;display:flex;flex-shrink:0;" id="c-status-wrap">
         <div id="c-status-btn" onclick="toggleCStatusDrop()" style="display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;height:30px;padding:6px 10px;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;color:var(--text-muted);user-select:none;">
           <span id="c-status-label">Ativos</span>
           <svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1958,7 +1969,21 @@ select.aj-input{cursor:pointer;}
     <div class="field" style="grid-column:1/3"><label>Email</label><input type="text" id="mc-email" placeholder="email@email.com"></div>
     <div class="field" style="grid-column:3/5"><label>Telefone</label><input type="text" id="mc-tel" placeholder="(00) 00000-0000"></div>
     <div style="grid-column:1/-1;margin:.25rem 0 .75rem;"></div>
-    <div class="field mc-field-data"><label>Data</label><input type="text" class="sd" maxlength="10" id="mc-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+    <div class="field mc-field-data">
+      <label>Data</label>
+      <div class="medt-wrap" id="medtD-wrap">
+        <div class="medt-btn" onclick="medtDToggle()"><span id="medtD-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="medt-pop" id="medtD-pop">
+          <div class="medt-head">
+            <button type="button" onclick="medtDNav(-1)">‹</button>
+            <span id="medtD-mes"></span>
+            <button type="button" onclick="medtDNav(1)">›</button>
+          </div>
+          <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+          <div class="medt-days" id="medtD-days"></div>
+        </div>
+      </div>
+    </div>
     <div class="field"><label>Local do casamento</label><input type="text" id="mc-local" placeholder="Igreja, espaço, cidade"></div>
     <div class="field mc-field-status"><label>Status</label>
       <div style="position:relative;" id="mc-status-wrap">
@@ -1981,9 +2006,12 @@ select.aj-input{cursor:pointer;}
         </div>
       </div>
     </div>
-    <div class="field" style="display:flex;align-items:flex-end;gap:.4rem;">
-      <div style="flex:1;min-width:0;"><label style="white-space:nowrap;font-size:.6rem;letter-spacing:0;">Valor total (R$)</label><input type="number" id="mc-valor" placeholder="0" oninput="recalcP()" style="width:100%;"></div>
-      <button onclick="addCEvento()" title="Adicionar evento" style="background:none;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text-muted);width:28px;height:28px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:1px;transition:all .15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">+</button>
+    <div class="field" style="flex:1;min-width:0;">
+      <label style="white-space:nowrap;font-size:.6rem;letter-spacing:0;">Valor total (R$)</label>
+      <div style="display:flex;align-items:center;gap:.4rem;">
+        <input type="number" id="mc-valor" placeholder="0" oninput="recalcP()" style="width:100%;flex:1;">
+        <button onclick="addCEvento()" title="Adicionar evento" style="background:none;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text-muted);width:28px;height:28px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg></button>
+      </div>
     </div>
     <div id="mc-eventos-extra" style="display:contents;"></div>
   </div>
@@ -1994,6 +2022,15 @@ select.aj-input{cursor:pointer;}
     </div>
     <div id="plist"></div>
     <div id="psum" style="font-size:.72rem;color:var(--text-hint);margin-top:4px;"></div>
+    <div id="medtP-pop">
+      <div class="medt-head">
+        <button type="button" onclick="medtPNav(-1)">‹</button>
+        <span id="medtP-mes"></span>
+        <button type="button" onclick="medtPNav(1)">›</button>
+      </div>
+      <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+      <div class="medt-days" id="medtP-days"></div>
+    </div>
   </div>
   <div class="field" style="margin-top:1rem;"><label>Notas</label><textarea id="mc-notas" rows="3" placeholder="Preferências, estilo, observações..."></textarea></div>
 
@@ -2027,7 +2064,7 @@ select.aj-input{cursor:pointer;}
         <div class="field"><label>Horário de término previsto</label><input type="text" id="mc-horario-termino" placeholder="ex: 00h00"></div>
         <div class="field" style="grid-column:1/-1"><label>Pacote contratado</label>
           <select id="mc-pacote-id">
-            <option value="">— nenhum —</option>
+            <option value="">Nenhum</option>
           </select>
         </div>
       </div>
@@ -2087,7 +2124,7 @@ select.aj-input{cursor:pointer;}
   <div class="field">
     <label>Data e hora</label>
     <div class="medt-wrap" id="medt-wrap">
-      <div class="medt-btn" onclick="medtToggle()"><span id="medt-lbl">Selecionar data e hora</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-btn" onclick="medtToggle()"><span id="medt-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="medt-pop" id="medt-pop">
         <div class="medt-head">
           <button type="button" onclick="medtNav(-1)">‹</button>
@@ -2105,7 +2142,7 @@ select.aj-input{cursor:pointer;}
     </div>
   </div>
   <div class="field"><label>Tipo</label><select id="me-tipo"><option>Reunião</option><option>Entrega</option><option>Outro</option></select></div>
-  <div class="field"><label>Cliente</label><select id="me-cliente"><option value="">— nenhum —</option></select></div>
+  <div class="field"><label>Cliente</label><select id="me-cliente"><option value="">Nenhum</option></select></div>
   <div class="field"><label>Local</label><input type="text" id="me-local" placeholder="Igreja, estúdio, online..."></div>
   <div class="field"><label>Notas</label><textarea id="me-notas" rows="2"></textarea></div>
   <div class="ma">
@@ -2121,8 +2158,22 @@ select.aj-input{cursor:pointer;}
 <div class="overlay" id="ov-p"><div class="modal">
   <h2 id="mp-t">Nova Tarefa</h2>
   <div class="field"><label>Descrição</label><input type="text" id="mp-desc" placeholder="ex: Editar galeria"></div>
-  <div class="field"><label>Cliente</label><select id="mp-cliente"><option value="">— geral —</option></select></div>
-  <div class="field"><label>Prazo</label><input type="text" class="sd" maxlength="10" id="mp-prazo" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+  <div class="field"><label>Cliente</label><select id="mp-cliente"><option value="">Geral</option></select></div>
+  <div class="field">
+    <label>Prazo</label>
+    <div class="medt-wrap" id="medtT-wrap">
+      <div class="medt-btn" onclick="medtTToggle()"><span id="medtT-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-pop" id="medtT-pop">
+        <div class="medt-head">
+          <button type="button" onclick="medtTNav(-1)">‹</button>
+          <span id="medtT-mes"></span>
+          <button type="button" onclick="medtTNav(1)">›</button>
+        </div>
+        <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="medt-days" id="medtT-days"></div>
+      </div>
+    </div>
+  </div>
   <div class="field"><label>Prioridade</label><select id="mp-prio"><option value="normal">Normal</option><option value="alta">Alta</option><option value="baixa">Baixa</option></select></div>
   <div class="ma">
     <button class="btn" style="color:var(--coral);display:none;" id="mp-del" onclick="delPend()">Excluir</button>
@@ -2202,7 +2253,7 @@ select.aj-input{cursor:pointer;}
   <div class="field"><label>Valor (R$)</label><input type="number" id="mf-valor" placeholder="0"></div>
   <div class="field"><label>Data</label><input type="text" class="sd" maxlength="10" id="mf-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
   <div class="field"><label>Categoria</label><select id="mf-cat"></select></div>
-  <div class="field"><label>Cliente</label><select id="mf-cliente"><option value="">— nenhum —</option></select></div>
+  <div class="field"><label>Cliente</label><select id="mf-cliente"><option value="">Nenhum</option></select></div>
   <input type="hidden" id="mf-tipo" value="entrada">
   <div class="ma">
     <button class="btn" style="color:var(--coral);display:none;" id="mf-del" onclick="delF()">Excluir</button>
@@ -2404,7 +2455,7 @@ select.aj-input{cursor:pointer;}
   <div id="maq-body" style="margin-bottom:1.25rem;"></div>
   <div class="ma">
     <button class="btn" onclick="cov('ov-auto-q')">Fechar</button>
-    <button class="btn primary" id="maq-btn-enviar" onclick="_whatsAutoEnviarFromCard()">Enviar via WhatsApp</button>
+    <button class="btn" style="color:var(--text);" id="maq-btn-enviar" onclick="_whatsAutoEnviarFromCard()">Enviar via WhatsApp</button>
   </div>
 </div></div>
 
@@ -2437,7 +2488,7 @@ select.aj-input{cursor:pointer;}
   <div class="field">
     <label>Data e hora</label>
     <div class="medt-wrap" id="medt2-wrap">
-      <div class="medt-btn" onclick="medt2Toggle()"><span id="medt2-lbl">Selecionar data e hora</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-btn" onclick="medt2Toggle()"><span id="medt2-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="medt-pop" id="medt2-pop">
         <div class="medt-head">
           <button type="button" onclick="medt2Nav(-1)">‹</button>
@@ -2525,7 +2576,21 @@ select.aj-input{cursor:pointer;}
 
       <!-- Nome + Data na mesma linha -->
       <div class="field"><label>Nome do cliente / casal</label><input type="text" id="mgal-nome" placeholder="ex: Beatriz & Rafael" oninput="mgalAutoSlug()"></div>
-      <div class="field"><label>Data do evento</label><input type="text" id="mgal-data" placeholder="dd/mm/aaaa" class="sd"></div>
+      <div class="field">
+        <label>Data do evento</label>
+        <div class="medt-wrap" id="medtG-wrap">
+          <div class="medt-btn" onclick="medtGToggle()"><span id="medtG-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="medt-pop" id="medtG-pop">
+            <div class="medt-head">
+              <button type="button" onclick="medtGNav(-1)">‹</button>
+              <span id="medtG-mes"></span>
+              <button type="button" onclick="medtGNav(1)">›</button>
+            </div>
+            <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+            <div class="medt-days" id="medtG-days"></div>
+          </div>
+        </div>
+      </div>
 
       <!-- Link da galeria 2/3 + Senha 1/3 -->
       <div class="field" style="grid-column:1/-1;display:grid;grid-template-columns:2fr 1fr;gap:1rem;">
@@ -2689,7 +2754,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.8.18';
+var APP_VERSION = 'v1.8.40';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -2943,7 +3008,7 @@ function pN(id){var p=g('pacotes').find(function(x){return x.id===id;});return p
 function fillSel(extras){
   var cs=g('clientes');
   var sels=extras||[];
-  var base=[['me-cliente','— nenhum —'],['mp-cliente','— geral —'],['mf-cliente','— nenhum —'],['morc-cliente','— selecione —'],['med-cliente','— selecione —'],['ment-cliente','— selecione —'],['mqr-cliente','— selecione —']];
+  var base=[['me-cliente','Nenhum'],['mp-cliente','Geral'],['mf-cliente','Nenhum'],['morc-cliente','— selecione —'],['med-cliente','— selecione —'],['ment-cliente','— selecione —'],['mqr-cliente','— selecione —']];
   base.concat(sels).forEach(function(x){
     var el=document.getElementById(x[0]);if(!el)return;
     el.innerHTML='<option value="">'+x[1]+'</option>'+cs.map(function(c){return '<option value="'+c.id+'">'+c.nome+'</option>';}).join('');
@@ -2952,7 +3017,7 @@ function fillSel(extras){
   var psel=document.getElementById('morc-pacote');
   if(psel)psel.innerHTML='<option value="">— sem pacote —</option>'+ps.map(function(p){return '<option value="'+p.id+'">'+p.nome+' — '+$m(p.valor)+'</option>';}).join('');
   var mcpsel=document.getElementById('mc-pacote-id');
-  if(mcpsel)mcpsel.innerHTML='<option value="">— nenhum —</option>'+ps.map(function(p){return '<option value="'+p.id+'">'+p.nome+' — '+$m(p.valor)+'</option>';}).join('');
+  if(mcpsel)mcpsel.innerHTML='<option value="">Nenhum</option>'+ps.map(function(p){return '<option value="'+p.id+'">'+p.nome+' — '+$m(p.valor)+'</option>';}).join('');
 }
 function _servChipLabel(el){var q=parseInt(el.dataset.qtd||0);el.textContent=el.dataset.tipo+(q>1?' ×'+q:'');el.classList.toggle('ativo',q>0);}
 function incServ(el){var q=parseInt(el.dataset.qtd||0);var max=el.dataset.tipo==='Álbum'?3:1;el.dataset.qtd=q>=max?0:q+1;_servChipLabel(el);}
@@ -3864,6 +3929,7 @@ function kvSelSyncLabel(selectId){
 document.addEventListener('click',function(e){
   if(!e.target.closest('.kvsel-wrap')) document.querySelectorAll('.kvsel-drop').forEach(function(d){d.style.display='none';});
   if(!e.target.closest('.medt-wrap')) document.querySelectorAll('.medt-pop').forEach(function(p){p.style.display='none';});
+  if(!e.target.closest('#medtP-pop') && !e.target.closest('.medtp-btn')) { var mpp=document.getElementById('medtP-pop'); if(mpp) mpp.style.display='none'; }
 });
 
 // ── MEDT — calendário próprio (data e hora) do modal de Evento ──────────────
@@ -3884,7 +3950,8 @@ function medtInit(isoStr){
 }
 function medtUpdateLabel(){
   var lbl=document.getElementById('medt-lbl');
-  if(_medtY===null){lbl.textContent='Selecionar data e hora';return;}
+  if(_medtY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
   var dStr=String(_medtD).padStart(2,'0')+'/'+String(_medtM+1).padStart(2,'0')+'/'+_medtY;
   lbl.textContent=dStr+(_medtHora?' às '+_medtHora:'');
 }
@@ -3945,7 +4012,8 @@ function medt2Init(isoStr){
 }
 function medt2UpdateLabel(){
   var lbl=document.getElementById('medt2-lbl');
-  if(_medt2Y===null){lbl.textContent='Selecionar data e hora';return;}
+  if(_medt2Y===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
   var dStr=String(_medt2D).padStart(2,'0')+'/'+String(_medt2M+1).padStart(2,'0')+'/'+_medt2Y;
   lbl.textContent=dStr+(_medt2Hora?' às '+_medt2Hora:'');
 }
@@ -3988,15 +4056,233 @@ function medt2GetIso(){
   return dStr+'T'+(_medt2Hora||'00:00');
 }
 
+// ── MEDTP — calendário próprio, sem hora, compartilhado pelas linhas de Parcela ──
+var _medtPIdx=null,_medtPViewY=new Date().getFullYear(),_medtPViewM=new Date().getMonth();
+function medtPOpen(i,btnEl){
+  _medtPIdx=i;
+  var dStr=_parc[i]&&_parc[i].data?_parc[i].data:'';
+  if(dStr){var dp=dStr.split('-');_medtPViewY=parseInt(dp[0],10);_medtPViewM=parseInt(dp[1],10)-1;}
+  else{_medtPViewY=new Date().getFullYear();_medtPViewM=new Date().getMonth();}
+  var pop=document.getElementById('medtP-pop');
+  var r=btnEl.getBoundingClientRect();
+  pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
+  medtPRenderCal();
+  pop.style.display='block';
+}
+function medtPNav(delta){
+  _medtPViewM+=delta;
+  if(_medtPViewM<0){_medtPViewM=11;_medtPViewY--;}
+  if(_medtPViewM>11){_medtPViewM=0;_medtPViewY++;}
+  medtPRenderCal();
+}
+function medtPRenderCal(){
+  document.getElementById('medtP-mes').textContent=MEDT_MESES[_medtPViewM]+' '+_medtPViewY;
+  var dStr=_parc[_medtPIdx]&&_parc[_medtPIdx].data?_parc[_medtPIdx].data:'';
+  var selY=null,selM=null,selD=null;
+  if(dStr){var dp=dStr.split('-');selY=parseInt(dp[0],10);selM=parseInt(dp[1],10)-1;selD=parseInt(dp[2],10);}
+  var primeiro=new Date(_medtPViewY,_medtPViewM,1).getDay();
+  var totalDias=new Date(_medtPViewY,_medtPViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtPViewY,_medtPViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(selY===_medtPViewY&&selM===_medtPViewM&&selD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtPPick('+_medtPViewY+','+_medtPViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtP-days').innerHTML=html;
+}
+function medtPPick(y,m,d){
+  var dStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  _parc[_medtPIdx].data=dStr;
+  document.getElementById('medtP-pop').style.display='none';
+  bPD();
+}
+
+// ── MEDTD — calendário próprio, sem hora, campo "Data" do modal de Cliente ──
+var _medtDY=null,_medtDM=null,_medtDD=null,_medtDViewY=new Date().getFullYear(),_medtDViewM=new Date().getMonth();
+function medtDInit(isoStr){
+  if(isoStr){
+    var dp=isoStr.split('-');
+    _medtDY=parseInt(dp[0],10);_medtDM=parseInt(dp[1],10)-1;_medtDD=parseInt(dp[2],10);
+    _medtDViewY=_medtDY;_medtDViewM=_medtDM;
+  }else{
+    _medtDY=_medtDM=_medtDD=null;_medtDViewY=new Date().getFullYear();_medtDViewM=new Date().getMonth();
+  }
+  medtDUpdateLabel();
+}
+function medtDUpdateLabel(){
+  var lbl=document.getElementById('medtD-lbl');
+  if(_medtDY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
+  lbl.textContent=String(_medtDD).padStart(2,'0')+'/'+String(_medtDM+1).padStart(2,'0')+'/'+_medtDY;
+}
+function medtDToggle(){
+  var pop=document.getElementById('medtD-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medtDRenderCal();
+  pop.style.display='block';
+}
+function medtDNav(delta){
+  _medtDViewM+=delta;
+  if(_medtDViewM<0){_medtDViewM=11;_medtDViewY--;}
+  if(_medtDViewM>11){_medtDViewM=0;_medtDViewY++;}
+  medtDRenderCal();
+}
+function medtDRenderCal(){
+  document.getElementById('medtD-mes').textContent=MEDT_MESES[_medtDViewM]+' '+_medtDViewY;
+  var primeiro=new Date(_medtDViewY,_medtDViewM,1).getDay();
+  var totalDias=new Date(_medtDViewY,_medtDViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtDViewY,_medtDViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medtDY===_medtDViewY&&_medtDM===_medtDViewM&&_medtDD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtDPick('+_medtDViewY+','+_medtDViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtD-days').innerHTML=html;
+}
+function medtDPick(y,m,d){
+  _medtDY=y;_medtDM=m;_medtDD=d;
+  medtDRenderCal();medtDUpdateLabel();
+}
+function medtDGetValue(){
+  if(_medtDY===null) return '';
+  return String(_medtDD).padStart(2,'0')+'/'+String(_medtDM+1).padStart(2,'0')+'/'+_medtDY;
+}
+
+// ── MEDTT — calendário próprio, sem hora, campo "Prazo" do modal de Tarefa ──
+var _medtTY=null,_medtTM=null,_medtTD=null,_medtTViewY=new Date().getFullYear(),_medtTViewM=new Date().getMonth();
+function medtTInit(isoStr){
+  if(isoStr){
+    var dp=isoStr.split('-');
+    _medtTY=parseInt(dp[0],10);_medtTM=parseInt(dp[1],10)-1;_medtTD=parseInt(dp[2],10);
+    _medtTViewY=_medtTY;_medtTViewM=_medtTM;
+  }else{
+    _medtTY=_medtTM=_medtTD=null;_medtTViewY=new Date().getFullYear();_medtTViewM=new Date().getMonth();
+  }
+  medtTUpdateLabel();
+}
+function medtTUpdateLabel(){
+  var lbl=document.getElementById('medtT-lbl');
+  if(_medtTY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
+  lbl.textContent=String(_medtTD).padStart(2,'0')+'/'+String(_medtTM+1).padStart(2,'0')+'/'+_medtTY;
+}
+function medtTToggle(){
+  var pop=document.getElementById('medtT-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medtTRenderCal();
+  pop.style.display='block';
+}
+function medtTNav(delta){
+  _medtTViewM+=delta;
+  if(_medtTViewM<0){_medtTViewM=11;_medtTViewY--;}
+  if(_medtTViewM>11){_medtTViewM=0;_medtTViewY++;}
+  medtTRenderCal();
+}
+function medtTRenderCal(){
+  document.getElementById('medtT-mes').textContent=MEDT_MESES[_medtTViewM]+' '+_medtTViewY;
+  var primeiro=new Date(_medtTViewY,_medtTViewM,1).getDay();
+  var totalDias=new Date(_medtTViewY,_medtTViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtTViewY,_medtTViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medtTY===_medtTViewY&&_medtTM===_medtTViewM&&_medtTD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtTPick('+_medtTViewY+','+_medtTViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtT-days').innerHTML=html;
+}
+function medtTPick(y,m,d){
+  _medtTY=y;_medtTM=m;_medtTD=d;
+  medtTRenderCal();medtTUpdateLabel();
+}
+function medtTGetValue(){
+  if(_medtTY===null) return '';
+  return String(_medtTD).padStart(2,'0')+'/'+String(_medtTM+1).padStart(2,'0')+'/'+_medtTY;
+}
+
+// ── MEDTG — calendário próprio, sem hora, campo "Data do evento" da Galeria ──
+// Aqui o valor é guardado direto como DD/MM/AAAA (sem d2i), diferente das outras instâncias.
+var _medtGY=null,_medtGM=null,_medtGD=null,_medtGViewY=new Date().getFullYear(),_medtGViewM=new Date().getMonth();
+function medtGInit(ddmmaaaa){
+  if(ddmmaaaa){
+    var dp=ddmmaaaa.split('/');
+    _medtGD=parseInt(dp[0],10);_medtGM=parseInt(dp[1],10)-1;_medtGY=parseInt(dp[2],10);
+    _medtGViewY=_medtGY;_medtGViewM=_medtGM;
+  }else{
+    _medtGY=_medtGM=_medtGD=null;_medtGViewY=new Date().getFullYear();_medtGViewM=new Date().getMonth();
+  }
+  medtGUpdateLabel();
+}
+function medtGUpdateLabel(){
+  var lbl=document.getElementById('medtG-lbl');
+  if(_medtGY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
+  lbl.textContent=String(_medtGD).padStart(2,'0')+'/'+String(_medtGM+1).padStart(2,'0')+'/'+_medtGY;
+}
+function medtGToggle(){
+  var pop=document.getElementById('medtG-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medtGRenderCal();
+  // posição fixa calculada do botão: escapa do overflow-y:auto do container interno do modal de Galeria
+  var btn=document.getElementById('medtG-wrap').querySelector('.medt-btn');
+  var r=btn.getBoundingClientRect();
+  pop.style.position='fixed';pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
+  pop.style.display='block';
+}
+function medtGNav(delta){
+  _medtGViewM+=delta;
+  if(_medtGViewM<0){_medtGViewM=11;_medtGViewY--;}
+  if(_medtGViewM>11){_medtGViewM=0;_medtGViewY++;}
+  medtGRenderCal();
+}
+function medtGRenderCal(){
+  document.getElementById('medtG-mes').textContent=MEDT_MESES[_medtGViewM]+' '+_medtGViewY;
+  var primeiro=new Date(_medtGViewY,_medtGViewM,1).getDay();
+  var totalDias=new Date(_medtGViewY,_medtGViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtGViewY,_medtGViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medtGY===_medtGViewY&&_medtGM===_medtGViewM&&_medtGD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtGPick('+_medtGViewY+','+_medtGViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtG-days').innerHTML=html;
+}
+function medtGPick(y,m,d){
+  _medtGY=y;_medtGM=m;_medtGD=d;
+  medtGRenderCal();medtGUpdateLabel();
+}
+function medtGGetValue(){
+  if(_medtGY===null) return '';
+  return String(_medtGD).padStart(2,'0')+'/'+String(_medtGM+1).padStart(2,'0')+'/'+_medtGY;
+}
+
 function _kvInitSelects(){
   // dropdown glass só no mobile (desktop mantém o select nativo)
-  ['ag-filter','pend-filter','qr-status-filter'].forEach(function(id){ kvEnhanceSelect(id); });
-  // Financeiro + Sazonalidade (Análises): dropdown padrão Kelvn também no desktop
-  ['fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  ['qr-status-filter'].forEach(function(id){ kvEnhanceSelect(id); });
+  // Agenda + Pós-produção + Financeiro + Sazonalidade (Análises): dropdown padrão Kelvn também no desktop
+  ['ag-filter','pend-filter','fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Selects dos modais de Entrada/Saída
   ['mf-cat','mf-cliente','mfp-cat'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Modal de Evento: dropdown Kelvn no Cliente e no Tipo
   ['me-cliente','me-tipo'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  // Modal de Cliente: dropdown Kelvn no Pacote contratado
+  kvEnhanceSelect('mc-pacote-id', true);
+  // Modal de Tarefa: dropdown Kelvn no Cliente e na Prioridade
+  ['mp-cliente','mp-prio'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Calculadora de Impostos: regime tributário
   kvEnhanceSelect('imp-regime', true);
 }
@@ -4045,7 +4331,7 @@ function openC(id){
     var c=g('clientes').find(function(x){return x.id===id;});if(!c)return;
     document.getElementById('mc-t').textContent='Editar Cliente';
     document.getElementById('mc-nome').value=c.nome||'';document.getElementById('mc-local').value=c.local||'';
-    document.getElementById('mc-data').value=fd(c.data);setStatusDrop(c.status||'Prospect');
+    medtDInit(c.data||'');setStatusDrop(c.status||'Prospect');
     document.getElementById('mc-email').value=c.email||'';document.getElementById('mc-tel').value=c.tel||'';
     document.getElementById('mc-valor').value=c.valor||'';
     document.getElementById('mc-notas').value=c.notas||'';
@@ -4074,10 +4360,13 @@ function openC(id){
     document.getElementById('mc-horario-inicio').value=c.horario_inicio||'';
     document.getElementById('mc-horario-termino').value=c.horario_termino||'';
     document.getElementById('mc-pacote-id').value=c.pacote_id||'';
+    kvSelSyncLabel('mc-pacote-id');
   }else{
     document.getElementById('mc-t').textContent='Novo Cliente';
-    ['mc-nome','mc-local','mc-data','mc-email','mc-tel','mc-valor','mc-notas','mc-noivo1','mc-noivo2','mc-contratante-nome','mc-contratante-cpf','mc-contratante-rg','mc-contratante-endereco','mc-horario-inicio','mc-horario-termino'].forEach(function(i){document.getElementById(i).value='';});
+    ['mc-nome','mc-local','mc-email','mc-tel','mc-valor','mc-notas','mc-noivo1','mc-noivo2','mc-contratante-nome','mc-contratante-cpf','mc-contratante-rg','mc-contratante-endereco','mc-horario-inicio','mc-horario-termino'].forEach(function(i){document.getElementById(i).value='';});
+    medtDInit('');
     document.getElementById('mc-pacote-id').value='';
+    kvSelSyncLabel('mc-pacote-id');
     resetServicos();
     setStatusDrop('Prospect');
     document.getElementById('mc-del').style.display='none';
@@ -4095,7 +4384,7 @@ function saveC(){
     id:_cId||uid(),
     nome:document.getElementById('mc-nome').value.trim(),
     local:document.getElementById('mc-local').value.trim(),
-    data:d2i(document.getElementById('mc-data').value),
+    data:d2i(medtDGetValue()),
     status:document.getElementById('mc-status').value,
     email:document.getElementById('mc-email').value.trim(),
     tel:document.getElementById('mc-tel').value.trim(),
@@ -4172,7 +4461,7 @@ function delC(){
 function rPL(ps){_parc=ps.map(function(p){return Object.assign({},p);});bPD();}
 function bPD(){
   document.getElementById('plist').innerHTML=_parc.map(function(p,i){
-    return '<div class="prow"><input type="text" class="sd" maxlength="10" placeholder="DD/MM/AAAA" value="'+i2d(p.data||'')+'" onchange="_parc['+i+'].data=d2i(this.value)" oninput="sdM(this)"><input type="number" placeholder="R$" value="'+(p.valor||'')+'" onchange="_parc['+i+'].valor=parseFloat(this.value)||0;recalcP()"><div class="pchk'+(p.pago?' paid':'')+'" onclick="tgP('+i+')" title="'+(p.pago?'Pago':'Marcar como pago')+'">'+(p.pago?'<svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>':'')+'</div><button class="pdel" onclick="_parc.splice('+i+',1);bPD();recalcP()">✕</button></div>';
+    return '<div class="prow"><button type="button" class="medtp-btn'+(p.data?'':' empty')+'" onclick="medtPOpen('+i+',this)">'+(p.data?i2d(p.data):'Selecionar data')+'</button><input type="number" placeholder="R$" value="'+(p.valor||'')+'" onchange="_parc['+i+'].valor=parseFloat(this.value)||0;recalcP()"><div class="pchk'+(p.pago?' paid':'')+'" onclick="tgP('+i+')" title="'+(p.pago?'Pago':'Marcar como pago')+'">'+(p.pago?'<svg width="8" height="8" viewBox="0 0 8 8"><path d="M1 4l2 2 4-4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" fill="none"/></svg>':'')+'</div><button class="pdel" onclick="_parc.splice('+i+',1);bPD();recalcP()">✕</button></div>';
   }).join('');recalcP();
 }
 function sdM(el){var v=el.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+'/'+v.slice(2);if(v.length>=6)v=v.slice(0,5)+'/'+v.slice(5,9);el.value=v;}
@@ -5214,18 +5503,19 @@ function openPend(id){
     var p=g('pends').find(function(x){return x.id===id;});if(!p)return;
     document.getElementById('mp-t').textContent='Editar Pendência';
     document.getElementById('mp-desc').value=p.desc||'';document.getElementById('mp-cliente').value=p.clienteId||'';
-    document.getElementById('mp-prazo').value=fd(p.prazo);document.getElementById('mp-prio').value=p.prio||'normal';
+    medtTInit(p.prazo||'');document.getElementById('mp-prio').value=p.prio||'normal';
     document.getElementById('mp-del').style.display='inline-flex';
   }else{
     document.getElementById('mp-t').textContent='Nova Tarefa';
-    ['mp-desc','mp-prazo'].forEach(function(i){document.getElementById(i).value='';});
+    document.getElementById('mp-desc').value='';medtTInit('');
     document.getElementById('mp-prio').value='normal';document.getElementById('mp-del').style.display='none';
   }
+  kvSelSyncLabel('mp-cliente');kvSelSyncLabel('mp-prio');
   document.getElementById('ov-p').classList.add('open');
 }
 function savePend(){
   var ps=g('pends');var ex=_pId?ps.find(function(p){return p.id===_pId;}):null;
-  var o={id:_pId||uid(),desc:document.getElementById('mp-desc').value.trim(),clienteId:document.getElementById('mp-cliente').value,prazo:d2i(document.getElementById('mp-prazo').value),prio:document.getElementById('mp-prio').value,done:ex?ex.done:false};
+  var o={id:_pId||uid(),desc:document.getElementById('mp-desc').value.trim(),clienteId:document.getElementById('mp-cliente').value,prazo:d2i(medtTGetValue()),prio:document.getElementById('mp-prio').value,done:ex?ex.done:false};
   if(!o.desc){alert('Informe a descrição.');return;}
   if(_pId){var i=ps.findIndex(function(p){return p.id===_pId;});if(i>-1)ps[i]=o;}else ps.push(o);
   undoBegin();s('pends',ps);undoCommit();cov('ov-p');rPe();rR();notify('Salvo.');
@@ -8435,7 +8725,7 @@ function abrirNovaGaleria(){
   _galStatus='rascunho';
   document.getElementById('mgal-titulo').textContent='Nova Galeria';
   document.getElementById('mgal-nome').value='';
-  document.getElementById('mgal-data').value='';
+  medtGInit('');
   document.getElementById('mgal-slug').value='';
   document.getElementById('mgal-senha').value='';
   var dlRow=document.getElementById('mgal-downloads-row');
@@ -8460,7 +8750,7 @@ function abrirGaleria(id, isNova){
   _galAtualId=id;
   document.getElementById('mgal-titulo').textContent=gal.nomeCliente||'Nova Galeria';
   document.getElementById('mgal-nome').value=gal.nomeCliente||'';
-  document.getElementById('mgal-data').value=gal.dataEvento||'';
+  medtGInit(gal.dataEvento||'');
   document.getElementById('mgal-slug').value=gal.slug||'';
   _galStatus=gal.status||'rascunho';
   document.getElementById('mgal-senha').value=gal.senha||'';
@@ -8571,7 +8861,7 @@ function saveGal(){
     var nova={
       id:id,
       nomeCliente:nome,
-      dataEvento:document.getElementById('mgal-data').value.trim(),
+      dataEvento:medtGGetValue(),
       slug:document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,''),
       senha:document.getElementById('mgal-senha').value.trim(),
       status:'rascunho',
@@ -8594,7 +8884,7 @@ function saveGal(){
   if(idx===-1){notify('Galeria salva.');return;}
   var gal=gals[idx];
   gal.nomeCliente=nome;
-  gal.dataEvento=document.getElementById('mgal-data').value.trim();
+  gal.dataEvento=medtGGetValue();
   gal.total_fotos=(gal.fotos||[]).length;
   gal.slug=document.getElementById('mgal-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'');
   gal.status=_galStatus;
@@ -9480,12 +9770,12 @@ function rEdu(){
 
   var wrap=document.createElement('div');
   wrap.className='edu-books-row';
-  wrap.style.cssText='grid-column:1/-1;display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start;';
+  wrap.style.cssText='grid-column:1/-1;display:grid;grid-template-columns:repeat(7,1fr);gap:1.25rem;align-items:start;';
 
   available.forEach(function(eb){
     var card=document.createElement('div');
     card.className='book-card';
-    card.style.cssText='width:260px;cursor:pointer;';
+    card.style.cssText='width:100%;cursor:pointer;';
     card.onclick=(function(obj){ return function(){ abrirCheckoutObj(obj); }; })(eb);
 
     var cover=document.createElement('div');
