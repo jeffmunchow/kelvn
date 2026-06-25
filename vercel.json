@@ -95,6 +95,10 @@
       "dest": "/app/form.html"
     },
     {
+      "src": "/privacidade",
+      "dest": "/app/privacidade.html"
+    },
+    {
       "src": "/(.*)",
       "has": [{ "type": "host", "value": "app.kelvn.com.br" }],
       "dest": "/app/$1"
