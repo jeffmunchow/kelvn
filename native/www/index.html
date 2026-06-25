@@ -2632,7 +2632,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.8.4';
+var APP_VERSION = 'v1.8.5';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -7443,14 +7443,20 @@ async function visualizarGaleriaPublica(){
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
   if(gal.status!=='publicado'){notify('Publique a galeria primeiro para visualizá-la.');return;}
-  // Garante sync do design antes de abrir: cancela debounce pendente e força upsert imediato
+  // Garante sync do design antes de abrir: cancela debounce pendente e força upsert imediato.
+  // Passa pelo merge 3-vias (nunca sobrescreve cego o servidor) — mesma proteção do _syncKey.
   if(_currentUser && _KEY_MAP['galerias']){
     clearTimeout(_syncTimers['galerias']);
     try{
       var map=_KEY_MAP['galerias'];
+      var sel=await _sb.from(map.table).select(map.col).eq('user_id',_currentUser.id).maybeSingle();
+      var remote=(sel&&sel.data)?sel.data[map.col]:undefined;
+      var merged=_threeWayMerge(_baseGet('galerias'), gals, remote);
       var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
-      row[map.col]=gals;
+      row[map.col]=merged;
       await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+      _cache['galerias']=merged; _baseSet('galerias', merged);
+      try{ localStorage.setItem(_lsKey('galerias'), JSON.stringify(merged)); }catch(e){}
     }catch(e){}
   }
   // Cache-buster pra forçar carregamento sem cache na nova aba
