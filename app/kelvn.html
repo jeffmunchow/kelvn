@@ -1977,7 +1977,7 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div class="field" style="flex:1;min-width:0;">
-      <label style="white-space:nowrap;font-size:.6rem;letter-spacing:0;">Valor total (R$)</label>
+      <label style="white-space:nowrap;">Valor total (R$)</label>
       <div style="display:flex;align-items:center;gap:.4rem;">
         <input type="number" id="mc-valor" placeholder="0" oninput="recalcP()" style="width:100%;flex:1;">
         <button onclick="addCEvento()" title="Adicionar evento" style="background:none;border:.5px solid var(--border-strong);border-radius:var(--radius-sm);color:var(--text-muted);width:28px;height:28px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg></button>
@@ -2722,7 +2722,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.9.6';
+var APP_VERSION = 'v1.9.7';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
