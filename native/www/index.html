@@ -497,6 +497,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 #ov-p .field input:focus,#ov-p .field select:focus,#ov-p .field textarea:focus,
 #ov-gal .field input:focus,#ov-gal .field select:focus,#ov-gal .field textarea:focus,
 #ov-qt .field input:focus,#ov-qt .field select:focus,#ov-qt .field textarea:focus{border-color:var(--border-strong);}
+/* modal de Cliente: altura idêntica em todos os controles da linha (input, calendário, status) — evita diferença de 1px do zoom:0.9 entre <input> e <div> */
+#ov-c .field input,#ov-c .field .medt-btn,#ov-c #mc-status-btn{height:34px;}
 /* Análises › Definir metas: sem borda âmbar no foco dos inputs */
 #an-metas-definir .fi:focus{border-color:var(--border-strong);}
 /* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
@@ -2722,7 +2724,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.9.7';
+var APP_VERSION = 'v1.9.8';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
