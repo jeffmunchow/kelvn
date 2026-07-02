@@ -81,12 +81,18 @@ async function acOAuthIniciar(req, res) {
   const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
   if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
+  // 'popup': o front abriu esta URL numa janela popup (window.open) e espera o
+  // resultado via postMessage. 'redirect' (padrão): navegação de página inteira,
+  // resultado via query string (?meta=...) — usado pelo app nativo e como fallback
+  // caso o navegador bloqueie o popup. O modo viaja dentro do state (Facebook o
+  // devolve inalterado no callback), não como query solta — assim não dá pra falsificar.
+  const modo    = req.query.modo === 'popup' ? 'popup' : 'redirect';
   const state   = crypto.randomUUID();
   const expira  = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
   await supabase.from('dados_usuario').upsert({
     user_id: user.id, modulo: 'meta_oauth', chave: 'state',
-    valor: { state, expira },
+    valor: { state, expira, modo },
   }, { onConflict: 'user_id,modulo,chave' });
 
   const redirectUri = process.env.META_REDIRECT_URI ||
@@ -103,23 +109,52 @@ async function acOAuthIniciar(req, res) {
   return res.redirect(302, `https://www.facebook.com/${META_VERSION}/dialog/oauth?${params}`);
 }
 
+// Responde ao fim do fluxo OAuth de acordo com o modo salvo no state:
+// - popup: uma página HTML mínima que avisa a janela que abriu (via postMessage)
+//   e se fecha sozinha.
+// - redirect: o comportamento clássico, volta pra Kelvn com ?meta=... na URL.
+function _oauthResponder(res, modo, result) {
+  if (modo === 'popup') {
+    const payload = JSON.stringify({ tipo: 'meta-ads-oauth', ...result })
+      .replace(/</g, '\\u003c'); // evita que um valor vindo do Facebook feche a tag <script> antes da hora
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(200).send(
+      '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Kelvn</title></head><body>' +
+      '<script>try{if(window.opener){window.opener.postMessage(' + payload + ',\'https://app.kelvn.com.br\');}}catch(e){}window.close();</script>' +
+      'Pode fechar esta janela.</body></html>'
+    );
+  }
+  if (result.status === 'conectado') return res.redirect(302, 'https://app.kelvn.com.br/?meta=conectado');
+  if (result.status === 'escolher_conta') {
+    const cp = encodeURIComponent(JSON.stringify(result.contas || []));
+    return res.redirect(302, `https://app.kelvn.com.br/?meta=escolher_conta&contas=${cp}`);
+  }
+  return res.redirect(302, `https://app.kelvn.com.br/?meta=erro&motivo=${result.motivo || 'interno'}`);
+}
+
 // ── OAuth: callback ───────────────────────────────────────────────────────────
 
 async function acOAuthCallback(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
   const { code, state, error: metaError } = req.query;
-  if (metaError) return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=negado');
-  if (!code || !state) return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=parametros');
+
+  // Sem state não dá pra saber se veio de popup ou de redirect — cai no
+  // comportamento clássico (mais compatível) por segurança.
+  if (!state) return _oauthResponder(res, 'redirect', { status: 'erro', motivo: 'parametros' });
 
   const supabase = sbService();
   const { data: rows } = await supabase.from('dados_usuario')
     .select('user_id, valor').eq('modulo', 'meta_oauth').eq('chave', 'state');
 
-  const row = (rows || []).find(r => r.valor?.state === state);
-  if (!row) return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=csrf');
+  const row  = (rows || []).find(r => r.valor?.state === state);
+  const modo = row?.valor?.modo === 'popup' ? 'popup' : 'redirect';
+
+  if (metaError) return _oauthResponder(res, modo, { status: 'erro', motivo: 'negado' });
+  if (!code) return _oauthResponder(res, modo, { status: 'erro', motivo: 'parametros' });
+  if (!row) return _oauthResponder(res, modo, { status: 'erro', motivo: 'csrf' });
   if (new Date(row.valor.expira) < new Date())
-    return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=expirado');
+    return _oauthResponder(res, modo, { status: 'erro', motivo: 'expirado' });
 
   const userId = row.user_id;
   await supabase.from('dados_usuario').delete()
@@ -135,7 +170,7 @@ async function acOAuthCallback(req, res) {
         client_secret: process.env.META_APP_SECRET, redirect_uri: redirectUri, code }));
     const tData = await tResp.json();
     if (!tData.access_token)
-      return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=token');
+      return _oauthResponder(res, modo, { status: 'erro', motivo: 'token' });
 
     // Token de longa duração
     const lResp = await fetch(`https://graph.facebook.com/${META_VERSION}/oauth/access_token?` +
@@ -144,7 +179,7 @@ async function acOAuthCallback(req, res) {
         fb_exchange_token: tData.access_token }));
     const lData = await lResp.json();
     if (!lData.access_token)
-      return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=token_long');
+      return _oauthResponder(res, modo, { status: 'erro', motivo: 'token_long' });
 
     const accessToken = lData.access_token;
     const expiraEm    = lData.expires_in
@@ -156,23 +191,25 @@ async function acOAuthCallback(req, res) {
     const actsData = await actsResp.json();
     const contas   = (actsData.data || []).filter(a => a.account_status === 1);
     if (!contas.length)
-      return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=sem_conta');
+      return _oauthResponder(res, modo, { status: 'erro', motivo: 'sem_conta' });
 
     if (contas.length > 1) {
       await supabase.from('dados_usuario').upsert({
         user_id: userId, modulo: 'meta_oauth', chave: 'token_pendente',
         valor: { accessToken, expiraEm, contas },
       }, { onConflict: 'user_id,modulo,chave' });
-      const cp = encodeURIComponent(JSON.stringify(contas.map(c => ({ id: c.id, name: c.name }))));
-      return res.redirect(302, `https://app.kelvn.com.br/?meta=escolher_conta&contas=${cp}`);
+      return _oauthResponder(res, modo, {
+        status: 'escolher_conta',
+        contas: contas.map(c => ({ id: c.id, name: c.name })),
+      });
     }
 
     await _salvarConexao(supabase, userId, accessToken, expiraEm, contas[0].id, contas[0].name);
-    return res.redirect(302, 'https://app.kelvn.com.br/?meta=conectado');
+    return _oauthResponder(res, modo, { status: 'conectado' });
 
   } catch (err) {
     console.error('meta callback error:', err.message);
-    return res.redirect(302, 'https://app.kelvn.com.br/?meta=erro&motivo=interno');
+    return _oauthResponder(res, modo, { status: 'erro', motivo: 'interno' });
   }
 }
 

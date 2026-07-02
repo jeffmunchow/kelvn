@@ -2724,7 +2724,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.1';
+var APP_VERSION = 'v1.10.2';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3485,11 +3485,83 @@ async function _maAuthToken(){
   return sessionR.data && sessionR.data.session ? sessionR.data.session.access_token : '';
 }
 
+function _maUrlIniciar(token, modo){
+  var url = API_BASE + '/api/meta-ads?action=iniciar&token=' + encodeURIComponent(token);
+  if(modo) url += '&modo=' + modo;
+  return url;
+}
+
 async function maConectar(){
   var token = await _maAuthToken();
-  window.location.href = API_BASE + '/api/meta-ads?action=iniciar&token=' + encodeURIComponent(token);
+  var isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+  if(isNative){
+    // Dentro do app nativo (WKWebView) um popup não é confiável — mantém o redirect de página inteira.
+    window.location.href = _maUrlIniciar(token);
+    return;
+  }
+  var w = 600, h = 700;
+  var left = window.screenX + (window.outerWidth - w) / 2;
+  var top  = window.screenY + (window.outerHeight - h) / 2;
+  var popup = window.open(_maUrlIniciar(token, 'popup'), 'meta_oauth',
+    'width='+w+',height='+h+',left='+left+',top='+top+',resizable=yes,scrollbars=yes');
+  if(!popup){
+    // Bloqueador de popup do navegador: cai pro redirect normal, que sempre funciona.
+    window.location.href = _maUrlIniciar(token);
+    return;
+  }
+  _maAguardarPopup(popup);
 }
 function mkMaConectar(){ maConectar(); }
+
+var _maPopupListenerAtivo = false;
+function _maAguardarPopup(popup){
+  if(_maPopupListenerAtivo) return;
+  _maPopupListenerAtivo = true;
+  var watcher;
+  function limpar(){
+    window.removeEventListener('message', onMessage);
+    clearInterval(watcher);
+    _maPopupListenerAtivo = false;
+  }
+  function onMessage(ev){
+    if(ev.origin !== window.location.origin) return;
+    if(!ev.data || ev.data.tipo !== 'meta-ads-oauth') return;
+    limpar();
+    maProcessarRetornoOAuth(ev.data);
+  }
+  window.addEventListener('message', onMessage);
+  watcher = setInterval(function(){ if(popup.closed) limpar(); }, 500);
+}
+
+function _maMensagemErro(motivo){
+  var mensagens = {
+    negado:     'Você cancelou a conexão com o Meta.',
+    parametros: 'Algo deu errado ao conectar com o Meta. Tenta de novo?',
+    csrf:       'A conexão expirou por segurança. Tenta conectar de novo.',
+    expirado:   'O link de conexão expirou. Tenta conectar de novo.',
+    token:      'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
+    token_long: 'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
+    sem_conta:  'Não encontramos nenhuma conta de anúncios ativa nessa conta do Facebook.',
+    interno:    'Algo deu errado por aqui. Já estamos vendo o que aconteceu.',
+  };
+  return mensagens[motivo] || 'Não conseguimos conectar ao Meta Ads. Tenta de novo?';
+}
+
+// Resultado que chega tanto do popup (postMessage) quanto do redirect de página
+// inteira (maHandleOAuthReturn) — mesma lógica de reação nos dois casos.
+function maProcessarRetornoOAuth(result){
+  if(result.status === 'conectado'){
+    notify('Meta Ads conectado! Já estamos trazendo seus dados.');
+    _maState = { fetched:false, conectado:false, contaNome:'', porPeriodo:{ 7:null, 30:null } };
+    maCarregarEstado(maPeriodoApi(_maPeriod));
+  }else if(result.status === 'escolher_conta'){
+    // TODO: tela de seleção de conta — o backend já guarda token_pendente + a lista de
+    // contas, falta só a UI para escolher. Fora do escopo por ora.
+    notify('Encontramos mais de uma conta de anúncios — em breve você vai poder escolher qual conectar.');
+  }else if(result.status === 'erro'){
+    notify(_maMensagemErro(result.motivo));
+  }
+}
 
 async function maDesconectar(){
   try{
@@ -3620,36 +3692,23 @@ function maRender(){
   setTimeout(maDrawChart, 50);
 }
 
-// Traduz o retorno do OAuth (?meta=conectado|erro|escolher_conta) numa notificação
-// humana e limpa a URL. Chamado uma vez, no login.
+// Fallback do redirect de página inteira (app nativo, ou popup bloqueado pelo navegador).
+// No fluxo normal (popup no navegador) quem processa o retorno é maProcessarRetornoOAuth,
+// via postMessage — esta função só entra em ação quando não houve popup.
+// Retorna true se já disparou o carregamento do estado real (evita buscar 2x no login).
 function maHandleOAuthReturn(){
   var params = new URLSearchParams(window.location.search);
   var meta = params.get('meta');
-  if(!meta) return;
-  if(meta === 'conectado'){
-    notify('Meta Ads conectado! Já estamos trazendo seus dados.');
-    _maState = { fetched:false, conectado:false, contaNome:'', porPeriodo:{ 7:null, 30:null } };
-  }else if(meta === 'escolher_conta'){
-    // TODO: tela de seleção de conta — o backend já guarda token_pendente + a lista de
-    // contas (params 'contas'), falta só a UI para escolher. Fora do escopo por ora.
-    notify('Encontramos mais de uma conta de anúncios — em breve você vai poder escolher qual conectar.');
-  }else if(meta === 'erro'){
-    var motivo = params.get('motivo');
-    var mensagens = {
-      negado:     'Você cancelou a conexão com o Meta.',
-      parametros: 'Algo deu errado ao conectar com o Meta. Tenta de novo?',
-      csrf:       'A conexão expirou por segurança. Tenta conectar de novo.',
-      expirado:   'O link de conexão expirou. Tenta conectar de novo.',
-      token:      'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
-      token_long: 'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
-      sem_conta:  'Não encontramos nenhuma conta de anúncios ativa nessa conta do Facebook.',
-      interno:    'Algo deu errado por aqui. Já estamos vendo o que aconteceu.',
-    };
-    notify(mensagens[motivo] || 'Não conseguimos conectar ao Meta Ads. Tenta de novo?');
+  var jaCarregou = false;
+  if(meta){
+    if(meta === 'conectado'){ maProcessarRetornoOAuth({ status:'conectado' }); jaCarregou = true; }
+    else if(meta === 'escolher_conta') maProcessarRetornoOAuth({ status:'escolher_conta' });
+    else if(meta === 'erro') maProcessarRetornoOAuth({ status:'erro', motivo: params.get('motivo') });
+    params.delete('meta'); params.delete('motivo'); params.delete('contas');
+    var qs = params.toString();
+    history.replaceState(null, '', window.location.pathname + (qs?('?'+qs):'') + window.location.hash);
   }
-  params.delete('meta'); params.delete('motivo'); params.delete('contas');
-  var qs = params.toString();
-  history.replaceState(null, '', window.location.pathname + (qs?('?'+qs):'') + window.location.hash);
+  return jaCarregou;
 }
 
 // ── REDES & ANÚNCIOS (página detalhada) ──────────────────────────────────────
@@ -10545,8 +10604,8 @@ async function onLogin(user){
   await initUserData();
 
   // Meta Ads: traduz o retorno do OAuth (se veio de lá) e carrega o estado real da conexão
-  maHandleOAuthReturn();
-  if(!_maState.fetched){ maCarregarEstado(maPeriodoApi(_maPeriod)); }
+  var _maJaCarregou = maHandleOAuthReturn();
+  if(!_maJaCarregou && !_maState.fetched){ maCarregarEstado(maPeriodoApi(_maPeriod)); }
 
   // Tema: configuracoes.sd.theme (Supabase) é a fonte da verdade; reconcilia o cache
   var _sdTheme=(g('sd')||{}).theme;
