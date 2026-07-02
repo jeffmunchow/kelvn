@@ -965,7 +965,7 @@ select.aj-input{cursor:pointer;}
               <div class="ig-kpi"><div class="ig-kpi-l">Alcance</div><div class="ig-kpi-v" id="ma-alcance">—</div><div class="ig-kpi-d" id="ma-alcance-d"></div></div>
               <div class="ig-kpi"><div class="ig-kpi-l">Impressões</div><div class="ig-kpi-v" id="ma-impressoes">—</div><div class="ig-kpi-d" id="ma-impressoes-d"></div></div>
               <div class="ig-kpi"><div class="ig-kpi-l">CTR</div><div class="ig-kpi-v" id="ma-ctr">—</div><div class="ig-kpi-d" id="ma-ctr-d"></div></div>
-              <div class="ig-kpi"><div class="ig-kpi-l">CPC</div><div class="ig-kpi-v" id="ma-cpc">—</div><div class="ig-kpi-d" id="ma-cpc-d"></div></div>
+              <div class="ig-kpi"><div class="ig-kpi-l">CPL</div><div class="ig-kpi-v" id="ma-cpc">—</div><div class="ig-kpi-d" id="ma-cpc-d"></div></div>
             </div>
             <div style="padding:.6rem 1rem;border-top:.5px solid var(--border);display:flex;justify-content:flex-end;">
               <button style="font-size:.65rem;color:var(--text-hint);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;" onclick="event.stopPropagation();maDesconectar()">Desconectar</button>
@@ -1746,7 +1746,7 @@ select.aj-input{cursor:pointer;}
       <div class="tw">
         <div style="padding:1.25rem 1.5rem .25rem;"><div class="col-title" style="margin:0;">Campanhas</div></div>
         <div class="ts"><table><thead><tr>
-          <th>Campanha</th><th>Status</th><th>Gasto</th><th>Alcance</th><th>CTR</th><th>CPC</th><th>Conversões</th>
+          <th>Campanha</th><th>Status</th><th>Gasto</th><th>Alcance</th><th>CTR</th><th>CPL</th>
         </tr></thead><tbody id="mk-ma-campanhas"></tbody></table></div>
       </div>
     </div>
@@ -2724,7 +2724,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.9.14';
+var APP_VERSION = 'v1.10.0';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3470,84 +3470,121 @@ function igRender(){
   setTimeout(igDrawChart, 50);
 }
 
-// ── META ADS WIDGET ─────────────────────────────────────────────────────────
+// ── META ADS WIDGET (dados reais via /api/meta-ads) ──────────────────────────
 var _maPeriod = 7;
 
-var _maDemo = (function(){
-  function rnd(mn,mx){ return Math.round(mn + Math.random()*(mx-mn)); }
-  var gasto7=[], gasto30=[];
-  for(var i=0;i<7;i++)  gasto7.push(+(18 + Math.random()*34).toFixed(2));
-  for(var i=0;i<30;i++) gasto30.push(+(12 + Math.random()*42).toFixed(2));
-  return {
-    campanhas: 3,
-    gasto:   { v7: gasto7.reduce(function(a,v){return a+v;},0).toFixed(2),  v30: gasto30.reduce(function(a,v){return a+v;},0).toFixed(2)  },
-    gastoArr:{ v7: gasto7, v30: gasto30 },
-    alcance: { v7:'4.2k',  v30:'14.8k', d7:'+18%', d30:'+12%' },
-    impressoes:{ v7:'11.6k',v30:'43k',  d7:'+22%', d30:'+9%'  },
-    ctr:     { v7:'2.4%',  v30:'2.1%',  d7:'+0.3pp', d30:'-0.2pp' },
-    cpc:     { v7:'R$ 1,82',v30:'R$ 2,04',d7:'-8%', d30:'+5%'  },
-    cpm:     { v7:'R$ 12,40',v30:'R$ 13,80', d7:'-4%', d30:'+6%' },
-    conversoes:{ v7:'48',  v30:'162',   d7:'+21%', d30:'+14%' },
-    custoConv:{ v7:'R$ 4,20',v30:'R$ 4,90', d7:'-6%', d30:'+9%' },
-    frequencia:{ v7:'1.8', v30:'2.4',   d7:'+0.2', d30:'+0.4' },
-    campanhasList: [
-      {nome:'Casamentos — Tráfego', status:'Ativa',   gasto:412.80, alcance:'6.2k', ctr:'2.6%', cpc:'R$ 1,74', conv:24},
-      {nome:'Ensaios — Mensagens',  status:'Ativa',   gasto:318.40, alcance:'4.1k', ctr:'2.1%', cpc:'R$ 2,12', conv:16},
-      {nome:'Remarketing — Site',   status:'Ativa',   gasto:216.52, alcance:'2.8k', ctr:'3.4%', cpc:'R$ 1,38', conv:8},
-      {nome:'Awareness — Local',    status:'Pausada', gasto:0,      alcance:'—',    ctr:'—',    cpc:'—',       conv:0},
-    ],
-  };
-})();
+// Estado carregado do backend. porPeriodo[7|30] guarda a resposta crua de
+// ?action=dados por período — evita refazer a chamada de rede a cada re-render
+// do dashboard (rR() roda com muita frequência).
+var _maState = { fetched:false, conectado:false, contaNome:'', porPeriodo:{ 7:null, 30:null } };
 
-function maFmt(n){ return 'R$ '+parseFloat(n).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function maFmt(n){ return 'R$ '+parseFloat(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function maPeriodoApi(days){ return days===30 ? 'last_30d' : 'last_7d'; }
+async function _maAuthToken(){
+  var sessionR = await _sb.auth.getSession();
+  return sessionR.data && sessionR.data.session ? sessionR.data.session.access_token : '';
+}
 
-function maConectar(){ s('ma_conectado', true);  maRender(); }
-function maDesconectar(){ s('ma_conectado', false); maRender(); }
+async function maConectar(){
+  var token = await _maAuthToken();
+  window.location.href = API_BASE + '/api/meta-ads?action=iniciar&token=' + encodeURIComponent(token);
+}
+function mkMaConectar(){ maConectar(); }
+
+async function maDesconectar(){
+  try{
+    var token = await _maAuthToken();
+    var resp = await fetch(API_BASE + '/api/meta-ads?action=desconectar', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    var json = await resp.json();
+    if(!resp.ok || !json.ok) throw new Error('falha');
+    _maState = { fetched:true, conectado:false, contaNome:'', porPeriodo:{ 7:null, 30:null } };
+    maRender();
+    rMarketing();
+    notify('Meta Ads desconectado.');
+  }catch(e){
+    notify('Não conseguimos desconectar agora. Tenta de novo em instantes.');
+  }
+}
+
+// Busca (ou reaproveita) o cache do período pedido e redesenha os dois widgets.
+async function maCarregarEstado(periodoApi){
+  try{
+    var token = await _maAuthToken();
+    var resp = await fetch(API_BASE + '/api/meta-ads?action=dados&periodo=' + periodoApi, {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    if(!resp.ok) throw new Error('falha');
+    var json = await resp.json();
+    _maState.fetched = true;
+    _maState.conectado = !!json.conectado;
+    if(json.conectado){
+      _maState.contaNome = json.conta_nome || '';
+      _maState.porPeriodo[periodoApi === 'last_30d' ? 30 : 7] = json;
+    }
+  }catch(e){
+    _maState.fetched = true;
+    _maState.conectado = false;
+  }
+  maRender();
+  rMarketing();
+}
+
+async function maGarantirPeriodo(days){
+  if(!_maState.conectado) return;
+  if(_maState.porPeriodo[days]) return;
+  await maCarregarEstado(maPeriodoApi(days));
+}
 
 function maPeriod(days, btn){
   _maPeriod = days;
   document.querySelectorAll('#ma-period-wrap .ig-pill').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  maFillMetrics();
-  maDrawChart();
+  maGarantirPeriodo(days).then(function(){ maFillMetrics(); maDrawChart(); });
 }
 
 function maFillMetrics(){
-  var k = 'v' + _maPeriod, dk = 'd' + _maPeriod;
-  var d = _maDemo;
-  var total = parseFloat(d.gasto[k]);
-  document.getElementById('ma-gasto-total').textContent = $m(total);
-  document.getElementById('ma-camp-ativas').textContent = $pv(d.campanhas);
-  var neg = 'color:var(--coral)', pos = 'color:var(--teal)';
-  function deltaColor(v){ return (v.startsWith('-') && !v.includes('pp')) ? neg : pos; }
-  document.getElementById('ma-alcance').textContent    = $pv(d.alcance[k]);
-  document.getElementById('ma-alcance-d').innerHTML   = '<span style="'+deltaColor(d.alcance[dk])+'">'+(_privacidade?'••••':d.alcance[dk])+'</span> vs anterior';
-  document.getElementById('ma-impressoes').textContent = $pv(d.impressoes[k]);
-  document.getElementById('ma-impressoes-d').innerHTML= '<span style="'+deltaColor(d.impressoes[dk])+'">'+(_privacidade?'••••':d.impressoes[dk])+'</span> vs anterior';
-  document.getElementById('ma-ctr').textContent        = $pv(d.ctr[k]);
-  document.getElementById('ma-ctr-d').innerHTML       = '<span style="'+deltaColor(d.ctr[dk])+'">'+(_privacidade?'••••':d.ctr[dk])+'</span> vs anterior';
-  document.getElementById('ma-cpc').textContent        = $pv(d.cpc[k]);
-  document.getElementById('ma-cpc-d').innerHTML       = '<span style="'+deltaColor(d.cpc[dk])+'">'+(_privacidade?'••••':d.cpc[dk])+'</span> vs anterior';
+  var estado = _maState.porPeriodo[_maPeriod];
+  var d = estado && estado.dados;
+  document.getElementById('ma-gasto-total').textContent = d ? $m(parseFloat(d.spend||0)) : '—';
+  document.getElementById('ma-camp-ativas').textContent = d ? $pv(d.campanhas_ativas||0) : '—';
+  document.getElementById('ma-alcance').textContent     = d ? $pv(igFmt(parseFloat(d.reach)||0)) : '—';
+  document.getElementById('ma-alcance-d').textContent   = '';
+  document.getElementById('ma-impressoes').textContent  = d ? $pv(igFmt(parseFloat(d.impressions)||0)) : '—';
+  document.getElementById('ma-impressoes-d').textContent = '';
+  // CTR de conta: o backend hoje não devolve esse campo agregado — fica "—" até existir.
+  document.getElementById('ma-ctr').textContent         = (d && d.ctr) ? $pv(parseFloat(d.ctr).toFixed(2)+'%') : '—';
+  document.getElementById('ma-ctr-d').textContent       = '';
+  // Backend calcula CPL (custo por lead), não CPC — este KPI mostra CPL real.
+  document.getElementById('ma-cpc').textContent         = (d && d.cpl) ? $pv(maFmt(d.cpl)) : '—';
+  document.getElementById('ma-cpc-d').textContent       = '';
 }
 
 function maDrawChart(){ maDrawChartOn('ma-canvas', _maPeriod); }
 
+// Barras = gasto por campanha no período (dado real). O backend não retorna
+// série diária, então não plotamos "por dia" — plotamos por campanha.
 function maDrawChartOn(canvasId, period){
   var canvas = document.getElementById(canvasId);
   if(!canvas) return;
-  var data = _maDemo.gastoArr['v' + period];
+  var estado = _maState.porPeriodo[period];
+  var campanhas = (estado && estado.dados && estado.dados.campaigns) || [];
+  var data = campanhas.map(function(c){ return parseFloat(c.spend) || 0; });
+  var ctx = canvas.getContext('2d');
   var W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 300;
   var H = canvas.offsetHeight || 125;
   canvas.width  = W * window.devicePixelRatio;
   canvas.height = H * window.devicePixelRatio;
-  var ctx = canvas.getContext('2d');
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+  if(!data.length || !data.some(function(v){ return v>0; })) return;
 
   var padL = 6, padR = 6, padT = 6, padB = 4;
   var cW = W - padL - padR;
   var cH = H - padT - padB;
   var mn = 0, mx = Math.max.apply(null, data) * 1.15;
-  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   var barW = Math.max(2, (cW / data.length) * 0.55);
   var gap   = cW / data.length;
 
@@ -3566,12 +3603,11 @@ function maDrawChartOn(canvasId, period){
 }
 
 function maRender(){
-  var conn   = g('ma_conectado') === true;
   var noConn = document.getElementById('ma-no-conn');
   var connEl = document.getElementById('ma-conn');
   var pills  = document.getElementById('ma-period-wrap');
   if(!noConn || !connEl) return;
-  if(!conn){
+  if(!_maState.conectado){
     noConn.style.display = 'flex';
     connEl.style.display = 'none';
     pills.style.display  = 'none';
@@ -3584,12 +3620,43 @@ function maRender(){
   setTimeout(maDrawChart, 50);
 }
 
+// Traduz o retorno do OAuth (?meta=conectado|erro|escolher_conta) numa notificação
+// humana e limpa a URL. Chamado uma vez, no login.
+function maHandleOAuthReturn(){
+  var params = new URLSearchParams(window.location.search);
+  var meta = params.get('meta');
+  if(!meta) return;
+  if(meta === 'conectado'){
+    notify('Meta Ads conectado! Já estamos trazendo seus dados.');
+    _maState = { fetched:false, conectado:false, contaNome:'', porPeriodo:{ 7:null, 30:null } };
+  }else if(meta === 'escolher_conta'){
+    // TODO: tela de seleção de conta — o backend já guarda token_pendente + a lista de
+    // contas (params 'contas'), falta só a UI para escolher. Fora do escopo por ora.
+    notify('Encontramos mais de uma conta de anúncios — em breve você vai poder escolher qual conectar.');
+  }else if(meta === 'erro'){
+    var motivo = params.get('motivo');
+    var mensagens = {
+      negado:     'Você cancelou a conexão com o Meta.',
+      parametros: 'Algo deu errado ao conectar com o Meta. Tenta de novo?',
+      csrf:       'A conexão expirou por segurança. Tenta conectar de novo.',
+      expirado:   'O link de conexão expirou. Tenta conectar de novo.',
+      token:      'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
+      token_long: 'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
+      sem_conta:  'Não encontramos nenhuma conta de anúncios ativa nessa conta do Facebook.',
+      interno:    'Algo deu errado por aqui. Já estamos vendo o que aconteceu.',
+    };
+    notify(mensagens[motivo] || 'Não conseguimos conectar ao Meta Ads. Tenta de novo?');
+  }
+  params.delete('meta'); params.delete('motivo'); params.delete('contas');
+  var qs = params.toString();
+  history.replaceState(null, '', window.location.pathname + (qs?('?'+qs):'') + window.location.hash);
+}
+
 // ── REDES & ANÚNCIOS (página detalhada) ──────────────────────────────────────
 var _mkIgPeriod = 30;
 var _mkMaPeriod = 7;
 
 function mkIgConectar(){ s('ig_conectado', true); rMarketing(); igRender(); }
-function mkMaConectar(){ s('ma_conectado', true); rMarketing(); maRender(); }
 
 function mkIgPeriod(days, btn){
   _mkIgPeriod = days;
@@ -3602,8 +3669,7 @@ function mkMaPeriod(days, btn){
   _mkMaPeriod = days;
   document.querySelectorAll('#mk-ma-period .ig-pill').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  mkMaFill();
-  rFunil();
+  maGarantirPeriodo(days).then(function(){ mkMaFill(); rFunil(); });
 }
 
 // barra horizontal rotulada (audiência / localização)
@@ -3660,38 +3726,39 @@ function mkIgFill(){
 function mkIgDraw(){ igDrawChartOn('mk-ig-canvas', _mkIgPeriod); }
 
 function mkMaFill(){
-  var d = _maDemo, k='v'+_mkMaPeriod, dk='d'+_mkMaPeriod;
+  var estado = _maState.porPeriodo[_mkMaPeriod];
+  var d = estado && estado.dados;
+  var campanhas = (d && d.campaigns) || [];
   if(_privacidade){
     document.getElementById('mk-ma-kpis').innerHTML =
       mkKpi('Gasto no período', '••••', null, '') +
-      mkKpi('Alcance', '••••', '••') +
-      mkKpi('Impressões', '••••', '••') +
-      mkKpi('CTR', '••••', '••') +
-      mkKpi('CPC', '••••', '••') +
-      mkKpi('CPM', '••••', '••') +
-      mkKpi('Conversões', '••••', '••') +
-      mkKpi('Custo / conversão', '••••', '••');
-    document.getElementById('mk-ma-campanhas').innerHTML = d.campanhasList.map(function(c){
-      var stCls = c.status==='Ativa' ? 'bw' : 'bp';
-      return '<tr><td style="color:var(--text);">'+c.nome+'</td><td><span class="badge '+stCls+'">'+c.status+'</span></td><td>••••</td><td>••••</td><td>••</td><td>••</td><td>••</td></tr>';
+      mkKpi('Alcance', '••••') +
+      mkKpi('Impressões', '••••') +
+      mkKpi('CTR', '••••') +
+      mkKpi('CPL', '••••');
+    document.getElementById('mk-ma-campanhas').innerHTML = campanhas.map(function(c){
+      var ativa = c.status === 'ACTIVE';
+      return '<tr><td style="color:var(--text);">'+esc(c.campaign_name)+'</td><td><span class="badge '+(ativa?'bw':'bp')+'">'+(ativa?'Ativa':'Pausada')+'</span></td><td>••••</td><td>••••</td><td>••</td><td>••</td></tr>';
     }).join('');
   }else{
     document.getElementById('mk-ma-kpis').innerHTML =
-      mkKpi('Gasto no período', maFmt(d.gasto[k]), null, '') +
-      mkKpi('Alcance', d.alcance[k], d.alcance[dk]) +
-      mkKpi('Impressões', d.impressoes[k], d.impressoes[dk]) +
-      mkKpi('CTR', d.ctr[k], d.ctr[dk]) +
-      mkKpi('CPC', d.cpc[k], d.cpc[dk]) +
-      mkKpi('CPM', d.cpm[k], d.cpm[dk]) +
-      mkKpi('Conversões', d.conversoes[k], d.conversoes[dk]) +
-      mkKpi('Custo / conversão', d.custoConv[k], d.custoConv[dk]);
-    document.getElementById('mk-ma-campanhas').innerHTML = d.campanhasList.map(function(c){
-      var stCls = c.status==='Ativa' ? 'bw' : 'bp';
-      return '<tr><td style="color:var(--text);">'+c.nome+'</td><td><span class="badge '+stCls+'">'+c.status+'</span></td><td>'+(c.gasto?maFmt(c.gasto):'—')+'</td><td>'+c.alcance+'</td><td>'+c.ctr+'</td><td>'+c.cpc+'</td><td>'+(c.conv||'—')+'</td></tr>';
-    }).join('');
+      mkKpi('Gasto no período', d ? maFmt(d.spend) : '—', null, '') +
+      mkKpi('Alcance', d ? igFmt(parseFloat(d.reach)||0) : '—') +
+      mkKpi('Impressões', d ? igFmt(parseFloat(d.impressions)||0) : '—') +
+      mkKpi('CTR', (d && d.ctr) ? parseFloat(d.ctr).toFixed(2)+'%' : '—') +
+      mkKpi('CPL', (d && d.cpl) ? maFmt(d.cpl) : '—');
+    document.getElementById('mk-ma-campanhas').innerHTML = campanhas.length ? campanhas.map(function(c){
+      var ativa = c.status === 'ACTIVE';
+      return '<tr><td style="color:var(--text);">'+esc(c.campaign_name)+'</td>'+
+        '<td><span class="badge '+(ativa?'bw':'bp')+'">'+(ativa?'Ativa':'Pausada')+'</span></td>'+
+        '<td>'+maFmt(c.spend||0)+'</td>'+
+        '<td>'+igFmt(parseFloat(c.reach)||0)+'</td>'+
+        '<td>'+(c.ctr?parseFloat(c.ctr).toFixed(2)+'%':'—')+'</td>'+
+        '<td>'+(c.cpl?maFmt(c.cpl):'—')+'</td></tr>';
+    }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-hint);">Nenhuma campanha encontrada.</td></tr>';
   }
-  document.getElementById('mk-ma-total').textContent = $m(d.gasto[k]);
-  document.getElementById('mk-ma-camp').textContent  = $pv(d.campanhas);
+  document.getElementById('mk-ma-total').textContent = d ? $m(d.spend) : '—';
+  document.getElementById('mk-ma-camp').textContent  = d ? $pv(d.campanhas_ativas||0) : '—';
   mkMaDraw();
 }
 function mkMaDraw(){ maDrawChartOn('mk-ma-canvas', _mkMaPeriod); }
@@ -3708,35 +3775,22 @@ function rMarketing(){
     setTimeout(mkIgDraw, 60);
   }
   // Meta Ads
-  var maConn = g('ma_conectado') === true;
-  document.getElementById('mk-ma-noconn').style.display = maConn ? 'none' : 'flex';
-  document.getElementById('mk-ma-conn').style.display   = maConn ? 'block' : 'none';
-  document.getElementById('mk-ma-period').style.display = maConn ? 'flex' : 'none';
-  if(maConn){
+  document.getElementById('mk-ma-noconn').style.display = _maState.conectado ? 'none' : 'flex';
+  document.getElementById('mk-ma-conn').style.display   = _maState.conectado ? 'block' : 'none';
+  document.getElementById('mk-ma-period').style.display = _maState.conectado ? 'flex' : 'none';
+  if(_maState.conectado){
     mkMaFill();
     setTimeout(mkMaDraw, 60);
   }
   rFunil();
 }
 
-// converte '4.2k' / '43k' / '—' em número; mantém número já numérico
-function parseK(s){
-  if(typeof s === 'number') return s;
-  s = String(s||'').trim();
-  if(s === '' || s === '—') return 0;
-  var m = s.toLowerCase().match(/^([\d.,]+)\s*k$/);
-  if(m) return Math.round(parseFloat(m[1].replace(',','.')) * 1000);
-  return parseFloat(s.replace(',','.')) || 0;
-}
-function parsePct(s){ return parseFloat(String(s||'').replace('%','').replace(',','.')) || 0; }
-
 // funil de vendas: alcance/cliques das redes conectadas + leads/orçamentos/fechados reais do CRM
 function rFunil(){
   var wrap = document.getElementById('mk-funil');
   if(!wrap) return;
   var igConn = g('ig_conectado') === true;
-  var maConn = g('ma_conectado') === true;
-  if(!igConn && !maConn){
+  if(!igConn && !_maState.conectado){
     wrap.innerHTML = '<div style="font-size:.78rem;color:var(--text-hint);font-style:italic;padding:.5rem 0;">Conecte o Instagram ou o Meta Ads acima para ver o funil completo.</div>';
     return;
   }
@@ -3746,10 +3800,13 @@ function rFunil(){
     alcance += dIg.alcance[kIg] || 0;
     cliques += dIg.cliques[kIg] || 0;
   }
-  if(maConn){
-    var dMa = _maDemo, kMa = 'v' + _mkMaPeriod;
-    alcance += parseK(dMa.alcance[kMa]);
-    cliques += Math.round(parseK(dMa.impressoes[kMa]) * parsePct(dMa.ctr[kMa]) / 100);
+  if(_maState.conectado){
+    var estadoMa = _maState.porPeriodo[_mkMaPeriod];
+    var dMa = estadoMa && estadoMa.dados;
+    if(dMa){
+      alcance += parseFloat(dMa.reach) || 0;
+      cliques += Math.round((parseFloat(dMa.impressions)||0) * (parseFloat(dMa.ctr)||0) / 100);
+    }
   }
   var cs = g('clientes');
   var leads = cs.length;
@@ -10486,6 +10543,10 @@ async function onLogin(user){
 
   hideAuthScreen();
   await initUserData();
+
+  // Meta Ads: traduz o retorno do OAuth (se veio de lá) e carrega o estado real da conexão
+  maHandleOAuthReturn();
+  if(!_maState.fetched){ maCarregarEstado(maPeriodoApi(_maPeriod)); }
 
   // Tema: configuracoes.sd.theme (Supabase) é a fonte da verdade; reconcilia o cache
   var _sdTheme=(g('sd')||{}).theme;

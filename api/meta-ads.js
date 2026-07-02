@@ -67,12 +67,22 @@ module.exports = async function handler(req, res) {
 async function acOAuthIniciar(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
-  const user = await validarJWT(req);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  // Esta action é acessada via navegação de página inteira (window.location.href),
+  // não via fetch — não dá para mandar um header Authorization customizado num
+  // redirect de navegador. Por isso, só aqui (e só aqui), aceitamos o JWT também
+  // via query string. Ele nunca é repassado ao Facebook, só usado para identificar
+  // o usuário antes de montar a URL de autorização do Meta.
+  const tokenQuery = typeof req.query.token === 'string' ? req.query.token : null;
+  const authHeader = req.headers.authorization;
+  const token = tokenQuery || (authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null);
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  const supabase = sbService();
+  const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+  if (authErr || !user) return res.status(401).json({ error: 'Unauthorized' });
 
   const state   = crypto.randomUUID();
   const expira  = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-  const supabase = sbService();
 
   await supabase.from('dados_usuario').upsert({
     user_id: user.id, modulo: 'meta_oauth', chave: 'state',
