@@ -1357,7 +1357,7 @@ select.aj-input{cursor:pointer;}
   <!-- SLOTS -->
   <div id="ag2-panel-slots" style="display:none;">
     <div class="sh">
-      <div class="st">Sessões agendadas</div>
+      <div class="st">Reuniões agendadas</div>
       <div class="sa">
         <select class="fi" id="sl-filter" onchange="rSlots()"><option value="upcoming">Próximas</option><option value="all">Todas</option><option value="past">Passadas</option></select>
         <button class="btn primary" onclick="openSlot()">+ Agendar</button>
@@ -1798,7 +1798,7 @@ select.aj-input{cursor:pointer;}
             </div>
           </div>
           <div class="aj-row">
-            <span class="aj-label">Sessão</span>
+            <span class="aj-label">Conta</span>
             <button onclick="doLogout()" style="background:transparent;border:.5px solid var(--border-strong);border-radius:8px;padding:5px 14px;font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--text-muted);cursor:pointer;">Sair da conta</button>
           </div>
         </div>
@@ -2455,7 +2455,7 @@ select.aj-input{cursor:pointer;}
 
 <!-- MODAL AGENDAR SLOT -->
 <div class="overlay" id="ov-sl"><div class="modal">
-  <h2 id="msl-t">Nova sessão</h2>
+  <h2 id="msl-t">Nova reunião</h2>
   <div class="field"><label>Tipo de reunião</label><select id="msl-tipo"><option value="">— selecione —</option></select></div>
   <div class="field"><label>Cliente</label><select id="msl-cliente"><option value="">— nenhum —</option></select></div>
   <div class="field">
@@ -2697,7 +2697,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.11';
+var APP_VERSION = 'v1.10.12';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -7228,7 +7228,7 @@ function rSlots(){
   var now=new Date(),flt=(document.getElementById('sl-filter')||{value:'upcoming'}).value;
   var ss=g('slots').filter(function(s2){var d=new Date(s2.data||0);return flt==='upcoming'?d>=now:flt==='past'?d<now:true;}).sort(function(a,b){return new Date(a.data)-new Date(b.data);});
   var el=document.getElementById('sl-list');
-  if(!ss.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhuma sessão agendada ainda. As que você marcar aparecem aqui.</div>';return;}
+  if(!ss.length){el.innerHTML='<div style="padding:2rem;text-align:center;font-size:.78rem;color:var(--text-hint);font-style:italic;">Nenhuma reunião agendada ainda. As que você marcar aparecem aqui.</div>';return;}
   var statusBdg={'Confirmado':'bw','Pendente':'bc','Cancelado':'bpo','Realizado':'be'};
   el.innerHTML='<div>'+ss.map(function(sl){
     var d=new Date(sl.data||0),tr=g('tiposReuniao').find(function(x){return x.id===sl.tipoId;})||{nome:'—',cor:'var(--amber)',duracao:0};
@@ -7250,8 +7250,8 @@ function openSlot(id){
   var ts=g('tiposReuniao');
   var tsel=document.getElementById('msl-tipo');
   tsel.innerHTML='<option value="">— selecione —</option>'+ts.map(function(t){return '<option value="'+t.id+'">'+t.nome+' ('+t.duracao+'min)</option>';}).join('');
-  if(id){var sl=g('slots').find(function(x){return x.id===id;});if(!sl)return;document.getElementById('msl-t').textContent='Editar sessão';tsel.value=sl.tipoId||'';document.getElementById('msl-cliente').value=sl.clienteId||'';medt2Init(sl.data||'');document.getElementById('msl-local').value=sl.local||'';document.getElementById('msl-status').value=sl.status||'Confirmado';document.getElementById('msl-notas').value=sl.notas||'';document.getElementById('msl-del').style.display='inline-flex';}
-  else{document.getElementById('msl-t').textContent='Nova sessão';['msl-local','msl-notas'].forEach(function(i){document.getElementById(i).value='';});tsel.value='';document.getElementById('msl-cliente').value='';medt2Init('');document.getElementById('msl-status').value='Confirmado';document.getElementById('msl-del').style.display='none';}
+  if(id){var sl=g('slots').find(function(x){return x.id===id;});if(!sl)return;document.getElementById('msl-t').textContent='Editar reunião';tsel.value=sl.tipoId||'';document.getElementById('msl-cliente').value=sl.clienteId||'';medt2Init(sl.data||'');document.getElementById('msl-local').value=sl.local||'';document.getElementById('msl-status').value=sl.status||'Confirmado';document.getElementById('msl-notas').value=sl.notas||'';document.getElementById('msl-del').style.display='inline-flex';}
+  else{document.getElementById('msl-t').textContent='Nova reunião';['msl-local','msl-notas'].forEach(function(i){document.getElementById(i).value='';});tsel.value='';document.getElementById('msl-cliente').value='';medt2Init('');document.getElementById('msl-status').value='Confirmado';document.getElementById('msl-del').style.display='none';}
   kvSelSyncLabel('msl-tipo');kvSelSyncLabel('msl-cliente');kvSelSyncLabel('msl-status');
   document.getElementById('ov-sl').classList.add('open');
 }
@@ -7263,7 +7263,7 @@ function saveSlot(){
   undoBegin();s('slots',ss);
   // Também adiciona na agenda principal
   if(!_slId){var tr=g('tiposReuniao').find(function(x){return x.id===o.tipoId;})||{nome:'Reunião'};var es=g('eventos');es.push({id:uid(),titulo:tr.nome+(o.clienteId?' — '+cN(o.clienteId):''),data:o.data,tipo:'Reunião',clienteId:o.clienteId,local:o.local,notas:o.notas});s('eventos',es);}
-  undoCommit();cov('ov-sl');rSlots();notify('Sessão salva.');
+  undoCommit();cov('ov-sl');rSlots();notify('Reunião salva.');
 }
 function delSlot(){confirmar('',function(){undoBegin();s('slots',g('slots').filter(function(s2){return s2.id!==_slId;}));undoCommit();cov('ov-sl');rSlots();notify('Excluído.');});}
 
