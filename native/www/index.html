@@ -416,7 +416,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .prow input{font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 9px;color:var(--text);outline:none;}
 .prow .medtp-btn{font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:6px 9px;color:var(--text);text-align:left;cursor:pointer;width:100%;}
 .prow .medtp-btn.empty{color:var(--text-hint);}
-#medtP-pop{position:fixed;display:none;width:230px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:300;box-shadow:0 4px 12px rgba(0,0,0,.14);padding:.85rem;}
+#medtP-pop,#medtCE-pop{position:fixed;display:none;width:230px;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:300;box-shadow:0 4px 12px rgba(0,0,0,.14);padding:.85rem;}
 .pchk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .pchk.paid{background:var(--teal);border-color:var(--teal);}
 .pdel{background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:.8rem;width:24px;height:24px;}
@@ -1989,6 +1989,15 @@ select.aj-input{cursor:pointer;}
       <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
       <div class="medt-days" id="medtP-days"></div>
     </div>
+    <div id="medtCE-pop">
+      <div class="medt-head">
+        <button type="button" onclick="medtCENav(-1)">‹</button>
+        <span id="medtCE-mes"></span>
+        <button type="button" onclick="medtCENav(1)">›</button>
+      </div>
+      <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+      <div class="medt-days" id="medtCE-days"></div>
+    </div>
   </div>
   <div class="field" style="margin-top:1rem;"><label>Notas</label><textarea id="mc-notas" rows="3" placeholder="Preferências, estilo, observações..."></textarea></div>
 
@@ -2381,7 +2390,21 @@ select.aj-input{cursor:pointer;}
   <h2 id="mqr-t">Enviar questionário</h2>
   <div class="field"><label>Cliente</label><select id="mqr-cliente"><option value="">— selecione —</option></select></div>
   <div class="field"><label>Template</label><select id="mqr-template"><option value="">— selecione —</option></select></div>
-  <div class="field"><label>Data de envio</label><input type="text" class="sd" maxlength="10" id="mqr-data" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+  <div class="field">
+    <label>Data de envio</label>
+    <div class="medt-wrap" id="medtQ-wrap">
+      <div class="medt-btn" onclick="medtQToggle()"><span id="medtQ-lbl" class="ph">Selecionar data</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="medt-pop" id="medtQ-pop">
+        <div class="medt-head">
+          <button type="button" onclick="medtQNav(-1)">‹</button>
+          <span id="medtQ-mes"></span>
+          <button type="button" onclick="medtQNav(1)">›</button>
+        </div>
+        <div class="medt-wd"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="medt-days" id="medtQ-days"></div>
+      </div>
+    </div>
+  </div>
   <div class="field"><label>Status</label><select id="mqr-status"><option>Pendente</option><option>Enviado</option><option>Respondido</option></select></div>
   <div class="ma">
     <button class="btn" style="color:var(--coral);display:none;" id="mqr-del" onclick="delQR()">Excluir</button>
@@ -2673,7 +2696,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.5';
+var APP_VERSION = 'v1.10.6';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3844,7 +3867,7 @@ function rCEventos(){
       +'</div>'
       +'<div id="cev-drop-'+i+'" class="glass-drop" style="display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);z-index:200;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.1);">'+dropOpts+'</div>'
       +'</div>';
-    return '<div class="field"><input type="text" class="sd" maxlength="10" placeholder="DD/MM/AAAA" value="'+i2d(ev.data||'')+'" oninput="sdM(this)" onchange="_cEventos['+i+'].data=d2i(this.value)"></div>'
+    return '<div class="field"><div class="medt-btn medtce-btn" onclick="medtCEOpen('+i+',this)"><span class="'+(ev.data?'':'ph')+'">'+(ev.data?i2d(ev.data):'Selecionar data')+'</span><svg width="10" height="10" viewBox="0 0 10 10" style="opacity:.5;flex-shrink:0;"><path d="M2 4l3-3 3 3M2 6l3 3 3-3" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>'
       +'<div class="field"><input type="text" placeholder="Igreja, espaço, cidade" value="'+(ev.local||'')+'" oninput="_cEventos['+i+'].local=this.value"></div>'
       +'<div class="field">'+statusDrop+'</div>'
       +'<div class="field" style="display:flex;align-items:center;gap:.4rem;"><input type="number" placeholder="0" style="flex:1;min-width:0;" value="'+(ev.valor||'')+'" oninput="_cEventos['+i+'].valor=parseFloat(this.value)||0"><button onclick="_cEventos.splice('+i+',1);rCEventos()" style="background:none;border:none;color:var(--text-hint);cursor:pointer;font-size:.85rem;flex-shrink:0;width:28px;text-align:center;">✕</button></div>';
@@ -3921,6 +3944,7 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('.kvsel-wrap')) document.querySelectorAll('.kvsel-drop').forEach(function(d){d.style.display='none';});
   if(!e.target.closest('.medt-wrap')) document.querySelectorAll('.medt-pop').forEach(function(p){p.style.display='none';});
   if(!e.target.closest('#medtP-pop') && !e.target.closest('.medtp-btn')) { var mpp=document.getElementById('medtP-pop'); if(mpp) mpp.style.display='none'; }
+  if(!e.target.closest('#medtCE-pop') && !e.target.closest('.medtce-btn')) { var mce=document.getElementById('medtCE-pop'); if(mce) mce.style.display='none'; }
 });
 
 // ── MEDT — calendário próprio (data e hora) do modal de Evento ──────────────
@@ -4091,6 +4115,49 @@ function medtPPick(y,m,d){
   bPD();
 }
 
+// ── MEDTCE — calendário próprio, sem hora, compartilhado pelas linhas de eventos extras (modal Cliente) ──
+var _medtCEIdx=null,_medtCEViewY=new Date().getFullYear(),_medtCEViewM=new Date().getMonth();
+function medtCEOpen(i,btnEl){
+  _medtCEIdx=i;
+  var dStr=_cEventos[i]&&_cEventos[i].data?_cEventos[i].data:'';
+  if(dStr){var dp=dStr.split('-');_medtCEViewY=parseInt(dp[0],10);_medtCEViewM=parseInt(dp[1],10)-1;}
+  else{_medtCEViewY=new Date().getFullYear();_medtCEViewM=new Date().getMonth();}
+  var pop=document.getElementById('medtCE-pop');
+  var r=btnEl.getBoundingClientRect();
+  pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
+  medtCERenderCal();
+  pop.style.display='block';
+}
+function medtCENav(delta){
+  _medtCEViewM+=delta;
+  if(_medtCEViewM<0){_medtCEViewM=11;_medtCEViewY--;}
+  if(_medtCEViewM>11){_medtCEViewM=0;_medtCEViewY++;}
+  medtCERenderCal();
+}
+function medtCERenderCal(){
+  document.getElementById('medtCE-mes').textContent=MEDT_MESES[_medtCEViewM]+' '+_medtCEViewY;
+  var dStr=_cEventos[_medtCEIdx]&&_cEventos[_medtCEIdx].data?_cEventos[_medtCEIdx].data:'';
+  var selY=null,selM=null,selD=null;
+  if(dStr){var dp=dStr.split('-');selY=parseInt(dp[0],10);selM=parseInt(dp[1],10)-1;selD=parseInt(dp[2],10);}
+  var primeiro=new Date(_medtCEViewY,_medtCEViewM,1).getDay();
+  var totalDias=new Date(_medtCEViewY,_medtCEViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtCEViewY,_medtCEViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(selY===_medtCEViewY&&selM===_medtCEViewM&&selD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtCEPick('+_medtCEViewY+','+_medtCEViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtCE-days').innerHTML=html;
+}
+function medtCEPick(y,m,d){
+  _cEventos[_medtCEIdx].data=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  document.getElementById('medtCE-pop').style.display='none';
+  rCEventos();
+}
+
 // ── MEDTD — calendário próprio, sem hora, campo "Data" do modal de Cliente ──
 var _medtDY=null,_medtDM=null,_medtDD=null,_medtDViewY=new Date().getFullYear(),_medtDViewM=new Date().getMonth();
 function medtDInit(isoStr){
@@ -4199,6 +4266,61 @@ function medtTPick(y,m,d){
 function medtTGetValue(){
   if(_medtTY===null) return '';
   return String(_medtTD).padStart(2,'0')+'/'+String(_medtTM+1).padStart(2,'0')+'/'+_medtTY;
+}
+
+// ── MEDTQ — calendário próprio, sem hora, campo "Data de envio" do modal de Questionário ──
+var _medtQY=null,_medtQM=null,_medtQD=null,_medtQViewY=new Date().getFullYear(),_medtQViewM=new Date().getMonth();
+function medtQInit(isoStr){
+  if(isoStr){
+    var dp=isoStr.split('-');
+    _medtQY=parseInt(dp[0],10);_medtQM=parseInt(dp[1],10)-1;_medtQD=parseInt(dp[2],10);
+    _medtQViewY=_medtQY;_medtQViewM=_medtQM;
+  }else{
+    _medtQY=_medtQM=_medtQD=null;_medtQViewY=new Date().getFullYear();_medtQViewM=new Date().getMonth();
+  }
+  medtQUpdateLabel();
+}
+function medtQUpdateLabel(){
+  var lbl=document.getElementById('medtQ-lbl');
+  if(_medtQY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+  lbl.classList.remove('ph');
+  lbl.textContent=String(_medtQD).padStart(2,'0')+'/'+String(_medtQM+1).padStart(2,'0')+'/'+_medtQY;
+}
+function medtQToggle(){
+  var pop=document.getElementById('medtQ-pop');
+  if(pop.style.display==='block'){pop.style.display='none';return;}
+  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+  medtQRenderCal();
+  pop.style.display='block';
+}
+function medtQNav(delta){
+  _medtQViewM+=delta;
+  if(_medtQViewM<0){_medtQViewM=11;_medtQViewY--;}
+  if(_medtQViewM>11){_medtQViewM=0;_medtQViewY++;}
+  medtQRenderCal();
+}
+function medtQRenderCal(){
+  document.getElementById('medtQ-mes').textContent=MEDT_MESES[_medtQViewM]+' '+_medtQViewY;
+  var primeiro=new Date(_medtQViewY,_medtQViewM,1).getDay();
+  var totalDias=new Date(_medtQViewY,_medtQViewM+1,0).getDate();
+  var diasMesAnt=new Date(_medtQViewY,_medtQViewM,0).getDate();
+  var html='';
+  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
+  for(var d=1;d<=totalDias;d++){
+    var sel=(_medtQY===_medtQViewY&&_medtQM===_medtQViewM&&_medtQD===d);
+    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtQPick('+_medtQViewY+','+_medtQViewM+','+d+')">'+d+'</button>';
+  }
+  var resto=(primeiro+totalDias)%7;
+  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
+  document.getElementById('medtQ-days').innerHTML=html;
+}
+function medtQPick(y,m,d){
+  _medtQY=y;_medtQM=m;_medtQD=d;
+  medtQRenderCal();medtQUpdateLabel();
+}
+function medtQGetValue(){
+  if(_medtQY===null) return '';
+  return String(_medtQD).padStart(2,'0')+'/'+String(_medtQM+1).padStart(2,'0')+'/'+_medtQY;
 }
 
 // ── MEDTG — calendário próprio, sem hora, campo "Data do evento" da Galeria ──
@@ -7439,12 +7561,12 @@ function openQR(id){
   if(id){
     var r=g('q_respostas').find(function(x){return x.id===id;});if(!r)return;
     document.getElementById('mqr-cliente').value=r.clienteId||'';tsel.value=r.templateId||'';
-    document.getElementById('mqr-data').value=fd(r.data);document.getElementById('mqr-status').value=r.status||'Pendente';
+    medtQInit(r.data||'');document.getElementById('mqr-status').value=r.status||'Pendente';
     document.getElementById('mqr-del').style.display='inline-flex';
   }else{
     document.getElementById('mqr-cliente').value='';tsel.value='';
     var td=new Date(),ts2=String(td.getDate()).padStart(2,'0')+'/'+String(td.getMonth()+1).padStart(2,'0')+'/'+td.getFullYear();
-    document.getElementById('mqr-data').value=ts2;document.getElementById('mqr-status').value='Enviado';
+    medtQInit(d2i(ts2));document.getElementById('mqr-status').value='Enviado';
     document.getElementById('mqr-del').style.display='none';
   }
   kvSelSyncLabel('mqr-cliente');kvSelSyncLabel('mqr-template');kvSelSyncLabel('mqr-status');
@@ -7452,7 +7574,7 @@ function openQR(id){
 }
 function saveQR(){
   var rs=g('q_respostas');
-  var o={id:_qrId||uid(),clienteId:document.getElementById('mqr-cliente').value,templateId:document.getElementById('mqr-template').value,data:d2i(document.getElementById('mqr-data').value),status:document.getElementById('mqr-status').value,respostas:_qrId?(rs.find(function(r){return r.id===_qrId;})||{}).respostas||{}:{}};
+  var o={id:_qrId||uid(),clienteId:document.getElementById('mqr-cliente').value,templateId:document.getElementById('mqr-template').value,data:d2i(medtQGetValue()),status:document.getElementById('mqr-status').value,respostas:_qrId?(rs.find(function(r){return r.id===_qrId;})||{}).respostas||{}:{}};
   if(!o.clienteId){alert('Selecione um cliente.');return;}
   if(_qrId){var i=rs.findIndex(function(r){return r.id===_qrId;});if(i>-1)rs[i]=o;}else rs.push(o);
   undoBegin();s('q_respostas',rs);undoCommit();cov('ov-qr');rQR();notify('Salvo.');
