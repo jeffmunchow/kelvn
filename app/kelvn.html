@@ -259,7 +259,7 @@ html{overflow-x:hidden;}
 .st{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;}
 .sa{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 .fi{font-family:'DM Sans',sans-serif;font-size:.75rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius);padding:6px 10px;color:var(--text);outline:none;height:28px;box-sizing:border-box;}
-.fi:focus{border-color:var(--amber);}
+.fi:focus{border-color:var(--border-strong);}
 /* TABLE */
 .tw{background:var(--surface);border-radius:var(--radius);overflow:hidden;}
 .ts{overflow-x:auto;}
@@ -326,7 +326,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .fkv{font-size:1.1rem;font-weight:500;letter-spacing:-.02em;}
 .ta{display:flex;gap:8px;margin-bottom:1.25rem;}
 .ti{flex:1;font-family:'DM Sans',sans-serif;font-size:.82rem;background:var(--surface);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text);outline:none;}
-.ti:focus{border-color:var(--amber);}
+.ti:focus{border-color:var(--border-strong);}
 .tdi{display:flex;align-items:center;gap:10px;padding:.7rem 0;border-bottom:.5px solid var(--border);}
 .tdi:last-child{border-bottom:none;}
 .tck{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-strong);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -403,7 +403,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .field label{display:block;font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}
 .field input::placeholder,.field textarea::placeholder{color:var(--text-hint);opacity:1;}
 .field input,.field select,.field textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:.88rem;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 11px;color:var(--text);outline:none;}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--amber);}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--border-strong);}
 .field textarea{resize:vertical;min-height:72px;}
 .kelvn-check{appearance:none;-webkit-appearance:none;width:14px;height:14px;flex-shrink:0;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:3px;cursor:pointer;position:relative;}
 .kelvn-check:checked{background:var(--surface2);border-color:var(--border-strong);}
@@ -488,19 +488,8 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 #ov-f .btn.primary:hover{background:var(--surface2);opacity:1;}
 #ov-fp .btn.primary{background:transparent;color:var(--text);border-color:var(--border-strong);}
 #ov-fp .btn.primary:hover{background:var(--surface2);opacity:1;}
-/* modais de Entrada/Saída, calculadora de Impostos, Evento e Cliente: sem borda âmbar no foco — mantém a borda padrão */
-#ov-f .field input:focus,#ov-f .field select:focus,#ov-f .field textarea:focus,
-#ov-fp .field input:focus,#ov-fp .field select:focus,#ov-fp .field textarea:focus,
-#fp-panel-imp .field input:focus,#fp-panel-imp .field select:focus,
-#ov-e .field input:focus,#ov-e .field select:focus,#ov-e .field textarea:focus,
-#ov-c .field input:focus,#ov-c .field select:focus,#ov-c .field textarea:focus,
-#ov-p .field input:focus,#ov-p .field select:focus,#ov-p .field textarea:focus,
-#ov-gal .field input:focus,#ov-gal .field select:focus,#ov-gal .field textarea:focus,
-#ov-qt .field input:focus,#ov-qt .field select:focus,#ov-qt .field textarea:focus{border-color:var(--border-strong);}
 /* modal de Cliente: altura idêntica em todos os controles da linha (input, calendário, status) — evita diferença de 1px do zoom:0.9 entre <input> e <div> */
 #ov-c .field input,#ov-c .field .medt-btn,#ov-c #mc-status-btn{height:34px;}
-/* Análises › Definir metas: sem borda âmbar no foco dos inputs */
-#an-metas-definir .fi:focus{border-color:var(--border-strong);}
 /* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
 #ov-f .modal,#ov-fp .modal,#ov-e .modal,#ov-sl .modal,#ov-p .modal,#ov-gal .modal{overflow:visible;}
 /* dropdown Kelvn dentro de campos de modal: igual a um .field select (surface2, largura total) */
@@ -531,7 +520,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .auth-field{margin-bottom:1rem;}
 .auth-field label{display:block;font-size:.7rem;color:var(--text-muted);margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em;}
 .auth-field input{width:100%;padding:9px 12px;border-radius:var(--radius);border:.5px solid var(--border-strong);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;transition:border-color .15s;}
-.auth-field input:focus{border-color:var(--border-strong);}
+
 .auth-btn{width:100%;padding:11px;border-radius:var(--radius);background:var(--text);color:var(--bg);border:none;font-family:'DM Sans',sans-serif;font-size:.85rem;font-weight:500;cursor:pointer;margin-top:.5rem;transition:opacity .15s;}
 .auth-btn:hover{opacity:.82;}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed;}
@@ -2680,7 +2669,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.3';
+var APP_VERSION = 'v1.10.4';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
