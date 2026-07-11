@@ -637,7 +637,7 @@ select.aj-input{cursor:pointer;}
     </div>
   </div>
 <div class="ai-input-area">
-    <textarea class="ai-input" id="aiInput" placeholder="Pergunte aqui…" rows="1" onkeydown="aiKeyDown(event)" oninput="aiAutoResize(this)"></textarea>
+    <textarea class="ai-input" id="aiInput" placeholder="Pergunte o que quiser…" rows="1" onkeydown="aiKeyDown(event)" oninput="aiAutoResize(this)"></textarea>
     <button class="ai-mic" id="aiMicBtn" onclick="aiToggleVoice()" title="Falar" style="display:none;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
     </button>
@@ -744,7 +744,7 @@ select.aj-input{cursor:pointer;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
   </button>
 
-  <button class="snav-btn" id="sn-ia" onclick="toggleAI()" title="Assistente IA">
+  <button class="snav-btn" id="sn-ia" onclick="toggleAI()" title="Assistente Kelvn">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
   </button>
 
@@ -851,7 +851,7 @@ select.aj-input{cursor:pointer;}
     <div class="kpi clickable" onclick="rInadClick()">
       <div class="r-inad-desktop"><div class="kpi-l">Inadimplência</div><div class="kpi-v cc" id="r-inad">R$ 0</div><div class="kpi-s">parcelas vencidas</div></div>
       <div class="r-inad-mobile">
-        <div class="kpi-l">Assistente IA</div>
+        <div class="kpi-l">Assistente Kelvn</div>
         <div class="kpi-v ca" style="display:flex;align-items:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
         <div class="kpi-s">Pergunte o que quiser…</div>
       </div>
@@ -2697,7 +2697,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.13';
+var APP_VERSION = 'v1.10.14';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -10257,7 +10257,7 @@ function aiStopVoice(){
   var mic = document.getElementById('aiMicBtn');
   if(mic) mic.classList.remove('listening');
   var input = document.getElementById('aiInput');
-  if(input) input.setAttribute('placeholder', 'Pergunte aqui…');
+  if(input) input.setAttribute('placeholder', 'Pergunte o que quiser…');
 }
 
 // libera o microfone à força (privacidade) — usado ao fechar a IA, trocar de app/aba ou enviar
