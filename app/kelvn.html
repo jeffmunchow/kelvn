@@ -16,6 +16,9 @@
 <link href="/vendor/fonts.css" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* campos numéricos sem o spinner nativo do WebKit (setas fora do padrão Kelvn) */
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 :root{
   --bg:#F7F4EF;--surface:#FFFFFF;--surface2:#F0EDE6;
   --border:rgba(0,0,0,0.04);--border-strong:rgba(0,0,0,0.09);
@@ -2694,7 +2697,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.8';
+var APP_VERSION = 'v1.10.10';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -4196,7 +4199,7 @@ function saveC(){
     pacote_id:document.getElementById('mc-pacote-id').value,
     servicos:Array.from(document.querySelectorAll('#mc-servicos-wrap .serv-chip')).filter(function(el){return parseInt(el.dataset.qtd||0)>0;}).map(function(el){return {tipo:el.dataset.tipo,qtd:parseInt(el.dataset.qtd||1)};})
   };
-  if(!o.nome){alert('Informe o nome.');return;}
+  if(!o.nome){notify('Informe o nome.');return;}
   if(_cId){var i=cs.findIndex(function(c){return c.id===_cId;});if(i>-1)cs[i]=o;}else cs.push(o);
   undoBegin();s('clientes',cs);
   var _evId='_c_'+o.id;
@@ -4792,7 +4795,7 @@ function gerarPDFOrcamento(opts){
   var addons=(g('addons')||[]).filter(function(a){return opts.addonIds.indexOf(a.id)>-1;});
   var html=_templateKelvnClassico(sd,pacotes,addons,opts);
   var win=window.open('','_blank');
-  if(!win){alert('Pop-up bloqueado. Permita pop-ups para este site.');return;}
+  if(!win){notify('Pop-up bloqueado. Permita pop-ups para este site.');return;}
   win.document.write(html);win.document.close();
   setTimeout(function(){win.print();},800);
 }
@@ -5257,7 +5260,7 @@ function openE(id){
 function saveE(){
   var es=g('eventos');
   var o={id:_eId||uid(),titulo:document.getElementById('me-titulo').value.trim(),data:medtGetIso(),tipo:document.getElementById('me-tipo').value,clienteId:document.getElementById('me-cliente').value,local:document.getElementById('me-local').value.trim(),notas:document.getElementById('me-notas').value.trim()};
-  if(!o.titulo){alert('Informe o título.');return;}
+  if(!o.titulo){notify('Informe o título.');return;}
   if(_eId){var i=es.findIndex(function(e){return e.id===_eId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('eventos',es);undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento salvo.');
 }
@@ -5310,7 +5313,7 @@ function openPend(id){
 function savePend(){
   var ps=g('pends');var ex=_pId?ps.find(function(p){return p.id===_pId;}):null;
   var o={id:_pId||uid(),desc:document.getElementById('mp-desc').value.trim(),clienteId:document.getElementById('mp-cliente').value,prazo:d2i(medtTGetValue()),prio:document.getElementById('mp-prio').value,done:ex?ex.done:false};
-  if(!o.desc){alert('Informe a descrição.');return;}
+  if(!o.desc){notify('Informe a descrição.');return;}
   if(_pId){var i=ps.findIndex(function(p){return p.id===_pId;});if(i>-1)ps[i]=o;}else ps.push(o);
   undoBegin();s('pends',ps);undoCommit();cov('ov-p');rPe();rR();notify('Salvo.');
 }
@@ -5681,7 +5684,7 @@ function openF(tipo,id){
 function saveF(){
   var fs=g('fin');
   var o={id:_fId||uid(),desc:document.getElementById('mf-desc').value.trim(),valor:parseFloat(document.getElementById('mf-valor').value)||0,data:d2i(medtFGetValue()),cat:document.getElementById('mf-cat').value,clienteId:document.getElementById('mf-cliente').value,tipo:document.getElementById('mf-tipo').value};
-  if(!o.desc){alert('Informe a descrição.');return;}
+  if(!o.desc){notify('Informe a descrição.');return;}
   if(_fId){var i=fs.findIndex(function(e){return e.id===_fId;});if(i>-1)fs[i]=o;}else fs.push(o);
   undoBegin();s('fin',fs);undoCommit();cov('ov-f');rF();rR();notify('Salvo.');
 }
@@ -5709,7 +5712,7 @@ function openFP(tipo,id){
 function saveFP(){
   var fs=g('fin_pessoal');
   var o={id:_fpId||uid(),desc:document.getElementById('mfp-desc').value.trim(),valor:parseFloat(document.getElementById('mfp-valor').value)||0,data:d2i(medtFPGetValue()),cat:document.getElementById('mfp-cat').value,tipo:document.getElementById('mfp-tipo').value};
-  if(!o.desc){alert('Informe a descrição.');return;}
+  if(!o.desc){notify('Informe a descrição.');return;}
   if(_fpId){var i=fs.findIndex(function(e){return e.id===_fpId;});if(i>-1)fs[i]=o;}else fs.push(o);
   undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Salvo.');
 }
@@ -6027,7 +6030,7 @@ function exportarBalanco(formato){
 
   // PDF — abre janela de impressão
   var w=window.open('','_blank');
-  if(!w){alert('Permita abrir janelas pop-up para imprimir.');return;}
+  if(!w){notify('Permita abrir janelas pop-up para imprimir.');return;}
   var estudio=(g('sd')||{}).estudio||'';
   function rowsHtml(arr){
     return arr.map(function(e){
@@ -6264,7 +6267,7 @@ function savePK(){
     deslocamento:document.getElementById('mpk-deslocamento').value.trim(),
     itens:document.getElementById('mpk-itens').value.trim()
   };
-  if(!o.nome){alert('Informe o nome.');return;}
+  if(!o.nome){notify('Informe o nome.');return;}
   if(_pkId){var i=ps.findIndex(function(p){return p.id===_pkId;});if(i>-1)ps[i]=o;}else ps.push(o);
   undoBegin();s('pacotes',ps);undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Pacote salvo.');
 }
@@ -6306,7 +6309,7 @@ function openAO(id){
 function saveAO(){
   var aos=g('addons')||[];
   var o={id:_aoId||uid(),nome:document.getElementById('mao-nome').value.trim(),desc:document.getElementById('mao-desc').value.trim(),valor:parseFloat(document.getElementById('mao-valor').value)||0,itens:document.getElementById('mao-itens').value.trim()};
-  if(!o.nome){alert('Informe o nome.');return;}
+  if(!o.nome){notify('Informe o nome.');return;}
   if(_aoId){var i=aos.findIndex(function(a){return a.id===_aoId;});if(i>-1)aos[i]=o;}else aos.push(o);
   s('addons',aos);cov('ov-ao');rAO();rAJServicos();notify('Add-on salvo.');
 }
@@ -6371,7 +6374,7 @@ function openEq(id){
 function saveEq(){
   var es=g('equipe');
   var o={id:_eqId||uid(),nome:document.getElementById('meq-nome').value.trim(),funcao:document.getElementById('meq-funcao').value,email:document.getElementById('meq-email').value.trim(),tel:document.getElementById('meq-tel').value.trim(),notas:document.getElementById('meq-notas').value.trim()};
-  if(!o.nome){alert('Informe o nome.');return;}
+  if(!o.nome){notify('Informe o nome.');return;}
   if(_eqId){var i=es.findIndex(function(e){return e.id===_eqId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('equipe',es);undoCommit();cov('ov-eq');rEQ();notify('Membro salvo.');
 }
@@ -6798,7 +6801,7 @@ function openAuto(id){
     var sel=(a&&a.templateId===t.id)||(!a&&ts[0]&&ts[0].id===t.id);
     return '<option value="'+t.id+'"'+(sel?' selected':'')+'>'+t.nome+'</option>';
   }).join('');
-  if(!tOpts){alert('Crie um template de questionário primeiro.');return;}
+  if(!tOpts){notify('Crie um template de questionário primeiro.');return;}
   var tipoPosEntrega=a&&a.tipo==='pos-entrega';
   var html='<div style="display:flex;flex-direction:column;gap:1rem;">'+
     '<div class="field"><label>Template</label><select id="mauto-template" class="fi">'+tOpts+'</select></div>'+
@@ -7021,7 +7024,7 @@ function addQP(){_qtPerguntas.push({id:uid(),texto:'',tipo:'texto'});buildQPDom(
 function saveQT(){
   var ts=g('q_templates');
   var o={id:_qtId||uid(),nome:document.getElementById('mqt-nome').value.trim(),desc:document.getElementById('mqt-desc').value.trim(),perguntas:_qtPerguntas};
-  if(!o.nome){alert('Informe o nome do template.');return;}
+  if(!o.nome){notify('Informe o nome do template.');return;}
   if(_qtId){var i=ts.findIndex(function(t){return t.id===_qtId;});if(i>-1)ts[i]=o;}else ts.push(o);
   undoBegin();s('q_templates',ts);undoCommit();cov('ov-qt');rQT();notify('Template salvo.');
 }
@@ -7142,7 +7145,7 @@ function openQR(id){
 function saveQR(){
   var rs=g('q_respostas');
   var o={id:_qrId||uid(),clienteId:document.getElementById('mqr-cliente').value,templateId:document.getElementById('mqr-template').value,data:d2i(medtQGetValue()),status:document.getElementById('mqr-status').value,respostas:_qrId?(rs.find(function(r){return r.id===_qrId;})||{}).respostas||{}:{}};
-  if(!o.clienteId){alert('Selecione um cliente.');return;}
+  if(!o.clienteId){notify('Selecione um cliente.');return;}
   if(_qrId){var i=rs.findIndex(function(r){return r.id===_qrId;});if(i>-1)rs[i]=o;}else rs.push(o);
   undoBegin();s('q_respostas',rs);undoCommit();cov('ov-qr');rQR();notify('Salvo.');
 }
@@ -7214,7 +7217,7 @@ function openTR(id){
 function saveTR(){
   var ts=g('tiposReuniao');
   var o={id:_trId||uid(),nome:document.getElementById('mtr-nome').value.trim(),duracao:parseInt(document.getElementById('mtr-dur').value)||60,formato:document.getElementById('mtr-formato').value,cor:document.getElementById('mtr-cor').value,desc:document.getElementById('mtr-desc').value.trim()};
-  if(!o.nome){alert('Informe o nome.');return;}
+  if(!o.nome){notify('Informe o nome.');return;}
   if(_trId){var i=ts.findIndex(function(t){return t.id===_trId;});if(i>-1)ts[i]=o;}else ts.push(o);
   undoBegin();s('tiposReuniao',ts);undoCommit();cov('ov-tr');rTR();notify('Tipo salvo.');
 }
@@ -7255,7 +7258,7 @@ function openSlot(id){
 function saveSlot(){
   var ss=g('slots');
   var o={id:_slId||uid(),tipoId:document.getElementById('msl-tipo').value,clienteId:document.getElementById('msl-cliente').value,data:medt2GetIso(),local:document.getElementById('msl-local').value.trim(),status:document.getElementById('msl-status').value,notas:document.getElementById('msl-notas').value.trim()};
-  if(!o.data){alert('Informe a data e hora.');return;}
+  if(!o.data){notify('Informe a data e hora.');return;}
   if(_slId){var i=ss.findIndex(function(s2){return s2.id===_slId;});if(i>-1)ss[i]=o;}else ss.push(o);
   undoBegin();s('slots',ss);
   // Também adiciona na agenda principal

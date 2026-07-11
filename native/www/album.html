@@ -12,6 +12,9 @@
 <script src="/vendor/jspdf.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+/* campos numéricos sem o spinner nativo do WebKit (setas fora do padrão Kelvn) */
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;appearance:textfield;}
 :root{
   --bg:#F7F4EF;--surface:#FFFFFF;--surface2:#F0EDE6;--surface3:#E8E3DA;
   --border:rgba(0,0,0,0.04);--border-strong:rgba(0,0,0,0.09);
@@ -326,6 +329,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 #modal-share.open{display:flex;}
 .share-link-wrap{display:flex;gap:.5rem;align-items:center;margin:.75rem 0;}
 .share-link-input{flex:1;padding:7px 10px;background:var(--surface2);border:.5px solid var(--border-strong);border-radius:var(--radius);color:var(--text-muted);font-size:.72rem;font-family:monospace;outline:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* toast padrão Kelvn (mesmo do kelvn.html) — substitui os alert() nativos */
+.notif{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:var(--bg);font-size:.78rem;padding:10px 18px;border-radius:var(--radius);z-index:9999;opacity:0;transition:opacity .3s,transform .3s;transform:translateY(8px);pointer-events:none;}
+.notif.show{opacity:1;transform:translateY(0);}
 .share-rodada{font-size:.65rem;color:var(--text-hint);margin-top:.35rem;}
 .share-tema-btn{flex:1;padding:6px 0;font-size:.75rem;font-family:'DM Sans',sans-serif;border-radius:8px;cursor:pointer;border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);outline:none;transition:color .15s;}
 .share-tema-btn:hover{color:var(--text);}
@@ -875,7 +881,7 @@ var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.17';
+var ALBUM_VERSION = '1.7.19';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
@@ -1448,7 +1454,7 @@ async function carregarRevisoes() {
 // Abre o editor no álbum da revisão. abrirModalRevisao marca como visualizado.
 async function abrirRevisaoAlbum(albumId) {
   var { data: album, error } = await _sb.from('albuns').select('*').eq('id', albumId).single();
-  if (error || !album) { alert('Não foi possível abrir este álbum.'); return; }
+  if (error || !album) { notify('Não foi possível abrir este álbum.'); return; }
   await abrirAlbum(album);
   abrirModalRevisao();
 }
@@ -5295,8 +5301,8 @@ function spreadsComFotos() {
 // Abre modal e gera preview
 async function abrirModalAutoLayout() {
   var spreadsTipo = estado.spreads.filter(function(s) { return s.tipo === 'spread'; });
-  if (!spreadsTipo.length) { alert('Adicione spreads ao álbum primeiro.'); return; }
-  if (!estado.pool.length) { alert('O pool de fotos está vazio.'); return; }
+  if (!spreadsTipo.length) { notify('Adicione spreads ao álbum primeiro.'); return; }
+  if (!estado.pool.length) { notify('O pool de fotos está vazio.'); return; }
 
   document.getElementById('modal-autolayout').classList.add('open');
   await gerarPreviewAutoLayout();
@@ -6100,7 +6106,7 @@ async function gerarPdf() {
   } catch(err) {
     btn.disabled = false;
     btn.textContent = 'Gerar PDF';
-    alert('Erro: ' + (err.message || 'Tente novamente.'));
+    notify('Erro: ' + (err.message || 'Tente novamente.'));
   }
 }
 
@@ -6568,10 +6574,13 @@ function esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function notify(m){var n=document.getElementById('notif');if(!n)return;n.textContent=m;n.classList.add('show');setTimeout(function(){n.classList.remove('show');},2200);}
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 init();
 
 </script>
+<div class="notif" id="notif"></div>
 <script src="/app/feedback-widget.js"></script>
 </body>
 </html>
