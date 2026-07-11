@@ -718,7 +718,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <!-- Auto-design -->
         <div class="rpanel-sec" id="sec-autodesign">
           <div class="rpanel-sec-hdr" onclick="toggleSec('autodesign')">
-            <span>Auto-design</span>
+            <span>Montagem automática</span>
             <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
           </div>
           <div class="rpanel-sec-body">
@@ -726,7 +726,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
               <div class="exp-label">Lâminas no álbum</div>
               <input class="form-input" id="ad-num-laminas" type="number" min="1" max="60" style="width:90px;padding:6px 10px;font-size:.78rem;margin-bottom:1rem;">
               <div class="exp-nota" style="width:100%;">As fotos são distribuídas pelas lâminas em ordem cronológica. Lâminas que faltarem são criadas automaticamente.</div>
-              <button class="exp-btn-acao" id="ad-btn" onclick="executarAutoDesign()">Auto-design</button>
+              <button class="exp-btn-acao" id="ad-btn" onclick="executarAutoDesign()">Montar</button>
               <div id="ad-inline-progress" style="display:none;margin-top:.65rem;">
                 <div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;">
                   <div id="ad-inline-bar" style="height:100%;background:var(--amber);border-radius:2px;width:0%;transition:width .35s;"></div>
@@ -759,7 +759,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 <div id="modal-autolayout">
   <div class="modal-box">
     <div class="modal-header">
-      <div class="modal-titulo">Montar álbum automaticamente</div>
+      <div class="modal-titulo">Montagem automática</div>
       <button class="btn btn-sec" onclick="fecharModalAutoLayout()" style="padding:3px 10px;font-size:.72rem;">✕</button>
     </div>
     <div class="modal-opts">
@@ -881,7 +881,7 @@ var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.21';
+var ALBUM_VERSION = '1.7.22';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
@@ -5525,7 +5525,7 @@ async function executarAutoDesign() {
   var n = parseInt(document.getElementById('ad-num-laminas').value);
   if (!n || n < 1) { st.textContent = 'Informe o número de lâminas.'; return; }
   if (!estado.pool.length) { st.textContent = 'Nenhuma foto disponível ainda.'; return; }
-  if (spreadsComFotos().length && !confirm('O auto-design vai remontar as lâminas que já têm fotos. Continuar?')) return;
+  if (spreadsComFotos().length && !confirm('A montagem automática vai remontar as lâminas que já têm fotos. Continuar?')) return;
 
   _adRodando = true;
   var btn = document.getElementById('ad-btn');
@@ -5561,7 +5561,7 @@ async function executarAutoDesign() {
     precarregarAlbum(); // fotos novas em muitas lâminas: reaquece o cache
     st.textContent = alvo.length + (alvo.length === 1 ? ' lâmina montada' : ' lâminas montadas') + ' por cronologia.';
   } catch (e) {
-    st.textContent = 'Erro no auto-design: ' + (e && e.message ? e.message : e);
+    st.textContent = 'Erro na montagem automática: ' + (e && e.message ? e.message : e);
   } finally {
     _adRodando = false;
     btn.disabled = false;
