@@ -2694,7 +2694,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.7';
+var APP_VERSION = 'v1.10.8';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3945,551 +3945,120 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('#medtCE-pop') && !e.target.closest('.medtce-btn')) { var mce=document.getElementById('medtCE-pop'); if(mce) mce.style.display='none'; }
 });
 
-// ── MEDT — calendário próprio (data e hora) do modal de Evento ──────────────
-var _medtY=null,_medtM=null,_medtD=null,_medtViewY=new Date().getFullYear(),_medtViewM=new Date().getMonth(),_medtHora='';
+// ── Calendário Kelvn — fábrica única para todos os campos de data ────────────
+// Cada campo tem no HTML um par <prefixo>-wrap/-pop (ou só -pop, nos compartilhados)
+// e handlers globais <prefixo>Toggle/Nav/Pick/... — os onclick são inline, então a
+// fábrica publica as funções no window com os mesmos nomes de sempre.
 var MEDT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-function medtInit(isoStr){
-  var parts=(isoStr||'').split('T');
-  if(parts[0]){
-    var dp=parts[0].split('-');
-    _medtY=parseInt(dp[0],10);_medtM=parseInt(dp[1],10)-1;_medtD=parseInt(dp[2],10);
-    _medtViewY=_medtY;_medtViewM=_medtM;
-  }else{
-    _medtY=_medtM=_medtD=null;_medtViewY=new Date().getFullYear();_medtViewM=new Date().getMonth();
-  }
-  _medtHora=parts[1]?parts[1].slice(0,5):'';
-  document.getElementById('medt-hora').value=_medtHora;
-  medtUpdateLabel();
-}
-function medtUpdateLabel(){
-  var lbl=document.getElementById('medt-lbl');
-  if(_medtY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  var dStr=String(_medtD).padStart(2,'0')+'/'+String(_medtM+1).padStart(2,'0')+'/'+_medtY;
-  lbl.textContent=dStr+(_medtHora?' às '+_medtHora:'');
-}
-function medtToggle(){
-  var pop=document.getElementById('medt-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medtRenderCal();
-  pop.style.display='block';
-}
-function medtNav(delta){
-  _medtViewM+=delta;
-  if(_medtViewM<0){_medtViewM=11;_medtViewY--;}
-  if(_medtViewM>11){_medtViewM=0;_medtViewY++;}
-  medtRenderCal();
-}
-function medtRenderCal(){
-  document.getElementById('medt-mes').textContent=MEDT_MESES[_medtViewM]+' '+_medtViewY;
-  var primeiro=new Date(_medtViewY,_medtViewM,1).getDay();
-  var totalDias=new Date(_medtViewY,_medtViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtViewY,_medtViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medtY===_medtViewY&&_medtM===_medtViewM&&_medtD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtPick('+_medtViewY+','+_medtViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medt-days').innerHTML=html;
-}
-function medtPick(y,m,d){
-  _medtY=y;_medtM=m;_medtD=d;
-  medtRenderCal();medtUpdateLabel();
-}
 function medtHoraMask(el){var v=el.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+':'+v.slice(2,4);el.value=v;}
-function medtSetHora(){ _medtHora=document.getElementById('medt-hora').value.trim(); medtUpdateLabel(); }
-function medtGetIso(){
-  if(_medtY===null) return '';
-  var dStr=_medtY+'-'+String(_medtM+1).padStart(2,'0')+'-'+String(_medtD).padStart(2,'0');
-  return dStr+'T'+(_medtHora||'00:00');
-}
-
-// ── MEDT2 — mesma lógica, segunda instância (modal "Agendar Slot") ──────────
-var _medt2Y=null,_medt2M=null,_medt2D=null,_medt2ViewY=new Date().getFullYear(),_medt2ViewM=new Date().getMonth(),_medt2Hora='';
-function medt2Init(isoStr){
-  var parts=(isoStr||'').split('T');
-  if(parts[0]){
-    var dp=parts[0].split('-');
-    _medt2Y=parseInt(dp[0],10);_medt2M=parseInt(dp[1],10)-1;_medt2D=parseInt(dp[2],10);
-    _medt2ViewY=_medt2Y;_medt2ViewM=_medt2M;
+function criarCalendario(p,opts){
+  opts=opts||{};
+  var st={Y:null,M:null,D:null,idx:null,viewY:new Date().getFullYear(),viewM:new Date().getMonth(),hora:''};
+  function pad(n){return String(n).padStart(2,'0');}
+  function updateLabel(){
+    var lbl=document.getElementById(p+'-lbl');if(!lbl)return;
+    if(st.Y===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
+    lbl.classList.remove('ph');
+    lbl.textContent=pad(st.D)+'/'+pad(st.M+1)+'/'+st.Y+(opts.hora&&st.hora?' às '+st.hora:'');
+  }
+  function selAtual(){
+    if(!opts.fonte) return {y:st.Y,m:st.M,d:st.D};
+    var iso=opts.fonte(st.idx)||'';
+    if(!iso) return {y:null,m:null,d:null};
+    var dp=iso.split('-');return {y:parseInt(dp[0],10),m:parseInt(dp[1],10)-1,d:parseInt(dp[2],10)};
+  }
+  function renderCal(){
+    document.getElementById(p+'-mes').textContent=MEDT_MESES[st.viewM]+' '+st.viewY;
+    var sel=selAtual();
+    var primeiro=new Date(st.viewY,st.viewM,1).getDay();
+    var totalDias=new Date(st.viewY,st.viewM+1,0).getDate();
+    var diasMesAnt=new Date(st.viewY,st.viewM,0).getDate();
+    var html='';
+    for(var i=0;i<primeiro;i++) html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>';
+    for(var d=1;d<=totalDias;d++){
+      var on=(sel.y===st.viewY&&sel.m===st.viewM&&sel.d===d);
+      html+='<button type="button" class="medt-day'+(on?' sel':'')+'" onclick="'+p+'Pick('+st.viewY+','+st.viewM+','+d+')">'+d+'</button>';
+    }
+    var resto=(primeiro+totalDias)%7;
+    if(resto>0) for(var f=1;f<=7-resto;f++) html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>';
+    document.getElementById(p+'-days').innerHTML=html;
+  }
+  window[p+'Nav']=function(delta){
+    st.viewM+=delta;
+    if(st.viewM<0){st.viewM=11;st.viewY--;}
+    if(st.viewM>11){st.viewM=0;st.viewY++;}
+    renderCal();
+  };
+  if(opts.fonte){
+    // popover compartilhado por linhas dinâmicas: abre por índice, grava via onPick
+    window[p+'Open']=function(i,btnEl){
+      st.idx=i;
+      var iso=opts.fonte(i)||'';
+      if(iso){var dp=iso.split('-');st.viewY=parseInt(dp[0],10);st.viewM=parseInt(dp[1],10)-1;}
+      else{var n=new Date();st.viewY=n.getFullYear();st.viewM=n.getMonth();}
+      var pop=document.getElementById(p+'-pop');
+      var r=btnEl.getBoundingClientRect();
+      pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
+      renderCal();pop.style.display='block';
+    };
+    window[p+'Pick']=function(y,m,d){
+      document.getElementById(p+'-pop').style.display='none';
+      opts.onPick(st.idx,y+'-'+pad(m+1)+'-'+pad(d));
+    };
+    return;
+  }
+  window[p+'Init']=function(v){
+    v=v||'';
+    if(opts.formatoBr&&v){var b=v.split('/');v=b[2]+'-'+b[1]+'-'+b[0];}
+    var parts=v.split('T');
+    if(parts[0]){
+      var dp=parts[0].split('-');
+      st.Y=parseInt(dp[0],10);st.M=parseInt(dp[1],10)-1;st.D=parseInt(dp[2],10);
+      st.viewY=st.Y;st.viewM=st.M;
+    }else{
+      st.Y=st.M=st.D=null;
+      var n=new Date();st.viewY=n.getFullYear();st.viewM=n.getMonth();
+    }
+    st.hora=parts[1]?parts[1].slice(0,5):'';
+    var hEl=document.getElementById(p+'-hora');if(hEl)hEl.value=st.hora;
+    updateLabel();
+  };
+  window[p+'Toggle']=function(){
+    var pop=document.getElementById(p+'-pop');
+    if(pop.style.display==='block'){pop.style.display='none';return;}
+    document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
+    if(opts.popFixo){
+      // escapa de containers com overflow (ex.: corpo rolável do modal de Galeria)
+      var btn=document.getElementById(p+'-wrap').querySelector('.medt-btn');
+      var r=btn.getBoundingClientRect();
+      pop.style.position='fixed';pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
+    }
+    renderCal();pop.style.display='block';
+  };
+  window[p+'Pick']=function(y,m,d){st.Y=y;st.M=m;st.D=d;renderCal();updateLabel();};
+  if(opts.hora){
+    window[p+'SetHora']=function(){var hEl=document.getElementById(p+'-hora');st.hora=hEl?hEl.value.trim():'';updateLabel();};
+    window[p+'GetIso']=function(){
+      if(st.Y===null) return '';
+      return st.Y+'-'+pad(st.M+1)+'-'+pad(st.D)+'T'+(st.hora||'00:00');
+    };
   }else{
-    _medt2Y=_medt2M=_medt2D=null;_medt2ViewY=new Date().getFullYear();_medt2ViewM=new Date().getMonth();
+    window[p+'GetValue']=function(){
+      if(st.Y===null) return '';
+      return pad(st.D)+'/'+pad(st.M+1)+'/'+st.Y;
+    };
   }
-  _medt2Hora=parts[1]?parts[1].slice(0,5):'';
-  document.getElementById('medt2-hora').value=_medt2Hora;
-  medt2UpdateLabel();
 }
-function medt2UpdateLabel(){
-  var lbl=document.getElementById('medt2-lbl');
-  if(_medt2Y===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  var dStr=String(_medt2D).padStart(2,'0')+'/'+String(_medt2M+1).padStart(2,'0')+'/'+_medt2Y;
-  lbl.textContent=dStr+(_medt2Hora?' às '+_medt2Hora:'');
-}
-function medt2Toggle(){
-  var pop=document.getElementById('medt2-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medt2RenderCal();
-  pop.style.display='block';
-}
-function medt2Nav(delta){
-  _medt2ViewM+=delta;
-  if(_medt2ViewM<0){_medt2ViewM=11;_medt2ViewY--;}
-  if(_medt2ViewM>11){_medt2ViewM=0;_medt2ViewY++;}
-  medt2RenderCal();
-}
-function medt2RenderCal(){
-  document.getElementById('medt2-mes').textContent=MEDT_MESES[_medt2ViewM]+' '+_medt2ViewY;
-  var primeiro=new Date(_medt2ViewY,_medt2ViewM,1).getDay();
-  var totalDias=new Date(_medt2ViewY,_medt2ViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medt2ViewY,_medt2ViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medt2Y===_medt2ViewY&&_medt2M===_medt2ViewM&&_medt2D===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medt2Pick('+_medt2ViewY+','+_medt2ViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medt2-days').innerHTML=html;
-}
-function medt2Pick(y,m,d){
-  _medt2Y=y;_medt2M=m;_medt2D=d;
-  medt2RenderCal();medt2UpdateLabel();
-}
-function medt2SetHora(){ _medt2Hora=document.getElementById('medt2-hora').value.trim(); medt2UpdateLabel(); }
-function medt2GetIso(){
-  if(_medt2Y===null) return '';
-  var dStr=_medt2Y+'-'+String(_medt2M+1).padStart(2,'0')+'-'+String(_medt2D).padStart(2,'0');
-  return dStr+'T'+(_medt2Hora||'00:00');
-}
-
-// ── MEDTP — calendário próprio, sem hora, compartilhado pelas linhas de Parcela ──
-var _medtPIdx=null,_medtPViewY=new Date().getFullYear(),_medtPViewM=new Date().getMonth();
-function medtPOpen(i,btnEl){
-  _medtPIdx=i;
-  var dStr=_parc[i]&&_parc[i].data?_parc[i].data:'';
-  if(dStr){var dp=dStr.split('-');_medtPViewY=parseInt(dp[0],10);_medtPViewM=parseInt(dp[1],10)-1;}
-  else{_medtPViewY=new Date().getFullYear();_medtPViewM=new Date().getMonth();}
-  var pop=document.getElementById('medtP-pop');
-  var r=btnEl.getBoundingClientRect();
-  pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
-  medtPRenderCal();
-  pop.style.display='block';
-}
-function medtPNav(delta){
-  _medtPViewM+=delta;
-  if(_medtPViewM<0){_medtPViewM=11;_medtPViewY--;}
-  if(_medtPViewM>11){_medtPViewM=0;_medtPViewY++;}
-  medtPRenderCal();
-}
-function medtPRenderCal(){
-  document.getElementById('medtP-mes').textContent=MEDT_MESES[_medtPViewM]+' '+_medtPViewY;
-  var dStr=_parc[_medtPIdx]&&_parc[_medtPIdx].data?_parc[_medtPIdx].data:'';
-  var selY=null,selM=null,selD=null;
-  if(dStr){var dp=dStr.split('-');selY=parseInt(dp[0],10);selM=parseInt(dp[1],10)-1;selD=parseInt(dp[2],10);}
-  var primeiro=new Date(_medtPViewY,_medtPViewM,1).getDay();
-  var totalDias=new Date(_medtPViewY,_medtPViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtPViewY,_medtPViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(selY===_medtPViewY&&selM===_medtPViewM&&selD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtPPick('+_medtPViewY+','+_medtPViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtP-days').innerHTML=html;
-}
-function medtPPick(y,m,d){
-  var dStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-  _parc[_medtPIdx].data=dStr;
-  document.getElementById('medtP-pop').style.display='none';
-  bPD();
-}
-
-// ── MEDTCE — calendário próprio, sem hora, compartilhado pelas linhas de eventos extras (modal Cliente) ──
-var _medtCEIdx=null,_medtCEViewY=new Date().getFullYear(),_medtCEViewM=new Date().getMonth();
-function medtCEOpen(i,btnEl){
-  _medtCEIdx=i;
-  var dStr=_cEventos[i]&&_cEventos[i].data?_cEventos[i].data:'';
-  if(dStr){var dp=dStr.split('-');_medtCEViewY=parseInt(dp[0],10);_medtCEViewM=parseInt(dp[1],10)-1;}
-  else{_medtCEViewY=new Date().getFullYear();_medtCEViewM=new Date().getMonth();}
-  var pop=document.getElementById('medtCE-pop');
-  var r=btnEl.getBoundingClientRect();
-  pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
-  medtCERenderCal();
-  pop.style.display='block';
-}
-function medtCENav(delta){
-  _medtCEViewM+=delta;
-  if(_medtCEViewM<0){_medtCEViewM=11;_medtCEViewY--;}
-  if(_medtCEViewM>11){_medtCEViewM=0;_medtCEViewY++;}
-  medtCERenderCal();
-}
-function medtCERenderCal(){
-  document.getElementById('medtCE-mes').textContent=MEDT_MESES[_medtCEViewM]+' '+_medtCEViewY;
-  var dStr=_cEventos[_medtCEIdx]&&_cEventos[_medtCEIdx].data?_cEventos[_medtCEIdx].data:'';
-  var selY=null,selM=null,selD=null;
-  if(dStr){var dp=dStr.split('-');selY=parseInt(dp[0],10);selM=parseInt(dp[1],10)-1;selD=parseInt(dp[2],10);}
-  var primeiro=new Date(_medtCEViewY,_medtCEViewM,1).getDay();
-  var totalDias=new Date(_medtCEViewY,_medtCEViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtCEViewY,_medtCEViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(selY===_medtCEViewY&&selM===_medtCEViewM&&selD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtCEPick('+_medtCEViewY+','+_medtCEViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtCE-days').innerHTML=html;
-}
-function medtCEPick(y,m,d){
-  _cEventos[_medtCEIdx].data=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-  document.getElementById('medtCE-pop').style.display='none';
-  rCEventos();
-}
-
-// ── MEDTD — calendário próprio, sem hora, campo "Data" do modal de Cliente ──
-var _medtDY=null,_medtDM=null,_medtDD=null,_medtDViewY=new Date().getFullYear(),_medtDViewM=new Date().getMonth();
-function medtDInit(isoStr){
-  if(isoStr){
-    var dp=isoStr.split('-');
-    _medtDY=parseInt(dp[0],10);_medtDM=parseInt(dp[1],10)-1;_medtDD=parseInt(dp[2],10);
-    _medtDViewY=_medtDY;_medtDViewM=_medtDM;
-  }else{
-    _medtDY=_medtDM=_medtDD=null;_medtDViewY=new Date().getFullYear();_medtDViewM=new Date().getMonth();
-  }
-  medtDUpdateLabel();
-}
-function medtDUpdateLabel(){
-  var lbl=document.getElementById('medtD-lbl');
-  if(_medtDY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  lbl.textContent=String(_medtDD).padStart(2,'0')+'/'+String(_medtDM+1).padStart(2,'0')+'/'+_medtDY;
-}
-function medtDToggle(){
-  var pop=document.getElementById('medtD-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medtDRenderCal();
-  pop.style.display='block';
-}
-function medtDNav(delta){
-  _medtDViewM+=delta;
-  if(_medtDViewM<0){_medtDViewM=11;_medtDViewY--;}
-  if(_medtDViewM>11){_medtDViewM=0;_medtDViewY++;}
-  medtDRenderCal();
-}
-function medtDRenderCal(){
-  document.getElementById('medtD-mes').textContent=MEDT_MESES[_medtDViewM]+' '+_medtDViewY;
-  var primeiro=new Date(_medtDViewY,_medtDViewM,1).getDay();
-  var totalDias=new Date(_medtDViewY,_medtDViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtDViewY,_medtDViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medtDY===_medtDViewY&&_medtDM===_medtDViewM&&_medtDD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtDPick('+_medtDViewY+','+_medtDViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtD-days').innerHTML=html;
-}
-function medtDPick(y,m,d){
-  _medtDY=y;_medtDM=m;_medtDD=d;
-  medtDRenderCal();medtDUpdateLabel();
-}
-function medtDGetValue(){
-  if(_medtDY===null) return '';
-  return String(_medtDD).padStart(2,'0')+'/'+String(_medtDM+1).padStart(2,'0')+'/'+_medtDY;
-}
-
-// ── MEDTT — calendário próprio, sem hora, campo "Prazo" do modal de Tarefa ──
-var _medtTY=null,_medtTM=null,_medtTD=null,_medtTViewY=new Date().getFullYear(),_medtTViewM=new Date().getMonth();
-function medtTInit(isoStr){
-  if(isoStr){
-    var dp=isoStr.split('-');
-    _medtTY=parseInt(dp[0],10);_medtTM=parseInt(dp[1],10)-1;_medtTD=parseInt(dp[2],10);
-    _medtTViewY=_medtTY;_medtTViewM=_medtTM;
-  }else{
-    _medtTY=_medtTM=_medtTD=null;_medtTViewY=new Date().getFullYear();_medtTViewM=new Date().getMonth();
-  }
-  medtTUpdateLabel();
-}
-function medtTUpdateLabel(){
-  var lbl=document.getElementById('medtT-lbl');
-  if(_medtTY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  lbl.textContent=String(_medtTD).padStart(2,'0')+'/'+String(_medtTM+1).padStart(2,'0')+'/'+_medtTY;
-}
-function medtTToggle(){
-  var pop=document.getElementById('medtT-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medtTRenderCal();
-  pop.style.display='block';
-}
-function medtTNav(delta){
-  _medtTViewM+=delta;
-  if(_medtTViewM<0){_medtTViewM=11;_medtTViewY--;}
-  if(_medtTViewM>11){_medtTViewM=0;_medtTViewY++;}
-  medtTRenderCal();
-}
-function medtTRenderCal(){
-  document.getElementById('medtT-mes').textContent=MEDT_MESES[_medtTViewM]+' '+_medtTViewY;
-  var primeiro=new Date(_medtTViewY,_medtTViewM,1).getDay();
-  var totalDias=new Date(_medtTViewY,_medtTViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtTViewY,_medtTViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medtTY===_medtTViewY&&_medtTM===_medtTViewM&&_medtTD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtTPick('+_medtTViewY+','+_medtTViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtT-days').innerHTML=html;
-}
-function medtTPick(y,m,d){
-  _medtTY=y;_medtTM=m;_medtTD=d;
-  medtTRenderCal();medtTUpdateLabel();
-}
-function medtTGetValue(){
-  if(_medtTY===null) return '';
-  return String(_medtTD).padStart(2,'0')+'/'+String(_medtTM+1).padStart(2,'0')+'/'+_medtTY;
-}
-
-// ── MEDTQ — calendário próprio, sem hora, campo "Data de envio" do modal de Questionário ──
-var _medtQY=null,_medtQM=null,_medtQD=null,_medtQViewY=new Date().getFullYear(),_medtQViewM=new Date().getMonth();
-function medtQInit(isoStr){
-  if(isoStr){
-    var dp=isoStr.split('-');
-    _medtQY=parseInt(dp[0],10);_medtQM=parseInt(dp[1],10)-1;_medtQD=parseInt(dp[2],10);
-    _medtQViewY=_medtQY;_medtQViewM=_medtQM;
-  }else{
-    _medtQY=_medtQM=_medtQD=null;_medtQViewY=new Date().getFullYear();_medtQViewM=new Date().getMonth();
-  }
-  medtQUpdateLabel();
-}
-function medtQUpdateLabel(){
-  var lbl=document.getElementById('medtQ-lbl');
-  if(_medtQY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  lbl.textContent=String(_medtQD).padStart(2,'0')+'/'+String(_medtQM+1).padStart(2,'0')+'/'+_medtQY;
-}
-function medtQToggle(){
-  var pop=document.getElementById('medtQ-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medtQRenderCal();
-  pop.style.display='block';
-}
-function medtQNav(delta){
-  _medtQViewM+=delta;
-  if(_medtQViewM<0){_medtQViewM=11;_medtQViewY--;}
-  if(_medtQViewM>11){_medtQViewM=0;_medtQViewY++;}
-  medtQRenderCal();
-}
-function medtQRenderCal(){
-  document.getElementById('medtQ-mes').textContent=MEDT_MESES[_medtQViewM]+' '+_medtQViewY;
-  var primeiro=new Date(_medtQViewY,_medtQViewM,1).getDay();
-  var totalDias=new Date(_medtQViewY,_medtQViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtQViewY,_medtQViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medtQY===_medtQViewY&&_medtQM===_medtQViewM&&_medtQD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtQPick('+_medtQViewY+','+_medtQViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtQ-days').innerHTML=html;
-}
-function medtQPick(y,m,d){
-  _medtQY=y;_medtQM=m;_medtQD=d;
-  medtQRenderCal();medtQUpdateLabel();
-}
-function medtQGetValue(){
-  if(_medtQY===null) return '';
-  return String(_medtQD).padStart(2,'0')+'/'+String(_medtQM+1).padStart(2,'0')+'/'+_medtQY;
-}
-
-// ── MEDTG — calendário próprio, sem hora, campo "Data do evento" da Galeria ──
-// Aqui o valor é guardado direto como DD/MM/AAAA (sem d2i), diferente das outras instâncias.
-var _medtGY=null,_medtGM=null,_medtGD=null,_medtGViewY=new Date().getFullYear(),_medtGViewM=new Date().getMonth();
-function medtGInit(ddmmaaaa){
-  if(ddmmaaaa){
-    var dp=ddmmaaaa.split('/');
-    _medtGD=parseInt(dp[0],10);_medtGM=parseInt(dp[1],10)-1;_medtGY=parseInt(dp[2],10);
-    _medtGViewY=_medtGY;_medtGViewM=_medtGM;
-  }else{
-    _medtGY=_medtGM=_medtGD=null;_medtGViewY=new Date().getFullYear();_medtGViewM=new Date().getMonth();
-  }
-  medtGUpdateLabel();
-}
-function medtGUpdateLabel(){
-  var lbl=document.getElementById('medtG-lbl');
-  if(_medtGY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  lbl.textContent=String(_medtGD).padStart(2,'0')+'/'+String(_medtGM+1).padStart(2,'0')+'/'+_medtGY;
-}
-function medtGToggle(){
-  var pop=document.getElementById('medtG-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medtGRenderCal();
-  // posição fixa calculada do botão: escapa do overflow-y:auto do container interno do modal de Galeria
-  var btn=document.getElementById('medtG-wrap').querySelector('.medt-btn');
-  var r=btn.getBoundingClientRect();
-  pop.style.position='fixed';pop.style.top=(r.bottom+4)+'px';pop.style.left=r.left+'px';
-  pop.style.display='block';
-}
-function medtGNav(delta){
-  _medtGViewM+=delta;
-  if(_medtGViewM<0){_medtGViewM=11;_medtGViewY--;}
-  if(_medtGViewM>11){_medtGViewM=0;_medtGViewY++;}
-  medtGRenderCal();
-}
-function medtGRenderCal(){
-  document.getElementById('medtG-mes').textContent=MEDT_MESES[_medtGViewM]+' '+_medtGViewY;
-  var primeiro=new Date(_medtGViewY,_medtGViewM,1).getDay();
-  var totalDias=new Date(_medtGViewY,_medtGViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtGViewY,_medtGViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medtGY===_medtGViewY&&_medtGM===_medtGViewM&&_medtGD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtGPick('+_medtGViewY+','+_medtGViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtG-days').innerHTML=html;
-}
-function medtGPick(y,m,d){
-  _medtGY=y;_medtGM=m;_medtGD=d;
-  medtGRenderCal();medtGUpdateLabel();
-}
-function medtGGetValue(){
-  if(_medtGY===null) return '';
-  return String(_medtGD).padStart(2,'0')+'/'+String(_medtGM+1).padStart(2,'0')+'/'+_medtGY;
-}
-
-// ── MEDTF — calendário próprio, sem hora, campo "Data" do modal de Entrada/Saída (Financeiro) ──
-var _medtFY=null,_medtFM=null,_medtFD=null,_medtFViewY=new Date().getFullYear(),_medtFViewM=new Date().getMonth();
-function medtFInit(isoStr){
-  if(isoStr){
-    var dp=isoStr.split('-');
-    _medtFY=parseInt(dp[0],10);_medtFM=parseInt(dp[1],10)-1;_medtFD=parseInt(dp[2],10);
-    _medtFViewY=_medtFY;_medtFViewM=_medtFM;
-  }else{
-    _medtFY=_medtFM=_medtFD=null;_medtFViewY=new Date().getFullYear();_medtFViewM=new Date().getMonth();
-  }
-  medtFUpdateLabel();
-}
-function medtFUpdateLabel(){
-  var lbl=document.getElementById('medtF-lbl');
-  if(_medtFY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  lbl.textContent=String(_medtFD).padStart(2,'0')+'/'+String(_medtFM+1).padStart(2,'0')+'/'+_medtFY;
-}
-function medtFToggle(){
-  var pop=document.getElementById('medtF-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medtFRenderCal();
-  pop.style.display='block';
-}
-function medtFNav(delta){
-  _medtFViewM+=delta;
-  if(_medtFViewM<0){_medtFViewM=11;_medtFViewY--;}
-  if(_medtFViewM>11){_medtFViewM=0;_medtFViewY++;}
-  medtFRenderCal();
-}
-function medtFRenderCal(){
-  document.getElementById('medtF-mes').textContent=MEDT_MESES[_medtFViewM]+' '+_medtFViewY;
-  var primeiro=new Date(_medtFViewY,_medtFViewM,1).getDay();
-  var totalDias=new Date(_medtFViewY,_medtFViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtFViewY,_medtFViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medtFY===_medtFViewY&&_medtFM===_medtFViewM&&_medtFD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtFPick('+_medtFViewY+','+_medtFViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtF-days').innerHTML=html;
-}
-function medtFPick(y,m,d){
-  _medtFY=y;_medtFM=m;_medtFD=d;
-  medtFRenderCal();medtFUpdateLabel();
-}
-function medtFGetValue(){
-  if(_medtFY===null) return '';
-  return String(_medtFD).padStart(2,'0')+'/'+String(_medtFM+1).padStart(2,'0')+'/'+_medtFY;
-}
-
-// ── MEDTFP — calendário próprio, sem hora, campo "Data" do modal de Entrada/Saída Pessoal ──
-var _medtFPY=null,_medtFPM=null,_medtFPD=null,_medtFPViewY=new Date().getFullYear(),_medtFPViewM=new Date().getMonth();
-function medtFPInit(isoStr){
-  if(isoStr){
-    var dp=isoStr.split('-');
-    _medtFPY=parseInt(dp[0],10);_medtFPM=parseInt(dp[1],10)-1;_medtFPD=parseInt(dp[2],10);
-    _medtFPViewY=_medtFPY;_medtFPViewM=_medtFPM;
-  }else{
-    _medtFPY=_medtFPM=_medtFPD=null;_medtFPViewY=new Date().getFullYear();_medtFPViewM=new Date().getMonth();
-  }
-  medtFPUpdateLabel();
-}
-function medtFPUpdateLabel(){
-  var lbl=document.getElementById('medtFP-lbl');
-  if(_medtFPY===null){lbl.textContent='Selecionar data';lbl.classList.add('ph');return;}
-  lbl.classList.remove('ph');
-  lbl.textContent=String(_medtFPD).padStart(2,'0')+'/'+String(_medtFPM+1).padStart(2,'0')+'/'+_medtFPY;
-}
-function medtFPToggle(){
-  var pop=document.getElementById('medtFP-pop');
-  if(pop.style.display==='block'){pop.style.display='none';return;}
-  document.querySelectorAll('.kvsel-drop,.medt-pop').forEach(function(d){d.style.display='none';});
-  medtFPRenderCal();
-  pop.style.display='block';
-}
-function medtFPNav(delta){
-  _medtFPViewM+=delta;
-  if(_medtFPViewM<0){_medtFPViewM=11;_medtFPViewY--;}
-  if(_medtFPViewM>11){_medtFPViewM=0;_medtFPViewY++;}
-  medtFPRenderCal();
-}
-function medtFPRenderCal(){
-  document.getElementById('medtFP-mes').textContent=MEDT_MESES[_medtFPViewM]+' '+_medtFPViewY;
-  var primeiro=new Date(_medtFPViewY,_medtFPViewM,1).getDay();
-  var totalDias=new Date(_medtFPViewY,_medtFPViewM+1,0).getDate();
-  var diasMesAnt=new Date(_medtFPViewY,_medtFPViewM,0).getDate();
-  var html='';
-  for(var i=0;i<primeiro;i++){ html+='<button type="button" class="medt-day fora" disabled>'+(diasMesAnt-primeiro+i+1)+'</button>'; }
-  for(var d=1;d<=totalDias;d++){
-    var sel=(_medtFPY===_medtFPViewY&&_medtFPM===_medtFPViewM&&_medtFPD===d);
-    html+='<button type="button" class="medt-day'+(sel?' sel':'')+'" onclick="medtFPPick('+_medtFPViewY+','+_medtFPViewM+','+d+')">'+d+'</button>';
-  }
-  var resto=(primeiro+totalDias)%7;
-  if(resto>0){ for(var f=1;f<=7-resto;f++){ html+='<button type="button" class="medt-day fora" disabled>'+f+'</button>'; } }
-  document.getElementById('medtFP-days').innerHTML=html;
-}
-function medtFPPick(y,m,d){
-  _medtFPY=y;_medtFPM=m;_medtFPD=d;
-  medtFPRenderCal();medtFPUpdateLabel();
-}
-function medtFPGetValue(){
-  if(_medtFPY===null) return '';
-  return String(_medtFPD).padStart(2,'0')+'/'+String(_medtFPM+1).padStart(2,'0')+'/'+_medtFPY;
-}
+criarCalendario('medt',  {hora:true});                 // Evento — data e hora
+criarCalendario('medt2', {hora:true});                 // Sessão — data e hora
+criarCalendario('medtD', {});                          // Cliente — data do casamento
+criarCalendario('medtT', {});                          // Tarefa — prazo
+criarCalendario('medtQ', {});                          // Questionário — data de envio
+criarCalendario('medtG', {formatoBr:true,popFixo:true}); // Galeria — data do evento (valor em DD/MM/AAAA)
+criarCalendario('medtF', {});                          // Financeiro empresa — data do lançamento
+criarCalendario('medtFP',{});                          // Financeiro pessoal — data do lançamento
+criarCalendario('medtP', {fonte:function(i){return _parc[i]&&_parc[i].data;},   onPick:function(i,iso){_parc[i].data=iso;bPD();}});           // Parcelas
+criarCalendario('medtCE',{fonte:function(i){return _cEventos[i]&&_cEventos[i].data;},onPick:function(i,iso){_cEventos[i].data=iso;rCEventos();}}); // Eventos extras do cliente
 
 function _kvInitSelects(){
   // Filtros de listas: Agenda, Pós-produção, Questionários, Sessões, Financeiro, Sazonalidade
