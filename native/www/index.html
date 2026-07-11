@@ -1063,10 +1063,8 @@ select.aj-input{cursor:pointer;}
     <div class="ag-col-list">
       <div class="sh">
         <div class="st">Edições</div>
-        <div style="visibility:hidden;display:flex;align-items:center;gap:.6rem;">
-          <select style="padding:6px 10px;height:30px;font-family:'DM Sans',sans-serif;font-size:.78rem;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;"><option>—</option></select>
-          <button class="btn" style="color:var(--text);">—</button>
-        </div>
+        <!-- spacer: iguala a altura do cabeçalho vizinho (Pendências), cujos controles têm 30px -->
+        <div style="height:30px;"></div>
       </div>
       <div class="tw" id="ed-list" style="border:none;"></div>
     </div>
@@ -2696,7 +2694,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.6';
+var APP_VERSION = 'v1.10.7';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
