@@ -491,9 +491,13 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 /* modal de Cliente: altura idêntica em todos os controles da linha (input, calendário, status) — evita diferença de 1px do zoom:0.9 entre <input> e <div> */
 #ov-c .field input,#ov-c .field .medt-btn,#ov-c #mc-status-btn{height:34px;}
 /* modais curtos de lançamento: overflow visível para o dropdown Kelvn não ser cortado */
-#ov-f .modal,#ov-fp .modal,#ov-e .modal,#ov-sl .modal,#ov-p .modal,#ov-gal .modal{overflow:visible;}
+#ov-f .modal,#ov-fp .modal,#ov-e .modal,#ov-sl .modal,#ov-p .modal,#ov-gal .modal,#ov-qr .modal,#ov-tr .modal,#ov-eq .modal,#ov-followup .modal{overflow:visible;}
 /* dropdown Kelvn dentro de campos de modal: igual a um .field select (surface2, largura total) */
 .field .kvsel-wrap{width:100%;}
+/* Ajustes: dropdown Kelvn do tipo de documento herda o visual inline do aj-input */
+.aj-row .kvsel-wrap{flex:1;min-width:0;}
+.aj-row .kvsel-btn{border:none;background:transparent;height:auto;padding:0;font-size:.78rem;font-weight:400;color:var(--text-hint);justify-content:flex-start;}
+.aj-row .kvsel-drop{left:0;min-width:220px;}
 .field .kvsel-btn{width:100%;height:auto;background:var(--surface2);border-radius:var(--radius-sm);font-size:.88rem;font-weight:400;padding:8px 11px;color:var(--text);}
 .field .kvsel-drop{left:0;right:0;min-width:0;max-width:none;max-height:240px;overflow-y:auto;}
 /* seletor de ano da Sazonalidade: botão convertido casa com o .fi original (superfície, .75rem, 28px) */
@@ -2669,7 +2673,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.4';
+var APP_VERSION = 'v1.10.5';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -2906,7 +2910,7 @@ function pN(id){var p=g('pacotes').find(function(x){return x.id===id;});return p
 function fillSel(extras){
   var cs=g('clientes');
   var sels=extras||[];
-  var base=[['me-cliente','Nenhum'],['mp-cliente','Geral'],['mf-cliente','Nenhum'],['mqr-cliente','— selecione —']];
+  var base=[['me-cliente','Nenhum'],['mp-cliente','Geral'],['mf-cliente','Nenhum'],['mqr-cliente','— selecione —'],['msl-cliente','Nenhum']];
   base.concat(sels).forEach(function(x){
     var el=document.getElementById(x[0]);if(!el)return;
     el.innerHTML='<option value="">'+x[1]+'</option>'+cs.map(function(c){return '<option value="'+c.id+'">'+c.nome+'</option>';}).join('');
@@ -4368,10 +4372,8 @@ function medtFPGetValue(){
 }
 
 function _kvInitSelects(){
-  // dropdown glass só no mobile (desktop mantém o select nativo)
-  ['qr-status-filter'].forEach(function(id){ kvEnhanceSelect(id); });
-  // Agenda + Pós-produção + Financeiro + Sazonalidade (Análises): dropdown padrão Kelvn também no desktop
-  ['ag-filter','pend-filter','fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  // Filtros de listas: Agenda, Pós-produção, Questionários, Sessões, Financeiro, Sazonalidade
+  ['ag-filter','pend-filter','qr-status-filter','sl-filter','fin-period','fin-tipo','fluxo-horizonte','fp-period','dre-period','an-sazon-ano'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Selects dos modais de Entrada/Saída
   ['mf-cat','mf-cliente','mfp-cat'].forEach(function(id){ kvEnhanceSelect(id, true); });
   // Modal de Evento: dropdown Kelvn no Cliente e no Tipo
@@ -4380,6 +4382,10 @@ function _kvInitSelects(){
   kvEnhanceSelect('mc-pacote-id', true);
   // Modal de Tarefa: dropdown Kelvn no Cliente e na Prioridade
   ['mp-cliente','mp-prio'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  // Modais de Sessão, Questionário, Tipo de reunião, Follow-up, Equipe e Pacote
+  ['msl-tipo','msl-cliente','msl-status','mqr-cliente','mqr-template','mqr-status','mtr-formato','mtr-cor','mfu-novo-status','meq-funcao','mpk-segundo-fotografo'].forEach(function(id){ kvEnhanceSelect(id, true); });
+  // Ajustes: tipo de documento do estúdio
+  kvEnhanceSelect('sd-studio-tipo-doc', true);
   // Calculadora de Impostos: regime tributário
   kvEnhanceSelect('imp-regime', true);
 }
@@ -5180,6 +5186,7 @@ function rSD(){
   Object.keys(map).forEach(function(elId){
     var el=document.getElementById(elId);if(el)el.value=sd[map[elId]]||'';
   });
+  kvSelSyncLabel('sd-studio-tipo-doc');
   rFotoSlots();
   rFaqList();
   _syncAutoFollowupUI();
@@ -5420,6 +5427,7 @@ function abrirModalFollowup(eventoId){
   var todosStatus=['Prospect','Sessão','Religioso','Welcome','Casamento','After','Edição','Álbum design','Entregue','Finalizado'];
   var sel=document.getElementById('mfu-novo-status');
   sel.innerHTML=todosStatus.map(function(st){return '<option value="'+st+'"'+(st===cliente.status?' selected':'')+'>'+st+'</option>';}).join('');
+  kvSelSyncLabel('mfu-novo-status');
   document.getElementById('mfu-status-panel').style.display='none';
   document.getElementById('mfu-status-chevron').style.transform='';
   document.getElementById('ov-followup').classList.add('open');
@@ -6549,6 +6557,7 @@ function openPK(id){
     document.getElementById('mpk-segundo-fotografo').value='Incluso';
     document.getElementById('mpk-del').style.display='none';
   }
+  kvSelSyncLabel('mpk-segundo-fotografo');
   document.getElementById('ov-pk').classList.add('open');
 }
 function savePK(){
@@ -6667,6 +6676,7 @@ function openEq(id){
   _eqId=id||null;
   if(id){var e=g('equipe').find(function(x){return x.id===id;});if(!e)return;document.getElementById('meq-t').textContent='Editar Membro';document.getElementById('meq-nome').value=e.nome||'';document.getElementById('meq-funcao').value=e.funcao||'Fotógrafo principal';document.getElementById('meq-email').value=e.email||'';document.getElementById('meq-tel').value=e.tel||'';document.getElementById('meq-notas').value=e.notas||'';document.getElementById('meq-del').style.display='inline-flex';}
   else{document.getElementById('meq-t').textContent='Novo Membro';['meq-nome','meq-email','meq-tel','meq-notas'].forEach(function(i){document.getElementById(i).value='';});document.getElementById('meq-funcao').value='Fotógrafo principal';document.getElementById('meq-del').style.display='none';}
+  kvSelSyncLabel('meq-funcao');
   document.getElementById('ov-eq').classList.add('open');
 }
 function saveEq(){
@@ -7122,6 +7132,8 @@ function openAuto(id){
   '</div>';
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
   document.body.appendChild(ov);
+  kvEnhanceSelect('mauto-template', true);
+  kvEnhanceSelect('mauto-tipo', true);
 }
 function saveAuto(){
   var autos=(g('automacoes')||[]).slice();
@@ -7435,6 +7447,7 @@ function openQR(id){
     document.getElementById('mqr-data').value=ts2;document.getElementById('mqr-status').value='Enviado';
     document.getElementById('mqr-del').style.display='none';
   }
+  kvSelSyncLabel('mqr-cliente');kvSelSyncLabel('mqr-template');kvSelSyncLabel('mqr-status');
   document.getElementById('ov-qr').classList.add('open');
 }
 function saveQR(){
@@ -7506,6 +7519,7 @@ function openTR(id){
   _trId=id||null;
   if(id){var t=g('tiposReuniao').find(function(x){return x.id===id;});if(!t)return;document.getElementById('mtr-t').textContent='Editar tipo';document.getElementById('mtr-nome').value=t.nome||'';document.getElementById('mtr-dur').value=t.duracao||'';document.getElementById('mtr-formato').value=t.formato||'Videochamada';document.getElementById('mtr-cor').value=t.cor||'var(--amber)';document.getElementById('mtr-desc').value=t.desc||'';document.getElementById('mtr-del').style.display='inline-flex';}
   else{document.getElementById('mtr-t').textContent='Novo tipo';['mtr-nome','mtr-dur','mtr-desc'].forEach(function(i){document.getElementById(i).value='';});document.getElementById('mtr-formato').value='Videochamada';document.getElementById('mtr-cor').value='var(--amber)';document.getElementById('mtr-del').style.display='none';}
+  kvSelSyncLabel('mtr-formato');kvSelSyncLabel('mtr-cor');
   document.getElementById('ov-tr').classList.add('open');
 }
 function saveTR(){
@@ -7546,6 +7560,7 @@ function openSlot(id){
   tsel.innerHTML='<option value="">— selecione —</option>'+ts.map(function(t){return '<option value="'+t.id+'">'+t.nome+' ('+t.duracao+'min)</option>';}).join('');
   if(id){var sl=g('slots').find(function(x){return x.id===id;});if(!sl)return;document.getElementById('msl-t').textContent='Editar sessão';tsel.value=sl.tipoId||'';document.getElementById('msl-cliente').value=sl.clienteId||'';medt2Init(sl.data||'');document.getElementById('msl-local').value=sl.local||'';document.getElementById('msl-status').value=sl.status||'Confirmado';document.getElementById('msl-notas').value=sl.notas||'';document.getElementById('msl-del').style.display='inline-flex';}
   else{document.getElementById('msl-t').textContent='Nova sessão';['msl-local','msl-notas'].forEach(function(i){document.getElementById(i).value='';});tsel.value='';document.getElementById('msl-cliente').value='';medt2Init('');document.getElementById('msl-status').value='Confirmado';document.getElementById('msl-del').style.display='none';}
+  kvSelSyncLabel('msl-tipo');kvSelSyncLabel('msl-cliente');kvSelSyncLabel('msl-status');
   document.getElementById('ov-sl').classList.add('open');
 }
 function saveSlot(){
