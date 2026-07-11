@@ -601,7 +601,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <!-- Toggle + barra de miniaturas -->
         <div id="thumbs-wrap">
           <div id="thumbs-modes">
-            <button class="thumb-mode-btn ativo" id="mode-spreads-btn" onclick="setThumbsMode('spreads')" title="Spreads">
+            <button class="thumb-mode-btn ativo" id="mode-spreads-btn" onclick="setThumbsMode('spreads')" title="Lâminas">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="8" height="12" rx="1"/><rect x="13" y="6" width="8" height="12" rx="1"/></svg>
             </button>
             <button class="thumb-mode-btn" id="mode-timeline-btn" onclick="setThumbsMode('timeline')" title="Timeline de fotos">
@@ -619,11 +619,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
             </button>
           </div>
-          <div id="thumbs-toggle-btn" onclick="toggleThumbs()" title="Mostrar/ocultar spreads">
+          <div id="thumbs-toggle-btn" onclick="toggleThumbs()" title="Mostrar/ocultar lâminas">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
           </div>
           <div id="thumbs-bar">
-            <div class="thumb-add" onclick="adicionarSpread()" title="Adicionar spread">+</div>
+            <div class="thumb-add" onclick="adicionarSpread()" title="Adicionar lâmina">+</div>
           </div>
         </div>
       </div>
@@ -741,7 +741,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <!-- Spread -->
         <div class="rpanel-sec" id="sec-spread">
           <div class="rpanel-sec-hdr" onclick="toggleSec('spread')">
-            <span>Spread</span>
+            <span>Lâmina</span>
             <svg class="rpanel-sec-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
           </div>
           <div class="rpanel-sec-body">
@@ -769,7 +769,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
       </label>
       <label class="toggle-wrap">
         <input type="checkbox" id="opt-preservar" checked>
-        Preservar spreads com fotos manuais
+        Preservar lâminas com fotos manuais
       </label>
     </div>
     <div id="modal-preview-grid"></div>
@@ -815,7 +815,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
   <div class="exp-progress-bar-wrap">
     <div class="exp-progress-bar" id="exp-progress-bar" style="width:5%"></div>
   </div>
-  <div class="exp-panel-sub" id="exp-panel-sub">Processando spreads…</div>
+  <div class="exp-panel-sub" id="exp-panel-sub">Processando lâminas…</div>
   <div class="exp-panel-actions" id="exp-panel-actions"></div>
 </div>
 
@@ -881,7 +881,7 @@ var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.20';
+var ALBUM_VERSION = '1.7.21';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
@@ -3763,7 +3763,7 @@ function renderThumbs() {
     var add = document.createElement('div');
     add.className = 'thumb-add';
     add.textContent = '+';
-    add.title = 'Adicionar spread';
+    add.title = 'Adicionar lâmina';
     add.addEventListener('click', adicionarSpread);
     bar.appendChild(add);
   }
@@ -5301,7 +5301,7 @@ function spreadsComFotos() {
 // Abre modal e gera preview
 async function abrirModalAutoLayout() {
   var spreadsTipo = estado.spreads.filter(function(s) { return s.tipo === 'spread'; });
-  if (!spreadsTipo.length) { notify('Adicione spreads ao álbum primeiro.'); return; }
+  if (!spreadsTipo.length) { notify('Adicione lâminas ao álbum primeiro.'); return; }
   if (!estado.pool.length) { notify('O pool de fotos está vazio.'); return; }
 
   document.getElementById('modal-autolayout').classList.add('open');
@@ -5332,7 +5332,7 @@ async function gerarPreviewAutoLayout() {
   });
 
   if (!fotosDisponiveis.length) {
-    grid.innerHTML = '<div style="padding:1.5rem;color:var(--text-hint);font-size:.75rem;">Todos os spreads já têm fotos. Desmarque "Preservar spreads" para remontar tudo.</div>';
+    grid.innerHTML = '<div style="padding:1.5rem;color:var(--text-hint);font-size:.75rem;">Todas as lâminas já têm fotos. Desmarque "Preservar lâminas" para remontar tudo.</div>';
     _autoLayoutResultado = null;
     return;
   }
@@ -5955,7 +5955,7 @@ function abrirModalExportar() {
   var nSpreads = estado.spreads.length;
   document.getElementById('exp-resumo').innerHTML =
     '<strong>' + esc(album.nome) + '</strong>' +
-    ' &mdash; ' + nSpreads + ' spread' + (nSpreads !== 1 ? 's' : '') +
+    ' &mdash; ' + nSpreads + ' lâmina' + (nSpreads !== 1 ? 's' : '') +
     ' &mdash; ' + fmt + ' (' + dims.spread_w + '×' + dims.h + ' cm por spread)';
 
   // Perfis
