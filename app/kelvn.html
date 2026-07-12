@@ -1714,7 +1714,7 @@ select.aj-input{cursor:pointer;}
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8" cy="10" r="1.5" fill="var(--text)" stroke="none"/><path d="M12 8l2 2 4-4"/></svg>
         <div>
           <div class="st">Meta Ads</div>
-          <div style="font-size:.72rem;color:var(--text-hint);margin-top:1px;"><span id="mk-ma-camp">—</span> campanhas ativas</div>
+          <div id="mk-ma-sub" style="font-size:.72rem;color:var(--text-hint);margin-top:1px;display:none;"><span id="mk-ma-camp">—</span> campanhas ativas</div>
         </div>
       </div>
       <div id="mk-ma-period" class="sa" style="display:none;">
@@ -2714,7 +2714,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.23';
+var APP_VERSION = 'v1.10.24';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3807,6 +3807,7 @@ function rMarketing(){
   document.getElementById('mk-ma-noconn').style.display = _maState.conectado ? 'none' : 'flex';
   document.getElementById('mk-ma-conn').style.display   = _maState.conectado ? 'block' : 'none';
   document.getElementById('mk-ma-period').style.display = _maState.conectado ? 'flex' : 'none';
+  document.getElementById('mk-ma-sub').style.display    = _maState.conectado ? 'block' : 'none';
   if(_maState.conectado){
     mkMaFill();
     setTimeout(mkMaDraw, 60);
@@ -5401,19 +5402,19 @@ function rSaude(){
   // Pró-labore
   var el1=document.getElementById('saude-p1');
   var cor1=p1>=25?'var(--teal)':p1===0?'var(--coral)':'var(--amber)';
-  if(el1){el1.textContent=p1;el1.style.color=cor1;}
+  if(el1){el1.textContent=p1+"/25";el1.style.color=cor1;}
   // Inadimplência
   var el2=document.getElementById('saude-p2');
   var cor2=p2>=22?'var(--teal)':p2===0?'var(--coral)':'var(--amber)';
-  if(el2){el2.textContent=p2;el2.style.color=cor2;}
+  if(el2){el2.textContent=p2+"/25";el2.style.color=cor2;}
   // Caixa do mês
   var el3=document.getElementById('saude-p3');
   var cor3=p3>=25?'var(--teal)':p3===0?'var(--coral)':'var(--amber)';
-  if(el3){el3.textContent=p3;el3.style.color=cor3;}
+  if(el3){el3.textContent=p3+"/25";el3.style.color=cor3;}
   // Pipeline
   var el4=document.getElementById('saude-p4');
   var cor4=p4>=18?'var(--teal)':p4===0?'var(--coral)':'var(--amber)';
-  if(el4){el4.textContent=p4;el4.style.color=cor4;}
+  if(el4){el4.textContent=p4+"/25";el4.style.color=cor4;}
 
   // Identifica pilar crítico (menor pontuação)
   var pilaresMap=[
