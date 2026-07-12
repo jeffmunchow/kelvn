@@ -774,7 +774,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
     </div>
     <div id="modal-preview-grid"></div>
     <div class="modal-footer">
-      <button class="btn btn-sec" onclick="tentarNovamente()" style="padding:5px 14px;font-size:.75rem;">Tentar novamente</button>
+      <button class="btn btn-sec" onclick="tentarNovamente()" style="padding:5px 14px;font-size:.75rem;">Tentar de novo</button>
       <button class="btn btn-sec" onclick="fecharModalAutoLayout()" style="padding:5px 14px;font-size:.75rem;">Cancelar</button>
       <button class="btn" onclick="aplicarAutoLayout()" style="padding:5px 14px;font-size:.75rem;">Aceitar layout</button>
     </div>
@@ -881,7 +881,7 @@ var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.23';
+var ALBUM_VERSION = '1.7.24';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
@@ -1155,7 +1155,7 @@ async function init() {
     await carregarTemplatesUsuario();
     await irParaLista();
   } catch(e) {
-    document.getElementById('overlay-auth').textContent = 'Erro ao verificar sessão. Recarregue a página.';
+    document.getElementById('overlay-auth').textContent = 'Não consegui verificar sua sessão. Recarrega a página.';
   }
 }
 
@@ -1454,7 +1454,7 @@ async function carregarRevisoes() {
 // Abre o editor no álbum da revisão. abrirModalRevisao marca como visualizado.
 async function abrirRevisaoAlbum(albumId) {
   var { data: album, error } = await _sb.from('albuns').select('*').eq('id', albumId).single();
-  if (error || !album) { notify('Não foi possível abrir este álbum.'); return; }
+  if (error || !album) { notify('Não consegui abrir este álbum.'); return; }
   await abrirAlbum(album);
   abrirModalRevisao();
 }
@@ -1637,7 +1637,7 @@ async function criarAlbum() {
   var erro = document.getElementById('novo-erro');
   erro.style.display = 'none';
 
-  if (!nome) { erro.textContent = 'Dá um nome para o álbum.'; erro.style.display = 'block'; return; }
+  if (!nome) { erro.textContent = 'Informe o nome do álbum.'; erro.style.display = 'block'; return; }
 
   // Tamanho escolhido (página fechada, cm); "Outro" = dimensões digitadas
   var tamSel = document.querySelector('.tam-opt.sel');
@@ -1667,7 +1667,7 @@ async function criarAlbum() {
     largura_cm: d[0], altura_cm: d[1], status: 'rascunho', total_spreads: 2
   }).select().single();
 
-  if (e1) { erro.textContent = 'Erro ao criar álbum. Tente novamente.'; erro.style.display = 'block'; return; }
+  if (e1) { erro.textContent = 'Não consegui criar o álbum. Tenta de novo.'; erro.style.display = 'block'; return; }
 
   // Criar capa e 1 spread (fotolivro de casamento não tem contracapa editável)
   var tipos = ['capa','spread'];
@@ -5561,7 +5561,7 @@ async function executarAutoDesign() {
     precarregarAlbum(); // fotos novas em muitas lâminas: reaquece o cache
     st.textContent = alvo.length + (alvo.length === 1 ? ' lâmina montada' : ' lâminas montadas') + ' por cronologia.';
   } catch (e) {
-    st.textContent = 'Erro na montagem automática: ' + (e && e.message ? e.message : e);
+    st.textContent = 'A montagem automática falhou: ' + (e && e.message ? e.message : e);
   } finally {
     _adRodando = false;
     btn.disabled = false;
@@ -5883,7 +5883,7 @@ async function executarExport() {
         + (dir ? ' Em "' + dir.name + '".' : '');
     } else if (_expFormato === 'pdf') {
       var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-      if (!jsPDFctor) { statusEl.textContent = 'Biblioteca PDF não carregou. Recarregue a página.'; return; }
+      if (!jsPDFctor) { statusEl.textContent = 'A biblioteca de PDF não carregou. Recarrega a página.'; return; }
       var doc = null;
       for (var k = 0; k < spreads.length; k++) {
         atualizarBarra(k, spreads.length);
@@ -6098,7 +6098,7 @@ async function gerarPdf() {
       body: JSON.stringify({ album_id: album.id, perfil_grafica: _perfilSelecionado }),
     });
     var data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Erro ao iniciar exportação');
+    if (!r.ok) throw new Error(data.error || 'Não consegui iniciar a exportação.');
     _exportJobId = data.job_id;
     fecharModalExportar();
     iniciarPainelProgresso();
@@ -6106,7 +6106,7 @@ async function gerarPdf() {
   } catch(err) {
     btn.disabled = false;
     btn.textContent = 'Gerar PDF';
-    notify('Erro: ' + (err.message || 'Tente novamente.'));
+    notify('Algo deu errado na exportação: ' + (err.message || 'tenta de novo.'));
   }
 }
 
@@ -6159,7 +6159,7 @@ async function pollExportStatus() {
       clearInterval(_pollTimer);
       bar.style.background = 'var(--coral)';
       document.getElementById('exp-panel-titulo').textContent = 'Erro ao gerar PDF';
-      sub.textContent = 'Tente novamente pelo botão Exportar.';
+      sub.textContent = 'Tenta de novo pelo botão Exportar.';
       document.getElementById('exp-panel-actions').innerHTML =
         '<button class="btn btn-sec" onclick="fecharPainelProgresso()" style="padding:4px 10px;font-size:.7rem;">Fechar</button>';
     }
@@ -6360,14 +6360,14 @@ async function gerarLinkRevisao() {
 
     btn.textContent = 'Regenerar link';
     if (falhas && falhas.length) {
-      status.textContent = 'Link gerado, mas falhou ao exportar a(s) lâmina(s) ' + falhas.join(', ') + '. Tente regenerar.';
+      status.textContent = 'Link gerado, mas não consegui exportar a(s) lâmina(s) ' + falhas.join(', ') + '. Tenta gerar de novo.';
       status.style.color = 'var(--coral)';
     } else {
       status.textContent = 'Link gerado com sucesso.';
       status.style.color = 'var(--teal)';
     }
   } catch(err) {
-    status.textContent = 'Erro: ' + (err.message || 'Tente novamente.');
+    status.textContent = 'Algo deu errado na exportação: ' + (err.message || 'tenta de novo.');
     status.style.color = 'var(--coral)';
     btn.textContent = 'Gerar link';
   } finally {

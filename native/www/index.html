@@ -2697,7 +2697,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.15';
+var APP_VERSION = 'v1.10.16';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -2759,7 +2759,7 @@ async function enviarFeedback(){
   }catch(e){
     btn.disabled = false;
     btn.textContent = 'Enviar';
-    notify('Algo deu errado por aqui. Tente de novo em instantes.');
+    notify('Algo deu errado por aqui. Tenta de novo em instantes.');
   }
 }
 var _confirmCb=null;
@@ -3492,25 +3492,25 @@ function _maMensagemErro(motivo){
     parametros: 'Algo deu errado ao conectar com o Meta. Tenta de novo?',
     csrf:       'A conexão expirou por segurança. Tenta conectar de novo.',
     expirado:   'O link de conexão expirou. Tenta conectar de novo.',
-    token:      'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
-    token_long: 'Não conseguimos confirmar sua conexão com o Meta. Tenta de novo?',
-    sem_conta:  'Não encontramos nenhuma conta de anúncios ativa nessa conta do Facebook.',
-    interno:    'Algo deu errado por aqui. Já estamos vendo o que aconteceu.',
+    token:      'Não consegui confirmar sua conexão com o Meta. Tenta de novo?',
+    token_long: 'Não consegui confirmar sua conexão com o Meta. Tenta de novo?',
+    sem_conta:  'Não encontrei nenhuma conta de anúncios ativa nessa conta do Facebook.',
+    interno:    'Algo deu errado por aqui. Já estou vendo o que aconteceu.',
   };
-  return mensagens[motivo] || 'Não conseguimos conectar ao Meta Ads. Tenta de novo?';
+  return mensagens[motivo] || 'Não consegui conectar ao Meta Ads. Tenta de novo?';
 }
 
 // Resultado que chega tanto do popup (postMessage) quanto do redirect de página
 // inteira (maHandleOAuthReturn) — mesma lógica de reação nos dois casos.
 function maProcessarRetornoOAuth(result){
   if(result.status === 'conectado'){
-    notify('Meta Ads conectado! Já estamos trazendo seus dados.');
+    notify('Meta Ads conectado! Já estou trazendo seus dados.');
     _maState = { fetched:false, conectado:false, contaNome:'', porPeriodo:{ 7:null, 30:null } };
     maCarregarEstado(maPeriodoApi(_maPeriod));
   }else if(result.status === 'escolher_conta'){
     // TODO: tela de seleção de conta — o backend já guarda token_pendente + a lista de
     // contas, falta só a UI para escolher. Fora do escopo por ora.
-    notify('Encontramos mais de uma conta de anúncios — em breve você vai poder escolher qual conectar.');
+    notify('Encontrei mais de uma conta de anúncios — em breve você vai poder escolher qual conectar.');
   }else if(result.status === 'erro'){
     notify(_maMensagemErro(result.motivo));
   }
@@ -3530,7 +3530,7 @@ async function maDesconectar(){
     rMarketing();
     notify('Meta Ads desconectado.');
   }catch(e){
-    notify('Não conseguimos desconectar agora. Tenta de novo em instantes.');
+    notify('Não consegui desconectar agora. Tenta de novo em instantes.');
   }
 }
 
@@ -4760,10 +4760,10 @@ function uploadFoto(slotKey,input){
         var sd=g('sd')||{};sd[slotKey]=data.secure_url;s('sd',sd);
         rFotoSlots();notify('Foto salva.');
       } else {
-        notify('Erro no upload. Tenta de novo.');
+        notify('Não consegui enviar a foto. Tenta de novo.');
       }
     })
-    .catch(function(){notify('Erro no upload. Verifique sua conexão.');});
+    .catch(function(){notify('Não consegui enviar a foto. Confere sua conexão.');});
 }
 function rFaqList(){
   var el=document.getElementById('faq-list');if(!el)return;
@@ -4795,7 +4795,7 @@ function gerarPDFOrcamento(opts){
   var addons=(g('addons')||[]).filter(function(a){return opts.addonIds.indexOf(a.id)>-1;});
   var html=_templateKelvnClassico(sd,pacotes,addons,opts);
   var win=window.open('','_blank');
-  if(!win){notify('Pop-up bloqueado. Permita pop-ups para este site.');return;}
+  if(!win){notify('O navegador bloqueou o pop-up. Libera os pop-ups pra este site.');return;}
   win.document.write(html);win.document.close();
   setTimeout(function(){win.print();},800);
 }
@@ -6030,7 +6030,7 @@ function exportarBalanco(formato){
 
   // PDF — abre janela de impressão
   var w=window.open('','_blank');
-  if(!w){notify('Permita abrir janelas pop-up para imprimir.');return;}
+  if(!w){notify('Libera os pop-ups do navegador pra imprimir.');return;}
   var estudio=(g('sd')||{}).estudio||'';
   function rowsHtml(arr){
     return arr.map(function(e){
@@ -7518,7 +7518,7 @@ async function visualizarGaleriaPublica(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal) return;
-  if(gal.status!=='publicado'){notify('Publique a galeria primeiro para visualizá-la.');return;}
+  if(gal.status!=='publicado'){notify('Publica a galeria primeiro pra ver como ficou.');return;}
   // Garante sync do design antes de abrir: cancela debounce pendente e força upsert imediato.
   // Passa pelo merge 3-vias (nunca sobrescreve cego o servidor) — mesma proteção do _syncKey.
   if(_currentUser && _KEY_MAP['galerias']){
@@ -7543,13 +7543,13 @@ function copiarSenhaGaleria(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal||!gal.senha) return;
-  navigator.clipboard.writeText(gal.senha).then(function(){notify('Senha copiada.');}).catch(function(){notify('Não foi possível copiar.');});
+  navigator.clipboard.writeText(gal.senha).then(function(){notify('Senha copiada.');}).catch(function(){notify('Não consegui copiar.');});
 }
 function copiarLinkGaleria(){
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal||!gal.slug) return;
-  navigator.clipboard.writeText('https://kelvn.com.br/galeria/'+gal.slug).then(function(){notify('Link copiado.');}).catch(function(){notify('Não foi possível copiar.');});
+  navigator.clipboard.writeText('https://kelvn.com.br/galeria/'+gal.slug).then(function(){notify('Link copiado.');}).catch(function(){notify('Não consegui copiar.');});
 }
 function galDetDragOver(el){
   var z=el||document.getElementById('gal-kpi-upload');
@@ -8148,7 +8148,7 @@ async function galDetIniciarUpload(files, secaoIdOverride){
   if(!_galAtualId||!_currentUser){notify('Galeria não encontrada.');return;}
   var sessionRes=await _sb.auth.getSession();
   var token=sessionRes?.data?.session?.access_token;
-  if(!token){notify('Sessão expirada.');return;}
+  if(!token){notify('Sessão expirada. Entra de novo pra continuar.');return;}
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
   if(!gal){notify('Galeria não encontrada.');return;}
@@ -8647,7 +8647,7 @@ function verFotoGal(url,key,idx,soLeitura){
   _fotoAtualKey=key||null;
   _fotoAtualIdx=(idx!==undefined)?idx:-1;
   var img=document.getElementById('ov-foto-img');
-  if(img){ img.onerror=function(){ cov('ov-foto'); notify('Não foi possível carregar a foto.'); }; img.src=url; }
+  if(img){ img.onerror=function(){ cov('ov-foto'); notify('Não consegui carregar a foto.'); }; img.src=url; }
   document.getElementById('ov-foto').classList.add('open');
   var d=soLeitura?'none':'flex';
   var capaBtn=document.getElementById('ov-foto-capa'); if(capaBtn) capaBtn.style.display=d;
@@ -8792,7 +8792,7 @@ async function abrirSelecoes(){
     renderSelecoes(data.selecoes||[], gal);
   } catch(err){
     var sBody=document.getElementById('gal-det-sel-body');
-    if(sBody) sBody.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--coral);font-size:.78rem;">Não foi possível carregar as seleções.</div>';
+    if(sBody) sBody.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--coral);font-size:.78rem;">Não consegui carregar as seleções.</div>';
   }
 }
 
@@ -8955,7 +8955,7 @@ async function abrirTodasSelecoes(){
     renderTodasSelecoes(data.selecoes||[]);
   }catch(err){
     var body=document.getElementById('gal-sel-all-body');
-    if(body) body.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--coral);font-size:.78rem;">Não foi possível carregar as seleções.</div>';
+    if(body) body.innerHTML='<div style="padding:2rem 0;text-align:center;color:var(--coral);font-size:.78rem;">Não consegui carregar as seleções.</div>';
   }
 }
 
@@ -9293,7 +9293,7 @@ async function mgalIniciarUpload(files){
 
   var sessionRes=await _sb.auth.getSession();
   var token=sessionRes?.data?.session?.access_token;
-  if(!token){notify('Sessão expirada. Faça login novamente.');return;}
+  if(!token){notify('Sessão expirada. Entra de novo pra continuar.');return;}
 
   var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===_galAtualId;});
@@ -10145,7 +10145,7 @@ window.fetch=function(){
     if(r.status===401&&_currentUser){
       console.warn('[auth] 401 detectado — sessão expirada, redirecionando para login');
       _currentUser=null;
-      _sb.auth.signOut().then(function(){ showAuthScreen(); showLogin(); notify('Sessão expirada. Faça login novamente.'); });
+      _sb.auth.signOut().then(function(){ showAuthScreen(); showLogin(); notify('Sessão expirada. Entra de novo pra continuar.'); });
     }
     return r;
   });
