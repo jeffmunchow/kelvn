@@ -7,9 +7,6 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>k</text></svg>">
 <script>try{var _t=localStorage.getItem('kelvn_theme');if(_t)document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <link href="/vendor/fonts.css" rel="stylesheet">
-<script src="/vendor/supabase.js"></script>
-<script src="/vendor/konva.js"></script>
-<script src="/vendor/jspdf.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 /* campos numéricos sem o spinner nativo do WebKit (setas fora do padrão Kelvn) */
@@ -873,15 +870,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
   </div>
 </div>
 
+<script src="/vendor/supabase.js"></script>
+<script src="/vendor/konva.js"></script>
 <script>
 'use strict';
 var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? 'https://app.kelvn.com.br' : '';
+
+// jspdf (356 KB) só é necessário na exportação em PDF — carregado sob demanda
+var _jspdfPromise = null;
+function _carregarJsPDF(){
+  if (window.jspdf || window.jsPDF) return Promise.resolve();
+  if (_jspdfPromise) return _jspdfPromise;
+  _jspdfPromise = new Promise(function(resolve, reject){
+    var s = document.createElement('script');
+    s.src = '/vendor/jspdf.js';
+    s.onload = resolve;
+    s.onerror = function(){ _jspdfPromise = null; reject(new Error('jspdf não carregou')); };
+    document.head.appendChild(s);
+  });
+  return _jspdfPromise;
+}
 
 // ── Atualização automática ──────────────────────────────────────────────────
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.25';
+var ALBUM_VERSION = '1.7.26';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
@@ -5882,8 +5896,9 @@ async function executarExport() {
       statusEl.textContent = n + (n === 1 ? ' lâmina exportada.' : ' lâminas exportadas.')
         + (dir ? ' Em "' + dir.name + '".' : '');
     } else if (_expFormato === 'pdf') {
+      try { await _carregarJsPDF(); } catch(e) {}
       var jsPDFctor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-      if (!jsPDFctor) { statusEl.textContent = 'A biblioteca de PDF não carregou. Recarrega a página.'; return; }
+      if (!jsPDFctor) { statusEl.textContent = 'A biblioteca de PDF não carregou. Confere a conexão e tenta de novo.'; return; }
       var doc = null;
       for (var k = 0; k < spreads.length; k++) {
         atualizarBarra(k, spreads.length);

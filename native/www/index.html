@@ -12,8 +12,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Kelvn</title>
-<script src="/vendor/supabase.js"></script>
-<link href="/vendor/fonts.css" rel="stylesheet">
+<link href="/vendor/fonts-app.css" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 /* campos numéricos sem o spinner nativo do WebKit (setas fora do padrão Kelvn) */
@@ -2609,6 +2608,7 @@ select.aj-input{cursor:pointer;}
 
 <div class="notif" id="notif"></div>
 
+<script src="/vendor/supabase.js"></script>
 <script>
 var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? 'https://app.kelvn.com.br' : '';
 var MO=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
@@ -2697,7 +2697,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.18';
+var APP_VERSION = 'v1.10.19';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -4885,7 +4885,10 @@ function rSD(){
   _syncNewsletterToggle();
   _carregarCotaAjustes();
 }
-function saveSD(){
+// Debounce: os campos de Ajustes disparam oninput a cada tecla — grava só 400ms após a última
+var _saveSDTimer=null;
+function saveSD(){ clearTimeout(_saveSDTimer); _saveSDTimer=setTimeout(saveSDAgora,400); }
+function saveSDAgora(){
   var sd=g('sd')||{};
   var map={
     'sd-studio-nome':'studio_nome','sd-studio-responsavel':'studio_responsavel',
@@ -6417,7 +6420,7 @@ function rAnMetas(){
       '<div style="display:flex;flex-direction:column;gap:.5rem;">'+
         '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. mensal</span><input class="fi" type="number" id="an-meta-fat-mensal" placeholder="ex: 15000" oninput="anMetaMensalChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatMensal||'')+'"></div>'+
         '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Fat. anual</span><input class="fi" type="number" id="an-meta-fat-anual" placeholder="ex: 120000" oninput="anMetaAnualChanged()" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaFatAnual||'')+'"></div>'+
-        '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span><input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSD();rAnMetasProgress();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'"></div>'+
+        '<div style="display:flex;align-items:center;gap:.5rem;"><span style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;min-width:90px;">Casamentos</span><input class="fi" type="number" id="an-meta-casamentos-ano" placeholder="ex: 20" oninput="saveSDAgora();rAnMetasProgress();rR();" style="flex:1;padding:4px 8px;font-size:.78rem;" value="'+(metaWed||'')+'"></div>'+
       '</div>'+
     '</div>';
     // Slot para os 2 progress cards + card definir
@@ -6573,14 +6576,14 @@ function anMetaMensalChanged(){
   var elAnual=document.getElementById('an-meta-fat-anual');
   if(elAnual&&mensal>0)elAnual.value=Math.round(mensal*12);
   else if(elAnual&&mensal===0)elAnual.value='';
-  saveSD();rAnMetasProgress();rAnSazonalidade();rR();
+  saveSDAgora();rAnMetasProgress();rAnSazonalidade();rR();
 }
 function anMetaAnualChanged(){
   var anual=parseFloat(document.getElementById('an-meta-fat-anual').value)||0;
   var elMensal=document.getElementById('an-meta-fat-mensal');
   if(elMensal&&anual>0)elMensal.value=Math.round(anual/12);
   else if(elMensal&&anual===0)elMensal.value='';
-  saveSD();rAnMetasProgress();rAnSazonalidade();rR();
+  saveSDAgora();rAnMetasProgress();rAnSazonalidade();rR();
 }
 function rAN(){
   rAnMetas();
@@ -7286,7 +7289,9 @@ function rDisp(){
   });
   document.getElementById('disp-days').innerHTML=html;
 }
-function saveDisp(){
+var _saveDispTimer=null;
+function saveDisp(){ clearTimeout(_saveDispTimer); _saveDispTimer=setTimeout(saveDispAgora,400); }
+function saveDispAgora(){
   var disp={antec:document.getElementById('disp-antec').value,buffer:document.getElementById('disp-buffer').value};
   DIAS_SEMANA.forEach(function(d,i){
     var ativoEl=document.getElementById('disp-d'+i+'-ativo');

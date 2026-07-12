@@ -921,7 +921,8 @@ function galGridIniciarObserver(grid, d){
 // Movida para função de módulo — definida uma vez e reutilizada.
 function fotoCell(foto, i, classExtra){
   var d = _designResolvido;
-  var imgSrc = foto.webUrl || foto.url;
+  var imgSrc = foto.thumbUrl || foto.webUrl || foto.url;
+  var imgFallback = foto.webUrl || foto.url;
   var dlBtn = _downloads ? (
     '<div class="btn-dl-wrap" onclick="event.stopPropagation()">'
     +'<button class="btn-dl-foto" onclick="toggleDlMenu(this,'+i+')" title="Download">'
@@ -945,7 +946,7 @@ function fotoCell(foto, i, classExtra){
     : '';
   return '<div class="gal-foto-wrap'+(classExtra||'')+'" onclick="openLb('+i+')">'
     +'<img src="'+imgSrc+'" loading="lazy" alt="Foto '+(i+1)+'"'
-    +(foto.url !== imgSrc ? ' onerror="this.src=\''+foto.url+'\'"' : '')+'>'
+    +(imgFallback !== imgSrc ? ' onerror="this.src=\''+imgFallback+'\'"' : '')+'>'
     +albumBtn+favBtn+shareBtn
     +'<div class="gal-foto-overlay">'+dlBtn+'</div>'
     +'</div>';

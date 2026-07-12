@@ -65,10 +65,13 @@ async function signFotos(fotos) {
   return Promise.all(fotos.map(async (foto) => {
     const signed = { ...foto };
     try {
-      const key    = foto.key    || keyFromUrl(foto.url);
-      const webKey = foto.webKey || keyFromUrl(foto.webUrl);
+      const key      = foto.key      || keyFromUrl(foto.url);
+      const webKey   = foto.webKey   || keyFromUrl(foto.webUrl);
+      const thumbKey = foto.thumbKey || keyFromUrl(foto.thumbUrl);
       if (key)    signed.url    = await signKey(key);
       if (webKey) signed.webUrl = await signKey(webKey);
+      if (thumbKey) signed.thumbUrl = await signKey(thumbKey);
+      else if (signed.thumbUrl) delete signed.thumbUrl; // thumb sem key assinável não é acessível no bucket privado
     } catch (e) {
       console.error('gallery-sign: erro ao assinar foto', foto.key, e.message);
     }
