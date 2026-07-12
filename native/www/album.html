@@ -476,7 +476,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="alb-busca" placeholder="Buscar álbum…" oninput="renderLista()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:200px;">
         </div>
-        <button class="btn" style="color:var(--text);" onclick="irParaNovo()">+ Novo álbum</button>
+        <button class="btn" style="color:var(--text);" onclick="irParaNovo()">+ Álbum</button>
       </div>
     </div>
     <div id="albuns-empty">
@@ -520,7 +520,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
         <label class="form-label">Galeria vinculada <span style="color:var(--text-hint);font-size:.65rem;">(as fotos favoritadas pelo casal virão desta galeria)</span></label>
         <div style="position:relative;" id="novo-galeria-wrap">
           <button type="button" class="form-input" id="novo-galeria-btn" onclick="toggleGaleriaMenu()" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;text-align:left;cursor:pointer;">
-            <span id="novo-galeria-label" style="color:var(--text-hint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Selecionar galeria…</span>
+            <span id="novo-galeria-label" style="color:var(--text-hint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Nenhuma</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--text-hint);"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div id="novo-galeria-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:.5px solid var(--border-strong);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.18);z-index:50;max-height:240px;overflow-y:auto;padding:.35rem 0;"></div>
@@ -881,7 +881,7 @@ var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.24';
+var ALBUM_VERSION = '1.7.25';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
@@ -1174,7 +1174,7 @@ function popularSelectGalerias() {
   if (!menu) return;
   menu.innerHTML = '';
   // Opção "nenhuma"
-  menu.appendChild(criarOpcaoGaleria('', 'Selecionar galeria…'));
+  menu.appendChild(criarOpcaoGaleria('', 'Nenhuma'));
   _galerias.forEach(function(g) {
     if (!g.slug) return;
     menu.appendChild(criarOpcaoGaleria(g.slug, g.nomeCliente || g.slug));
@@ -1182,7 +1182,7 @@ function popularSelectGalerias() {
   // Reset seleção
   document.getElementById('novo-galeria').value = '';
   var lbl = document.getElementById('novo-galeria-label');
-  lbl.textContent = 'Selecionar galeria…';
+  lbl.textContent = 'Nenhuma';
   lbl.style.color = 'var(--text-hint)';
 }
 
@@ -5302,7 +5302,7 @@ function spreadsComFotos() {
 async function abrirModalAutoLayout() {
   var spreadsTipo = estado.spreads.filter(function(s) { return s.tipo === 'spread'; });
   if (!spreadsTipo.length) { notify('Adicione lâminas ao álbum primeiro.'); return; }
-  if (!estado.pool.length) { notify('O pool de fotos está vazio.'); return; }
+  if (!estado.pool.length) { notify('Nenhuma foto disponível pra montar.'); return; }
 
   document.getElementById('modal-autolayout').classList.add('open');
   await gerarPreviewAutoLayout();

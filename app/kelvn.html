@@ -1339,7 +1339,7 @@ select.aj-input{cursor:pointer;}
       </div>
     </div>
     <div class="tw" style="border:none;"><div class="ts"><table><thead><tr>
-      <th>Cliente</th><th>Data evento</th><th>Status cliente</th><th>Template</th><th>Data envio</th><th>Status</th><th></th>
+      <th>Cliente</th><th>Data do evento</th><th>Status do cliente</th><th>Template</th><th>Data de envio</th><th>Status</th><th></th>
     </tr></thead><tbody id="qr-tbody"></tbody></table></div></div>
   </div>
 </div>
@@ -1360,7 +1360,7 @@ select.aj-input{cursor:pointer;}
       <div class="st">Reuniões agendadas</div>
       <div class="sa">
         <select class="fi" id="sl-filter" onchange="rSlots()"><option value="upcoming">Próximas</option><option value="all">Todas</option><option value="past">Passadas</option></select>
-        <button class="btn primary" onclick="openSlot()">+ Agendar</button>
+        <button class="btn primary" onclick="openSlot()">+ Reunião</button>
       </div>
     </div>
     <div class="tw" id="sl-list"></div>
@@ -1460,7 +1460,7 @@ select.aj-input{cursor:pointer;}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="gal-busca" placeholder="Buscar galeria…" oninput="rGalFiltro()" style="padding:6px 10px 6px 26px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;border:.5px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--text-muted);outline:none;width:200px;">
         </div>
-        <button class="btn" style="color:var(--text);" onclick="abrirNovaGaleria()">+ Nova galeria</button>
+        <button class="btn" style="color:var(--text);" onclick="abrirNovaGaleria()">+ Galeria</button>
       </div>
     </div>
     <div id="gal-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;"></div>
@@ -1858,13 +1858,13 @@ select.aj-input{cursor:pointer;}
         <div class="aj-section-title">Equipe</div>
         <div class="aj-section-desc">Membros da sua equipe de fotografia.</div>
         <div id="eq-list"></div>
-        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openEq()">+ Adicionar membro</button>
+        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openEq()">+ Membro</button>
       </div>
 
       <div id="aj-panel-automacoes" style="display:none;">
         <div class="aj-section-title">Automações</div>
         <div id="auto-list" style="margin-top:1.25rem;"></div>
-        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openAuto()">+ Adicionar automação</button>
+        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openAuto()">+ Automação</button>
       </div>
 
       <div id="aj-panel-servicos" style="display:none;">
@@ -1873,13 +1873,13 @@ select.aj-input{cursor:pointer;}
         <div class="aj-section-desc">Os pacotes que você oferece. Associe um pacote a cada cliente na ficha deles — o contrato é preenchido automaticamente.</div>
 
         <div class="aj-rows" id="aj-pacotes-list"></div>
-        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openPK()">+ Adicionar pacote</button>
+        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openPK()">+ Pacote</button>
 
         <div class="aj-section-title" style="margin-top:2.5rem;">Add-ons</div>
         <div class="aj-section-desc">Serviços avulsos que complementam um pacote. Ex: álbum extra, sessão pré-wedding, noite anterior.</div>
 
         <div class="aj-rows" id="aj-addons-list"></div>
-        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openAO()">+ Adicionar add-on</button>
+        <button class="btn" style="margin-top:.75rem;font-size:.75rem;color:var(--text-hint);" onclick="openAO()">+ Add-on</button>
 
         <div class="aj-section-title" style="margin-top:2.5rem;">PDF de apresentação</div>
         <div class="aj-section-desc">Fotos e textos do PDF que você envia para os clientes. Configure uma vez — serve para sempre.</div>
@@ -2389,8 +2389,8 @@ select.aj-input{cursor:pointer;}
 <!-- MODAL ENVIAR QUESTIONÁRIO -->
 <div class="overlay" id="ov-qr"><div class="modal">
   <h2 id="mqr-t">Enviar questionário</h2>
-  <div class="field"><label>Cliente</label><select id="mqr-cliente"><option value="">— selecione —</option></select></div>
-  <div class="field"><label>Template</label><select id="mqr-template"><option value="">— selecione —</option></select></div>
+  <div class="field"><label>Cliente</label><select id="mqr-cliente"><option value="">Selecione…</option></select></div>
+  <div class="field"><label>Template</label><select id="mqr-template"><option value="">Selecione…</option></select></div>
   <div class="field">
     <label>Data de envio</label>
     <div class="medt-wrap" id="medtQ-wrap">
@@ -2456,8 +2456,8 @@ select.aj-input{cursor:pointer;}
 <!-- MODAL AGENDAR SLOT -->
 <div class="overlay" id="ov-sl"><div class="modal">
   <h2 id="msl-t">Nova reunião</h2>
-  <div class="field"><label>Tipo de reunião</label><select id="msl-tipo"><option value="">— selecione —</option></select></div>
-  <div class="field"><label>Cliente</label><select id="msl-cliente"><option value="">— nenhum —</option></select></div>
+  <div class="field"><label>Tipo de reunião</label><select id="msl-tipo"><option value="">Selecione…</option></select></div>
+  <div class="field"><label>Cliente</label><select id="msl-cliente"><option value="">Nenhum</option></select></div>
   <div class="field">
     <label>Data e hora</label>
     <div class="medt-wrap" id="medt2-wrap">
@@ -2697,7 +2697,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.17';
+var APP_VERSION = 'v1.10.18';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -2934,7 +2934,7 @@ function pN(id){var p=g('pacotes').find(function(x){return x.id===id;});return p
 function fillSel(extras){
   var cs=g('clientes');
   var sels=extras||[];
-  var base=[['me-cliente','Nenhum'],['mp-cliente','Geral'],['mf-cliente','Nenhum'],['mqr-cliente','— selecione —'],['msl-cliente','Nenhum']];
+  var base=[['me-cliente','Nenhum'],['mp-cliente','Geral'],['mf-cliente','Nenhum'],['mqr-cliente','Selecione…'],['msl-cliente','Nenhum']];
   base.concat(sels).forEach(function(x){
     var el=document.getElementById(x[0]);if(!el)return;
     el.innerHTML='<option value="">'+x[1]+'</option>'+cs.map(function(c){return '<option value="'+c.id+'">'+c.nome+'</option>';}).join('');
@@ -4250,7 +4250,7 @@ function delC(){
     s('clientes',g('clientes').filter(function(c){return c.id!==_cId;}));
     // Remove todos os eventos vinculados a esse cliente
     s('eventos',g('eventos').filter(function(e){return e.clienteId!==_cId;}));
-    undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Excluído.');
+    undoCommit();cov('ov-c');rC();rR();rA();rCalAno();notify('Cliente excluído.');
   });
 }
 function rPL(ps){_parc=ps.map(function(p){return Object.assign({},p);});bPD();}
@@ -5264,7 +5264,7 @@ function saveE(){
   if(_eId){var i=es.findIndex(function(e){return e.id===_eId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('eventos',es);undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento salvo.');
 }
-function delE(){confirmar('',function(){undoBegin();s('eventos',g('eventos').filter(function(e){return e.id!==_eId;}));undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Excluído.');});}
+function delE(){confirmar('',function(){undoBegin();s('eventos',g('eventos').filter(function(e){return e.id!==_eId;}));undoCommit();cov('ov-e');rA();rCalAno();rR();notify('Evento excluído.');});}
 var _pId=null;
 function rPe(){
   var flt=document.getElementById('pend-filter').value;
@@ -5315,9 +5315,9 @@ function savePend(){
   var o={id:_pId||uid(),desc:document.getElementById('mp-desc').value.trim(),clienteId:document.getElementById('mp-cliente').value,prazo:d2i(medtTGetValue()),prio:document.getElementById('mp-prio').value,done:ex?ex.done:false};
   if(!o.desc){notify('Informe a descrição.');return;}
   if(_pId){var i=ps.findIndex(function(p){return p.id===_pId;});if(i>-1)ps[i]=o;}else ps.push(o);
-  undoBegin();s('pends',ps);undoCommit();cov('ov-p');rPe();rR();notify('Salvo.');
+  undoBegin();s('pends',ps);undoCommit();cov('ov-p');rPe();rR();notify('Tarefa salva.');
 }
-function delPend(){confirmar('',function(){undoBegin();s('pends',g('pends').filter(function(p){return p.id!==_pId;}));undoCommit();cov('ov-p');rPe();rR();notify('Excluído.');});}
+function delPend(){confirmar('',function(){undoBegin();s('pends',g('pends').filter(function(p){return p.id!==_pId;}));undoCommit();cov('ov-p');rPe();rR();notify('Tarefa excluída.');});}
 
 var _fId=null;
 var _saudeCache=null;
@@ -5686,9 +5686,9 @@ function saveF(){
   var o={id:_fId||uid(),desc:document.getElementById('mf-desc').value.trim(),valor:parseFloat(document.getElementById('mf-valor').value)||0,data:d2i(medtFGetValue()),cat:document.getElementById('mf-cat').value,clienteId:document.getElementById('mf-cliente').value,tipo:document.getElementById('mf-tipo').value};
   if(!o.desc){notify('Informe a descrição.');return;}
   if(_fId){var i=fs.findIndex(function(e){return e.id===_fId;});if(i>-1)fs[i]=o;}else fs.push(o);
-  undoBegin();s('fin',fs);undoCommit();cov('ov-f');rF();rR();notify('Salvo.');
+  undoBegin();s('fin',fs);undoCommit();cov('ov-f');rF();rR();notify('Lançamento salvo.');
 }
-function delF(){confirmar('',function(){undoBegin();s('fin',g('fin').filter(function(e){return e.id!==_fId;}));undoCommit();cov('ov-f');rF();rR();notify('Excluído.');});}
+function delF(){confirmar('',function(){undoBegin();s('fin',g('fin').filter(function(e){return e.id!==_fId;}));undoCommit();cov('ov-f');rF();rR();notify('Lançamento excluído.');});}
 var _fpId=null;
 function rFP(){
   var per=document.getElementById('fp-period').value,now=new Date();
@@ -5714,9 +5714,9 @@ function saveFP(){
   var o={id:_fpId||uid(),desc:document.getElementById('mfp-desc').value.trim(),valor:parseFloat(document.getElementById('mfp-valor').value)||0,data:d2i(medtFPGetValue()),cat:document.getElementById('mfp-cat').value,tipo:document.getElementById('mfp-tipo').value};
   if(!o.desc){notify('Informe a descrição.');return;}
   if(_fpId){var i=fs.findIndex(function(e){return e.id===_fpId;});if(i>-1)fs[i]=o;}else fs.push(o);
-  undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Salvo.');
+  undoBegin();s('fin_pessoal',fs);undoCommit();cov('ov-fp');rFP();notify('Lançamento salvo.');
 }
-function delFP(){confirmar('',function(){undoBegin();s('fin_pessoal',g('fin_pessoal').filter(function(e){return e.id!==_fpId;}));undoCommit();cov('ov-fp');rFP();notify('Excluído.');});}
+function delFP(){confirmar('',function(){undoBegin();s('fin_pessoal',g('fin_pessoal').filter(function(e){return e.id!==_fpId;}));undoCommit();cov('ov-fp');rFP();notify('Lançamento excluído.');});}
 
 function rFluxo(){
   var hzEl=document.getElementById('fluxo-horizonte');
@@ -6271,7 +6271,7 @@ function savePK(){
   if(_pkId){var i=ps.findIndex(function(p){return p.id===_pkId;});if(i>-1)ps[i]=o;}else ps.push(o);
   undoBegin();s('pacotes',ps);undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Pacote salvo.');
 }
-function delPK(){confirmar('',function(){undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Excluído.');});}
+function delPK(){confirmar('',function(){undoBegin();s('pacotes',g('pacotes').filter(function(p){return p.id!==_pkId;}));undoCommit();cov('ov-pk');rPK();rAJServicos();notify('Pacote excluído.');});}
 
 // ── ADD-ONS ──────────────────────────────────────────────────────────────────
 var _aoId=null;
@@ -6313,7 +6313,7 @@ function saveAO(){
   if(_aoId){var i=aos.findIndex(function(a){return a.id===_aoId;});if(i>-1)aos[i]=o;}else aos.push(o);
   s('addons',aos);cov('ov-ao');rAO();rAJServicos();notify('Add-on salvo.');
 }
-function delAO(){confirmar('',function(){s('addons',(g('addons')||[]).filter(function(a){return a.id!==_aoId;}));cov('ov-ao');rAO();rAJServicos();notify('Excluído.');});}
+function delAO(){confirmar('',function(){s('addons',(g('addons')||[]).filter(function(a){return a.id!==_aoId;}));cov('ov-ao');rAO();rAJServicos();notify('Add-on excluído.');});}
 
 var _eqId=null;
 var _eqColW=[220,150,230,160];
@@ -6378,7 +6378,7 @@ function saveEq(){
   if(_eqId){var i=es.findIndex(function(e){return e.id===_eqId;});if(i>-1)es[i]=o;}else es.push(o);
   undoBegin();s('equipe',es);undoCommit();cov('ov-eq');rEQ();notify('Membro salvo.');
 }
-function delEq(){confirmar('',function(){undoBegin();s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));undoCommit();cov('ov-eq');rEQ();notify('Excluído.');});}
+function delEq(){confirmar('',function(){undoBegin();s('equipe',g('equipe').filter(function(e){return e.id!==_eqId;}));undoCommit();cov('ov-eq');rEQ();notify('Membro excluído.');});}
 function _buildProgressCard(opts){
   var pct=opts.meta>0?Math.min(Math.round(opts.atual/opts.meta*100),100):0;
   var cor=pct>=100?'var(--teal)':pct>=60?'var(--amber)':'var(--coral)';
@@ -7028,7 +7028,7 @@ function saveQT(){
   if(_qtId){var i=ts.findIndex(function(t){return t.id===_qtId;});if(i>-1)ts[i]=o;}else ts.push(o);
   undoBegin();s('q_templates',ts);undoCommit();cov('ov-qt');rQT();notify('Template salvo.');
 }
-function delQT(){confirmar('',function(){undoBegin();s('q_templates',g('q_templates').filter(function(t){return t.id!==_qtId;}));undoCommit();cov('ov-qt');rQT();notify('Excluído.');});}
+function delQT(){confirmar('',function(){undoBegin();s('q_templates',g('q_templates').filter(function(t){return t.id!==_qtId;}));undoCommit();cov('ov-qt');rQT();notify('Template excluído.');});}
 
 // RESPOSTAS
 var _qrId=null;
@@ -7127,7 +7127,7 @@ function openQR(id){
   _qrId=id||null;fillSel();
   var ts=g('q_templates');
   var tsel=document.getElementById('mqr-template');
-  tsel.innerHTML='<option value="">— selecione —</option>'+ts.map(function(t){return '<option value="'+t.id+'">'+t.nome+'</option>';}).join('');
+  tsel.innerHTML='<option value="">Selecione…</option>'+ts.map(function(t){return '<option value="'+t.id+'">'+t.nome+'</option>';}).join('');
   if(id){
     var r=g('q_respostas').find(function(x){return x.id===id;});if(!r)return;
     document.getElementById('mqr-cliente').value=r.clienteId||'';tsel.value=r.templateId||'';
@@ -7147,9 +7147,9 @@ function saveQR(){
   var o={id:_qrId||uid(),clienteId:document.getElementById('mqr-cliente').value,templateId:document.getElementById('mqr-template').value,data:d2i(medtQGetValue()),status:document.getElementById('mqr-status').value,respostas:_qrId?(rs.find(function(r){return r.id===_qrId;})||{}).respostas||{}:{}};
   if(!o.clienteId){notify('Selecione um cliente.');return;}
   if(_qrId){var i=rs.findIndex(function(r){return r.id===_qrId;});if(i>-1)rs[i]=o;}else rs.push(o);
-  undoBegin();s('q_respostas',rs);undoCommit();cov('ov-qr');rQR();notify('Salvo.');
+  undoBegin();s('q_respostas',rs);undoCommit();cov('ov-qr');rQR();notify('Questionário salvo.');
 }
-function delQR(){confirmar('',function(){undoBegin();s('q_respostas',g('q_respostas').filter(function(r){return r.id!==_qrId;}));undoCommit();cov('ov-qr');rQR();notify('Excluído.');});}
+function delQR(){confirmar('',function(){undoBegin();s('q_respostas',g('q_respostas').filter(function(r){return r.id!==_qrId;}));undoCommit();cov('ov-qr');rQR();notify('Questionário excluído.');});}
 function verRespostas(id){
   var r=g('q_respostas').find(function(x){return x.id===id;});if(!r)return;
   var t=g('q_templates').find(function(x){return x.id===r.templateId;});
@@ -7221,7 +7221,7 @@ function saveTR(){
   if(_trId){var i=ts.findIndex(function(t){return t.id===_trId;});if(i>-1)ts[i]=o;}else ts.push(o);
   undoBegin();s('tiposReuniao',ts);undoCommit();cov('ov-tr');rTR();notify('Tipo salvo.');
 }
-function delTR(){confirmar('',function(){undoBegin();s('tiposReuniao',g('tiposReuniao').filter(function(t){return t.id!==_trId;}));undoCommit();cov('ov-tr');rTR();notify('Excluído.');});}
+function delTR(){confirmar('',function(){undoBegin();s('tiposReuniao',g('tiposReuniao').filter(function(t){return t.id!==_trId;}));undoCommit();cov('ov-tr');rTR();notify('Tipo excluído.');});}
 
 // SLOTS
 function rSlots(){
@@ -7249,7 +7249,7 @@ function openSlot(id){
   _slId=id||null;fillSel();
   var ts=g('tiposReuniao');
   var tsel=document.getElementById('msl-tipo');
-  tsel.innerHTML='<option value="">— selecione —</option>'+ts.map(function(t){return '<option value="'+t.id+'">'+t.nome+' ('+t.duracao+'min)</option>';}).join('');
+  tsel.innerHTML='<option value="">Selecione…</option>'+ts.map(function(t){return '<option value="'+t.id+'">'+t.nome+' ('+t.duracao+'min)</option>';}).join('');
   if(id){var sl=g('slots').find(function(x){return x.id===id;});if(!sl)return;document.getElementById('msl-t').textContent='Editar reunião';tsel.value=sl.tipoId||'';document.getElementById('msl-cliente').value=sl.clienteId||'';medt2Init(sl.data||'');document.getElementById('msl-local').value=sl.local||'';document.getElementById('msl-status').value=sl.status||'Confirmado';document.getElementById('msl-notas').value=sl.notas||'';document.getElementById('msl-del').style.display='inline-flex';}
   else{document.getElementById('msl-t').textContent='Nova reunião';['msl-local','msl-notas'].forEach(function(i){document.getElementById(i).value='';});tsel.value='';document.getElementById('msl-cliente').value='';medt2Init('');document.getElementById('msl-status').value='Confirmado';document.getElementById('msl-del').style.display='none';}
   kvSelSyncLabel('msl-tipo');kvSelSyncLabel('msl-cliente');kvSelSyncLabel('msl-status');
@@ -7265,7 +7265,7 @@ function saveSlot(){
   if(!_slId){var tr=g('tiposReuniao').find(function(x){return x.id===o.tipoId;})||{nome:'Reunião'};var es=g('eventos');es.push({id:uid(),titulo:tr.nome+(o.clienteId?' — '+cN(o.clienteId):''),data:o.data,tipo:'Reunião',clienteId:o.clienteId,local:o.local,notas:o.notas});s('eventos',es);}
   undoCommit();cov('ov-sl');rSlots();notify('Reunião salva.');
 }
-function delSlot(){confirmar('',function(){undoBegin();s('slots',g('slots').filter(function(s2){return s2.id!==_slId;}));undoCommit();cov('ov-sl');rSlots();notify('Excluído.');});}
+function delSlot(){confirmar('',function(){undoBegin();s('slots',g('slots').filter(function(s2){return s2.id!==_slId;}));undoCommit();cov('ov-sl');rSlots();notify('Reunião excluída.');});}
 
 // DISPONIBILIDADE
 var DIAS_SEMANA=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
