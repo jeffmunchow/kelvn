@@ -313,6 +313,12 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ai-title{font-size:.82rem;color:var(--text);}
 .ai-sub{font-size:.67rem;color:var(--text-hint);margin-top:2px;}
 .ed-fases{display:flex;align-items:center;gap:2px;margin-left:auto;flex-shrink:0;}
+/* Mobile: alvo de toque dos ícones de fase da Edição ≥40px (Apple pede 44pt).
+   !important vence o padding inline; o SVG continua 18px, só a área cresce. */
+@media(max-width:768px){
+  .ed-fases{gap:0;}
+  .ed-fase-btn{min-width:40px;min-height:40px;padding:6px !important;justify-content:center;}
+}
 .ed-fase-btn:hover{opacity:.75!important;}
 /* PEND CARD */
 .pc{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.75rem;cursor:pointer;}
@@ -2708,7 +2714,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.22';
+var APP_VERSION = 'v1.10.23';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
