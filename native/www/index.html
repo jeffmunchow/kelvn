@@ -366,7 +366,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;}
 @media(max-width:900px){.three{grid-template-columns:1fr 1fr;}}
 @media(max-width:768px){.two,.three{grid-template-columns:1fr;}}
-@media(max-width:768px){#an-receita-wrap,#an-graficos-wrap{grid-template-columns:1fr !important;}#an-kpis-estrategicos{grid-template-columns:1fr !important;}}
+@media(max-width:768px){#an-receita-wrap,#an-graficos-wrap{grid-template-columns:1fr !important;}#an-kpis-estrategicos{grid-template-columns:1fr !important;}#an-metas{grid-template-columns:1fr !important;}}
 /* iPad: o Financeiro (saúde + KPIs lado a lado) fica apertado e o conteúdo vaza em
    2 colunas. Por decisão do produto, EMPILHA em 1 coluna (saúde sobre KPIs), mantendo
    a sidebar/chrome de desktop. Pega iPad em qualquer orientação: retrato pela largura;
@@ -2708,7 +2708,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.21';
+var APP_VERSION = 'v1.10.22';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
