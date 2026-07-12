@@ -6,7 +6,11 @@ const RATE_LIMIT_MAX = 60;   // requests
 const RATE_LIMIT_WIN = 60;   // minutos (janela deslizante de 1 hora)
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', 'https://app.kelvn.com.br');
+  // CORS: app web + app nativo (Capacitor, origin capacitor://localhost).
+  // Allowlist estrita — a proteção real destes endpoints continua sendo o JWT.
+  const _origem = req.headers.origin;
+  res.setHeader('Access-Control-Allow-Origin', (_origem === 'https://app.kelvn.com.br' || _origem === 'capacitor://localhost') ? _origem : 'https://app.kelvn.com.br');
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
