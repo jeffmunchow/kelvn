@@ -608,6 +608,9 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
   .aj-side{width:100%!important;display:flex;gap:.35rem;overflow-x:auto!important;overflow-y:hidden!important;border-right:none!important;border-bottom:.5px solid var(--border);padding:.25rem .25rem .75rem!important;margin-bottom:1.25rem;-webkit-overflow-scrolling:touch;}
   .aj-side .aj-cat{flex-shrink:0;width:auto;white-space:nowrap;margin:0;}
   .aj-main{overflow-y:visible!important;padding:0 0 2rem!important;}
+  /* Toolbar de Galerias quebra linha para o botão + Galeria não sair da tela */
+  .gal-toolbar{flex-wrap:wrap;}
+  .gal-toolbar #gal-busca{width:150px!important;}
 }
 .aj-section-title{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);margin-bottom:.25rem;}
 .aj-section-desc{font-size:.75rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.6;}
@@ -1445,7 +1448,7 @@ select.aj-input{cursor:pointer;}
   <div id="gal-view-lista">
     <div class="sh">
       <div class="st">Galerias</div>
-      <div style="display:flex;align-items:center;gap:.6rem;">
+      <div class="gal-toolbar" style="display:flex;align-items:center;gap:.6rem;">
         <button class="btn" onclick="abrirTodasSelecoes()">Seleções</button>
         <!-- Ordenar -->
         <div style="position:relative;" id="gal-sort-wrap">
@@ -2705,7 +2708,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.20';
+var APP_VERSION = 'v1.10.21';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
