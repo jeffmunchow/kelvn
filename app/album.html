@@ -27,9 +27,9 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   --border:rgba(255,255,255,0.04);--border-strong:rgba(255,255,255,0.07);
   --text:#EDE9E3;--text-muted:#9E9892;--text-hint:#5C5854;
   --amber:#D8C9A3;--amber-light:#211F19;--amber-deep:#C2B48F;
-  --coral:#C08064;--coral-light:#1E0E08;
-  --teal:#7FAA9B;--teal-light:#091E15;
-  --purple:#9C9DB8;--purple-light:#12142A;
+  --coral:#C97050;--coral-light:#1E0E08;
+  --teal:#4A9C86;--teal-light:#091E15;
+  --purple:#9294C2;--purple-light:#12142A;
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:calc(100vh / 0.9);overflow:hidden;display:flex;zoom:0.9;}
 
@@ -901,7 +901,7 @@ function _carregarJsPDF(){
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.30';
+var ALBUM_VERSION = '1.7.31';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
