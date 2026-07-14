@@ -2737,7 +2737,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.30';
+var APP_VERSION = 'v1.10.31';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -3375,6 +3375,8 @@ function igDrawChartOn(canvasId, period){
   var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   var gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
   var labelColor = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
+  var accentHex = isDark ? '#D8C9A3' : '#A79C78';
+  var accentRgb = isDark ? '216,201,163' : '167,156,120';
   ctx.strokeStyle = gridColor;
   ctx.lineWidth = 0.5;
   var steps = 5;
@@ -3397,8 +3399,8 @@ function igDrawChartOn(canvasId, period){
 
   // gradiente de preenchimento
   var grad = ctx.createLinearGradient(0, padT, 0, padT + cH);
-  grad.addColorStop(0, 'rgba(196,120,10,0.18)');
-  grad.addColorStop(1, 'rgba(196,120,10,0)');
+  grad.addColorStop(0, 'rgba('+accentRgb+',0.18)');
+  grad.addColorStop(1, 'rgba('+accentRgb+',0)');
 
   function px(i){ return padL + (i / (data.length - 1)) * cW; }
   function py(v){ return padT + cH - ((v - mn) / range) * cH; }
@@ -3422,7 +3424,7 @@ function igDrawChartOn(canvasId, period){
     var xc2 = (px(m-1) + px(m)) / 2;
     ctx.bezierCurveTo(xc2, py(data[m-1]), xc2, py(data[m]), px(m), py(data[m]));
   }
-  ctx.strokeStyle = '#C4780A';
+  ctx.strokeStyle = accentHex;
   ctx.lineWidth = 1.8;
   ctx.lineJoin = 'round';
   ctx.stroke();
@@ -3431,7 +3433,7 @@ function igDrawChartOn(canvasId, period){
   var lastX = px(data.length-1), lastY = py(data[data.length-1]);
   ctx.beginPath();
   ctx.arc(lastX, lastY, 3.5, 0, Math.PI*2);
-  ctx.fillStyle = '#C4780A';
+  ctx.fillStyle = accentHex;
   ctx.fill();
 }
 
