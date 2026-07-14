@@ -405,6 +405,7 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;padding:1rem;}
 .overlay.open{display:flex;}
 .modal{background:var(--surface);border-radius:var(--radius);border:.5px solid var(--border-strong);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:1.75rem;}
+#add-fotos-drop:hover,#add-fotos-drop.drag{border-color:var(--amber);background:var(--amber-light);}
 .modal.wide{max-width:620px;}
 .modal h2{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:600;margin-bottom:1.25rem;}
 .field{margin-bottom:.9rem;}
@@ -1518,11 +1519,7 @@ select.aj-input{cursor:pointer;}
         <button class="btn" id="gal-det-btn-vis" onclick="visualizarGaleriaPublica()" style="display:none;">Visualizar</button>
         <button class="btn" id="gal-det-btn-sel" onclick="abrirSelecoes()">Seleções</button>
         <button class="btn" onclick="criarSubgal()">Adicionar seção</button>
-        <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
-        <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.72rem;color:var(--text-hint);white-space:nowrap;" title="Reduz o peso dos arquivos originais sem perder qualidade visível">
-          <input type="checkbox" id="gal-det-otimizar" class="kelvn-check" onchange="localStorage.setItem('kelvn_upload_otimizar', this.checked ? '1' : '0')">
-          Otimizar antes do envio
-        </label>
+        <button class="btn" onclick="abrirModalAddFotos()">Adicionar fotos</button>
         <button class="btn" onclick="abrirDesignGaleria()">Design</button>
         <button class="btn" onclick="abrirGaleria(_galAtualId)">Configurar</button>
         <button id="gal-det-btn-pub" class="btn" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Offline</button>
@@ -2171,6 +2168,28 @@ select.aj-input{cursor:pointer;}
   </div>
 </div></div>
 
+<!-- MODAL ADICIONAR FOTOS -->
+<div class="overlay" id="ov-add-fotos"><div class="modal">
+  <h2>Adicionar fotos</h2>
+  <div id="add-fotos-drop" onclick="document.getElementById('gal-det-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="addFotosDrop(event)" style="border:1.5px dashed var(--border-strong);border-radius:var(--radius);padding:2.2rem 1rem;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.6rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <p style="margin:0;font-size:.85rem;color:var(--text-muted);">Arraste fotos aqui ou <strong style="color:var(--text);">clique para escolher</strong></p>
+  </div>
+  <div class="field" style="margin-top:1.1rem;">
+    <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;color:var(--text);">
+      <input type="checkbox" id="gal-det-otimizar" class="kelvn-check" onchange="localStorage.setItem('kelvn_upload_otimizar', this.checked ? '1' : '0')">
+      Otimizar antes do envio
+    </label>
+    <div style="font-size:.72rem;color:var(--text-hint);margin-top:.4rem;line-height:1.5;">
+      Reduz o tamanho dos arquivos sem mudar a resolução da foto — geralmente 60-70% mais leve, sem perda visível na tela nem na impressão. Recomendado pra maioria das galerias.
+    </div>
+  </div>
+  <div class="ma">
+    <div style="flex:1"></div>
+    <button class="btn" onclick="cov('ov-add-fotos')">Cancelar</button>
+  </div>
+</div></div>
+
 <!-- MODAL FINANCEIRO EMPRESA -->
 <!-- MODAL FEEDBACK -->
 <div class="overlay" id="ov-feedback"><div class="modal">
@@ -2718,7 +2737,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.25';
+var APP_VERSION = 'v1.10.26';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -7697,8 +7716,19 @@ function _lerArquivosDePasta(dirEntry){
 
 function galDetFileSelect(e){
   var files=Array.from(e.target.files);
-  if(files.length) galDetIniciarUpload(files);
+  if(files.length){ cov('ov-add-fotos'); galDetIniciarUpload(files); }
   e.target.value='';
+}
+function abrirModalAddFotos(){
+  var otimizarCk=document.getElementById('gal-det-otimizar');
+  if(otimizarCk) otimizarCk.checked = localStorage.getItem('kelvn_upload_otimizar') !== '0';
+  document.getElementById('ov-add-fotos').classList.add('open');
+}
+function addFotosDrop(e){
+  e.preventDefault();
+  document.getElementById('add-fotos-drop').classList.remove('drag');
+  var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type.startsWith('image/');});
+  if(files.length){ cov('ov-add-fotos'); galDetIniciarUpload(files); }
 }
 var _uploadCancelado=false; // legado — mantido para cancelarUpload()
 
