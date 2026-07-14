@@ -16,7 +16,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   --bg:#F7F4EF;--surface:#FFFFFF;--surface2:#F0EDE6;--surface3:#E8E3DA;
   --border:rgba(0,0,0,0.04);--border-strong:rgba(0,0,0,0.09);
   --text:#1A1814;--text-muted:#6B6660;--text-hint:#B0ABA6;
-  --amber:#C4780A;--amber-light:#FDF3E3;--amber-deep:#8A4F00;
+  --amber:#A79C78;--amber-light:#F2EFE5;--amber-deep:#8C7F5C;
   --coral:#C43A1A;--coral-light:#FDF0EC;
   --teal:#0A7864;--teal-light:#E3F4EF;
   --purple:#5255A0;--purple-light:#EEF0FF;
@@ -26,7 +26,7 @@ input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   --bg:#13110B;--surface:#1C1812;--surface2:#221E18;--surface3:#2A2620;
   --border:rgba(255,255,255,0.04);--border-strong:rgba(255,255,255,0.07);
   --text:#EDE9E3;--text-muted:#9E9892;--text-hint:#5C5854;
-  --amber:#D4902A;--amber-light:#221808;--amber-deep:#C4780A;
+  --amber:#EBE9DC;--amber-light:#211F19;--amber-deep:#C9C7B8;
   --coral:#CC4A28;--coral-light:#1E0E08;
   --teal:#18926E;--teal-light:#091E15;
   --purple:#8A8DCC;--purple-light:#12142A;
@@ -895,7 +895,7 @@ function _carregarJsPDF(){
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.26';
+var ALBUM_VERSION = '1.7.27';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
