@@ -1519,6 +1519,10 @@ select.aj-input{cursor:pointer;}
         <button class="btn" id="gal-det-btn-sel" onclick="abrirSelecoes()">Seleções</button>
         <button class="btn" onclick="criarSubgal()">Adicionar seção</button>
         <button class="btn" onclick="document.getElementById('gal-det-file-input').click()">Adicionar fotos</button>
+        <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.72rem;color:var(--text-hint);white-space:nowrap;" title="Reduz o peso dos arquivos originais sem perder qualidade visível">
+          <input type="checkbox" id="gal-det-otimizar" class="kelvn-check" onchange="localStorage.setItem('kelvn_upload_otimizar', this.checked ? '1' : '0')">
+          Otimizar antes do envio
+        </label>
         <button class="btn" onclick="abrirDesignGaleria()">Design</button>
         <button class="btn" onclick="abrirGaleria(_galAtualId)">Configurar</button>
         <button id="gal-det-btn-pub" class="btn" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Offline</button>
@@ -2714,7 +2718,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.24';
+var APP_VERSION = 'v1.10.25';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -7773,7 +7777,7 @@ var _UE = {
       this._fileStatus[fname] = 'pending';
       this._queue.push({file:files[i], galeria_slug:opts.galeria_slug,
         secao_id:opts.secao_id||null, token:opts.token,
-        gal:opts.gal, gals:opts.gals, retries:0});
+        gal:opts.gal, gals:opts.gals, otimizar:!!opts.otimizar, retries:0});
     }
 
     _upRenderFileList(this._fileStatus);
@@ -7838,6 +7842,14 @@ var _UE = {
     var gal = item.gal;
     var gals = item.gals;
 
+    // Otimização opcional do original: só reduz qualidade JPEG, nunca a
+    // dimensão — não afeta o cálculo de DPI na exportação de álbuns.
+    var uploadFile = file;
+    if(item.otimizar && /^image\/jpe?g$/.test(file.type||'')){
+      var otimizado = await _gerarOriginalOtimizado(file);
+      if(otimizado && otimizado.size < file.size) uploadFile = otimizado;
+    }
+
     // 1. Registra asset no banco e obtém presigned URL
     var resp = await fetch(API_BASE+'/api/gallery-upload',{
       method:'POST',
@@ -7848,7 +7860,7 @@ var _UE = {
         secao_id:     item.secao_id,
         filename:     file.name,
         content_type: file.type||'image/jpeg',
-        tamanho_bytes: file.size
+        tamanho_bytes: uploadFile.size
       })
     });
     if(!resp.ok) throw new Error('init falhou: '+resp.status);
@@ -7862,7 +7874,7 @@ var _UE = {
     var putResp = await fetch(signedUrl,{
       method:'PUT',
       headers:{'Content-Type': file.type||'image/jpeg'},
-      body: file
+      body: uploadFile
     });
     if(!putResp.ok) throw new Error('PUT R2 falhou: '+putResp.status);
 
@@ -8166,6 +8178,11 @@ function _gerarImagemRedimensionada(file,maxPx,quality){
 }
 function _gerarThumb(file){ return _gerarImagemRedimensionada(file,400,0.75); }
 function _gerarWebVersion(file){ return _gerarImagemRedimensionada(file,1080,0.88); }
+// Reduz o peso do JPEG original mantendo a dimensão intacta — maxPx alto o
+// suficiente pra nunca disparar o redimensionamento de _gerarImagemRedimensionada.
+// Preserva a resolução em pixels do arquivo pra não afetar o cálculo de DPI na
+// exportação de álbuns (ver checagem de "resolução adequada" em album.html).
+function _gerarOriginalOtimizado(file){ return _gerarImagemRedimensionada(file,99999,0.85); }
 
 async function galDetIniciarUpload(files, secaoIdOverride){
   if(!_galAtualId||!_currentUser){notify('Galeria não encontrada.');return;}
@@ -8193,12 +8210,14 @@ async function galDetIniciarUpload(files, secaoIdOverride){
   if(plbl) plbl.textContent='0 de '+files.length;
   _uploadCancelado=false;
 
+  var otimizarCk=document.getElementById('gal-det-otimizar');
   await _UE.run(files, {
     galeria_slug: gal.slug,
     secao_id: subgalId,
     token: token,
     gal: gal,
     gals: gals,
+    otimizar: otimizarCk ? otimizarCk.checked : false,
     onProgress: function(done, total, erros){
       var pct=total?Math.round(done/total*100):0;
       var pbar2=document.getElementById('upload-progress-bar');
@@ -9085,6 +9104,8 @@ function rGalDetalhe(){
   if(!gal) return;
   document.getElementById('gal-view-lista').style.display='none';
   document.getElementById('gal-view-detalhe').style.display='';
+  var otimizarCk=document.getElementById('gal-det-otimizar');
+  if(otimizarCk) otimizarCk.checked = localStorage.getItem('kelvn_upload_otimizar') !== '0';
   // Garante modo grid (caso venha de design mode)
   var backG=document.getElementById('gal-nav-back-galerias');
   var backD=document.getElementById('gal-nav-back-detalhe');
