@@ -876,6 +876,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 'use strict';
 var API_BASE = (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? 'https://app.kelvn.com.br' : '';
 
+// Cor de destaque (seleção, guias, âncoras do Konva) — acompanha o tema, já que
+// canvas não lê variáveis CSS sozinho.
+function _kelvnAccent(){
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? '#D8C9A3' : '#A79C78';
+}
+
 // jspdf (356 KB) só é necessário na exportação em PDF — carregado sob demanda
 var _jspdfPromise = null;
 function _carregarJsPDF(){
@@ -895,7 +901,7 @@ function _carregarJsPDF(){
 // Igual ao kelvn.html: ao voltar ao primeiro plano, confere a versão publicada
 // do próprio album.html e recarrega sozinho se houver uma mais nova (evita ficar
 // preso numa cópia cacheada antiga).
-var ALBUM_VERSION = '1.7.28';
+var ALBUM_VERSION = '1.7.29';
 async function _albCheckUpdate(){
   try{
     var res = await fetch(location.pathname + '?_v=' + Date.now(), { cache: 'no-store' });
@@ -3005,7 +3011,7 @@ function destacarSlotAlvo(cx, cy) {
   if (idx < 0 || idx === _swapDrag.sourceIdx) return;
   var grupo = _layer.findOne('.grupo-slot-' + idx);
   var bg = grupo && grupo.findOne('.bg-slot');
-  if (bg) { bg.stroke('#C4780A'); bg.strokeWidth(3); _slotDestacado = idx; _layer.batchDraw(); }
+  if (bg) { bg.stroke(_kelvnAccent()); bg.strokeWidth(3); _slotDestacado = idx; _layer.batchDraw(); }
 }
 
 function limparDestaqueSlots() {
@@ -4396,14 +4402,15 @@ function atualizarGuias(bx, by, bw, bh) {
     }
   });
 
+  var _guideColor = _kelvnAccent();
   Object.values(vLines).forEach(function(x) {
     _guideLayer.add(new Konva.Line({
-      points: [x, 0, x, H], stroke: '#C4780A', strokeWidth: 1, dash: [5, 4], listening: false
+      points: [x, 0, x, H], stroke: _guideColor, strokeWidth: 1, dash: [5, 4], listening: false
     }));
   });
   Object.values(hLines).forEach(function(y) {
     _guideLayer.add(new Konva.Line({
-      points: [0, y, W, y], stroke: '#C4780A', strokeWidth: 1, dash: [5, 4], listening: false
+      points: [0, y, W, y], stroke: _guideColor, strokeWidth: 1, dash: [5, 4], listening: false
     }));
   });
 
@@ -4445,9 +4452,9 @@ function ativarModoEdicaoSlot(grupo, slot, dimSlot) {
     enabledAnchors: ['top-left','top-center','top-right','middle-left','middle-right','bottom-left','bottom-center','bottom-right'],
     anchorSize: 9,
     anchorCornerRadius: 4.5,
-    anchorStroke: '#C4780A',
+    anchorStroke: _kelvnAccent(),
     anchorFill: '#ffffff',
-    borderStroke: '#C4780A',
+    borderStroke: _kelvnAccent(),
     borderStrokeWidth: 1.5,
     boundBoxFunc: function(oldBox, newBox) {
       if (newBox.width < 36 || newBox.height < 36) return oldBox;
@@ -4582,9 +4589,9 @@ function ativarModoEdicaoFoto(grupo, slot, dimSlot) {
     enabledAnchors: ['top-left','top-right','bottom-left','bottom-right'],
     anchorSize: 9,
     anchorCornerRadius: 4.5,
-    anchorStroke: '#C4780A',
+    anchorStroke: _kelvnAccent(),
     anchorFill: '#ffffff',
-    borderStroke: '#C4780A',
+    borderStroke: _kelvnAccent(),
     borderStrokeWidth: 1.5,
     borderDash: [6, 4],
     boundBoxFunc: function(oldBox, newBox) {
