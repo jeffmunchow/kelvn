@@ -173,8 +173,10 @@ async function acOAuthCallback(req, res) {
       new URLSearchParams({ client_id: process.env.META_APP_ID,
         client_secret: process.env.META_APP_SECRET, redirect_uri: redirectUri, code }));
     const tData = await tResp.json();
-    if (!tData.access_token)
+    if (!tData.access_token) {
+      console.error('meta callback token curto:', JSON.stringify(tData.error || tData));
       return _oauthResponder(res, modo, { status: 'erro', motivo: 'token' });
+    }
 
     // Token de longa duração
     const lResp = await fetch(`https://graph.facebook.com/${META_VERSION}/oauth/access_token?` +
@@ -182,8 +184,10 @@ async function acOAuthCallback(req, res) {
         client_id: process.env.META_APP_ID, client_secret: process.env.META_APP_SECRET,
         fb_exchange_token: tData.access_token }));
     const lData = await lResp.json();
-    if (!lData.access_token)
+    if (!lData.access_token) {
+      console.error('meta callback token longo:', JSON.stringify(lData.error || lData));
       return _oauthResponder(res, modo, { status: 'erro', motivo: 'token_long' });
+    }
 
     const accessToken = lData.access_token;
     const expiraEm    = lData.expires_in
@@ -194,8 +198,10 @@ async function acOAuthCallback(req, res) {
       `https://graph.facebook.com/${META_VERSION}/me/adaccounts?fields=id,name,account_status&access_token=${accessToken}`);
     const actsData = await actsResp.json();
     const contas   = (actsData.data || []).filter(a => a.account_status === 1);
-    if (!contas.length)
+    if (!contas.length) {
+      console.error('meta callback sem conta ativa:', JSON.stringify(actsData));
       return _oauthResponder(res, modo, { status: 'erro', motivo: 'sem_conta' });
+    }
 
     if (contas.length > 1) {
       await supabase.from('dados_usuario').upsert({
