@@ -18,7 +18,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 
-const META_VERSION = 'v19.0';
+const META_VERSION = 'v25.0';
 const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2h
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
