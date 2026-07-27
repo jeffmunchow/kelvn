@@ -19,6 +19,15 @@ create table if not exists public.meta_conexoes (
 
 alter table public.meta_conexoes enable row level security;
 
+-- ── Chave única de dados_usuario ─────────────────────────────────────────────
+
+-- A tabela dados_usuario já existia, mas só com PRIMARY KEY (id). O OAuth guarda
+-- o state ali com upsert onConflict user_id,modulo,chave — e o Postgres recusa
+-- ON CONFLICT sem uma constraint única sobre exatamente essas colunas. Sem o
+-- índice abaixo o state nunca era gravado e todo callback caía em erro de csrf.
+create unique index if not exists dados_usuario_chave_unica
+  on public.dados_usuario (user_id, modulo, chave);
+
 -- ── Cache de métricas ────────────────────────────────────────────────────────
 
 create table if not exists public.meta_metricas_cache (
