@@ -118,6 +118,9 @@ async function acOAuthIniciar(req, res) {
 //   e se fecha sozinha.
 // - redirect: o comportamento clássico, volta pra Kelvn com ?meta=... na URL.
 function _oauthResponder(res, modo, result) {
+  // Ponto único por onde toda resposta do OAuth passa — logar aqui cobre todos os
+  // motivos de erro de uma vez, inclusive os que retornam cedo (csrf, expirado).
+  if (result.status === 'erro') console.error('meta oauth erro:', result.motivo);
   if (modo === 'popup') {
     const payload = JSON.stringify({ tipo: 'meta-ads-oauth', ...result })
       .replace(/</g, '\\u003c'); // evita que um valor vindo do Facebook feche a tag <script> antes da hora
