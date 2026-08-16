@@ -2737,7 +2737,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.37';
+var APP_VERSION = 'v1.10.38';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -9733,6 +9733,11 @@ function _syncKey(k,v){
       var valor=_cache[k];
       if(_MERGE_KEYS[k]){
         var sel=await _sb.from(map.table).select(map.col).eq('user_id',_currentUser.id).maybeSingle();
+        // O supabase-js não lança em erro de query — devolve {error}. Sem checar aqui,
+        // um select que falhou viraria remote=undefined, o merge leria isso como "o
+        // servidor está vazio" e devolveria só os itens alterados nesta sessão — jogando
+        // fora todo o resto. Melhor abortar e tentar de novo no próximo save.
+        if(sel && sel.error) throw new Error('select '+k+': '+(sel.error.message||'falhou'));
         var remote=(sel&&sel.data)?sel.data[map.col]:undefined;
         valor=_threeWayMerge(_baseGet(k), _cache[k], remote);
         _cache[k]=valor;
@@ -9740,9 +9745,15 @@ function _syncKey(k,v){
       }
       var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
       row[map.col]=valor;
-      await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+      var up=await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+      // Mesma armadilha, e é a que fazia galeria publicada voltar a rascunho: se o
+      // upsert falhava, _baseSet marcava o estado como já sincronizado. Na próxima
+      // rodada o local ficava idêntico à base, o merge concluía "não mudou nada" e
+      // adotava a versão antiga do servidor. A alteração sumia sem nunca ter sido salva.
+      // Só damos a base por boa quando a gravação realmente passou.
+      if(up && up.error) throw new Error('upsert '+k+': '+(up.error.message||'falhou'));
       _baseSet(k, valor);
-    }catch(e){ }
+    }catch(e){ console.error('[sync] '+k+' falhou:', (e&&e.message)?e.message:e); }
     finally{ _syncPending[k]=false; }
   },800);
 }
