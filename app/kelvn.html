@@ -2737,7 +2737,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.39';
+var APP_VERSION = 'v1.10.40';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -8463,10 +8463,7 @@ function mgalPublicar(id){
   var alvo=id||_galAtualId;
   var gal=gals.find(function(x){return x.id===alvo;});
   if(!gal){ console.error('[pub] galeria não encontrada:', alvo, '| ids:', gals.map(function(x){return x.id;})); return; }
-  var antes=gal.status;
   gal.status=gal.status==='publicado'?'rascunho':'publicado';
-  console.log('[pub] '+alvo+': '+antes+' → '+gal.status+' | no cache agora: '+
-    (( _cache['galerias']||[]).find(function(x){return x.id===alvo;})||{}).status);
   s('galerias',gals);
   rGal();
   notify(gal.status==='publicado'?'Galeria publicada.':'Galeria despublicada.');
@@ -9717,11 +9714,29 @@ document.addEventListener('keydown',function(ev){
   }
 });
 // ────────────────────────────────────────────────────────────────────────────
+// Itens que o usuário alterou nesta sessão e que ainda não tiveram confirmação do
+// servidor. Existe porque o merge sozinho não é confiável: ele deduz "houve mudança
+// local" comparando com a base, e se a base estiver adiantada por qualquer motivo a
+// alteração recém-feita fica invisível e é descartada em silêncio. Aqui a intenção
+// do usuário é registrada de forma explícita, sem depender dessa dedução.
+var _dirty={};
+function _marcarSujos(k,novo){
+  if(!_MERGE_KEYS[k]) return;
+  var antigo=_cache[k];
+  if(!Array.isArray(antigo)||!Array.isArray(novo)) return;
+  var ant={}; antigo.forEach(function(it){ if(it&&it.id!=null) ant[it.id]=JSON.stringify(it); });
+  var d=_dirty[k]||(_dirty[k]={});
+  novo.forEach(function(it){
+    if(!it||it.id==null) return;
+    if(ant[it.id]!==JSON.stringify(it)) d[it.id]=1;
+  });
+}
 function s(k,v){
   if(_undoBatch!==null&&!_undoBatch.find(function(x){return x.k===k;})){
     var uid2=_currentUser?_currentUser.id+'_':'';
     _undoBatch.push({k:k,prev:localStorage.getItem('kelvn_'+uid2+k)});
   }
+  _marcarSujos(k,v);
   _cache[k]=v;
   var uid=_currentUser?_currentUser.id+'_':'';
   localStorage.setItem('kelvn_'+uid+k, JSON.stringify(v));
@@ -9743,10 +9758,18 @@ function _syncKey(k,v){
         // fora todo o resto. Melhor abortar e tentar de novo no próximo save.
         if(sel && sel.error) throw new Error('select '+k+': '+(sel.error.message||'falhou'));
         var remote=(sel&&sel.data)?sel.data[map.col]:undefined;
-        valor=_threeWayMerge(_baseGet(k), _cache[k], remote);
-        if(k==='galerias'){
-          var _st=function(a){ return (Array.isArray(a)?a:[]).map(function(x){return x.id+'='+x.status;}).join(' '); };
-          console.log('[sync galerias] base:['+_st(_baseGet(k))+'] local:['+_st(_cache[k])+'] remoto:['+_st(remote)+'] → enviando:['+_st(valor)+']');
+        var localAntes=_cache[k];
+        valor=_threeWayMerge(_baseGet(k), localAntes, remote);
+        // O merge acima decide pelo histórico (base × local × remoto) e erra quando a
+        // base não corresponde ao que o servidor realmente tem. O que o usuário mexeu
+        // agora não pode depender dessa dedução: reimpomos esses itens a partir do local.
+        var sujos=_dirty[k];
+        if(sujos && Array.isArray(valor) && Array.isArray(localAntes)){
+          var pos={}; valor.forEach(function(it,i){ if(it&&it.id!=null) pos[it.id]=i; });
+          localAntes.forEach(function(it){
+            if(!it||it.id==null||!sujos[it.id]) return;
+            if(pos[it.id]!==undefined) valor[pos[it.id]]=it; else valor.push(it);
+          });
         }
         _cache[k]=valor;
         try{ localStorage.setItem(_lsKey(k), JSON.stringify(valor)); }catch(e){}
@@ -9760,7 +9783,10 @@ function _syncKey(k,v){
       // adotava a versão antiga do servidor. A alteração sumia sem nunca ter sido salva.
       // Só damos a base por boa quando a gravação realmente passou.
       if(up && up.error) throw new Error('upsert '+k+': '+(up.error.message||'falhou'));
-      if(k==='galerias') console.log('[sync galerias] gravado no servidor com sucesso');
+      // Só agora o que o usuário fez está de fato no servidor: pode sair da lista de
+      // pendentes. Se a gravação tivesse falhado, as marcações continuariam valendo e
+      // seriam reimpostas no próximo save, em vez de se perderem.
+      _dirty[k]={};
       _baseSet(k, valor);
     }catch(e){ console.error('[sync] '+k+' falhou:', (e&&e.message)?e.message:e); }
     finally{ _syncPending[k]=false; }
@@ -9890,11 +9916,7 @@ function _setupRealtime(){
         if(table==='posproducao')      { _mergeIncoming('edicoes', r.edicoes); _mergeIncoming('entregas', r.entregas); _mergeIncoming('pends', r.pends); _mergeIncoming('todos', r.todos); }
         if(table==='configuracoes')    { _mergeIncoming('pacotes', r.pacotes); _mergeIncoming('equipe', r.equipe); _mergeIncoming('tiposReuniao', r.tipos_reuniao); _mergeIncoming('slots', r.slots); _mergeIncoming('sd', r.sd, {}); _mergeIncoming('automacoes', r.automacoes); }
         if(table==='questionarios')    { _mergeIncoming('q_templates', r.templates); _mergeIncoming('q_respostas', r.respostas); }
-        if(table==='galerias'){
-          console.log('[realtime galerias] chegou do servidor:['+(Array.isArray(r.data)?r.data:[]).map(function(x){return x.id+'='+x.status;}).join(' ')+']');
-          _mergeIncoming('galerias', r.data);
-          console.log('[realtime galerias] cache virou:['+((_cache['galerias']||[]).map(function(x){return x.id+'='+x.status;}).join(' '))+']');
-        }
+        if(table==='galerias')           _mergeIncoming('galerias', r.data);
         rR();
       }
     );
