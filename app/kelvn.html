@@ -1522,7 +1522,7 @@ select.aj-input{cursor:pointer;}
         <button class="btn" onclick="abrirModalAddFotos()">Adicionar fotos</button>
         <button class="btn" onclick="abrirDesignGaleria()">Design</button>
         <button class="btn" onclick="abrirGaleria(_galAtualId)">Configurar</button>
-        <button id="gal-det-btn-pub" class="btn" onclick="mgalPublicar(_galAtualId);rGalDetalhe()">Offline</button>
+        <button id="gal-det-btn-pub" class="btn" onclick="mgalPublicar(_galAtualId)">Offline</button>
       </div>
 
       <!-- Info do modo design -->
@@ -2737,7 +2737,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.40';
+var APP_VERSION = 'v1.10.41';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -8387,7 +8387,7 @@ function rGal(manter){
       +'<div style="font-size:.67rem;color:var(--text-hint);margin-top:2px;">'+fd(gal.dataEvento)+(fotos?' · '+fotos+' foto'+(fotos!==1?'s':''):'')+'</div>'
       +'</div>'
       +'<div style="display:flex;gap:.35rem;align-items:center;flex-shrink:0;margin-top:.1rem;">'
-      +'<button onclick="event.stopPropagation();mgalPublicar(\''+gal.id+'\')" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.68rem;color:'+(isPub?'var(--text)':'var(--text-muted)')+';">'+(isPub?'Publicado':'Publicar')+'</button>'
+      +'<button data-pub-id="'+gal.id+'" onclick="event.stopPropagation();mgalPublicar(\''+gal.id+'\')" style="background:none;border:.5px solid var(--border-strong);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:\'DM Sans\',sans-serif;font-size:.68rem;color:'+(isPub?'var(--text)':'var(--text-muted)')+';">'+(isPub?'Publicado':'Publicar')+'</button>'
       +'</div>'
       +'</div>'
       +'</div>'
@@ -8458,15 +8458,63 @@ function abrirGaleria(id, isNova){
 var _galStatus='rascunho';
 function mgalSetStatus(val){_galStatus=val;}
 function switchGalTab(name){} // abas removidas — mantido para compatibilidade
-function mgalPublicar(id){
-  var gals=g('galerias')||[];
+// Publicar/despublicar grava direto no Supabase e só dá a ação por concluída depois
+// que o servidor confirma. Não passa pelo sync com debounce e merge: aquele caminho
+// decide o que enviar comparando cache, base e servidor, e quando essa comparação
+// erra a publicação é descartada em silêncio. Aqui não há dedução — a galeria vai
+// para a nuvem com o status novo, ou o usuário é avisado de que não foi.
+async function mgalPublicar(id){
   var alvo=id||_galAtualId;
+  var gals=g('galerias')||[];
   var gal=gals.find(function(x){return x.id===alvo;});
-  if(!gal){ console.error('[pub] galeria não encontrada:', alvo, '| ids:', gals.map(function(x){return x.id;})); return; }
-  gal.status=gal.status==='publicado'?'rascunho':'publicado';
-  s('galerias',gals);
-  rGal();
-  notify(gal.status==='publicado'?'Galeria publicada.':'Galeria despublicada.');
+  if(!gal) return;
+
+  var anterior=gal.status;
+  var novo=anterior==='publicado'?'rascunho':'publicado';
+  // Trava os dois botões (card e detalhe) enquanto a gravação está em curso, para o
+  // fotógrafo não disparar duas vezes e criar corrida.
+  var btns=[].slice.call(document.querySelectorAll('[data-pub-id="'+alvo+'"]'));
+  var btnDet=document.getElementById('gal-det-btn-pub');
+  if(btnDet && _galAtualId===alvo) btns.push(btnDet);
+  btns.forEach(function(b){ b.disabled=true; b.style.opacity='.5'; });
+
+  try{
+    var map=_KEY_MAP['galerias'];
+    // O sync agendado por outra ação sobrescreveria o que vamos gravar: cancela.
+    clearTimeout(_syncTimers['galerias']);
+
+    var sel=await _sb.from(map.table).select(map.col).eq('user_id',_currentUser.id).maybeSingle();
+    if(sel && sel.error) throw new Error(sel.error.message||'falha ao ler galerias');
+    var remoto=(sel&&sel.data&&Array.isArray(sel.data[map.col]))?sel.data[map.col]:[];
+
+    // Parte do que está na tela (tem tudo que o fotógrafo vê, inclusive o que ainda
+    // não subiu) e acrescenta galerias que só existam no servidor, para não apagá-las.
+    gal.status=novo;
+    var vistos={}; gals.forEach(function(x){ if(x&&x.id!=null) vistos[x.id]=1; });
+    remoto.forEach(function(rg){ if(rg&&rg.id!=null&&!vistos[rg.id]) gals.push(rg); });
+
+    var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
+    row[map.col]=gals;
+    var up=await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+    if(up && up.error) throw new Error(up.error.message||'falha ao gravar galerias');
+
+    // Confirmado na nuvem: alinha cache, base e cópia local com o que foi gravado,
+    // para nenhum sync posterior "corrigir" isso de volta.
+    _cache['galerias']=gals;
+    _baseSet('galerias', gals);
+    if(_dirty['galerias']) delete _dirty['galerias'][alvo];
+    try{ localStorage.setItem(_lsKey('galerias'), JSON.stringify(gals)); }catch(e){}
+
+    rGal(true); rGalDetalhe();
+    notify(novo==='publicado'?'Galeria publicada.':'Galeria despublicada.');
+  }catch(err){
+    gal.status=anterior;
+    rGal(true); rGalDetalhe();
+    console.error('[publicar]', err);
+    notify('Não consegui '+(novo==='publicado'?'publicar':'despublicar')+' a galeria. Tenta de novo?');
+  }finally{
+    btns.forEach(function(b){ b.disabled=false; b.style.opacity=''; });
+  }
 }
 function mgalAutoSlug(){
   var nome=document.getElementById('mgal-nome').value;
