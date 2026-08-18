@@ -2737,7 +2737,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.41';
+var APP_VERSION = 'v1.10.42';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -7519,7 +7519,7 @@ function subgalDrop(e,targetId){
   if(fromIdx<0||toIdx<0) return;
   var moved=subs.splice(fromIdx,1)[0];
   subs.splice(toIdx,0,moved);
-  s('galerias',gals);
+  salvarGalerias(gals);
   rSubgalNav();
 }
 function subgalDragEnd(){
@@ -7541,7 +7541,7 @@ function criarSubgal(){
     if(idx<0) return;
     if(!gals[idx].subgalerias) gals[idx].subgalerias=[];
     gals[idx].subgalerias.push({id:'subgal_'+uid(),nome:nome,ordem:gals[idx].subgalerias.length});
-    s('galerias',gals);
+    salvarGalerias(gals);
     rSubgalNav();
     var sel=document.getElementById('gal-det-subgal-sel');
     if(sel){var subs=gals[idx].subgalerias;sel.innerHTML='<option value="">Todas as fotos</option>'+subs.map(function(s){return '<option value="'+s.id+'">'+s.nome+'</option>';}).join('');}
@@ -7555,7 +7555,7 @@ function deletarSubgal(id){
     if(idx<0) return;
     gals[idx].subgalerias=(gals[idx].subgalerias||[]).filter(function(s){return s.id!==id;});
     (gals[idx].fotos||[]).forEach(function(f){if(f.subgaleriaId===id) f.subgaleriaId=null;});
-    s('galerias',gals);
+    salvarGalerias(gals);
     _subgalAtiva=null;
     rSubgalNav();
     rDetGrid();
@@ -7669,7 +7669,7 @@ async function galDetProcessarEntries(entries){
     } else {
       subId = 'subgal_'+uid();
       gal.subgalerias.push({id:subId, nome:nomePasta, ordem:gal.subgalerias.length});
-      s('galerias',gals);
+      salvarGalerias(gals);
       rSubgalNav();
       var selEl = document.getElementById('gal-det-subgal-sel');
       if(selEl){
@@ -7962,7 +7962,7 @@ var _UE = {
     gal.fotos.push(novaFoto);
     gal.total_fotos = gal.fotos.length;
     if(!gal.cover_url) gal.cover_url = publicUrl;
-    s('galerias', gals);
+    salvarGalerias(gals);
 
     return novaFoto;
   }
@@ -8146,7 +8146,7 @@ async function galLoteAcao(acao){
     var sub=(gal.subgalerias||[]).find(function(sg){return sg.id===subId;});
     if(!sub){ notify('Seção não encontrada.'); return; }
     idxs.forEach(function(i){ if(gal.fotos[i]) gal.fotos[i].subgaleriaId=sub.id; });
-    s('galerias',gals);
+    salvarGalerias(gals);
     _fotosSelecionadas=[];_selAncora=-1;
     _subgalAtiva=null;
     rSubgalNav(); rDetGrid();
@@ -8175,7 +8175,7 @@ async function galLoteAcao(acao){
     if(gal.cover_url&&!gal.fotos.find(function(f){return f.url===gal.cover_url;})){
       gal.cover_url=gal.fotos.length?gal.fotos[0].url:'';
     }
-    s('galerias',gals);
+    salvarGalerias(gals);
     _fotosSelecionadas=[];_selAncora=-1;
     rDetGrid(); rSubgalNav(); rGal(true);
     notify(idxs.length+' foto'+(idxs.length>1?'s':'')+' excluída'+(idxs.length>1?'s':'')+'.');
@@ -8458,11 +8458,79 @@ function abrirGaleria(id, isNova){
 var _galStatus='rascunho';
 function mgalSetStatus(val){_galStatus=val;}
 function switchGalTab(name){} // abas removidas — mantido para compatibilidade
-// Publicar/despublicar grava direto no Supabase e só dá a ação por concluída depois
-// que o servidor confirma. Não passa pelo sync com debounce e merge: aquele caminho
-// decide o que enviar comparando cache, base e servidor, e quando essa comparação
-// erra a publicação é descartada em silêncio. Aqui não há dedução — a galeria vai
-// para a nuvem com o status novo, ou o usuário é avisado de que não foi.
+// ── GRAVAÇÃO DE GALERIAS ────────────────────────────────────────────────────
+// Toda alteração em galeria — status, design, capa, fotos, seções, downloads —
+// passa por aqui e vai direto para o Supabase, com confirmação.
+//
+// Antes isso ia pelo s('galerias'), que enfileirava a gravação num sync com espera
+// de 800ms e decidia o que enviar comparando cache, base e servidor. Quando essa
+// comparação errava, a alteração era descartada sem ninguém saber: a tela mostrava
+// o valor novo e a nuvem continuava com o antigo. Aqui não há dedução — o que está
+// na tela é o que vai para o servidor, e se não for o usuário é avisado.
+var _galGravarTimer=null;
+var _galFila=Promise.resolve();
+
+// Galerias apagadas nesta sessão. Sem esta lista, a gravação recolocaria a galeria
+// excluída de volta, já que ela ainda existe no servidor e a regra é "preserve o que
+// só existe lá". Aqui a exclusão é uma intenção explícita, não uma ausência.
+var _galExcluidas={};
+
+function salvarGalerias(gals, opts){
+  opts=opts||{};
+  if(opts.excluir) _galExcluidas[opts.excluir]=1;
+  // A tela responde na hora; a nuvem é atualizada logo em seguida.
+  _cache['galerias']=gals;
+  try{ localStorage.setItem(_lsKey('galerias'), JSON.stringify(gals)); }catch(e){}
+  clearTimeout(_galGravarTimer);
+  if(opts.imediato) return _galGravarAgora(opts);
+  // Junta rajadas de alterações (arrastar fotos, mexer no design) numa gravação só.
+  _galGravarTimer=setTimeout(function(){ _galGravarAgora(opts); }, 600);
+  return Promise.resolve();
+}
+
+function _galGravarAgora(opts){
+  opts=opts||{};
+  _galFila=_galFila.then(async function(){
+    if(!_currentUser) return;
+    var map=_KEY_MAP['galerias'];
+    // O sync antigo ainda existe para as outras chaves; aqui ele não pode interferir.
+    clearTimeout(_syncTimers['galerias']);
+
+    var sel=await _sb.from(map.table).select(map.col).eq('user_id',_currentUser.id).maybeSingle();
+    if(sel&&sel.error) throw new Error(sel.error.message||'falha ao ler galerias');
+    var remoto=(sel&&sel.data&&Array.isArray(sel.data[map.col]))?sel.data[map.col]:[];
+
+    // Parte do que está na tela e só acrescenta galerias que existam apenas no
+    // servidor — assim nada criado em outro dispositivo é apagado por esta gravação.
+    var atual=Array.isArray(_cache['galerias'])?_cache['galerias']:[];
+    var vistos={}; atual.forEach(function(x){ if(x&&x.id!=null) vistos[x.id]=1; });
+    var enviar=atual.slice();
+    remoto.forEach(function(rg){
+      if(!rg||rg.id==null||vistos[rg.id]) return;
+      if(_galExcluidas[rg.id]) return;   // apagada aqui de propósito — não ressuscita
+      enviar.push(rg);
+    });
+
+    var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
+    row[map.col]=enviar;
+    var up=await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
+    if(up&&up.error) throw new Error(up.error.message||'falha ao gravar galerias');
+
+    // Confirmado na nuvem: alinha cache, base e cópia local, para nenhum sync
+    // posterior "corrigir" isso de volta ao estado antigo.
+    _cache['galerias']=enviar;
+    _baseSet('galerias', enviar);
+    _dirty['galerias']={};
+    try{ localStorage.setItem(_lsKey('galerias'), JSON.stringify(enviar)); }catch(e){}
+    if(opts.msgOk) notify(opts.msgOk);
+  }).catch(function(err){
+    console.error('[galerias] não salvou:', err);
+    notify(opts.msgErro||'Não consegui salvar a alteração na galeria. Confere sua conexão.');
+    if(typeof opts.aoFalhar==='function'){ try{ opts.aoFalhar(); }catch(e){} }
+  });
+  return _galFila;
+}
+
 async function mgalPublicar(id){
   var alvo=id||_galAtualId;
   var gals=g('galerias')||[];
@@ -8471,50 +8539,24 @@ async function mgalPublicar(id){
 
   var anterior=gal.status;
   var novo=anterior==='publicado'?'rascunho':'publicado';
-  // Trava os dois botões (card e detalhe) enquanto a gravação está em curso, para o
-  // fotógrafo não disparar duas vezes e criar corrida.
+  // Trava os dois botões (card e detalhe) durante a gravação, para o fotógrafo não
+  // disparar duas vezes e criar corrida.
   var btns=[].slice.call(document.querySelectorAll('[data-pub-id="'+alvo+'"]'));
   var btnDet=document.getElementById('gal-det-btn-pub');
   if(btnDet && _galAtualId===alvo) btns.push(btnDet);
   btns.forEach(function(b){ b.disabled=true; b.style.opacity='.5'; });
 
-  try{
-    var map=_KEY_MAP['galerias'];
-    // O sync agendado por outra ação sobrescreveria o que vamos gravar: cancela.
-    clearTimeout(_syncTimers['galerias']);
+  gal.status=novo;
+  rGal(true); rGalDetalhe();
 
-    var sel=await _sb.from(map.table).select(map.col).eq('user_id',_currentUser.id).maybeSingle();
-    if(sel && sel.error) throw new Error(sel.error.message||'falha ao ler galerias');
-    var remoto=(sel&&sel.data&&Array.isArray(sel.data[map.col]))?sel.data[map.col]:[];
+  await salvarGalerias(gals, {
+    imediato:true,
+    msgOk:(novo==='publicado'?'Galeria publicada.':'Galeria despublicada.'),
+    msgErro:'Não consegui '+(novo==='publicado'?'publicar':'despublicar')+' a galeria. Tenta de novo?',
+    aoFalhar:function(){ gal.status=anterior; rGal(true); rGalDetalhe(); },
+  });
 
-    // Parte do que está na tela (tem tudo que o fotógrafo vê, inclusive o que ainda
-    // não subiu) e acrescenta galerias que só existam no servidor, para não apagá-las.
-    gal.status=novo;
-    var vistos={}; gals.forEach(function(x){ if(x&&x.id!=null) vistos[x.id]=1; });
-    remoto.forEach(function(rg){ if(rg&&rg.id!=null&&!vistos[rg.id]) gals.push(rg); });
-
-    var row={user_id:_currentUser.id, atualizado_em:new Date().toISOString()};
-    row[map.col]=gals;
-    var up=await _sb.from(map.table).upsert(row,{onConflict:'user_id'});
-    if(up && up.error) throw new Error(up.error.message||'falha ao gravar galerias');
-
-    // Confirmado na nuvem: alinha cache, base e cópia local com o que foi gravado,
-    // para nenhum sync posterior "corrigir" isso de volta.
-    _cache['galerias']=gals;
-    _baseSet('galerias', gals);
-    if(_dirty['galerias']) delete _dirty['galerias'][alvo];
-    try{ localStorage.setItem(_lsKey('galerias'), JSON.stringify(gals)); }catch(e){}
-
-    rGal(true); rGalDetalhe();
-    notify(novo==='publicado'?'Galeria publicada.':'Galeria despublicada.');
-  }catch(err){
-    gal.status=anterior;
-    rGal(true); rGalDetalhe();
-    console.error('[publicar]', err);
-    notify('Não consegui '+(novo==='publicado'?'publicar':'despublicar')+' a galeria. Tenta de novo?');
-  }finally{
-    btns.forEach(function(b){ b.disabled=false; b.style.opacity=''; });
-  }
+  btns.forEach(function(b){ b.disabled=false; b.style.opacity=''; });
 }
 function mgalAutoSlug(){
   var nome=document.getElementById('mgal-nome').value;
@@ -8555,7 +8597,7 @@ function mgalRemoverFoto(idx){
   gal.fotos=gal.fotos||[];
   gal.fotos.splice(idx,1);
   gal.total_fotos=gal.fotos.length;
-  s('galerias',gals);
+  salvarGalerias(gals);
   rGalFotos(gal);
   rGal();
 }
@@ -8566,7 +8608,7 @@ function mgalEscolherCapa(){
   // Abre mini-picker inline — usa a primeira foto como capa por padrão, ou deixa escolher via prompt simples
   var url=gal.fotos[0].url;
   gal.cover_url=url;
-  s('galerias',gals);
+  salvarGalerias(gals);
   var coverEl=document.getElementById('mgal-cover-preview');
   if(coverEl){coverEl.style.backgroundImage='url('+r2proxy(url)+')';coverEl.style.display='';}
   notify('Capa definida.');
@@ -8599,7 +8641,7 @@ function saveGal(){
     _galAtualId=id;
     _galIsNova=false;
     gals.unshift(nova);
-    s('galerias',gals);
+    salvarGalerias(gals);
     rGal();
     notify('Galeria criada.');
     return;
@@ -8618,7 +8660,7 @@ function saveGal(){
   if(dlChk) gal.downloads_liberados=dlChk.checked;
   var cpChk=document.getElementById('mgal-compartilhar');
   if(cpChk) gal.compartilhar_liberado=cpChk.checked;
-  s('galerias',gals);
+  salvarGalerias(gals);
   rGal();
   rGalDetalhe();
   notify('Galeria salva.');
@@ -8626,8 +8668,9 @@ function saveGal(){
 function delGal(){
   confirmar({titulo:'Excluir galeria?',msg:'As fotos no R2 não serão removidas automaticamente.',label:'Excluir',style:'background:var(--coral);color:#fff;border-color:var(--coral);'},function(){
     var gals=g('galerias')||[];
-    gals=gals.filter(function(x){return x.id!==_galAtualId;});
-    s('galerias',gals);
+    var removida=_galAtualId;
+    gals=gals.filter(function(x){return x.id!==removida;});
+    salvarGalerias(gals,{imediato:true, excluir:removida});
     cov('ov-gal');
     rGal();
     notify('Galeria excluída.');
@@ -8742,7 +8785,7 @@ async function galDefinirCapa(idx){
         gal.cover_url=API_BASE+'/api/gallery-img?key='+encodeURIComponent(data.cover_key);
         // Guarda a foto original para manter o badge correto no grid
         gal.cover_foto_url=foto.url;
-        s('galerias',gals);
+        salvarGalerias(gals);
         rGalDetalhe();
         rGal(true);
         _atualizarBadgesCapa(foto.url, gal.fotos);
@@ -8754,7 +8797,7 @@ async function galDefinirCapa(idx){
 
   // Fallback: usa URL original se a API falhar ou foto não tiver key
   gal.cover_url=foto.url;
-  s('galerias',gals);
+  salvarGalerias(gals);
   rGalDetalhe();
   rGal(true);
   _atualizarBadgesCapa(gal.cover_url, gal.fotos);
@@ -8817,7 +8860,7 @@ function definirCapaGal(){
     if(!matched) return;
     gal.cover_url=matched.url;
   }
-  s('galerias',gals);
+  salvarGalerias(gals);
   cov('ov-foto');
   rGalDetalhe();
   notify('Foto de capa definida.');
@@ -9363,7 +9406,7 @@ function mgalSalvarConfigDetalhe(){
   if(!gal) return;
   var dlEl=document.getElementById('gal-det-downloads');
   if(dlEl) gal.downloads_liberados=dlEl.checked;
-  s('galerias',gals);
+  salvarGalerias(gals);
 }
 function mgalEscolherCapaDetalhe(){
   var gals=g('galerias')||[];
@@ -9373,7 +9416,7 @@ function mgalEscolherCapaDetalhe(){
   var idx=gal.fotos.findIndex(function(f){return f.url===gal.cover_url;});
   idx=(idx+1)%gal.fotos.length;
   gal.cover_url=gal.fotos[idx].url;
-  s('galerias',gals);
+  salvarGalerias(gals);
   rGalDetalhe();
   rGal();
   notify('Capa atualizada.');
@@ -9388,7 +9431,7 @@ function mgalRemoverFotoDetalhe(idx){
   if(gal.cover_url&&!gal.fotos.find(function(f){return f.url===gal.cover_url;})){
     gal.cover_url=gal.fotos.length?gal.fotos[0].url:'';
   }
-  s('galerias',gals);
+  salvarGalerias(gals);
   rDetGrid();
   rSubgalNav();
 }
@@ -9397,7 +9440,7 @@ function mgalToggleDownload(id){
   var gal=gals.find(function(x){return x.id===id;});
   if(!gal) return;
   gal.downloads_liberados=!gal.downloads_liberados;
-  s('galerias',gals);
+  salvarGalerias(gals);
   rGal();
   notify(gal.downloads_liberados?'Download liberado.':'Download bloqueado.');
 }
@@ -11139,7 +11182,7 @@ function salvarDesign(){
   var idx = galerias.findIndex(function(g2){ return g2.id === _designGalId; });
   if(idx < 0) return;
   galerias[idx].design = _designAtual;
-  s('galerias', galerias);
+  salvarGalerias(galerias);
   // Mantém _designGalObj em sync com os dados salvos
   if(_designGalObj) _designGalObj.design = _designAtual;
 }
