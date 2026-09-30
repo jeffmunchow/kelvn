@@ -2714,7 +2714,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.44';
+var APP_VERSION = 'v1.10.45';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -10513,20 +10513,34 @@ function _buildContext(){
   var pendsAtivas = pends.filter(function(p){ return !p.done; });
   var entregasPendentes = entregas.filter(function(e){ return e.status !== 'Entregue'; });
 
-  // Edições em andamento — é a lista "Edições" do dashboard. Cada casamento tem 4
-  // fases marcáveis; sem isto a IA não sabe em que ponto da edição cada um está.
-  var _fasesOrdem=[['previa','Prévia'],['preselecao','Pré-seleção'],['edicao','Edição'],['exportacao','Exportação']];
-  var edicoesAndamento=edicoes.map(function(e){
+  // Edições do dashboard. As contas são feitas aqui, no código, e entregues à IA já
+  // agrupadas: pedir para o modelo deduzir "prévia feita e edição pendente" a partir
+  // de listas de fases dava resposta errada.
+  var _nomeEd=function(e){ return e.titulo||'(sem nome)'; };
+  var grupoSemPrevia=[], grupoPreviaFaltaEditar=[], grupoEditadoFaltaExportar=[], concluidas=0;
+  var detalheEdicoes=edicoes.map(function(e){
     var f=e.fases||{};
-    var feitas=[], faltam=[];
-    _fasesOrdem.forEach(function(p){ (f[p[0]]?feitas:faltam).push(p[1]); });
+    var previa=!!f.previa, pre=!!f.preselecao, edi=!!f.edicao, exp=!!f.exportacao;
+    if(!previa)                 grupoSemPrevia.push(_nomeEd(e));
+    else if(!edi)               grupoPreviaFaltaEditar.push(_nomeEd(e));
+    else if(!exp)               grupoEditadoFaltaExportar.push(_nomeEd(e));
+    else                        concluidas++;
     return {
-      casamento: e.titulo, local: e.local||'', data: e.data||'',
-      fasesConcluidas: feitas,
-      fasesPendentes: faltam,
-      proximaFase: faltam[0]||'tudo concluído'
+      casamento:_nomeEd(e), data:e.data||'',
+      previa:previa?'entregue':'pendente',
+      preSelecao:pre?'feita':'pendente',
+      edicao:edi?'feita':'pendente',
+      exportacao:exp?'feita':'pendente'
     };
-  }).filter(function(e){ return e.fasesPendentes.length>0; });
+  });
+  var edicoesResumo={
+    totalNaLista: edicoes.length,
+    previaPendente: grupoSemPrevia,
+    previaEntregueEdicaoPendente: grupoPreviaFaltaEditar,
+    editadoExportacaoPendente: grupoEditadoFaltaExportar,
+    totalComTudoConcluido: concluidas,
+    detalhePorCasamento: detalheEdicoes.slice(0,30)
+  };
 
   return JSON.stringify({
     resumo: {
@@ -10537,7 +10551,7 @@ function _buildContext(){
     },
     clientesComPagamentoPendente: comPendencia,
     proximosEventos: proxEventos.slice(0,10),
-    edicoesEmAndamento: edicoesAndamento.slice(0,20),
+    edicoes: edicoesResumo,
     pendenciasPostProducao: pendsAtivas.slice(0,10),
     entregasPendentes: entregasPendentes.slice(0,10)
   }, null, 2);
@@ -10576,7 +10590,7 @@ function _aiSystemPrompt(context){
       'REGRAS:\n' +
       '- Responda SEMPRE em português brasileiro.\n' +
       '- Use os dados reais do estúdio abaixo para responder — nunca invente números ou clientes.\n' +
-      '- "edicoesEmAndamento" é a lista de Edições do dashboard: para cada casamento mostra as fases já concluídas e as pendentes (Prévia, Pré-seleção, Edição, Exportação). Use isso para perguntas sobre o que falta editar ou entregar.\n' +
+      '- "edicoes" é a lista de Edições do dashboard, já agrupada: "previaPendente" (prévia ainda não entregue), "previaEntregueEdicaoPendente" (prévia entregue, falta editar), "editadoExportacaoPendente" e "totalComTudoConcluido". Para perguntas sobre o que falta editar ou entregar, responda copiando esses grupos — não recalcule. Se um grupo estiver vazio, diga que está vazio.\n' +
       '- Seja direto. Se não sabe, fala que não sabe.\n' +
       '- Máximo 3-4 parágrafos por resposta. Se for lista, no máximo 5 itens.\n\n' +
       'DADOS DO ESTÚDIO AGORA:\n' + context
