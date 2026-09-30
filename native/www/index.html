@@ -940,51 +940,28 @@ select.aj-input{cursor:pointer;}
         <div id="r-edicoes" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;min-height:calc(7 * 3.9rem);"></div>
       </div>
 
-      <!-- Widget Meta Ads -->
-      <div id="rw-maads" style="margin-top:1.25rem;">
+      <!-- Assistente da Kelvn (chat) -->
+      <div id="rw-assistente" style="margin-top:1.25rem;">
         <div class="col-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">
-          <span>Meta Ads</span>
-          <div id="ma-period-wrap" style="display:none;gap:3px;align-items:center;">
-            <button class="ig-pill active" onclick="maPeriod(7,this)">7d</button>
-            <button class="ig-pill" onclick="maPeriod(30,this)">30d</button>
-          </div>
+          <span>Assistente</span>
+          <button id="dcLimparBtn" onclick="dcLimpar()" style="font-size:.65rem;color:var(--text-hint);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;">Limpar conversa</button>
         </div>
-        <div id="ma-widget" onclick="goDirecto('marketing')" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;height:480px;cursor:pointer;">
-
-          <!-- Estado: não conectado -->
-          <div id="ma-no-conn" style="padding:2rem 1.25rem;text-align:center;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:.75rem;"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="8" cy="10" r="1.5" fill="var(--text-hint)" stroke="none"/><path d="M12 8l2 2 4-4"/></svg>
-            <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem;">Conta não conectada</div>
-            <div style="font-size:.7rem;color:var(--text-hint);margin-bottom:1rem;">Conecte seu Meta Ads para acompanhar gasto, alcance e desempenho dos anúncios.</div>
-            <button class="btn" style="font-size:.75rem;" onclick="event.stopPropagation();maConectar()">Conectar Meta Ads</button>
+        <div id="dc-widget" style="background:var(--surface);border-radius:var(--radius);overflow:hidden;height:480px;display:flex;flex-direction:column;">
+          <div class="ai-messages" id="dcMessages"></div>
+          <div class="ai-suggestions" id="dcSuggestions">
+            <button class="ai-sug" onclick="dcSend(this.textContent)">Como está meu mês?</button>
+            <button class="ai-sug" onclick="dcSend(this.textContent)">Quem está com parcela atrasada?</button>
+            <button class="ai-sug" onclick="dcSend(this.textContent)">O que tenho pra esta semana?</button>
           </div>
-
-          <!-- Estado: conectado -->
-          <div id="ma-conn" style="display:none;flex-direction:column;height:100%;">
-            <div style="padding:1.1rem 1.25rem .5rem;flex:1;display:flex;flex-direction:column;min-height:0;">
-              <div style="display:flex;align-items:baseline;justify-content:space-between;">
-                <div>
-                  <div style="font-size:.62rem;color:var(--text-hint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Gasto no período</div>
-                  <div style="font-weight:500;font-size:1.45rem;letter-spacing:-.025em;line-height:1;color:var(--text);margin-top:2px;" id="ma-gasto-total">—</div>
-                </div>
-                <div style="text-align:right;">
-                  <div style="font-size:.65rem;color:var(--text-hint);">campanhas ativas</div>
-                  <div style="font-size:1rem;font-weight:500;color:var(--text);margin-top:2px;" id="ma-camp-ativas">—</div>
-                </div>
-              </div>
-              <canvas id="ma-canvas" style="width:100%;margin-top:.85rem;display:block;flex:1;min-height:0;"></canvas>
-            </div>
-            <div class="ig-kpi-row">
-              <div class="ig-kpi"><div class="ig-kpi-l">Alcance</div><div class="ig-kpi-v" id="ma-alcance">—</div><div class="ig-kpi-d" id="ma-alcance-d"></div></div>
-              <div class="ig-kpi"><div class="ig-kpi-l">Impressões</div><div class="ig-kpi-v" id="ma-impressoes">—</div><div class="ig-kpi-d" id="ma-impressoes-d"></div></div>
-              <div class="ig-kpi"><div class="ig-kpi-l">CTR</div><div class="ig-kpi-v" id="ma-ctr">—</div><div class="ig-kpi-d" id="ma-ctr-d"></div></div>
-              <div class="ig-kpi"><div class="ig-kpi-l">CPL</div><div class="ig-kpi-v" id="ma-cpc">—</div><div class="ig-kpi-d" id="ma-cpc-d"></div></div>
-            </div>
-            <div style="padding:.6rem 1rem;border-top:.5px solid var(--border);display:flex;justify-content:flex-end;">
-              <button style="font-size:.65rem;color:var(--text-hint);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;" onclick="event.stopPropagation();maDesconectar()">Desconectar</button>
-            </div>
+          <div class="ai-input-area">
+            <textarea class="ai-input" id="dcInput" placeholder="Fala com a assistente…" rows="1" onkeydown="dcKeyDown(event)" oninput="dcAutoResize(this)"></textarea>
+            <button class="ai-mic" id="dcMicBtn" onclick="dcToggleVoice()" title="Falar" style="display:none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="ai-send" id="dcSendBtn" onclick="dcSend()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
           </div>
-
         </div>
       </div>
     </div>
@@ -2699,7 +2676,7 @@ function togglePrivacidade(){
   var _fpRender={emp:rF,fluxo:rFluxo,pes:rFP,dre:rDRE,prec:calcPrec,imp:calcImp,inad:rInad};
   var sec=_curSection;
   var renderMap={
-    resumo:function(){rR();igRender();maRender();},
+    resumo:function(){rR();igRender();maRender();dcInit();},
     clientes:rC,
     agenda:function(){rA();rCalAno();},
     posproducao:function(){rPe();rEdicoes();},
@@ -2737,7 +2714,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.42';
+var APP_VERSION = 'v1.10.43';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -10562,6 +10539,33 @@ function _renderMD(text){
   return out.join('<br>');
 }
 
+// Prompt do assistente — compartilhado pelo painel lateral e pelo chat do dashboard,
+// para a personalidade ser a mesma nos dois.
+function _aiSystemPrompt(context){
+  return (
+      'Você é o assistente da Kelvn — fala como aquele amigo organizado que ajuda sem julgar.\n\n' +
+      'TOM DE VOZ:\n' +
+      '- Frases curtas que respiram. Cada frase carrega um peso. Ponto final, respira, próxima ideia.\n' +
+      '- Linguagem de igual para igual. Você não é professor, não é consultor, não é robô. É parceiro.\n' +
+      '- "Você" e "a gente" sempre. Nunca "o usuário", "o fotógrafo" na terceira pessoa ou "prezado".\n' +
+      '- Calor humano antes de informar. Se a situação pede, reconhece antes de resolver.\n' +
+      '- Humor leve quando cabe — uma pitada de autoironia, nunca piada forçada.\n' +
+      '- Vulnerabilidade honesta: nomeie a dor sem drama. "Você sabe aquela sensação?" vale mais que qualquer explicação técnica.\n\n' +
+      'PALAVRAS PROIBIDAS: solução, ecossistema, robusto, integrado, plataforma inovadora, potencializar, alavancar, jornada do cliente, gestão 360°, onboarding.\n\n' +
+      'EXEMPLOS DO TOM CERTO:\n' +
+      '- Confirmação: "Feito. Simples assim."\n' +
+      '- Erro: "Algo deu errado por aqui. Já estou vendo o que aconteceu."\n' +
+      '- Sem dados: "Ainda não tem nada aqui. Mas quando tiver, vai estar bem organizado."\n' +
+      '- Reconhecendo dor: "O contrato está em algum lugar. Provavelmente."\n\n' +
+      'REGRAS:\n' +
+      '- Responda SEMPRE em português brasileiro.\n' +
+      '- Use os dados reais do estúdio abaixo para responder — nunca invente números ou clientes.\n' +
+      '- Seja direto. Se não sabe, fala que não sabe.\n' +
+      '- Máximo 3-4 parágrafos por resposta. Se for lista, no máximo 5 itens.\n\n' +
+      'DADOS DO ESTÚDIO AGORA:\n' + context
+  );
+}
+
 async function sendAIMessage(){
   if(_aiThinking) return;
   if(typeof aiAbortVoice === 'function') aiAbortVoice();
@@ -10588,27 +10592,7 @@ async function sendAIMessage(){
   try {
     var context = _buildContext();
 
-    var systemPrompt =
-      'Você é o assistente da Kelvn — fala como aquele amigo organizado que ajuda sem julgar.\n\n' +
-      'TOM DE VOZ:\n' +
-      '- Frases curtas que respiram. Cada frase carrega um peso. Ponto final, respira, próxima ideia.\n' +
-      '- Linguagem de igual para igual. Você não é professor, não é consultor, não é robô. É parceiro.\n' +
-      '- "Você" e "a gente" sempre. Nunca "o usuário", "o fotógrafo" na terceira pessoa ou "prezado".\n' +
-      '- Calor humano antes de informar. Se a situação pede, reconhece antes de resolver.\n' +
-      '- Humor leve quando cabe — uma pitada de autoironia, nunca piada forçada.\n' +
-      '- Vulnerabilidade honesta: nomeie a dor sem drama. "Você sabe aquela sensação?" vale mais que qualquer explicação técnica.\n\n' +
-      'PALAVRAS PROIBIDAS: solução, ecossistema, robusto, integrado, plataforma inovadora, potencializar, alavancar, jornada do cliente, gestão 360°, onboarding.\n\n' +
-      'EXEMPLOS DO TOM CERTO:\n' +
-      '- Confirmação: "Feito. Simples assim."\n' +
-      '- Erro: "Algo deu errado por aqui. Já estou vendo o que aconteceu."\n' +
-      '- Sem dados: "Ainda não tem nada aqui. Mas quando tiver, vai estar bem organizado."\n' +
-      '- Reconhecendo dor: "O contrato está em algum lugar. Provavelmente."\n\n' +
-      'REGRAS:\n' +
-      '- Responda SEMPRE em português brasileiro.\n' +
-      '- Use os dados reais do estúdio abaixo para responder — nunca invente números ou clientes.\n' +
-      '- Seja direto. Se não sabe, fala que não sabe.\n' +
-      '- Máximo 3-4 parágrafos por resposta. Se for lista, no máximo 5 itens.\n\n' +
-      'DADOS DO ESTÚDIO AGORA:\n' + context;
+    var systemPrompt = _aiSystemPrompt(context);
 
     var messages = _aiHistory.slice(-8); // últimas 8 mensagens para contexto
 
@@ -10663,6 +10647,157 @@ async function sendAIMessage(){
   document.getElementById('aiSendBtn').disabled = false;
   document.getElementById('aiMessages').scrollTop = document.getElementById('aiMessages').scrollHeight;
 }
+
+// ── ASSISTENTE DO DASHBOARD ─────────────────────────────────────────────────
+// Chat fixo no dashboard. Independe do painel lateral (histórico e voz próprios),
+// mas usa o mesmo proxy de IA, o mesmo contexto do estúdio e o mesmo prompt.
+// A conversa fica só no aparelho (localStorage) — não passa pelo sync do Supabase.
+var _dcHistory=[], _dcThinking=false, _dcUid=null, _dcRecog=null, _dcListening=false, _dcBaseText='';
+var _DC_MAX=40;
+var _DC_BOAS_VINDAS='Oi! Eu sou a assistente da Kelvn. Pode me perguntar sobre clientes, financeiro, agenda e pós-produção. Conheço o seu estúdio pelos dados que você já cadastrou.';
+
+function _dcKey(){ return 'kelvn_'+(_currentUser?_currentUser.id+'_':'')+'dc_chat'; }
+function _dcSave(){
+  try{ localStorage.setItem(_dcKey(), JSON.stringify(_dcHistory.slice(-_DC_MAX))); }catch(e){}
+}
+function dcInit(){
+  if(!_currentUser || !document.getElementById('dcMessages')) return;
+  if(_dcUid===_currentUser.id) return;            // já carregado para esta conta
+  _dcUid=_currentUser.id;
+  try{ var raw=localStorage.getItem(_dcKey()); _dcHistory=raw?JSON.parse(raw):[]; }catch(e){ _dcHistory=[]; }
+  if(!Array.isArray(_dcHistory)) _dcHistory=[];
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){ var mic=document.getElementById('dcMicBtn'); if(mic) mic.style.display=''; if(!_dcRecog) _dcRecog=_dcCreateRecog(); }
+  dcRender();
+}
+function dcRender(){
+  var box=document.getElementById('dcMessages'); if(!box) return;
+  box.innerHTML='';
+  dcAddMessage('bot', _DC_BOAS_VINDAS);
+  _dcHistory.forEach(function(m){ dcAddMessage(m.role==='user'?'user':'bot', m.content); });
+  var sug=document.getElementById('dcSuggestions');
+  if(sug) sug.style.display=_dcHistory.length?'none':'';
+}
+function dcAddMessage(role, text, thinking){
+  var box=document.getElementById('dcMessages'); if(!box) return null;
+  var div=document.createElement('div');
+  div.className='ai-msg '+(role==='user'?'user':'bot');
+  var bubble=document.createElement('div');
+  bubble.className='ai-bubble'+(thinking?' thinking':'');
+  if(role==='user') bubble.textContent=text; else bubble.innerHTML=_renderMD(text);   // _renderMD escapa HTML
+  div.appendChild(bubble);
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+  return bubble;
+}
+function dcAutoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+function dcKeyDown(e){ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); dcSend(); } }
+
+async function dcSend(pre){
+  if(_dcThinking) return;
+  dcAbortVoice();
+  var input=document.getElementById('dcInput');
+  var text=(typeof pre==='string'?pre:input.value).trim();
+  if(!text) return;
+
+  var sug=document.getElementById('dcSuggestions'); if(sug) sug.style.display='none';
+  dcAddMessage('user', text);
+  input.value=''; input.style.height='auto';
+  _dcHistory.push({role:'user', content:text});
+
+  _dcThinking=true;
+  var btn=document.getElementById('dcSendBtn'); if(btn) btn.disabled=true;
+  var bubble=dcAddMessage('bot','Deixa eu ver aqui…',true);
+
+  try{
+    var hoje=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    var system=_aiSystemPrompt(_buildContext())+'\n\nHOJE É: '+hoje+'.';
+
+    // A API exige que a conversa comece por uma mensagem do usuário; ao cortar nas
+    // últimas 8 pode sobrar uma resposta da assistente na frente — descarta.
+    var mensagens=_dcHistory.slice(-8);
+    while(mensagens.length && mensagens[0].role!=='user') mensagens.shift();
+
+    var sess=await _sb.auth.getSession();
+    var token=sess.data&&sess.data.session?sess.data.session.access_token:'';
+    var resp=await fetch(API_BASE+'/api/ai-proxy',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:1000, system:system, messages:mensagens})
+    });
+    if(!resp.ok) throw new Error('ai-proxy '+resp.status);
+    var data=await resp.json();
+    var reply=data.content&&data.content[0]?data.content[0].text:'';
+    if(!reply) throw new Error('resposta vazia');
+
+    _dcHistory.push({role:'assistant', content:reply});
+    _dcSave();
+    bubble.classList.remove('thinking');
+    bubble.innerHTML=_renderMD(reply);
+  }catch(e){
+    // Falhou: tira a pergunta do histórico para a próxima tentativa não ir com duas
+    // mensagens seguidas do usuário.
+    _dcHistory.pop();
+    bubble.classList.remove('thinking');
+    bubble.textContent='Algo deu errado por aqui. Tenta de novo em um segundo.';
+    console.error('[assistente]', e);
+  }finally{
+    _dcThinking=false;
+    if(btn) btn.disabled=false;
+    var box=document.getElementById('dcMessages'); if(box) box.scrollTop=box.scrollHeight;
+  }
+}
+
+function dcLimpar(){
+  if(!_dcHistory.length) return;
+  confirmar({titulo:'Limpar a conversa?',msg:'Isso apaga o histórico do chat neste aparelho.',label:'Limpar',style:'background:var(--coral);color:#fff;border-color:var(--coral);'},function(){
+    _dcHistory=[]; _dcSave(); dcRender();
+  });
+}
+
+// Voz — mesma ideia do painel lateral, com instância própria.
+function _dcCreateRecog(){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return null;
+  var r=new SR();
+  r.lang='pt-BR'; r.interimResults=true; r.continuous=false;
+  r.onresult=function(e){
+    var txt='';
+    for(var i=e.resultIndex;i<e.results.length;i++) txt+=e.results[i][0].transcript;
+    var inp=document.getElementById('dcInput');
+    inp.value=(_dcBaseText?_dcBaseText+' ':'')+txt;
+    dcAutoResize(inp);
+  };
+  r.onerror=function(){ dcStopVoice(); };
+  r.onend=function(){ dcStopVoice(); };
+  return r;
+}
+function dcToggleVoice(){
+  if(!_dcRecog) return;
+  if(_dcListening){ _dcRecog.stop(); return; }
+  var inp=document.getElementById('dcInput');
+  _dcBaseText=inp.value.trim();
+  try{
+    _dcRecog.start();
+    _dcListening=true;
+    document.getElementById('dcMicBtn').classList.add('listening');
+    inp.setAttribute('placeholder','Ouvindo… pode falar');
+  }catch(err){ /* já iniciado */ }
+}
+function dcStopVoice(){
+  _dcListening=false;
+  var mic=document.getElementById('dcMicBtn'); if(mic) mic.classList.remove('listening');
+  var inp=document.getElementById('dcInput'); if(inp) inp.setAttribute('placeholder','Fala com a assistente…');
+}
+// Libera o microfone à força (privacidade). Recria a instância porque no iOS o
+// indicador de mic do sistema pode continuar aceso com a mesma instância viva.
+function dcAbortVoice(){
+  if(_dcRecog){ try{ _dcRecog.onresult=null;_dcRecog.onerror=null;_dcRecog.onend=null;_dcRecog.abort(); }catch(e){} }
+  dcStopVoice();
+  _dcRecog=_dcCreateRecog();
+}
+document.addEventListener('visibilitychange', function(){ if(document.hidden && _dcListening) dcAbortVoice(); });
+window.addEventListener('pagehide', function(){ if(_dcListening) dcAbortVoice(); });
 
 // ========================================================
 // SISTEMA DE DESIGN DE GALERIAS
