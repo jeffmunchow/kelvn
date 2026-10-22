@@ -1764,10 +1764,9 @@ select.aj-input{cursor:pointer;}
 
     <div class="rm-card">
       <div class="rm-card-t">Manda pra gente</div>
-      <div class="rm-card-s">Uma ideia de feature, uma sugestão, um problema ou só um elogio. A gente lê tudo.</div>
+      <div class="rm-card-s">Uma sugestão, um problema ou só um elogio. A gente lê tudo.</div>
       <div class="rm-tipos" id="rm-tipos">
-        <button type="button" class="ig-pill active" data-tipo="ideia" onclick="rmSelTipo(this)">Ideia</button>
-        <button type="button" class="ig-pill" data-tipo="sugestao" onclick="rmSelTipo(this)">Sugestão</button>
+        <button type="button" class="ig-pill active" data-tipo="sugestao" onclick="rmSelTipo(this)">Sugestão</button>
         <button type="button" class="ig-pill" data-tipo="problema" onclick="rmSelTipo(this)">Problema</button>
         <button type="button" class="ig-pill" data-tipo="elogio" onclick="rmSelTipo(this)">Elogio</button>
         <button type="button" class="ig-pill" data-tipo="outro" onclick="rmSelTipo(this)">Outro</button>
@@ -2737,7 +2736,7 @@ function toggleTheme(){
 function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
-var APP_VERSION = 'v1.10.47';
+var APP_VERSION = 'v1.10.48';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -10663,7 +10662,7 @@ async function sendAIMessage(){
 // Lista pública de features com votação. As features são publicadas só pelo admin
 // (regra no banco). Aqui só lemos e votamos — a contagem vem de uma função do
 // Supabase que devolve números, nunca quem votou.
-var _rmItens=[], _rmAba='planejada', _rmCarregou=false, _rmVotando={}, _rmTipo='ideia';
+var _rmItens=[], _rmAba='planejada', _rmCarregou=false, _rmVotando={}, _rmTipo='sugestao';
 
 function rRoadmap(){
   if(_rmCarregou) rmRender();    // mostra o que já tem enquanto atualiza
