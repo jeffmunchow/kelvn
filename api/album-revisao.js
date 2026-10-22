@@ -50,7 +50,7 @@ module.exports = async function handler(req, res) {
 
 // ── Feedback do fotógrafo ─────────────────────────────────────────────────────
 
-const FB_TIPOS = { sugestao: 'Sugestão', problema: 'Problema', elogio: 'Elogio', outro: 'Outro' };
+const FB_TIPOS = { sugestao: 'Sugestão', ideia: 'Ideia de feature', problema: 'Problema', elogio: 'Elogio', outro: 'Outro' };
 const FB_ADMIN_EMAIL = 'jeffmunchowweddings@gmail.com';
 
 async function acFeedback(req, res) {

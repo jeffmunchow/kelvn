@@ -471,6 +471,27 @@ tr:hover td{background:var(--surface2);cursor:pointer;}
 .ig-pill.active{background:transparent;color:var(--text);border-color:var(--border-strong);}
 .ig-pill:hover{background:var(--surface2);}
 .ig-pill.active:hover{background:var(--surface2);}
+/* Ideias e roadmap */
+.rm-wrap{max-width:760px;}
+.rm-intro{font-size:.8rem;color:var(--text-muted);line-height:1.6;margin:0 0 1.25rem;}
+.rm-card{background:var(--surface);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:1.5rem;}
+.rm-card-t{font-family:'Playfair Display',serif;font-weight:600;font-size:.95rem;margin-bottom:.2rem;}
+.rm-card-s{font-size:.74rem;color:var(--text-hint);line-height:1.5;margin-bottom:.8rem;}
+.rm-card textarea{width:100%;box-sizing:border-box;font-family:'DM Sans',sans-serif;font-size:.85rem;border:.5px solid var(--border-strong);border-radius:var(--radius);padding:.65rem .8rem;background:var(--surface2);color:var(--text);resize:vertical;outline:none;line-height:1.5;}
+.rm-card-f{display:flex;justify-content:flex-end;margin-top:.7rem;}
+.rm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.75rem;}
+.rm-lista{background:var(--surface);border-radius:var(--radius);overflow:hidden;}
+.rm-item{display:flex;gap:1rem;align-items:flex-start;padding:1rem 1.25rem;border-bottom:.5px solid var(--border);}
+.rm-item:last-child{border-bottom:none;}
+.rm-info{flex:1;min-width:0;}
+.rm-titulo{font-size:.88rem;font-weight:500;color:var(--text);line-height:1.4;}
+.rm-desc{font-size:.76rem;color:var(--text-muted);line-height:1.55;margin-top:.25rem;}
+.rm-vote{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:46px;padding:7px 6px;border-radius:10px;border:.5px solid var(--border-strong);background:transparent;color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s,border-color .15s,color .15s;flex-shrink:0;}
+.rm-vote:hover{background:var(--surface2);}
+.rm-vote.on{background:var(--amber-light);border-color:var(--amber);color:var(--amber-deep);}
+.rm-vote:disabled{cursor:default;opacity:.6;}
+.rm-vote-n{font-size:.78rem;font-weight:500;line-height:1;}
+.rm-vazio{padding:2.2rem 1.25rem;text-align:center;font-size:.8rem;color:var(--text-hint);line-height:1.6;}
 .ig-kpi-row{display:grid;grid-template-columns:1fr 1fr;border-top:.5px solid var(--border);}
 .ig-kpi{padding:.7rem 1rem;border-right:.5px solid var(--border);}
 .ig-kpi:nth-child(2n){border-right:none;}
@@ -765,6 +786,10 @@ select.aj-input{cursor:pointer;}
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
   </button>
 
+  <button class="snav-btn" id="sn-roadmap" onclick="goDirecto('roadmap')" title="Ideias e roadmap">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"/></svg>
+  </button>
+
   <div class="snav-bottom">
     <div class="snav-sep"></div>
     <button class="snav-btn" id="sn-privacidade" onclick="togglePrivacidade()" title="Ocultar valores">
@@ -832,6 +857,10 @@ select.aj-input{cursor:pointer;}
     <button class="msheet-tile" id="ms-marketing" onclick="maisGo('marketing')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
       <span>Redes &amp; Anúncios</span>
+    </button>
+    <button class="msheet-tile" id="ms-roadmap" onclick="maisGo('roadmap')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"/></svg>
+      <span>Ideias e roadmap</span>
     </button>
     <button class="msheet-tile" id="ms-ajustes" onclick="maisGo('ajustes')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1737,6 +1766,28 @@ select.aj-input{cursor:pointer;}
 
 <!-- EDUCAÇÃO -->
 <!-- AJUSTES -->
+<!-- IDEIAS E ROADMAP -->
+<div class="panel" id="p-roadmap">
+  <div class="sh"><div class="st">Ideias e roadmap</div></div>
+  <div class="rm-wrap">
+    <p class="rm-intro">A Kelvn cresce com o que você pede. Manda sua ideia e vota no que você quer ver primeiro. A lista é pública: todo mundo vê quantos votos cada coisa tem, mas ninguém vê quem votou.</p>
+
+    <div class="rm-card">
+      <div class="rm-card-t">Tem uma ideia?</div>
+      <div class="rm-card-s">Pode ser uma feature nova, um jeito melhor de fazer algo, ou só uma dor do seu dia a dia. A gente lê tudo.</div>
+      <textarea id="rm-ideia" rows="3" maxlength="1000" placeholder="Conta com suas palavras o que você gostaria de ter na Kelvn…"></textarea>
+      <div class="rm-card-f"><button class="btn primary" id="rm-enviar" onclick="rmEnviarIdeia()">Mandar ideia</button></div>
+    </div>
+
+    <div class="rm-tabs" id="rm-tabs">
+      <button class="ig-pill active" data-aba="planejada" onclick="rmAba('planejada')">Planejadas</button>
+      <button class="ig-pill" data-aba="desenvolvimento" onclick="rmAba('desenvolvimento')">Em desenvolvimento</button>
+      <button class="ig-pill" data-aba="lancada" onclick="rmAba('lancada')">Lançadas</button>
+    </div>
+    <div id="rm-lista" class="rm-lista"></div>
+  </div>
+</div>
+
 <div class="panel" id="p-ajustes">
   <div class="sh"><div class="st">Ajustes</div></div>
   <div class="aj-wrap" style="display:flex;gap:0;height:calc(100vh / 0.9 - 120px);overflow:hidden;">
@@ -2686,6 +2737,7 @@ function togglePrivacidade(){
     agendamento:function(){rTR();rSlots();},
     galerias:rGal,
     marketing:rMarketing,
+    roadmap:rRoadmap,
     ajustes:rSD
   };
   if(sec&&renderMap[sec])renderMap[sec]();
@@ -2714,7 +2766,7 @@ function cov(id){document.getElementById(id).classList.remove('open');}
 
 // ── FEEDBACK ────────────────────────────────────────────────────────────────
 var _fbTipo = 'sugestao';
-var APP_VERSION = 'v1.10.45';
+var APP_VERSION = 'v1.10.46';
 
 // ── ATUALIZAÇÃO AUTOMÁTICA (só mobile) ──────────────────────────────────────
 // PWAs no iOS não buscam HTML novo sozinhos ao reabrir; aqui a gente confere
@@ -2904,7 +2956,7 @@ function go(name){
   _curTab=name;
   if(name==='equipe'){goDirecto('ajustes');switchAJ('equipe');return;}
   if(name==='pacotes'){goDirecto('ajustes');switchAJ('servicos');return;}
-  ({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,marketing:rMarketing,ajustes:rSD})[name]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,marketing:rMarketing,ajustes:rSD})[name]();
+  ({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,marketing:rMarketing,roadmap:rRoadmap,ajustes:rSD})[name]&&({resumo:rR,clientes:rC,agenda:function(){rA();rCalAno();},posproducao:function(){rPe();rEdicoes();},financeiro:function(){rF();},analises:function(){rAN();},questionarios:function(){rQT();},agendamento:function(){rTR();rSlots();},galerias:rGal,marketing:rMarketing,roadmap:rRoadmap,ajustes:rSD})[name]();
 }
 var _curFP='emp';
 function switchFP(name){
@@ -10677,6 +10729,122 @@ async function sendAIMessage(){
   _aiThinking = false;
   document.getElementById('aiSendBtn').disabled = false;
   document.getElementById('aiMessages').scrollTop = document.getElementById('aiMessages').scrollHeight;
+}
+
+// ── IDEIAS E ROADMAP ────────────────────────────────────────────────────────
+// Lista pública de features com votação. As features são publicadas só pelo admin
+// (regra no banco). Aqui só lemos e votamos — a contagem vem de uma função do
+// Supabase que devolve números, nunca quem votou.
+var _rmItens=[], _rmAba='planejada', _rmCarregou=false, _rmVotando={};
+
+function rRoadmap(){
+  if(_rmCarregou) rmRender();    // mostra o que já tem enquanto atualiza
+  rmCarregar();
+}
+async function rmCarregar(){
+  var box=document.getElementById('rm-lista'); if(!box) return;
+  if(!_rmCarregou) box.innerHTML='<div class="rm-vazio">Carregando…</div>';
+  try{
+    var r=await _sb.rpc('roadmap_listar');
+    if(r.error) throw r.error;
+    // Voto em andamento: a resposta pode estar velha em relação ao clique. Não atropela.
+    if(Object.keys(_rmVotando).length) return;
+    _rmItens=(r.data||[]).map(function(f){
+      return {id:f.id, titulo:f.titulo||'', descricao:f.descricao||'', status:f.status,
+              votos:Number(f.votos)||0, votei:!!f.votei};
+    });
+    _rmCarregou=true;
+    rmRender();
+  }catch(e){
+    console.error('[roadmap]', e);
+    if(!_rmCarregou) box.innerHTML='<div class="rm-vazio">Não consegui carregar a lista agora.<br><button class="btn" style="margin-top:.8rem;" onclick="rmCarregar()">Tentar de novo</button></div>';
+  }
+}
+function rmAba(aba){
+  _rmAba=aba;
+  document.querySelectorAll('#rm-tabs .ig-pill').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-aba')===aba);
+  });
+  rmRender();
+}
+function rmRender(){
+  var box=document.getElementById('rm-lista'); if(!box) return;
+  var rotulos={planejada:'Planejadas', desenvolvimento:'Em desenvolvimento', lancada:'Lançadas'};
+  document.querySelectorAll('#rm-tabs .ig-pill').forEach(function(b){
+    var a=b.getAttribute('data-aba');
+    var n=_rmItens.filter(function(f){return f.status===a;}).length;
+    b.textContent=rotulos[a]+(n?' · '+n:'');
+  });
+  var lista=_rmItens.filter(function(f){return f.status===_rmAba;})
+    .sort(function(a,b){return b.votos-a.votos;});   // mais votadas primeiro (estável: empate mantém a ordem do servidor)
+  if(!lista.length){
+    var vazio={
+      planejada:'Ainda não tem nada planejado por aqui. Manda uma ideia ali em cima.',
+      desenvolvimento:'Nada em desenvolvimento neste momento.',
+      lancada:'Ainda não lançamos nada por aqui. A primeira vai aparecer nesta lista.'
+    };
+    box.innerHTML='<div class="rm-vazio">'+vazio[_rmAba]+'</div>';
+    return;
+  }
+  var coracao=function(on){
+    return '<svg width="16" height="16" viewBox="0 0 24 24" fill="'+(on?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  };
+  box.innerHTML=lista.map(function(f){
+    var encerrada=f.status==='lancada';
+    return '<div class="rm-item">'
+      +'<div class="rm-info"><div class="rm-titulo">'+esc(f.titulo)+'</div>'
+      +(f.descricao?'<div class="rm-desc">'+esc(f.descricao)+'</div>':'')+'</div>'
+      +'<button class="rm-vote'+(f.votei?' on':'')+'" '+(encerrada?'disabled ':'')
+      +'title="'+(encerrada?'Já foi lançada':(f.votei?'Tirar minha curtida':'Curtir'))+'" '
+      +'onclick="rmVotar(\''+f.id+'\')">'+coracao(f.votei)+'<span class="rm-vote-n">'+f.votos+'</span></button>'
+      +'</div>';
+  }).join('');
+}
+async function rmVotar(id){
+  if(_rmVotando[id]) return;
+  var f=_rmItens.find(function(x){return x.id===id;});
+  if(!f||f.status==='lancada') return;
+  _rmVotando[id]=true;
+  var antes={votos:f.votos, votei:f.votei};
+  f.votei=!f.votei; f.votos+=f.votei?1:-1;      // responde na hora; o servidor confirma em seguida
+  rmRender();
+  try{
+    var r=await _sb.rpc('roadmap_votar',{p_feature:id});
+    if(r.error) throw r.error;
+    f.votos=Number(r.data.votos)||0;               // o número do servidor é o que vale
+    f.votei=!!r.data.votei;
+  }catch(e){
+    f.votos=antes.votos; f.votei=antes.votei;
+    notify('Não consegui registrar sua curtida. Tenta de novo?');
+    console.error('[roadmap] votar:', e);
+  }finally{
+    delete _rmVotando[id];
+    rmRender();
+  }
+}
+async function rmEnviarIdeia(){
+  var inp=document.getElementById('rm-ideia');
+  var msg=inp.value.trim();
+  if(!msg){ notify('Escreve a sua ideia antes de mandar.'); return; }
+  var btn=document.getElementById('rm-enviar');
+  btn.disabled=true; btn.textContent='Enviando…';
+  try{
+    var sess=await _sb.auth.getSession();
+    var token=sess.data&&sess.data.session?sess.data.session.access_token:'';
+    var resp=await fetch(API_BASE+'/api/feedback',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({tipo:'ideia', mensagem:msg, contexto:'ideias e roadmap · '+APP_VERSION}),
+    });
+    if(!resp.ok) throw new Error('falha '+resp.status);
+    inp.value='';
+    notify('Ideia enviada. Obrigado! A gente lê tudo.');
+  }catch(e){
+    console.error('[roadmap] ideia:', e);
+    notify('Algo deu errado por aqui. Tenta de novo em instantes.');
+  }finally{
+    btn.disabled=false; btn.textContent='Mandar ideia';
+  }
 }
 
 // ── ASSISTENTE DO DASHBOARD ─────────────────────────────────────────────────
